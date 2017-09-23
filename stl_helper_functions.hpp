@@ -226,18 +226,20 @@ namespace std
 			size_t begin = 0u;
 			size_t end = str.size() - 1;
 
+			using char_type = typename StringType::value_type;
+
 			if (str.size() == 0u) return StringType{};
 
 			for (auto is_ws_char{true}; begin <= end; ++begin)
 			{
-				switch (static_cast<typename StringType::value_type>(str[begin]))
+				switch (static_cast<char_type>(str[begin]))
 				{
-				case static_cast<typename StringType::value_type>(' '):
-				case static_cast<typename StringType::value_type>('\t'):
-				case static_cast<typename StringType::value_type>('\n'):
-				case static_cast<typename StringType::value_type>('\r'):
-				case static_cast<typename StringType::value_type>('\f'):
-				case static_cast<typename StringType::value_type>('\v'):
+				case static_cast<char_type>(' '):
+				case static_cast<char_type>('\t'):
+				case static_cast<char_type>('\n'):
+				case static_cast<char_type>('\r'):
+				case static_cast<char_type>('\f'):
+				case static_cast<char_type>('\v'):
 					break;
 
 				default:
@@ -252,14 +254,14 @@ namespace std
 
 			for (auto is_ws_char{true}; end > begin; --end)
 			{
-				switch (static_cast<typename StringType::value_type>(str[end]))
+				switch (static_cast<char_type>(str[end]))
 				{
-				case static_cast<typename StringType::value_type>(' '):
-				case static_cast<typename StringType::value_type>('\t'):
-				case static_cast<typename StringType::value_type>('\n'):
-				case static_cast<typename StringType::value_type>('\r'):
-				case static_cast<typename StringType::value_type>('\f'):
-				case static_cast<typename StringType::value_type>('\v'):
+				case static_cast<char_type>(' '):
+				case static_cast<char_type>('\t'):
+				case static_cast<char_type>('\n'):
+				case static_cast<char_type>('\r'):
+				case static_cast<char_type>('\f'):
+				case static_cast<char_type>('\v'):
 					break;
 
 				default:
@@ -279,18 +281,20 @@ namespace std
 			size_t begin = 0u;
 			size_t const end = str.size() - 1;
 
+			using char_type = typename StringType::value_type;
+
 			if (str.size() == 0u) return StringType{};
 
 			for (auto is_ws_char{true}; (is_ws_char && (begin <= end)); ++begin)
 			{
-				switch (static_cast<typename StringType::value_type>(str[begin]))
+				switch (static_cast<char_type>(str[begin]))
 				{
-				case static_cast<typename StringType::value_type>(' '):
-				case static_cast<typename StringType::value_type>('\t'):
-				case static_cast<typename StringType::value_type>('\n'):
-				case static_cast<typename StringType::value_type>('\r'):
-				case static_cast<typename StringType::value_type>('\f'):
-				case static_cast<typename StringType::value_type>('\v'):
+				case static_cast<char_type>(' '):
+				case static_cast<char_type>('\t'):
+				case static_cast<char_type>('\n'):
+				case static_cast<char_type>('\r'):
+				case static_cast<char_type>('\f'):
+				case static_cast<char_type>('\v'):
 					break;
 
 				default:
@@ -312,18 +316,20 @@ namespace std
 			size_t begin = 0u;
 			size_t end = str.size() - 1;
 
+			using char_type = typename StringType::value_type;
+
 			if (str.size() == 0u) return StringType{};
 
 			for (auto is_ws_char{true}; (is_ws_char && (end != StringType::npos)); --end)
 			{
-				switch (static_cast<typename StringType::value_type>(str[end]))
+				switch (static_cast<char_type>(str[end]))
 				{
-				case static_cast<typename StringType::value_type>(' '):
-				case static_cast<typename StringType::value_type>('\t'):
-				case static_cast<typename StringType::value_type>('\n'):
-				case static_cast<typename StringType::value_type>('\r'):
-				case static_cast<typename StringType::value_type>('\f'):
-				case static_cast<typename StringType::value_type>('\v'):
+				case static_cast<char_type>(' ') :
+				case static_cast<char_type>('\t') :
+				case static_cast<char_type>('\n') :
+				case static_cast<char_type>('\r') :
+				case static_cast<char_type>('\f') :
+				case static_cast<char_type>('\v') :
 					break;
 
 				default:
