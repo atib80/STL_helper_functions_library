@@ -4,6 +4,8 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define _SCL_SECURE_NO_WARNINGS
 
+#include <iostream>
+#include <typeinfo>
 #include <cwchar>
 #include <locale>
 #include <conio.h>
@@ -16,13 +18,96 @@
 #include <unordered_map>
 #include <algorithm>
 
+
 #define STL_HELPER_UTILITY_MAJOR_VERSION 1
 #define STL_HELPER_UTILITY_MINOR_VERSION 0
+
+#define PRINT_VAR_NAME(arg) std::cout << #arg << ' '
+#define PRINT_VAR_NAMEW(arg) std::wcout << #arg << L' '
 
 namespace std
 {
 	namespace helper
 	{
+		enum class string_type { cstr, wstr, u16_str, u32_str };
+
+		/**
+		 * \brief constexpr function returns RTTI data (a const reference to a type_info struct) about its single argument
+		 * \tparam T template parameter T specifies compile-time data type of passed argument 'var'
+		 * \param var argument of type const T& passed
+		 * \return const reference to struct type_info that contains RTTI information about specified argument 'var'
+		 */
+		template <typename T>
+		constexpr const type_info& get_type_id(const T& var)
+		{
+			return typeid(var);
+		}
+
+		template <typename T>
+		const char* get_type_name(T&& var)
+		{
+			return typeid(var).name();
+		}
+
+		template <typename T>
+		const wchar_t* get_type_name_w(T&& var)
+		{
+			const string cstr{typeid(var).name()};
+
+			return wstring{cbegin(cstr), cend(cstr)}.c_str();
+		}
+
+		template <typename T>
+		const char16_t* get_type_name_u16(T&& var)
+		{
+			const string cstr{typeid(var).name()};
+
+			return u16string{cbegin(cstr), cend(cstr)}.c_str();
+		}
+
+		template <typename T>
+		const char32_t* get_type_name_u32(T&& var)
+		{
+			const string cstr{typeid(var).name()};
+
+			return u32string{cbegin(cstr), cend(cstr)}.c_str();
+		}
+
+		constexpr bool are_data_types_equal()
+		{
+			return true;
+		}
+
+		template <typename T, typename ...Args>
+		constexpr bool are_data_types_equal(T&& arg, Args&&... args)
+		{
+			return get_type_id(arg) == are_data_types_equal(args);
+		}
+
+		template <typename T, typename U, typename ...Args>
+		constexpr bool check_data_types_for_equality(const T& arg1, const U& arg2, Args&&... args)
+		{
+			constexpr auto result = are_data_types_equal(forward<Args>(args)...);
+
+			return (get_type_id(arg1) == get_type_id(arg2)) == result;
+		}
+
+		template <typename T>
+		void show_var_info(const T& arg)
+		{
+			cout << "\nName: ";
+			PRINT_VAR_NAME(arg);
+			cout << "\nType: " << get_type_name(arg) << "\nValue: " << arg << endl;
+		}
+
+		template <typename T>
+		void show_var_info_w(const T& arg)
+		{
+			wcout << L"\nName: ";
+			PRINT_VAR_NAMEW(arg);
+			wcout << L"\nType: " << get_type_name(arg) << L"\nValue: " << arg << endl;
+		}
+
 		template <typename... Args>
 		int say_slow(const size_t time_delay_in_ms, const char* format_string, Args ... args)
 		{
@@ -324,12 +409,12 @@ namespace std
 			{
 				switch (static_cast<char_type>(str[end]))
 				{
-				case static_cast<char_type>(' ') :
-				case static_cast<char_type>('\t') :
-				case static_cast<char_type>('\n') :
-				case static_cast<char_type>('\r') :
-				case static_cast<char_type>('\f') :
-				case static_cast<char_type>('\v') :
+				case static_cast<char_type>(' '):
+				case static_cast<char_type>('\t'):
+				case static_cast<char_type>('\n'):
+				case static_cast<char_type>('\r'):
+				case static_cast<char_type>('\f'):
+				case static_cast<char_type>('\v'):
 					break;
 
 				default:
@@ -444,7 +529,8 @@ namespace std
 		}
 
 		template <typename StringType>
-		std::vector<StringType> split(const StringType& source, const StringType& needle, size_t const max_count = StringType::npos)
+		std::vector<StringType> split(const StringType& source, const StringType& needle,
+		                              size_t const max_count = StringType::npos)
 		{
 			std::vector<StringType> parts{};
 
@@ -485,7 +571,8 @@ namespace std
 		}
 
 		template <typename StringType>
-		bool starts_with(const StringType& src, const typename StringType::value_type start_char, bool ignore_case = false, const std::locale& loc = std::locale{})
+		bool starts_with(const StringType& src, const typename StringType::value_type start_char, bool ignore_case = false,
+		                 const std::locale& loc = std::locale{})
 		{
 			if (src.size() == 0) return false;
 
@@ -498,9 +585,10 @@ namespace std
 		}
 
 		template <typename StringType>
-		bool starts_with(const StringType& src, typename StringType::const_pointer start_tag, bool ignore_case = false, const std::locale& loc = std::locale{})
+		bool starts_with(const StringType& src, typename StringType::const_pointer start_tag, bool ignore_case = false,
+		                 const std::locale& loc = std::locale{})
 		{
-			const StringType start_word{ start_tag };
+			const StringType start_word{start_tag};
 
 			if ((src.size() == 0) || (start_word.size() == 0) || (start_word.size() > src.size())) return false;
 
@@ -510,30 +598,30 @@ namespace std
 
 				return false;
 			}
-			
-			
-			StringType src_lc{ src };
 
-			StringType start_tag_lc{ start_word };
+
+			StringType src_lc{src};
+
+			StringType start_tag_lc{start_word};
 
 			std::transform(begin(src), end(src), begin(src_lc), [&loc](const auto ch)
-			{
-				return static_cast<typename StringType::value_type>(std::tolower(ch, loc));
-			});
+		               {
+			               return static_cast<typename StringType::value_type>(std::tolower(ch, loc));
+		               });
 
 			std::transform(begin(start_word), end(start_word), begin(start_tag_lc), [&loc](const auto ch)
-			{
-				return static_cast<typename StringType::value_type>(std::tolower(ch, loc));
-			});
+		               {
+			               return static_cast<typename StringType::value_type>(std::tolower(ch, loc));
+		               });
 
 			if (src_lc.find(start_tag_lc) == 0) return true;
 
 			return false;
-			
 		}
 
 		template <typename StringType>
-		bool starts_with(const StringType& src, const StringType& start_tag, bool ignore_case = false, const std::locale& loc = std::locale{})
+		bool starts_with(const StringType& src, const StringType& start_tag, bool ignore_case = false,
+		                 const std::locale& loc = std::locale{})
 		{
 			if ((src.size() == 0) || (start_tag.size() == 0) || (start_tag.size() > src.size())) return false;
 
@@ -543,30 +631,30 @@ namespace std
 
 				return false;
 			}
-			
-			StringType src_lc{ src };
 
-			StringType start_tag_lc{ start_tag };
+			StringType src_lc{src};
+
+			StringType start_tag_lc{start_tag};
 
 			std::transform(begin(src), end(src), begin(src_lc), [&loc](const auto ch)
-			{
-				return static_cast<typename StringType::value_type>(std::tolower(ch, loc));
-			});
+		               {
+			               return static_cast<typename StringType::value_type>(std::tolower(ch, loc));
+		               });
 
 			std::transform(begin(start_tag), end(start_tag), begin(start_tag_lc), [&loc](const auto ch)
-			{
-				return static_cast<typename StringType::value_type>(std::tolower(ch, loc));
-			});
+		               {
+			               return static_cast<typename StringType::value_type>(std::tolower(ch, loc));
+		               });
 
 			if (src_lc.find(start_tag_lc) == 0) return true;
 
 			return false;
-			
-		}		
+		}
 
 		template <typename StringType>
-		typename StringType::size_type index_of(const StringType& text, const typename StringType::value_type needle_char, const size_t start_pos = 0u, bool ignore_case = false,
-			const std::locale& loc = std::locale{})
+		typename StringType::size_type index_of(const StringType& text, const typename StringType::value_type needle_char,
+		                                        const size_t start_pos = 0u, bool ignore_case = false,
+		                                        const std::locale& loc = std::locale{})
 		{
 			StringType needle_str(1, needle_char);
 
@@ -577,23 +665,24 @@ namespace std
 				return text.find(needle_str, start_pos);
 			}
 
-			StringType text_lc{ text };
+			StringType text_lc{text};
 
 			std::transform(begin(text), end(text), begin(text_lc), [&loc](const auto ch)
-			{
-				return static_cast<typename StringType::value_type>(std::tolower(ch, loc));
-			});
+		               {
+			               return static_cast<typename StringType::value_type>(std::tolower(ch, loc));
+		               });
 
-			StringType needle_str_lc( 1, std::tolower(needle_char, loc));
+			StringType needle_str_lc(1, std::tolower(needle_char, loc));
 
-				return text_lc.find(needle_str_lc, start_pos);
+			return text_lc.find(needle_str_lc, start_pos);
 		}
 
 		template <typename StringType>
-		typename StringType::size_type index_of(const StringType& text, typename StringType::const_pointer needle, const size_t start_pos = 0u, bool ignore_case = false,
-			const std::locale& loc = std::locale{})
+		typename StringType::size_type index_of(const StringType& text, typename StringType::const_pointer needle,
+		                                        const size_t start_pos = 0u, bool ignore_case = false,
+		                                        const std::locale& loc = std::locale{})
 		{
-			StringType needle_str{ needle };
+			StringType needle_str{needle};
 
 			if ((text.size() == 0) || (needle_str.size() == 0) || (needle_str.size() > text.size())) return StringType::npos;
 
@@ -602,25 +691,26 @@ namespace std
 				return text.find(needle_str, start_pos);
 			}
 
-			StringType text_lc{ text };
+			StringType text_lc{text};
 
 			std::transform(begin(text), end(text), begin(text_lc), [&loc](const auto ch)
-			{
-				return static_cast<typename StringType::value_type>(std::tolower(ch, loc));
-			});
+		               {
+			               return static_cast<typename StringType::value_type>(std::tolower(ch, loc));
+		               });
 
-			StringType needle_lc{ needle_str };
+			StringType needle_lc{needle_str};
 
 			std::transform(begin(needle_str), end(needle_str), begin(needle_lc), [&loc](const auto ch)
-			{
-				return static_cast<typename StringType::value_type>(std::tolower(ch, loc));
-			});
+		               {
+			               return static_cast<typename StringType::value_type>(std::tolower(ch, loc));
+		               });
 
 			return text_lc.find(needle_lc, start_pos);
 		}
 
 		template <typename StringType>
-		typename StringType::size_type index_of(const StringType& text, const StringType& needle, const size_t start_pos = 0u, bool ignore_case = false,
+		typename StringType::size_type index_of(const StringType& text, const StringType& needle, const size_t start_pos = 0u,
+		                                        bool ignore_case = false,
 		                                        const std::locale& loc = std::locale{})
 		{
 			if ((text.size() == 0) || (needle.size() == 0) || (needle.size() > text.size())) return StringType::npos;
@@ -648,8 +738,9 @@ namespace std
 		}
 
 		template <typename StringType>
-		bool contains(const StringType& text, const typename StringType::value_type needle_char, const size_t start_pos = 0u, bool ignore_case = false,
-			const std::locale& loc = std::locale{})
+		bool contains(const StringType& text, const typename StringType::value_type needle_char, const size_t start_pos = 0u,
+		              bool ignore_case = false,
+		              const std::locale& loc = std::locale{})
 		{
 			StringType needle_str(1, needle_char);
 
@@ -662,12 +753,12 @@ namespace std
 				return false;
 			}
 
-			StringType text_lc{ text };
+			StringType text_lc{text};
 
 			std::transform(begin(text), end(text), begin(text_lc), [&loc](const auto ch)
-			{
-				return static_cast<typename StringType::value_type>(std::tolower(ch, loc));
-			});
+		               {
+			               return static_cast<typename StringType::value_type>(std::tolower(ch, loc));
+		               });
 
 			StringType needle_str_lc(1, std::tolower(needle_char, loc));
 
@@ -677,10 +768,11 @@ namespace std
 		}
 
 		template <typename StringType>
-		bool contains(const StringType& text, typename StringType::const_pointer needle, const size_t start_pos = 0u, bool ignore_case = false,
-			const std::locale& loc = std::locale{})
+		bool contains(const StringType& text, typename StringType::const_pointer needle, const size_t start_pos = 0u,
+		              bool ignore_case = false,
+		              const std::locale& loc = std::locale{})
 		{
-			StringType needle_str{ needle };
+			StringType needle_str{needle};
 
 			if ((text.size() == 0) || (needle_str.size() == 0) || (needle_str.size() > text.size())) return false;
 
@@ -691,19 +783,19 @@ namespace std
 				return false;
 			}
 
-			StringType text_lc{ text };
+			StringType text_lc{text};
 
 			std::transform(begin(text), end(text), begin(text_lc), [&loc](const auto ch)
-			{
-				return static_cast<typename StringType::value_type>(std::tolower(ch, loc));
-			});
+		               {
+			               return static_cast<typename StringType::value_type>(std::tolower(ch, loc));
+		               });
 
-			StringType needle_str_lc{ needle_str };
+			StringType needle_str_lc{needle_str};
 
 			std::transform(begin(needle_str), end(needle_str), begin(needle_str_lc), [&loc](const auto ch)
-			{
-				return static_cast<typename StringType::value_type>(std::tolower(ch, loc));
-			});
+		               {
+			               return static_cast<typename StringType::value_type>(std::tolower(ch, loc));
+		               });
 
 			if (text_lc.find(needle_str_lc, start_pos) != StringType::npos) return true;
 
@@ -757,9 +849,10 @@ namespace std
 		}
 
 		template <typename StringType>
-		bool ends_with(const StringType& src, typename StringType::const_pointer end_tag, bool ignore_case = false, const std::locale& loc = std::locale{})
+		bool ends_with(const StringType& src, typename StringType::const_pointer end_tag, bool ignore_case = false,
+		               const std::locale& loc = std::locale{})
 		{
-			const StringType end_word{ end_tag };
+			const StringType end_word{end_tag};
 
 			if ((src.size() == 0) || (end_word.size() == 0) || (end_word.size() > src.size())) return false;
 
@@ -772,19 +865,19 @@ namespace std
 				return false;
 			}
 
-			StringType src_lc{ src };
+			StringType src_lc{src};
 
-			StringType end_tag_lc{ end_word };
+			StringType end_tag_lc{end_word};
 
 			std::transform(begin(src), end(src), begin(src_lc), [&loc](const auto ch)
-			{
-				return static_cast<typename StringType::value_type>(std::tolower(ch, loc));
-			});
+		               {
+			               return static_cast<typename StringType::value_type>(std::tolower(ch, loc));
+		               });
 
 			std::transform(begin(end_word), end(end_word), begin(end_tag_lc), [&loc](const auto ch)
-			{
-				return static_cast<typename StringType::value_type>(std::tolower(ch, loc));
-			});
+		               {
+			               return static_cast<typename StringType::value_type>(std::tolower(ch, loc));
+		               });
 
 			expected_start_pos_of_end_tag = src_lc.size() - end_tag_lc.size();
 
@@ -808,19 +901,19 @@ namespace std
 				return false;
 			}
 
-			StringType src_lc{ src };
+			StringType src_lc{src};
 
-			StringType end_tag_lc{ end_tag };
+			StringType end_tag_lc{end_tag};
 
 			std::transform(begin(src), end(src), begin(src_lc), [&loc](const auto ch)
-			{
-				return static_cast<typename StringType::value_type>(std::tolower(ch, loc));
-			});
+		               {
+			               return static_cast<typename StringType::value_type>(std::tolower(ch, loc));
+		               });
 
 			std::transform(begin(end_tag), end(end_tag), begin(end_tag_lc), [&loc](const auto ch)
-			{
-				return static_cast<typename StringType::value_type>(std::tolower(ch, loc));
-			});
+		               {
+			               return static_cast<typename StringType::value_type>(std::tolower(ch, loc));
+		               });
 
 			expected_start_pos_of_end_tag = src_lc.size() - end_tag_lc.size();
 
@@ -881,7 +974,7 @@ namespace std
 		{
 			return (container.find(key) != cend(container));
 		}
-		
+
 		template <typename KeyType, typename ValueType>
 		bool has_key(map<KeyType, ValueType>& container, const KeyType& key)
 		{
@@ -942,8 +1035,14 @@ namespace std
 			return (find(begin(container), end(container), search_value) != end(container));
 		}
 
-		template <typename ValueType>
+		/*template <typename ValueType>
 		bool has_value(const set<ValueType>& container, const ValueType& item)
+		{
+			return (container.find(item) != cend(container));
+		}
+
+		template <typename ValueType>
+		bool has_value(const set<ValueType>& container, typename ValueType::const_pointer item)
 		{
 			return (container.find(item) != cend(container));
 		}
@@ -955,7 +1054,19 @@ namespace std
 		}
 
 		template <typename ValueType>
+		bool has_value(const multiset<ValueType>& container, typename ValueType::const_pointer item)
+		{
+			return (container.find(item) != cend(container));
+		}
+
+		template <typename ValueType>
 		bool has_value(const unordered_set<ValueType>& container, const ValueType& item)
+		{
+			return (container.find(item) != cend(container));
+		}
+
+		template <typename ValueType>
+		bool has_value(const unordered_set<ValueType>& container, typename ValueType::const_pointer item)
 		{
 			return (container.find(item) != cend(container));
 		}
@@ -967,7 +1078,19 @@ namespace std
 		}
 
 		template <typename ValueType>
+		bool has_value(const unordered_multiset<ValueType>& container, typename ValueType::const_pointer item)
+		{
+			return (container.find(item) != cend(container));
+		}
+
+		template <typename ValueType>
 		bool has_value(set<ValueType>& container, const ValueType& item)
+		{
+			return (container.find(item) != end(container));
+		}
+
+		template <typename ValueType>
+		bool has_value(set<ValueType>& container, typename ValueType::const_pointer item)
 		{
 			return (container.find(item) != end(container));
 		}
@@ -979,7 +1102,19 @@ namespace std
 		}
 
 		template <typename ValueType>
+		bool has_value(multiset<ValueType>& container, typename ValueType::const_pointer item)
+		{
+			return (container.find(item) != end(container));
+		}
+
+		template <typename ValueType>
 		bool has_value(unordered_set<ValueType>& container, const ValueType& item)
+		{
+			return (container.find(item) != end(container));
+		}
+
+		template <typename ValueType>
+		bool has_value(unordered_set<ValueType>& container, typename ValueType::const_pointer item)
 		{
 			return (container.find(item) != end(container));
 		}
@@ -989,7 +1124,12 @@ namespace std
 		{
 			return (container.find(item) != end(container));
 		}
-		
+
+		template <typename ValueType>
+		bool has_value(unordered_multiset<ValueType>& container, typename ValueType::const_pointer item)
+		{
+			return (container.find(item) != end(container));
+		}*/
 	}
 }
 

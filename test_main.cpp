@@ -4,8 +4,10 @@
 #include "catch.hpp"
 #include <string>
 #include <vector>
-#include <map>
 #include <set>
+#include <unordered_set>
+#include <map>
+#include <unordered_map>
 #include <random>
 #include <chrono>
 
@@ -14,6 +16,8 @@ using namespace std;
 using namespace std::chrono;
 using namespace string_literals;
 using namespace std::helper;
+
+static random_device rd{};
 
 TEST_CASE("int say_slow(const size_t, const char*, Args...)",
 	"Testing correct work of global template function int say_slow(const size_t time_delay_in_ms, const char* format_string, Args... args)"
@@ -1092,16 +1096,17 @@ TEST_CASE("bool ends_with(const StringType& src, const StringType& end_tag, bool
 TEST_CASE("void unused_args(Args&&... args)",
 	"Testing global template function void unused_args(Args&&... args)")
 {
-	int number{ 42 };
+	const int number{ 42 };
+	
 	const wchar_t* important_message = L"Number 42 is the meaning of life.";
 
 	struct NumberInfo
 	{
 		NumberInfo() : number{ 42 }, message{ L"Number 42 is the meaning of life." } { }
 		
-		NumberInfo(int num, const wchar_t* msg) : number{ num }, message{ msg } { }
+		NumberInfo(const int num, const wchar_t* msg) : number{ num }, message{ msg } { }
 			
-		int number;
+		const int number;
 
 		const wchar_t* message;
 
@@ -1111,10 +1116,713 @@ TEST_CASE("void unused_args(Args&&... args)",
 
 }
 
-TEST_CASE("bool has_value(const T& container, const typename T::value_type& item)",
-	"Testing global template function bool has_value(const T& container, const typename T::value_type& item)")
+TEST_CASE("bool has_key(const map<KeyType, ValueType>& container, const KeyType& key)",
+	"Testing global template function bool has_key(const map<KeyType, ValueType>& container, const KeyType& key)")
 {
-	const wstring src{ L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:plum" };
+	const wstring src{ L"apple:10:banana:20:cabbage:30:lemon:40:orange:50:pepper:60:plum:70" };
+
+	const auto parts{ split(src, L':') };	
+
+	const map<wstring, size_t> fruit_count = [&]()
+	{
+		map<wstring, size_t> fruits{};
+
+		for (size_t i = 0; i < parts.size(); i += 2)
+		{
+
+			fruits[parts[i]] = stoul(parts[i + 1]);
+
+		}
+		
+		return fruits;
+
+	}();	
+
+	const vector<wstring> random_fruits{ L"apple", L"apricot", L"banana", L"orange", L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut" };
+	
+	mt19937 rand_engine{ rd() };
+	
+	auto const num_distr = uniform_int_distribution<unsigned>(0, random_fruits.size() - 1);
+
+	const auto random_fruit{ random_fruits[num_distr(rand_engine)] };
+
+	if (fruit_count.find(random_fruit) != cend(fruit_count))
+	{
+		REQUIRE(has_key(fruit_count, random_fruit));
+		
+	} else {
+
+		REQUIRE(!has_key(fruit_count, random_fruit));
+
+	}	
+
+	REQUIRE(has_key(fruit_count, wstring{ L"orange" }));
+
+	REQUIRE(!has_key(fruit_count, wstring{ L"grapefruit" }));
+}
+
+TEST_CASE("bool has_key(const map<KeyType, ValueType>& container, typename KeyType::const_pointer key)",
+	"Testing global template function bool has_key(const map<KeyType, ValueType>& container, typename KeyType::const_pointer key)")
+{
+	const wstring src{ L"apple:10:banana:20:cherries:30:lemon:40:orange:50:pepper:60:plum:70" };
+
+	const wstring needle{ L":|:" };
+	
+	const auto parts{ split(src, U':') };
+
+	const map<wstring, size_t> fruit_count = [&]()
+	{
+		map<wstring, size_t> fruits{};
+
+		for (size_t i = 0; i < parts.size(); i += 2)
+		{
+
+			fruits[parts[i]] = stoul(parts[i + 1]);
+
+		}
+
+		return fruits;
+
+	}();
+
+	const vector<const wchar_t*> random_fruits{ L"apple", L"apricot", L"banana", L"orange", L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut" };
+	
+	mt19937 rand_engine{ rd() };
+	
+	auto const num_distr = uniform_int_distribution<unsigned>(0, random_fruits.size() - 1);
+
+	auto random_fruit{ random_fruits[num_distr(rand_engine)] };
+
+	if (fruit_count.find(random_fruit) != cend(fruit_count))
+	{
+		REQUIRE(has_key(fruit_count, random_fruit));
+
+	}
+	else {
+
+		REQUIRE(!has_key(fruit_count, random_fruit));
+
+	}
+
+	REQUIRE(has_key(fruit_count, L"orange"));
+
+	REQUIRE(!has_key(fruit_count, L"grapefruit"));
+
+}
+
+TEST_CASE("bool has_key(const multimap<KeyType, ValueType>& container, const KeyType& key)",
+	"Testing global template function bool has_key(const multimap<KeyType, ValueType>& container, const KeyType& key)")
+{
+	const wstring src{ L"apple:10:banana:20:cherries:30:lemon:40:orange:50:pepper:60:plum:70" };
+
+	const auto parts{ split(src, L':') };
+
+	const multimap<wstring, size_t> fruit_count = [&]()
+	{
+		multimap<wstring, size_t> fruits{};
+
+		for (size_t i = 0; i < parts.size(); i += 2)
+		{
+
+			fruits.insert(make_pair(parts[i], stoul(parts[i + 1])));
+
+		}
+
+		return fruits;
+
+	}();
+
+	const vector<wstring> random_fruits{ L"apple", L"apricot", L"banana", L"orange", L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut" };
+
+	mt19937 rand_engine{ rd() };
+
+	auto const num_distr = uniform_int_distribution<unsigned>(0, random_fruits.size() - 1);
+
+	const auto random_fruit{ random_fruits[num_distr(rand_engine)] };
+
+	if (fruit_count.find(random_fruit) != cend(fruit_count))
+	{
+		REQUIRE(has_key(fruit_count, random_fruit));
+
+	}
+	else {
+
+		REQUIRE(!has_key(fruit_count, random_fruit));
+
+	}
+
+	REQUIRE(has_key(fruit_count, wstring{ L"orange" }));
+
+	REQUIRE(!has_key(fruit_count, wstring{ L"grapefruit" }));
+
+}
+
+TEST_CASE("bool has_key(const multimap<KeyType, ValueType>& container, typename KeyType::const_pointer key)",
+	"Testing global template function bool has_key(const multimap<KeyType, ValueType>& container, typename KeyType::const_pointer key)")
+{
+	const wstring src{ L"apple:10:banana:20:cherries:30:lemon:40:orange:50:pepper:60:plum:70" };
+
+	const auto parts{ split(src, L':') };	
+
+	const multimap<wstring, size_t> fruit_count = [&]()
+	{
+		multimap<wstring, size_t> fruits{};
+
+		for (size_t i = 0; i < parts.size(); i += 2)
+		{
+
+			fruits.insert(make_pair(parts[i], stoul(parts[i + 1])));
+
+		}
+
+		return fruits;
+
+	}();
+	
+	const vector<const wchar_t*> random_fruits{ L"apple", L"apricot", L"banana", L"orange", L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut" };
+
+	mt19937 rand_engine{ rd() };
+
+	auto const num_distr = uniform_int_distribution<unsigned>(0, random_fruits.size() - 1);
+
+	auto random_fruit{ random_fruits[num_distr(rand_engine)] };
+
+	if (fruit_count.find(random_fruit) != cend(fruit_count))
+	{
+		REQUIRE(has_key(fruit_count, random_fruit));
+
+	}
+	else {
+
+		REQUIRE(!has_key(fruit_count, random_fruit));
+
+	}
+
+	REQUIRE(has_key(fruit_count, L"orange"));
+
+	REQUIRE(!has_key(fruit_count, L"grapefruit"));
+
+}
+
+TEST_CASE("bool has_key(const unordered_map<KeyType, ValueType>& container, const KeyType& key)",
+	"Testing global template function bool has_key(const unordered_map<KeyType, ValueType>& container, const KeyType& key)")
+{
+	const wstring src{ L"apple:10:banana:20:cabbage:30:lemon:40:orange:50:pepper:60:plum:70" };
+
+	const auto parts{ split(src, L':') };
+
+	const unordered_map<wstring, size_t> fruit_count = [&]()
+	{
+		unordered_map<wstring, size_t> fruits{};
+
+		for (size_t i = 0; i < parts.size(); i += 2)
+		{
+
+			fruits[parts[i]] = stoul(parts[i + 1]);
+
+		}
+
+		return fruits;
+
+	}();
+
+	const vector<wstring> random_fruits{ L"apple", L"apricot", L"banana", L"orange", L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut" };
+
+	mt19937 rand_engine{ rd() };
+
+	auto const num_distr = uniform_int_distribution<unsigned>(0, random_fruits.size() - 1);
+
+	const auto random_fruit{ random_fruits[num_distr(rand_engine)] };
+
+	if (fruit_count.find(random_fruit) != cend(fruit_count))
+	{
+		REQUIRE(has_key(fruit_count, random_fruit));
+		
+	}
+	else {
+
+		REQUIRE(!has_key(fruit_count, random_fruit));
+
+	}
+
+	REQUIRE(has_key(fruit_count, wstring{ L"orange" }));
+
+	REQUIRE(!has_key(fruit_count, wstring{ L"grapefruit" }));
+}
+
+TEST_CASE("bool has_key(const unordered_map<KeyType, ValueType>& container, typename KeyType::const_pointer key)",
+	"Testing global template function bool has_key(const unordered_map<KeyType, ValueType>& container, typename KeyType::const_pointer key)")
+{
+	const wstring src{ L"apple:10:banana:20:cabbage:30:lemon:40:orange:50:pepper:60:plum:70" };
+
+	const auto parts{ split(src, L':') };
+
+	const unordered_map<wstring, size_t> fruit_count = [&]()
+	{
+		unordered_map<wstring, size_t> fruits{};
+
+		for (size_t i = 0; i < parts.size(); i += 2)
+		{
+
+			fruits[parts[i]] = stoul(parts[i + 1]);
+
+		}
+
+		return fruits;
+
+	}();
+
+	const vector<const wchar_t*> random_fruits{ L"apple", L"apricot", L"banana", L"orange", L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut" };
+
+	mt19937 rand_engine{ rd() };
+
+	auto const num_distr = uniform_int_distribution<unsigned>(0, random_fruits.size() - 1);
+
+	auto random_fruit{ random_fruits[num_distr(rand_engine)] };
+
+	if (fruit_count.find(random_fruit) != cend(fruit_count))
+	{
+		REQUIRE(has_key(fruit_count, random_fruit));
+
+	}
+	else {
+
+		REQUIRE(!has_key(fruit_count, random_fruit));
+
+	}
+
+	REQUIRE(has_key(fruit_count, L"orange"));
+
+	REQUIRE(!has_key(fruit_count, L"grapefruit"));
+
+}
+
+TEST_CASE("bool has_key(const unordered_multimap<KeyType, ValueType>& container, const KeyType& key)",
+	"Testing global template function bool has_key(const unordered_multimap<KeyType, ValueType>& container, const KeyType& key)")
+{
+	const wstring src{ L"apple:10:banana:20:cabbage:30:lemon:40:orange:50:pepper:60:plum:70" };
+
+	const auto parts{ split(src, L':') };
+
+	const unordered_multimap<wstring, size_t> fruit_count = [&]()
+	{
+		unordered_multimap<wstring, size_t> fruits{};
+
+		for (size_t i = 0; i < parts.size(); i += 2)
+		{
+
+			fruits.insert(make_pair(parts[i], stoul(parts[i + 1])));
+
+		}
+
+		return fruits;
+
+	}();
+
+	const vector<wstring> random_fruits{ L"apple", L"apricot", L"banana", L"orange", L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut" };
+
+	mt19937 rand_engine{ rd() };
+
+	auto const num_distr = uniform_int_distribution<unsigned>(0, random_fruits.size() - 1);
+
+	const auto random_fruit{ random_fruits[num_distr(rand_engine)] };
+
+	if (fruit_count.find(random_fruit) != cend(fruit_count))
+	{
+		REQUIRE(has_key(fruit_count, random_fruit));
+
+	}
+	else {
+
+		REQUIRE(!has_key(fruit_count, random_fruit));
+
+	}
+
+	REQUIRE(has_key(fruit_count, wstring{ L"orange" }));
+
+	REQUIRE(!has_key(fruit_count, wstring{ L"grapefruit" }));
+}
+
+TEST_CASE("bool has_key(const unordered_multimap<KeyType, ValueType>& container, typename KeyType::const_pointer key)",
+	"Testing global template function bool has_key(const unordered_multimap<KeyType, ValueType>& container, typename KeyType::const_pointer key)")
+{
+	const wstring src{ L"apple:10:banana:20:cabbage:30:lemon:40:orange:50:pepper:60:plum:70" };
+
+	const auto parts{ split(src, L':') };
+
+	const unordered_multimap<wstring, size_t> fruit_count = [&]()
+	{
+		unordered_multimap<wstring, size_t> fruits{};
+
+		for (size_t i = 0; i < parts.size(); i += 2)
+		{
+
+			fruits.insert(make_pair(parts[i], stoul(parts[i + 1])));
+
+		}
+
+		return fruits;
+
+	}();
+
+	const vector<const wchar_t*> random_fruits{ L"apple", L"apricot", L"banana", L"orange", L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut" };
+
+	mt19937 rand_engine{ rd() };
+
+	auto const num_distr = uniform_int_distribution<unsigned>(0, random_fruits.size() - 1);
+
+	auto random_fruit{ random_fruits[num_distr(rand_engine)] };
+
+	if (fruit_count.find(random_fruit) != cend(fruit_count))
+	{
+		REQUIRE(has_key(fruit_count, random_fruit));
+
+	}
+	else {
+
+		REQUIRE(!has_key(fruit_count, random_fruit));
+
+	}
+
+	REQUIRE(has_key(fruit_count, L"orange"));
+
+	REQUIRE(!has_key(fruit_count, L"grapefruit"));
+
+}
+
+
+TEST_CASE("bool has_key(map<KeyType, ValueType>& container, const KeyType& key)",
+	"Testing global template function bool has_key(map<KeyType, ValueType>& container, const KeyType& key)")
+{
+	const wstring src{ L"apple:10:banana:20:cabbage:30:lemon:40:orange:50:pepper:60:plum:70" };
+
+	const auto parts{ split(src, L':') };
+
+	auto fruit_count = map<wstring, size_t>{};
+
+	for (size_t i = 0; i < parts.size(); i += 2)
+	{
+
+		fruit_count[parts[i]] = std::stoul(parts[i + 1]);
+
+	}
+
+	const vector<wstring> random_fruits{ L"apple", L"apricot", L"banana", L"orange", L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut" };
+
+	mt19937 rand_engine{ rd() };
+
+	auto const num_distr = uniform_int_distribution<unsigned>(0, random_fruits.size() - 1);
+
+	const auto random_fruit{ random_fruits[num_distr(rand_engine)] };
+
+	if (fruit_count.find(random_fruit) != end(fruit_count))
+	{
+		REQUIRE(has_key(fruit_count, random_fruit));
+
+	}
+	else {
+
+		REQUIRE(!has_key(fruit_count, random_fruit));
+
+	}
+
+	REQUIRE(has_key(fruit_count, wstring{ L"orange" }));
+
+	REQUIRE(!has_key(fruit_count, wstring{ L"grapefruit" }));
+}
+
+TEST_CASE("bool has_key(map<KeyType, ValueType>& container, typename KeyType::const_pointer key)",
+	"Testing global template function bool has_key(map<KeyType, ValueType>& container, typename KeyType::const_pointer key)")
+{
+	const wstring src{ L"apple:10:banana:20:cherries:30:lemon:40:orange:50:pepper:60:plum:70" };
+
+	const wstring needle{ L":|:" };
+
+	auto fruit_count = map<wstring, size_t>{};
+
+	const auto parts{ split(src, U':') };
+
+	for (size_t i = 0; i < parts.size(); i += 2)
+	{
+
+		fruit_count[parts[i]] = std::stoul(parts[i + 1]);
+
+	}
+
+	const vector<const wchar_t*> random_fruits{ L"apple", L"apricot", L"banana", L"orange", L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut" };
+
+	mt19937 rand_engine{ rd() };
+
+	auto const num_distr = uniform_int_distribution<unsigned>(0, random_fruits.size() - 1);
+
+	auto random_fruit{ random_fruits[num_distr(rand_engine)] };
+
+	if (fruit_count.find(random_fruit) != end(fruit_count))
+	{
+		REQUIRE(has_key(fruit_count, random_fruit));
+
+	}
+	else {
+
+		REQUIRE(!has_key(fruit_count, random_fruit));
+
+	}
+
+	REQUIRE(has_key(fruit_count, L"orange"));
+
+	REQUIRE(!has_key(fruit_count, L"grapefruit"));
+
+}
+
+TEST_CASE("bool has_key(multimap<KeyType, ValueType>& container, const KeyType& key)",
+	"Testing global template function bool has_key(multimap<KeyType, ValueType>& container, const KeyType& key)")
+{
+	const wstring src{ L"apple:10:banana:20:cherries:30:lemon:40:orange:50:pepper:60:plum:70" };
+
+	const auto parts{ split(src, L':') };
+
+
+	auto fruit_count = multimap<wstring, size_t>{};
+
+	for (size_t i = 0; i < parts.size(); i += 2)
+	{
+
+		fruit_count.insert(make_pair(parts[i], stoul(parts[i + 1])));
+
+	}
+
+	const vector<wstring> random_fruits{ L"apple", L"apricot", L"banana", L"orange", L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut" };
+
+	mt19937 rand_engine{ rd() };
+
+	auto const num_distr = uniform_int_distribution<unsigned>(0, random_fruits.size() - 1);
+
+	const auto random_fruit{ random_fruits[num_distr(rand_engine)] };
+
+	if (fruit_count.find(random_fruit) != end(fruit_count))
+	{
+		REQUIRE(has_key(fruit_count, random_fruit));
+
+	}
+	else {
+
+		REQUIRE(!has_key(fruit_count, random_fruit));
+
+	}
+
+	REQUIRE(has_key(fruit_count, wstring{ L"orange" }));
+
+	REQUIRE(!has_key(fruit_count, wstring{ L"grapefruit" }));
+
+}
+
+TEST_CASE("bool has_key(multimap<KeyType, ValueType>& container, typename KeyType::const_pointer key)",
+	"Testing global template function bool has_key(multimap<KeyType, ValueType>& container, typename KeyType::const_pointer key)")
+{
+	const wstring src{ L"apple:10:banana:20:cherries:30:lemon:40:orange:50:pepper:60:plum:70" };
+
+	const auto parts{ split(src, L':') };
+
+	auto fruit_count = multimap<wstring, size_t>{};
+
+	for (size_t i = 0; i < parts.size(); i += 2)
+	{
+
+		fruit_count.insert(make_pair(parts[i], stoul(parts[i + 1])));
+
+	}
+
+	const vector<const wchar_t*> random_fruits{ L"apple", L"apricot", L"banana", L"orange", L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut" };
+
+	mt19937 rand_engine{ rd() };
+
+	auto const num_distr = uniform_int_distribution<unsigned>(0, random_fruits.size() - 1);
+
+	auto random_fruit{ random_fruits[num_distr(rand_engine)] };
+
+	if (fruit_count.find(random_fruit) != end(fruit_count))
+	{
+		REQUIRE(has_key(fruit_count, random_fruit));
+
+	}
+	else {
+
+		REQUIRE(!has_key(fruit_count, random_fruit));
+
+	}
+
+	REQUIRE(has_key(fruit_count, L"orange"));
+
+	REQUIRE(!has_key(fruit_count, L"grapefruit"));
+
+}
+
+TEST_CASE("bool has_key(unordered_map<KeyType, ValueType>& container, const KeyType& key)",
+	"Testing global template function bool has_key(unordered_map<KeyType, ValueType>& container, const KeyType& key)")
+{
+	const wstring src{ L"apple:10:banana:20:cabbage:30:lemon:40:orange:50:pepper:60:plum:70" };
+
+	const auto parts{ split(src, L':') };
+
+	auto fruit_count = unordered_map<wstring, size_t>{};
+
+	for (size_t i = 0; i < parts.size(); i += 2)
+	{
+
+		fruit_count[parts[i]] = std::stoul(parts[i + 1]);
+
+	}
+
+	const vector<wstring> random_fruits{ L"apple", L"apricot", L"banana", L"orange", L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut" };
+
+	mt19937 rand_engine{ rd() };
+
+	auto const num_distr = uniform_int_distribution<unsigned>(0, random_fruits.size() - 1);
+
+	const auto random_fruit{ random_fruits[num_distr(rand_engine)] };
+
+	if (fruit_count.find(random_fruit) != end(fruit_count))
+	{
+		REQUIRE(has_key(fruit_count, random_fruit));
+
+	}
+	else {
+
+		REQUIRE(!has_key(fruit_count, random_fruit));
+
+	}
+
+	REQUIRE(has_key(fruit_count, wstring{ L"orange" }));
+
+	REQUIRE(!has_key(fruit_count, wstring{ L"grapefruit" }));
+}
+
+TEST_CASE("bool has_key(unordered_map<KeyType, ValueType>& container, typename KeyType::const_pointer key)",
+	"Testing global template function bool has_key(unordered_map<KeyType, ValueType>& container, typename KeyType::const_pointer key)")
+{
+	const wstring src{ L"apple:10:banana:20:cabbage:30:lemon:40:orange:50:pepper:60:plum:70" };
+
+	const auto parts{ split(src, L':') };
+
+	auto fruit_count = unordered_map<wstring, size_t>{};
+
+	for (size_t i = 0; i < parts.size(); i += 2)
+	{
+
+		fruit_count[parts[i]] = std::stoul(parts[i + 1]);
+
+	}
+
+	const vector<const wchar_t*> random_fruits{ L"apple", L"apricot", L"banana", L"orange", L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut" };
+
+	mt19937 rand_engine{ rd() };
+
+	auto const num_distr = uniform_int_distribution<unsigned>(0, random_fruits.size() - 1);
+
+	auto random_fruit{ random_fruits[num_distr(rand_engine)] };
+
+	if (fruit_count.find(random_fruit) != end(fruit_count))
+	{
+		REQUIRE(has_key(fruit_count, random_fruit));
+
+	}
+	else {
+
+		REQUIRE(!has_key(fruit_count, random_fruit));
+
+	}
+
+	REQUIRE(has_key(fruit_count, L"orange"));
+
+	REQUIRE(!has_key(fruit_count, L"grapefruit"));
+
+}
+
+TEST_CASE("bool has_key(unordered_multimap<KeyType, ValueType>& container, const KeyType& key)",
+	"Testing global template function bool has_key(unordered_multimap<KeyType, ValueType>& container, const KeyType& key)")
+{
+	const wstring src{ L"apple:10:banana:20:cabbage:30:lemon:40:orange:50:pepper:60:plum:70" };
+
+	const auto parts{ split(src, L':') };
+
+	auto fruit_count = unordered_multimap<wstring, size_t>{};
+
+	for (size_t i = 0; i < parts.size(); i += 2)
+	{
+
+		fruit_count.insert(make_pair(parts[i], std::stoul(parts[i + 1])));
+
+	}
+
+	const vector<wstring> random_fruits{ L"apple", L"apricot", L"banana", L"orange", L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut" };
+
+	mt19937 rand_engine{ rd() };
+
+	auto const num_distr = uniform_int_distribution<unsigned>(0, random_fruits.size() - 1);
+
+	const auto random_fruit{ random_fruits[num_distr(rand_engine)] };
+
+	if (fruit_count.find(random_fruit) != end(fruit_count))
+	{
+		REQUIRE(has_key(fruit_count, random_fruit));
+
+	}
+	else {
+
+		REQUIRE(!has_key(fruit_count, random_fruit));
+
+	}
+
+	REQUIRE(has_key(fruit_count, wstring{ L"orange" }));
+
+	REQUIRE(!has_key(fruit_count, wstring{ L"grapefruit" }));
+}
+
+TEST_CASE("bool has_key(unordered_multimap<KeyType, ValueType>& container, typename KeyType::const_pointer key)",
+	"Testing global template function bool has_key(unordered_multimap<KeyType, ValueType>& container, typename KeyType::const_pointer key)")
+{
+	const wstring src{ L"apple:10:banana:20:cabbage:30:lemon:40:orange:50:pepper:60:plum:70" };
+
+	const auto parts{ split(src, L':') };
+
+	auto fruit_count = unordered_multimap<wstring, size_t>{};
+
+	for (size_t i = 0; i < parts.size(); i += 2)
+	{
+
+		fruit_count.insert(make_pair(parts[i], std::stoul(parts[i + 1])));
+
+	}
+
+	const vector<const wchar_t*> random_fruits{ L"apple", L"apricot", L"banana", L"orange", L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut" };
+
+	mt19937 rand_engine{ rd() };
+
+	auto const num_distr = uniform_int_distribution<unsigned>(0, random_fruits.size() - 1);
+
+	auto random_fruit{ random_fruits[num_distr(rand_engine)] };
+
+	if (fruit_count.find(random_fruit) != end(fruit_count))
+	{
+		REQUIRE(has_key(fruit_count, random_fruit));
+
+	}
+	else {
+
+		REQUIRE(!has_key(fruit_count, random_fruit));
+
+	}
+
+	REQUIRE(has_key(fruit_count, L"orange"));
+
+	REQUIRE(!has_key(fruit_count, L"grapefruit"));
+
+}
+
+TEST_CASE("bool has_value(const ContainerType& container, const typename ContainerType::value_type& search_value)",
+	"Testing global template function bool has_value(const ContainerType& container, const typename ContainerType::value_type& search_value)")
+{
+	const wstring src{ L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:pineapple:|:plum:|:walnut" };
 
 	const wstring needle{ L":|:" };
 
@@ -1122,27 +1830,555 @@ TEST_CASE("bool has_value(const T& container, const typename T::value_type& item
 
 	REQUIRE(has_value(parts, L"orange"));
 
-	REQUIRE(!has_value(parts, L"grapefruit"));
+	REQUIRE(!has_value(parts, wstring{ L"grapefruit" }));
+
+	const vector<wstring> random_fruits{ L"apple", L"apricot", L"banana", L"orange", L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut" };
+
+	mt19937 rand_engine{ rd() };
+
+	auto const num_distr = uniform_int_distribution<unsigned>(0, random_fruits.size() - 1);
+
+	const auto random_fruit{ random_fruits[num_distr(rand_engine)] };
+
+	if (find(cbegin(parts), cend(parts), random_fruit) != cend(parts)) REQUIRE(has_value(parts, random_fruit));
+	
+	else REQUIRE(!has_value(parts, random_fruit));
 
 }
 
-TEST_CASE("bool has_value(T& container, const typename T::value_type& item)",
-	"Testing global template function bool has_value(T& container, const typename T::value_type& item)")
+TEST_CASE("bool has_value(ContainerType& container, const typename ContainerType::value_type& search_value)",
+	"Testing global template function bool has_value(ContainerType& container, const typename ContainerType::value_type& search_value)")
 {
-	const u32string src{ U"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:plum" };
+	const wstring src{ L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:pineapple:|:plum:|:walnut" };
 
-	const u32string needle{ U":|:" };
+	const wstring needle{ L":|:" };
 
 	auto parts{ split(src, needle) };
 
-	REQUIRE(has_value(parts, U"orange"));
+	REQUIRE(has_value(parts, L"orange"));
 
-	REQUIRE(!has_value(parts, U"grapefruit"));
+	REQUIRE(!has_value(parts, wstring{ L"grapefruit" }));
+
+	const vector<wstring> random_fruits{ L"apple", L"apricot", L"banana", L"orange", L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut" };
+
+	mt19937 rand_engine{ rd() };
+
+	auto const num_distr = uniform_int_distribution<unsigned>(0, random_fruits.size() - 1);
+
+	const auto random_fruit{ random_fruits[num_distr(rand_engine)] };
+
+	if (find(begin(parts), end(parts), random_fruit) != end(parts)) REQUIRE(has_value(parts, random_fruit));
+
+	else REQUIRE(!has_value(parts, random_fruit));
 
 }
 
-TEST_CASE("bool has_key(const T& container, const typename T::key_type& key)",
-	"Testing global template function bool has_key(const T& container, const typename T::key_type& key)")
+TEST_CASE("bool has_value(const set<ValueType>& container, const ValueType& item)",
+	"Testing global template function bool has_value(const set<ValueType>& container, const ValueType& item)")
+{
+	const wstring src{ L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:pineapple:|:plum:|:walnut:|:lemon:|:apricot:|:plum" };
+
+	const wstring needle{ L":|:" };
+
+	const auto parts{ split(src, needle) };
+
+	const set<wstring> all_fruits = [&]()
+	{
+		set<wstring> fruits{};
+
+		for (const auto& fruit : parts)
+		{
+
+			fruits.insert(fruit);
+
+		}
+
+		return fruits;
+
+	}();	
+
+	REQUIRE(has_value(all_fruits, wstring{ L"orange" }));
+
+	REQUIRE(!has_value(all_fruits, wstring{ L"grapefruit" }));
+
+	const vector<wstring> random_fruits{ L"apple", L"apricot", L"banana", L"orange", L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut" };
+
+	mt19937 rand_engine{ rd() };
+
+	auto const num_distr = uniform_int_distribution<unsigned>(0, random_fruits.size() - 1);
+
+	const auto random_fruit{ random_fruits[num_distr(rand_engine)] };
+
+	if (all_fruits.find(random_fruit) != cend(all_fruits)) REQUIRE(has_value(all_fruits, random_fruit));
+
+	else REQUIRE(!has_value(all_fruits, random_fruit));
+
+}
+
+TEST_CASE("bool has_value(const set<ValueType>& container, typename ValueType::const_pointer item)",
+	"Testing global template function bool has_value(const set<ValueType>& container, typename ValueType::const_pointer item)")
+{
+	const wstring src{ L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:pineapple:|:plum:|:walnut:|:lemon:|:apricot:|:plum" };
+
+	const wstring needle{ L":|:" };
+
+	const auto parts{ split(src, needle) };
+
+	const set<wstring> all_fruits = [&]()
+	{
+		set<wstring> fruits{};
+
+		for (const auto& fruit : parts)
+		{
+
+			fruits.insert(fruit);
+
+		}
+
+		return fruits;
+
+	}();
+
+	REQUIRE(has_value(all_fruits, L"orange"));
+
+	REQUIRE(!has_value(all_fruits, L"grapefruit" ));
+
+	const vector<const wchar_t*> random_fruits{ L"apple", L"apricot", L"banana", L"orange", L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut" };
+
+	mt19937 rand_engine{ rd() };
+
+	auto const num_distr = uniform_int_distribution<unsigned>(0, random_fruits.size() - 1);
+
+	auto random_fruit{ random_fruits[num_distr(rand_engine)] };
+
+	if (all_fruits.find(random_fruit) != cend(all_fruits)) REQUIRE(has_value(all_fruits, random_fruit));
+
+	else REQUIRE(!has_value(all_fruits, random_fruit));
+
+}
+
+TEST_CASE("bool has_value(const multiset<ValueType>& container, const ValueType& item)",
+	"Testing global template function bool has_value(const multiset<ValueType>& container, const ValueType& item)")
+{
+	const wstring src{ L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:pineapple:|:plum:|:walnut:|:lemon:|:apricot:|:plum" };
+
+	const wstring needle{ L":|:" };
+
+	const auto parts{ split(src, needle) };
+
+	const multiset<wstring> all_fruits = [&]()
+	{
+		multiset<wstring> fruits{};
+
+		for (const auto& fruit : parts)
+		{
+
+			fruits.insert(fruit);
+
+		}
+
+		return fruits;
+
+	}();
+
+	REQUIRE(has_value(all_fruits, wstring{ L"orange" }));
+
+	REQUIRE(!has_value(all_fruits, wstring{ L"grapefruit" }));
+
+	const vector<wstring> random_fruits{ L"apple", L"apricot", L"banana", L"orange", L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut" };
+
+	mt19937 rand_engine{ rd() };
+
+	auto const num_distr = uniform_int_distribution<unsigned>(0, random_fruits.size() - 1);
+
+	const auto random_fruit{ random_fruits[num_distr(rand_engine)] };
+
+	if (all_fruits.find(random_fruit) != cend(all_fruits)) REQUIRE(has_value(all_fruits, random_fruit));
+
+	else REQUIRE(!has_value(all_fruits, random_fruit));
+
+}
+
+TEST_CASE("bool has_value(const multiset<ValueType>& container, typename ValueType::const_pointer item)",
+	"Testing global template function bool has_value(const multiset<ValueType>& container, typename ValueType::const_pointer item)")
+{
+	const wstring src{ L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:pineapple:|:plum:|:walnut:|:lemon:|:apricot:|:plum" };
+
+	const wstring needle{ L":|:" };
+
+	const auto parts{ split(src, needle) };
+
+	const multiset<wstring> all_fruits = [&]()
+	{
+		multiset<wstring> fruits{};
+
+		for (const auto& fruit : parts)
+		{
+
+			fruits.insert(fruit);
+
+		}
+
+		return fruits;
+
+	}();
+
+	REQUIRE(has_value(all_fruits, L"orange"));
+
+	REQUIRE(!has_value(all_fruits, L"grapefruit"));
+
+	const vector<const wchar_t*> random_fruits{ L"apple", L"apricot", L"banana", L"orange", L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut" };
+
+	mt19937 rand_engine{ rd() };
+
+	auto const num_distr = uniform_int_distribution<unsigned>(0, random_fruits.size() - 1);
+
+	auto random_fruit{ random_fruits[num_distr(rand_engine)] };
+
+	if (all_fruits.find(random_fruit) != cend(all_fruits)) REQUIRE(has_value(all_fruits, random_fruit));
+
+	else REQUIRE(!has_value(all_fruits, random_fruit));
+
+}
+
+TEST_CASE("bool has_value(const unordered_set<ValueType>& container, const ValueType& item)",
+	"Testing global template function bool has_value(const unordered_set<ValueType>& container, const ValueType& item)")
+{
+	const wstring src{ L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:pineapple:|:plum:|:walnut:|:lemon:|:apricot:|:plum" };
+
+	const wstring needle{ L":|:" };
+
+	const auto parts{ split(src, needle) };
+
+	const unordered_set<wstring> all_fruits = [&]()
+	{
+		unordered_set<wstring> fruits{};
+
+		for (const auto& fruit : parts)
+		{
+
+			fruits.insert(fruit);
+
+		}
+
+		return fruits;
+
+	}();
+
+	REQUIRE(has_value(all_fruits, wstring{ L"orange" }));
+
+	REQUIRE(!has_value(all_fruits, wstring{ L"grapefruit" }));
+
+	const vector<wstring> random_fruits{ L"apple", L"apricot", L"banana", L"orange", L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut" };
+
+	mt19937 rand_engine{ rd() };
+
+	auto const num_distr = uniform_int_distribution<unsigned>(0, random_fruits.size() - 1);
+
+	const auto random_fruit{ random_fruits[num_distr(rand_engine)] };
+
+	if (all_fruits.find(random_fruit) != cend(all_fruits)) REQUIRE(has_value(all_fruits, random_fruit));
+
+	else REQUIRE(!has_value(all_fruits, random_fruit));
+
+}
+
+TEST_CASE("bool has_value(const unordered_set<ValueType>& container, typename ValueType::const_pointer item)",
+	"Testing global template function bool has_value(const unordered_set<ValueType>& container, typename ValueType::const_pointer item)")
+{
+	const wstring src{ L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:pineapple:|:plum:|:walnut:|:lemon:|:apricot:|:plum" };
+
+	const wstring needle{ L":|:" };
+
+	const auto parts{ split(src, needle) };
+
+	const unordered_set<wstring> all_fruits = [&]()
+	{
+		unordered_set<wstring> fruits{};
+
+		for (const auto& fruit : parts)
+		{
+
+			fruits.insert(fruit);
+
+		}
+
+		return fruits;
+
+	}();
+
+	REQUIRE(has_value(all_fruits, L"orange"));
+
+	REQUIRE(!has_value(all_fruits, L"grapefruit"));
+
+	const vector<const wchar_t*> random_fruits{ L"apple", L"apricot", L"banana", L"orange", L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut" };
+
+	mt19937 rand_engine{ rd() };
+
+	auto const num_distr = uniform_int_distribution<unsigned>(0, random_fruits.size() - 1);
+
+	auto random_fruit{ random_fruits[num_distr(rand_engine)] };
+
+	if (all_fruits.find(random_fruit) != cend(all_fruits)) REQUIRE(has_value(all_fruits, random_fruit));
+
+	else REQUIRE(!has_value(all_fruits, random_fruit));
+
+}
+
+TEST_CASE("bool has_value(const unordered_multiset<ValueType>& container, const ValueType& item)",
+	"Testing global template function bool has_value(const unordered_multiset<ValueType>& container, const ValueType& item)")
+{
+	const wstring src{ L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:pineapple:|:plum:|:walnut:|:lemon:|:apricot:|:plum" };
+
+	const wstring needle{ L":|:" };
+
+	const auto parts{ split(src, needle) };
+
+	const unordered_multiset<wstring> all_fruits = [&]()
+	{
+		unordered_multiset<wstring> fruits{};
+
+		for (const auto& fruit : parts)
+		{
+
+			fruits.insert(fruit);
+
+		}
+
+		return fruits;
+
+	}();
+
+	REQUIRE(has_value(all_fruits, wstring{ L"orange" }));
+
+	REQUIRE(!has_value(all_fruits, wstring{ L"grapefruit" }));
+
+	const vector<wstring> random_fruits{ L"apple", L"apricot", L"banana", L"orange", L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut" };
+
+	mt19937 rand_engine{ rd() };
+
+	auto const num_distr = uniform_int_distribution<unsigned>(0, random_fruits.size() - 1);
+
+	const auto random_fruit{ random_fruits[num_distr(rand_engine)] };
+
+	if (all_fruits.find(random_fruit) != cend(all_fruits)) REQUIRE(has_value(all_fruits, random_fruit));
+
+	else REQUIRE(!has_value(all_fruits, random_fruit));
+
+}
+
+TEST_CASE("bool has_value(const unordered_multiset<ValueType>& container, typename ValueType::const_pointer item)",
+	"Testing global template function bool has_value(const unordered_multiset<ValueType>& container, typename ValueType::const_pointer item)")
+{
+	const wstring src{ L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:pineapple:|:plum:|:walnut:|:lemon:|:apricot:|:plum" };
+
+	const wstring needle{ L":|:" };
+
+	const auto parts{ split(src, needle) };
+
+	const unordered_multiset<wstring> all_fruits = [&]()
+	{
+		unordered_multiset<wstring> fruits{};
+
+		for (const auto& fruit : parts)
+		{
+
+			fruits.insert(fruit);
+
+		}
+
+		return fruits;
+
+	}();
+
+	REQUIRE(has_value(all_fruits, L"orange"));
+
+	REQUIRE(!has_value(all_fruits, L"grapefruit"));
+
+	const vector<const wchar_t*> random_fruits{ L"apple", L"apricot", L"banana", L"orange", L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut" };
+
+	mt19937 rand_engine{ rd() };
+
+	auto const num_distr = uniform_int_distribution<unsigned>(0, random_fruits.size() - 1);
+
+	auto random_fruit{ random_fruits[num_distr(rand_engine)] };
+
+	if (all_fruits.find(random_fruit) != cend(all_fruits)) REQUIRE(has_value(all_fruits, random_fruit));
+
+	else REQUIRE(!has_value(all_fruits, random_fruit));
+
+}
+
+//TEST_CASE("bool has_value(set<ValueType>& container, const ValueType& item)",
+//	"Testing global template function bool has_value(set<ValueType>& container, const ValueType& item)")
+//{
+//	const wstring src{ L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:plum" };
+//
+//	const wstring needle{ L":|:" };
+//
+//	auto parts{ split(src, needle) };
+//
+//	cout << '\n' << get_type_name(src) << '\n';
+//
+//	cout << get_type_name(needle) << '\n';
+//
+//	show_var_info_w(src);
+//
+//	show_var_info_w(needle);
+//
+//	cout << boolalpha << check_data_types_for_equality(src, needle) << '\n';
+//
+//}
+//
+//TEST_CASE("bool has_value(set<ValueType>& container, typename ValueType::const_pointer item)",
+//	"Testing global template function bool has_value(set<ValueType>& container, typename ValueType::const_pointer item)")
+//{
+//	const wstring src{ L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:plum" };
+//
+//	const wstring needle{ L":|:" };
+//
+//	auto parts{ split(src, needle) };
+//
+//	cout << '\n' << get_type_name(src) << '\n';
+//
+//	cout << get_type_name(needle) << '\n';
+//
+//	show_var_info_w(src);
+//
+//	show_var_info_w(needle);
+//
+//	cout << boolalpha << check_data_types_for_equality(src, needle) << '\n';
+//
+//}
+//
+//TEST_CASE("bool has_value(multiset<ValueType>& container, const ValueType& item)",
+//	"Testing global template function bool has_value(multiset<ValueType>& container, const ValueType& item)")
+//{
+//	const wstring src{ L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:plum" };
+//
+//	const wstring needle{ L":|:" };
+//
+//	auto parts{ split(src, needle) };
+//
+//	cout << '\n' << get_type_name(src) << '\n';
+//
+//	cout << get_type_name(needle) << '\n';
+//
+//	show_var_info_w(src);
+//
+//	show_var_info_w(needle);
+//
+//	cout << boolalpha << check_data_types_for_equality(src, needle) << '\n';
+//
+//}
+//
+//TEST_CASE("bool has_value(multiset<ValueType>& container, typename ValueType::const_pointer item)",
+//	"Testing global template function bool has_value(multiset<ValueType>& container, typename ValueType::const_pointer item)")
+//{
+//	const wstring src{ L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:plum" };
+//
+//	const wstring needle{ L":|:" };
+//
+//	auto parts{ split(src, needle) };
+//
+//	cout << '\n' << get_type_name(src) << '\n';
+//
+//	cout << get_type_name(needle) << '\n';
+//
+//	show_var_info_w(src);
+//
+//	show_var_info_w(needle);
+//
+//	cout << boolalpha << check_data_types_for_equality(src, needle) << '\n';
+//
+//}
+//
+//TEST_CASE("bool has_value(unordered_set<ValueType>& container, const ValueType& item)",
+//	"Testing global template function bool has_value(unordered_set<ValueType>& container, const ValueType& item)")
+//{
+//	const wstring src{ L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:plum" };
+//
+//	const wstring needle{ L":|:" };
+//
+//	auto parts{ split(src, needle) };
+//
+//	cout << '\n' << get_type_name(src) << '\n';
+//
+//	cout << get_type_name(needle) << '\n';
+//
+//	show_var_info_w(src);
+//
+//	show_var_info_w(needle);
+//
+//	cout << boolalpha << check_data_types_for_equality(src, needle) << '\n';
+//
+//}
+//
+//TEST_CASE("bool has_value(unordered_set<ValueType>& container, typename ValueType::const_pointer item)",
+//	"Testing global template function bool has_value(unordered_set<ValueType>& container, typename ValueType::const_pointer item)")
+//{
+//	const wstring src{ L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:plum" };
+//
+//	const wstring needle{ L":|:" };
+//
+//	auto parts{ split(src, needle) };
+//
+//	cout << '\n' << get_type_name(src) << '\n';
+//
+//	cout << get_type_name(needle) << '\n';
+//
+//	show_var_info_w(src);
+//
+//	show_var_info_w(needle);
+//
+//	cout << boolalpha << check_data_types_for_equality(src, needle) << '\n';
+//
+//}
+//
+//TEST_CASE("bool has_value(unordered_multiset<ValueType>& container, const ValueType& item)",
+//	"Testing global template function bool has_value(unordered_multiset<ValueType>& container, const ValueType& item)")
+//{
+//	const wstring src{ L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:plum" };
+//
+//	const wstring needle{ L":|:" };
+//
+//	auto parts{ split(src, needle) };
+//
+//	cout << '\n' << get_type_name(src) << '\n';
+//
+//	cout << get_type_name(needle) << '\n';
+//
+//	show_var_info_w(src);
+//
+//	show_var_info_w(needle);
+//
+//	cout << boolalpha << check_data_types_for_equality(src, needle) << '\n';
+//
+//}
+//
+//TEST_CASE("bool has_value(unordered_multiset<ValueType>& container, typename ValueType::const_pointer item)",
+//	"Testing global template function bool has_value(unordered_multiset<ValueType>& container, typename ValueType::const_pointer item)")
+//{
+//	const wstring src{ L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:plum" };
+//
+//	const wstring needle{ L":|:" };
+//
+//	auto parts{ split(src, needle) };
+//
+//	cout << '\n' << get_type_name(src) << '\n';
+//
+//	cout << get_type_name(needle) << '\n';
+//
+//	show_var_info_w(src);
+//
+//	show_var_info_w(needle);
+//
+//	cout << boolalpha << check_data_types_for_equality(src, needle) << '\n';
+//
+//}
+
+TEST_CASE("string get_type_name(T&& arg) | wstring get_type_name_w(T&& arg) | void show_var_info(const T& arg) | void show_var_info_w(const T& arg) || bool check_data_types_for_equality(Args&&... args)",
+	"Testing global template functions: get_type_name, get_type_name_w, show_var_info, show_var_info_w and check_data_types_for_equality")
 {
 	const wstring src{ L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:plum" };
 
@@ -1150,39 +2386,20 @@ TEST_CASE("bool has_key(const T& container, const typename T::key_type& key)",
 
 	const auto parts{ split(src, needle) };
 
-	const set<wstring> fruits{cbegin(parts), cend(parts)};
+	cout << '\n' << get_type_name(src) << '\n';
 
-	REQUIRE(has_value(fruits, L"orange"));
-	
-	REQUIRE(!has_value(fruits, L"pear"));
+	wcout << get_type_name_w(needle) << L'\n';
 
-}
+	const string info_message{ "Hello World!" };
 
-TEST_CASE("bool has_key(T& container, const typename T::key_type& key)",
-	"Testing global template function bool has_key(T& container, const typename T::key_type& key)")
-{
-	const u32string src{ U"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:plum" };
+	show_var_info(info_message);
 
-	const u32string needle{ U":|:" };
+	show_var_info_w(src);
 
-	auto parts{ split(src, needle) };
+	show_var_info_w(needle);
 
-	map<u32string, size_t> ordered_fruits{};
+	cout << "\ncheck_data_types_for_equality(src : wstring, needle : wstring) -> " << boolalpha << check_data_types_for_equality(src, needle) << '\n';
 
-	static random_device rd{};
-
-	mt19937 rand_engine{ rd() };
-
-	auto const num_distr = uniform_int_distribution<>(1, 10);
-		
-	for (auto const& fruit : parts)
-	{
-		ordered_fruits[fruit] = num_distr(rand_engine);
-
-	}
-
-	REQUIRE(has_key(ordered_fruits, U"orange" ));
-
-	REQUIRE(!has_key(ordered_fruits, U"pear" ));
+	cout << "\ncheck_data_types_for_equality(src : wstring, parts : vector<wstring>) -> " << check_data_types_for_equality(src, parts) << '\n';
 
 }
