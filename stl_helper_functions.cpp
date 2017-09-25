@@ -6,8 +6,11 @@ namespace std
 	{
 		bool trim(char* str)
 		{
-			size_t begin = 0u;
-			size_t end = strlen(str) - 1;
+			size_t begin{ 0u };
+
+			const size_t original_end{ strlen(str) - 1 };
+
+			size_t end{ original_end };
 
 			if (strlen(str) == 0) return false;
 
@@ -57,7 +60,17 @@ namespace std
 				if (!is_ws_char) break;
 			}
 
+			if ((begin == 0u) && (original_end == end)) return false;
+
+			if ((begin == 0u) && (original_end != end))
+			{
+				str[end + 1] = '\0';
+
+				return true;
+			}
+
 			size_t j{0u};
+
 			const size_t last{end + 1};
 
 			for (auto i = begin; i < last; i++)
@@ -73,8 +86,11 @@ namespace std
 
 		bool trim(wchar_t* str)
 		{
-			size_t begin = 0u;
-			size_t end = wcslen(str) - 1;
+			size_t begin{ 0u };
+
+			const size_t original_end{ wcslen(str) - 1 };
+
+			size_t end{ original_end };
 
 			if (wcslen(str) == 0) return false;
 
@@ -101,6 +117,7 @@ namespace std
 			if (begin > end)
 			{
 				*str = L'\0';
+
 				return true;
 			}
 
@@ -122,6 +139,15 @@ namespace std
 				}
 
 				if (!is_ws_char) break;
+			}
+
+			if ((begin == 0u) && (original_end == end)) return false;
+
+			if ((begin == 0u) && (original_end != end))
+			{
+				str[end + 1] = L'\0';
+
+				return true;
 			}
 
 			size_t j{0u};
@@ -142,8 +168,11 @@ namespace std
 		{
 			std::u16string u16_str{str};
 
-			size_t begin = 0u;
-			size_t end = u16_str.size() - 1;
+			size_t begin{ 0u };
+
+			const size_t original_end { u16_str.size() - 1 };
+
+			size_t end{ original_end };
 
 			if (u16_str.size() == 0) return false;
 
@@ -170,6 +199,7 @@ namespace std
 			if (begin > end)
 			{
 				*str = u'\0';
+
 				return true;
 			}
 
@@ -193,7 +223,17 @@ namespace std
 				if (!is_ws_char) break;
 			}
 
+			if ((begin == 0u) && (original_end == end)) return false;
+
+			if ((begin == 0u) && (original_end != end))
+			{
+				str[end + 1] = u'\0';
+
+				return true;
+			}
+
 			size_t j{0u};
+
 			const size_t last{end + 1};
 
 			for (auto i = begin; i < last; i++)
@@ -211,8 +251,11 @@ namespace std
 		{
 			std::u32string u32_str{str};
 
-			size_t begin = 0u;
-			size_t end = u32_str.size() - 1;
+			size_t begin{ 0u };
+
+			const size_t original_end{ u32_str.size() - 1 };
+
+			size_t end{ original_end };
 
 			if (u32_str.size() == 0) return false;
 
@@ -239,6 +282,7 @@ namespace std
 			if (begin > end)
 			{
 				*str = U'\0';
+
 				return true;
 			}
 
@@ -262,7 +306,17 @@ namespace std
 				if (!is_ws_char) break;
 			}
 
+			if ((begin == 0u) && (original_end == end)) return false;
+
+			if ((begin == 0u) && (original_end != end))
+			{
+				str[end + 1] = U'\0';
+
+				return true;
+			}
+
 			size_t j{0u};
+
 			const size_t last{end + 1};
 
 			for (auto i = begin; i < last; i++)
@@ -278,8 +332,9 @@ namespace std
 
 		bool ltrim(char* str)
 		{
-			size_t begin = 0u;
-			size_t end = strlen(str) - 1;
+			size_t begin{ 0u };
+
+			const size_t end{ strlen(str) - 1 };
 
 			if (strlen(str) == 0) return false;
 
@@ -306,10 +361,14 @@ namespace std
 			if (begin > end)
 			{
 				*str = '\0';
+
 				return true;
 			}
 
+			if (begin == 0u) return false;
+
 			size_t j{0u};
+
 			const size_t last{end + 1};
 
 			for (auto i = begin; i < last; i++)
@@ -325,8 +384,9 @@ namespace std
 
 		bool ltrim(wchar_t* str)
 		{
-			size_t begin = 0u;
-			size_t end = wcslen(str) - 1;
+			size_t begin{ 0u };
+
+			const size_t end{ wcslen(str) - 1 };
 
 			if (wcslen(str) == 0) return false;
 
@@ -353,10 +413,14 @@ namespace std
 			if (begin > end)
 			{
 				*str = L'\0';
+
 				return true;
 			}
 
+			if (begin == 0u) return false;
+
 			size_t j{0u};
+
 			const size_t last{end + 1};
 
 			for (auto i = begin; i < last; i++)
@@ -374,8 +438,9 @@ namespace std
 		{
 			std::u16string u16_str{str};
 
-			size_t begin = 0u;
-			size_t end = u16_str.size() - 1;
+			size_t begin { 0u };
+
+			const size_t end{ u16_str.size() - 1 };
 
 			if (u16_str.size() == 0) return false;
 
@@ -402,12 +467,16 @@ namespace std
 			if (begin > end)
 			{
 				*str = u'\0';
+
 				return true;
 			}
 
-			size_t j{0u};
-			const size_t last{end + 1};
+			if (begin == 0u) return false;
 
+			size_t j{0u};
+
+			const size_t last{end + 1};
+			
 			for (auto i = begin; i < last; i++)
 			{
 				str[j] = str[i];
@@ -423,8 +492,9 @@ namespace std
 		{
 			std::u32string u32_str{str};
 
-			size_t begin = 0u;
-			size_t end = u32_str.size() - 1;
+			size_t begin{ 0u };
+
+			const size_t end{ u32_str.size() - 1 };
 
 			if (u32_str.size() == 0) return false;
 
@@ -451,10 +521,14 @@ namespace std
 			if (begin > end)
 			{
 				*str = U'\0';
+
 				return true;
 			}
 
+			if (begin == 0u) return false;
+
 			size_t j{0u};
+
 			const size_t last{end + 1};
 
 			for (auto i = begin; i < last; i++)
@@ -470,8 +544,11 @@ namespace std
 
 		bool rtrim(char* str)
 		{
-			const size_t begin = 0u;
-			size_t end = strlen(str) - 1;
+			const size_t begin{ 0u };
+
+			size_t end{ strlen(str) - 1 };
+
+			const size_t original_end{ end };
 
 			if (strlen(str) == 0) return false;
 
@@ -495,24 +572,20 @@ namespace std
 				if (!is_ws_char) break;
 			}
 
-			size_t j{0u};
-			const size_t last{end + 1};
+			if (original_end == end) return false;
 
-			for (auto i = begin; i < last; i++)
-			{
-				str[j] = str[i];
-				j++;
-			}
-
-			str[j] = '\0';
+			str[end + 1] = '\0';			
 
 			return true;
 		}
 
 		bool rtrim(wchar_t* str)
 		{
-			const size_t begin = 0u;
-			size_t end = wcslen(str) - 1;
+			const size_t begin{ 0u };
+
+			size_t end{ wcslen(str) - 1 };
+
+			const size_t original_end{ end };
 
 			if (wcslen(str) == 0) return false;
 
@@ -536,16 +609,9 @@ namespace std
 				if (!is_ws_char) break;
 			}
 
-			size_t j{0u};
-			const size_t last{end + 1};
+			if (original_end == end) return false;
 
-			for (auto i = begin; i < last; i++)
-			{
-				str[j] = str[i];
-				j++;
-			}
-
-			str[j] = L'\0';
+			str[end + 1] = L'\0';
 
 			return true;
 		}
@@ -554,8 +620,11 @@ namespace std
 		{
 			std::u16string u16_str{str};
 
-			size_t begin = 0u;
-			size_t end = u16_str.size() - 1;
+			size_t begin{ 0u };
+
+			size_t end{ u16_str.size() - 1 };
+
+			const size_t original_end{ end };
 
 			if (u16_str.size() == 0) return false;
 
@@ -579,16 +648,9 @@ namespace std
 				if (!is_ws_char) break;
 			}
 
-			size_t j{0u};
-			const size_t last{end + 1};
+			if (original_end == end) return false;
 
-			for (auto i = begin; i < last; i++)
-			{
-				str[j] = str[i];
-				j++;
-			}
-
-			str[j] = u'\0';
+			str[end + 1] = u'\0';
 
 			return true;
 		}
@@ -597,8 +659,11 @@ namespace std
 		{
 			std::u32string u32_str{str};
 
-			size_t begin = 0u;
-			size_t end = u32_str.size() - 1;
+			size_t begin{ 0u };
+
+			size_t end{ u32_str.size() - 1 };
+
+			const size_t original_end{ end };
 
 			if (u32_str.size() == 0) return false;
 
@@ -622,16 +687,9 @@ namespace std
 				if (!is_ws_char) break;
 			}
 
-			size_t j{0u};
-			const size_t last{end + 1};
+			if (original_end == end) return false;
 
-			for (auto i = begin; i < last; i++)
-			{
-				str[j] = str[i];
-				j++;
-			}
-
-			str[j] = U'\0';
+			str[end + 1] = U'\0';
 
 			return true;
 		}

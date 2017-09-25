@@ -3,7 +3,7 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 #define _SCL_SECURE_NO_WARNINGS
-
+ 
 #include <iostream>
 #include <typeinfo>
 #include <cwchar>
@@ -12,22 +12,18 @@
 #include <thread>
 #include <chrono>
 #include <vector>
+#include <set>
+#include <unordered_set>
 #include <map>
 #include <unordered_map>
 #include <algorithm>
 #include <memory>
 
-
 #define STL_HELPER_UTILITY_MAJOR_VERSION 1
 #define STL_HELPER_UTILITY_MINOR_VERSION 0
 
-// #ifdef _DEBUG
-	#define PRINT_VAR_NAME(arg) std::cout << #arg << ' '
-	#define PRINT_VAR_NAMEW(arg) std::wcout << #arg << L' '
-// #elif
-// 	#define PRINT_VAR_NAME(arg) __noop
-// 	#define PRINT_VAR_NAME(arg) __noop
-// #endif
+#define PRINT_VAR_NAME(arg) std::cout << #arg << ' '
+#define PRINT_VAR_NAMEW(arg) std::wcout << #arg << L' '
 
 namespace std
 {
@@ -935,106 +931,105 @@ namespace std
 		}
 
 		template <typename ...Args>
-		void unused_args(Args&&...)
+		void unused_args(Args&&...) { }
+
+		template <typename ValueType>
+		bool has_key(const set<ValueType>& container, const typename set<ValueType>::key_type& item)
 		{
+			return (container.find(item) != cend(container));
+		}
+
+		template <typename ValueType>
+		bool has_key(set<ValueType>& container, const typename set<ValueType>::key_type& item)
+		{
+			return (container.find(item) != end(container));
+		}
+		
+		template <typename ValueType>
+		bool has_key(const multiset<ValueType>& container, const typename multiset<ValueType>::key_type item)
+		{
+			return (container.find(item) != cend(container));
+		}
+
+		template <typename ValueType>
+		bool has_key(multiset<ValueType>& container, const typename multiset<ValueType>::key_type item)
+		{
+			return (container.find(item) != end(container));
+		}
+
+		template <typename ValueType>
+		bool has_key(const unordered_set<ValueType>& container, const typename unordered_set<ValueType>::key_type item)
+		{
+			return (container.find(item) != cend(container));
+		}
+
+		template <typename ValueType>
+		bool has_key(unordered_set<ValueType>& container, const typename unordered_set<ValueType>::key_type item)
+		{
+			return (container.find(item) != end(container));
+		}
+
+		template <typename ValueType>
+		bool has_key(const unordered_multiset<ValueType>& container, const typename unordered_multiset<ValueType>::key_type item)
+		{
+			return (container.find(item) != cend(container));
+		}
+
+		template <typename ValueType>
+		bool has_key(unordered_multiset<ValueType>& container, const typename unordered_multiset<ValueType>::key_type item)
+		{
+			return (container.find(item) != end(container));
 		}
 
 		template <typename KeyType, typename ValueType>
-		bool has_key(const map<KeyType, ValueType>& container, const KeyType& key)
+		bool has_key(const map<KeyType, ValueType>& container, const typename map<KeyType, ValueType>::key_type& key)
 		{
 			return (container.find(key) != cend(container));
 		}
 
 		template <typename KeyType, typename ValueType>
-		bool has_key(const map<KeyType, ValueType>& container, typename KeyType::const_pointer key)
+		bool has_key(map<KeyType, ValueType>& container, const typename map<KeyType, ValueType>::key_type& key)
+		{
+			return (container.find(key) != end(container));
+		}
+
+		template <typename KeyType, typename ValueType>
+		bool has_key(const multimap<KeyType, ValueType>& container, const typename multimap<KeyType, ValueType>::key_type& key)
 		{
 			return (container.find(key) != cend(container));
 		}
 
 		template <typename KeyType, typename ValueType>
-		bool has_key(const multimap<KeyType, ValueType>& container, const KeyType& key)
+		bool has_key(multimap<KeyType, ValueType>& container, const typename multimap<KeyType, ValueType>::key_type& key)
+		{
+			return (container.find(key) != end(container));
+		}
+
+		template <typename KeyType, typename ValueType>
+		bool has_key(const unordered_map<KeyType, ValueType>& container, const typename unordered_map<KeyType, ValueType>::key_type& key)
 		{
 			return (container.find(key) != cend(container));
 		}
 
 		template <typename KeyType, typename ValueType>
-		bool has_key(const multimap<KeyType, ValueType>& container, typename KeyType::const_pointer key)
+		bool has_key(unordered_map<KeyType, ValueType>& container, const typename unordered_map<KeyType, ValueType>::key_type& key)
+		{
+			return (container.find(key) != end(container));
+		}
+
+		template <typename KeyType, typename ValueType>
+		bool has_key(const unordered_multimap<KeyType, ValueType>& container, const typename unordered_multimap<KeyType, ValueType>::key_type& key)
 		{
 			return (container.find(key) != cend(container));
 		}
 
 		template <typename KeyType, typename ValueType>
-		bool has_key(const unordered_map<KeyType, ValueType>& container, const KeyType& key)
-		{
-			return (container.find(key) != cend(container));
-		}
-
-		template <typename KeyType, typename ValueType>
-		bool has_key(const unordered_map<KeyType, ValueType>& container, typename KeyType::const_pointer key)
-		{
-			return (container.find(key) != cend(container));
-		}
-
-		template <typename KeyType, typename ValueType>
-		bool has_key(const unordered_multimap<KeyType, ValueType>& container, const KeyType& key)
-		{
-			return (container.find(key) != cend(container));
-		}
-
-		template <typename KeyType, typename ValueType>
-		bool has_key(const unordered_multimap<KeyType, ValueType>& container, typename KeyType::const_pointer key)
-		{
-			return (container.find(key) != cend(container));
-		}
-
-		template <typename KeyType, typename ValueType>
-		bool has_key(map<KeyType, ValueType>& container, const KeyType& key)
+		bool has_key(unordered_multimap<KeyType, ValueType>& container, const typename unordered_multimap<KeyType, ValueType>::key_type& key)
 		{
 			return (container.find(key) != end(container));
 		}
-
-		template <typename KeyType, typename ValueType>
-		bool has_key(map<KeyType, ValueType>& container, typename KeyType::const_pointer key)
-		{
-			return (container.find(key) != end(container));
-		}
-
-		template <typename KeyType, typename ValueType>
-		bool has_key(multimap<KeyType, ValueType>& container, const KeyType& key)
-		{
-			return (container.find(key) != end(container));
-		}
-
-		template <typename KeyType, typename ValueType>
-		bool has_key(multimap<KeyType, ValueType>& container, typename KeyType::const_pointer key)
-		{
-			return (container.find(key) != end(container));
-		}
-
-		template <typename KeyType, typename ValueType>
-		bool has_key(unordered_map<KeyType, ValueType>& container, const KeyType& key)
-		{
-			return (container.find(key) != end(container));
-		}
-
-		template <typename KeyType, typename ValueType>
-		bool has_key(unordered_map<KeyType, ValueType>& container, typename KeyType::const_pointer key)
-		{
-			return (container.find(key) != end(container));
-		}
-
-		template <typename KeyType, typename ValueType>
-		bool has_key(unordered_multimap<KeyType, ValueType>& container, const KeyType& key)
-		{
-			return (container.find(key) != end(container));
-		}
-
-		template <typename KeyType, typename ValueType>
-		bool has_key(unordered_multimap<KeyType, ValueType>& container, typename KeyType::const_pointer key)
-		{
-			return (container.find(key) != end(container));
-		}
-
+			
+		
 		template <typename ContainerType>
 		bool has_value(const ContainerType& container, const typename ContainerType::value_type& search_value)
 		{
@@ -1046,102 +1041,7 @@ namespace std
 		{
 			return (find(begin(container), end(container), search_value) != end(container));
 		}
-
-		/*template <typename ValueType>
-		bool has_value(const set<ValueType>& container, const ValueType& item)
-		{
-			return (container.find(item) != cend(container));
-		}
-
-		template <typename ValueType>
-		bool has_value(const set<ValueType>& container, typename ValueType::const_pointer item)
-		{
-			return (container.find(item) != cend(container));
-		}
-
-		template <typename ValueType>
-		bool has_value(const multiset<ValueType>& container, const ValueType& item)
-		{
-			return (container.find(item) != cend(container));
-		}
-
-		template <typename ValueType>
-		bool has_value(const multiset<ValueType>& container, typename ValueType::const_pointer item)
-		{
-			return (container.find(item) != cend(container));
-		}
-
-		template <typename ValueType>
-		bool has_value(const unordered_set<ValueType>& container, const ValueType& item)
-		{
-			return (container.find(item) != cend(container));
-		}
-
-		template <typename ValueType>
-		bool has_value(const unordered_set<ValueType>& container, typename ValueType::const_pointer item)
-		{
-			return (container.find(item) != cend(container));
-		}
-
-		template <typename ValueType>
-		bool has_value(const unordered_multiset<ValueType>& container, const ValueType& item)
-		{
-			return (container.find(item) != cend(container));
-		}
-
-		template <typename ValueType>
-		bool has_value(const unordered_multiset<ValueType>& container, typename ValueType::const_pointer item)
-		{
-			return (container.find(item) != cend(container));
-		}
-
-		template <typename ValueType>
-		bool has_value(set<ValueType>& container, const ValueType& item)
-		{
-			return (container.find(item) != end(container));
-		}
-
-		template <typename ValueType>
-		bool has_value(set<ValueType>& container, typename ValueType::const_pointer item)
-		{
-			return (container.find(item) != end(container));
-		}
-
-		template <typename ValueType>
-		bool has_value(multiset<ValueType>& container, const ValueType& item)
-		{
-			return (container.find(item) != end(container));
-		}
-
-		template <typename ValueType>
-		bool has_value(multiset<ValueType>& container, typename ValueType::const_pointer item)
-		{
-			return (container.find(item) != end(container));
-		}
-
-		template <typename ValueType>
-		bool has_value(unordered_set<ValueType>& container, const ValueType& item)
-		{
-			return (container.find(item) != end(container));
-		}
-
-		template <typename ValueType>
-		bool has_value(unordered_set<ValueType>& container, typename ValueType::const_pointer item)
-		{
-			return (container.find(item) != end(container));
-		}
-
-		template <typename ValueType>
-		bool has_value(unordered_multiset<ValueType>& container, const ValueType& item)
-		{
-			return (container.find(item) != end(container));
-		}
-
-		template <typename ValueType>
-		bool has_value(unordered_multiset<ValueType>& container, typename ValueType::const_pointer item)
-		{
-			return (container.find(item) != end(container));
-		}*/
+		
 	}
 }
 
