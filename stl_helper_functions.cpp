@@ -636,7 +636,7 @@ namespace std
 			return true;
 		}
 
-		std::string trim(const char* str) // " Atika\n"
+		std::string trim(const char* str)
 		{
 			std::string source_str{str};
 
@@ -1985,7 +1985,7 @@ namespace std
 
 				if ((current - prev) > 0) parts.emplace_back(source_st.substr(prev, current - prev));
 
-				prev = current + needle_len; // source = "apple|pear|plum|cherry|orange", needle = "|"
+				prev = current + needle_len;
 
 				if (prev >= source_st.size()) break;
 			}
@@ -2030,7 +2030,7 @@ namespace std
 
 				if ((current - prev) > 0) parts.emplace_back(source_st.substr(prev, current - prev));
 
-				prev = current + needle_len; // source = "apple|pear|plum|cherry|orange", needle = "|"
+				prev = current + needle_len;
 
 				if (prev >= source_st.size()) break;
 			}
@@ -2075,7 +2075,7 @@ namespace std
 
 				if ((current - prev) > 0) parts.emplace_back(source_st.substr(prev, current - prev));
 
-				prev = current + needle_len; // source = "apple|pear|plum|cherry|orange", needle = "|"
+				prev = current + needle_len;
 
 				if (prev >= source_st.size()) break;
 			}
@@ -2120,7 +2120,7 @@ namespace std
 
 				if ((current - prev) > 0) parts.emplace_back(source_st.substr(prev, current - prev));
 
-				prev = current + needle_len; // source = "apple|pear|plum|cherry|orange", needle = "|"
+				prev = current + needle_len;
 
 				if (prev >= source_st.size()) break;
 			}

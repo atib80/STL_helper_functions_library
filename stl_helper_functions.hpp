@@ -12,11 +12,10 @@
 #include <thread>
 #include <chrono>
 #include <vector>
-#include <set>
-#include <unordered_set>
 #include <map>
 #include <unordered_map>
 #include <algorithm>
+#include <memory>
 
 
 #define STL_HELPER_UTILITY_MAJOR_VERSION 1
@@ -38,7 +37,7 @@ namespace std
 		 * \return const reference to struct type_info that contains RTTI information about specified argument 'var'
 		 */
 		template <typename T>
-		constexpr const type_info& get_type_id(const T& var)
+		const type_info& get_type_id(const T& var)
 		{
 			return typeid(var);
 		}
@@ -79,13 +78,13 @@ namespace std
 		}
 
 		template <typename T, typename ...Args>
-		constexpr bool are_data_types_equal(T&& arg, Args&&... args)
+		bool are_data_types_equal(T&& arg, Args&&... args)
 		{
 			return get_type_id(arg) == are_data_types_equal(args);
 		}
 
 		template <typename T, typename U, typename ...Args>
-		constexpr bool check_data_types_for_equality(const T& arg1, const U& arg2, Args&&... args)
+		bool check_data_types_for_equality(const T& arg1, const U& arg2, Args&&... args)
 		{
 			constexpr auto result = are_data_types_equal(forward<Args>(args)...);
 
@@ -108,24 +107,54 @@ namespace std
 			wcout << L"\nType: " << get_type_name(arg) << L"\nValue: " << arg << endl;
 		}
 
+		struct char_buffer_deleter
+		{
+			using pointer_type = char*;
+			
+			void operator()(pointer_type pointer) const noexcept {
+
+				if (pointer)
+				{
+					delete[] pointer;
+					cout << "Executing delete[] pointer in char_buffer_deleter::void operator()(pointer_type pointer) const noexcept\n";
+				}
+			
+			}
+		};
+
+		struct wchar_t_buffer_deleter
+		{
+			using pointer_type = wchar_t*;
+
+			void operator()(pointer_type pointer) const noexcept {
+
+				if (pointer)
+				{
+					delete[] pointer;
+					cout << "Executing delete[] pointer in wchar_t_buffer_deleter::void operator()(pointer_type pointer) const noexcept\n";
+				}
+
+			}
+		};
+
 		template <typename... Args>
 		int say_slow(const size_t time_delay_in_ms, const char* format_string, Args ... args)
 		{
 			auto const buffer_size = _scprintf(format_string, args...) + 1;
 
-			char* output_buffer = new char[buffer_size]{};
+			unique_ptr<char[], char_buffer_deleter> output_buffer_sp(new char[buffer_size], char_buffer_deleter{});
 
-			if (!output_buffer) return -1;
+			if (!output_buffer_sp) return -1;
 
-			_snprintf(output_buffer, buffer_size, format_string, args...);
+			_snprintf(output_buffer_sp.get(), buffer_size, format_string, args...);
 
 			auto sleep_on{true};
 
 			int final_ret_val{};
 
-			for (size_t i = 0; i < strlen(output_buffer); ++i)
+			for (size_t i = 0; i < strlen(output_buffer_sp.get()); ++i)
 			{
-				auto const ret_val = printf("%c", output_buffer[i]);
+				auto const ret_val = printf("%c", output_buffer_sp.get()[i]);
 
 				if (ret_val < 0) return final_ret_val;
 
@@ -140,10 +169,6 @@ namespace std
 					sleep_on = false;
 				}
 			}
-
-			delete[] output_buffer;
-
-			output_buffer = nullptr;
 
 			return final_ret_val;
 		}
@@ -151,21 +176,21 @@ namespace std
 		template <typename... Args>
 		int say_slow(const size_t time_delay_in_ms, const wchar_t* format_string, Args ... args)
 		{
-			auto const buffer_size = _scwprintf(format_string, args...) + 1;
+			auto const buffer_size = _scwprintf(format_string, args...) + 1;			
 
-			wchar_t* output_buffer = new wchar_t[buffer_size]{};
+			unique_ptr<wchar_t[], wchar_t_buffer_deleter> output_buffer_sp(new wchar_t[buffer_size], wchar_t_buffer_deleter{});
 
-			if (!output_buffer) return -1;
+			if (!output_buffer_sp) return -1;
 
-			_snwprintf(output_buffer, buffer_size, format_string, args...);
+			_snwprintf(output_buffer_sp.get(), buffer_size, format_string, args...);
 
 			auto sleep_on{true};
 
 			int final_ret_val{};
 
-			for (size_t i = 0; i < wcslen(output_buffer); ++i)
+			for (size_t i = 0; i < wcslen(output_buffer_sp.get()); ++i)
 			{
-				auto const ret_val = wprintf(L"%c", output_buffer[i]);
+				auto const ret_val = wprintf(L"%c", output_buffer_sp.get()[i]);
 
 				if (ret_val < 0) return final_ret_val;
 
@@ -180,10 +205,6 @@ namespace std
 					sleep_on = false;
 				}
 			}
-
-			delete[] output_buffer;
-
-			output_buffer = nullptr;
 
 			return final_ret_val;
 		}
@@ -193,17 +214,13 @@ namespace std
 		{
 			auto const buffer_size = _scprintf(format_string, args...) + 1;
 
-			char* output_buffer = new char[buffer_size] {};
+			unique_ptr<char[], char_buffer_deleter> output_buffer_sp(new char[buffer_size], char_buffer_deleter{});
 
-			if (!output_buffer) return -1;
+			if (!output_buffer_sp) return -1;
 
-			_snprintf(output_buffer, buffer_size, format_string, args...);
+			_snprintf(output_buffer_sp.get(), buffer_size, format_string, args...);
 
-			auto const ret_val = printf("%s", output_buffer);
-
-			delete[] output_buffer;
-
-			output_buffer = nullptr;
+			auto const ret_val = printf("%s", output_buffer_sp.get());
 
 			return ret_val;
 		}
@@ -213,17 +230,13 @@ namespace std
 		{
 			auto const buffer_size = _scwprintf(format_string, args...) + 1;
 
-			wchar_t* output_buffer = new wchar_t[buffer_size]{};
+			unique_ptr<wchar_t[], wchar_t_buffer_deleter> output_buffer_sp(new wchar_t[buffer_size], wchar_t_buffer_deleter{});
 
-			if (!output_buffer) return -1;
+			if (!output_buffer_sp) return -1;
 
-			_snwprintf(output_buffer, buffer_size, format_string, args...);
+			_snwprintf(output_buffer_sp.get(), buffer_size, format_string, args...);
 
-			auto const ret_val = wprintf(L"%s", output_buffer);
-
-			delete[] output_buffer;
-
-			output_buffer = nullptr;
+			auto const ret_val = wprintf(L"%s", output_buffer_sp.get());
 
 			return ret_val;
 		}
@@ -468,7 +481,7 @@ namespace std
 
 				if ((current - prev) > 0) parts.emplace_back(source.substr(prev, current - prev));
 
-				prev = current + needle_len; // source = "apple|pear|plum|cherry|orange", needle = "|"
+				prev = current + needle_len;
 
 				if (prev >= source.size()) break;
 			}
@@ -512,8 +525,8 @@ namespace std
 
 				if ((current - prev) > 0) parts.emplace_back(source.substr(prev, current - prev));
 
-				prev = current + needle_len; // source = "apple|pear|plum|cherry|orange", needle = "|"
-
+				prev = current + needle_len;
+				
 				if (prev >= source.size()) break;
 			}
 			while (StringType::npos != current);
@@ -554,7 +567,7 @@ namespace std
 
 				if ((current - prev) > 0) parts.emplace_back(source.substr(prev, current - prev));
 
-				prev = current + needle_len; // source = "apple|pear|plum|cherry|orange", needle = "|"
+				prev = current + needle_len;
 
 				if (prev >= source.size()) break;
 			}
