@@ -21,8 +21,13 @@
 #define STL_HELPER_UTILITY_MAJOR_VERSION 1
 #define STL_HELPER_UTILITY_MINOR_VERSION 0
 
-#define PRINT_VAR_NAME(arg) std::cout << #arg << ' '
-#define PRINT_VAR_NAMEW(arg) std::wcout << #arg << L' '
+// #ifdef _DEBUG
+	#define PRINT_VAR_NAME(arg) std::cout << #arg << ' '
+	#define PRINT_VAR_NAMEW(arg) std::wcout << #arg << L' '
+// #elif
+// 	#define PRINT_VAR_NAME(arg) __noop
+// 	#define PRINT_VAR_NAME(arg) __noop
+// #endif
 
 namespace std
 {
@@ -30,44 +35,38 @@ namespace std
 	{
 		enum class string_type { cstr, wstr, u16_str, u32_str };
 
-		/**
-		 * \brief constexpr function returns RTTI data (a const reference to a type_info struct) about its single argument
-		 * \tparam T template parameter T specifies compile-time data type of passed argument 'var'
-		 * \param var argument of type const T& passed
-		 * \return const reference to struct type_info that contains RTTI information about specified argument 'var'
-		 */
 		template <typename T>
-		const type_info& get_type_id(const T& var)
+		constexpr const type_info& get_type_id(const T&)
 		{
-			return typeid(var);
+			return typeid(T);
 		}
 
 		template <typename T>
-		const char* get_type_name(T&& var)
+		const char* get_type_name(T&&)
 		{
-			return typeid(var).name();
+			return typeid(T).name();
 		}
 
 		template <typename T>
-		const wchar_t* get_type_name_w(T&& var)
+		const wchar_t* get_type_name_w(T&&)
 		{
-			const string cstr{typeid(var).name()};
+			const string cstr{typeid(T).name()};
 
 			return wstring{cbegin(cstr), cend(cstr)}.c_str();
 		}
 
 		template <typename T>
-		const char16_t* get_type_name_u16(T&& var)
+		const char16_t* get_type_name_u16(T&&)
 		{
-			const string cstr{typeid(var).name()};
+			const string cstr{typeid(T).name()};
 
 			return u16string{cbegin(cstr), cend(cstr)}.c_str();
 		}
 
 		template <typename T>
-		const char32_t* get_type_name_u32(T&& var)
+		const char32_t* get_type_name_u32(T&&)
 		{
-			const string cstr{typeid(var).name()};
+			const string cstr{typeid(T).name()};
 
 			return u32string{cbegin(cstr), cend(cstr)}.c_str();
 		}
@@ -78,13 +77,13 @@ namespace std
 		}
 
 		template <typename T, typename ...Args>
-		bool are_data_types_equal(T&& arg, Args&&... args)
+		constexpr bool are_data_types_equal(T&& arg, Args&&... args)
 		{
 			return get_type_id(arg) == are_data_types_equal(args);
 		}
 
 		template <typename T, typename U, typename ...Args>
-		bool check_data_types_for_equality(const T& arg1, const U& arg2, Args&&... args)
+		constexpr bool check_data_types_for_equality(const T& arg1, const U& arg2, Args&&... args)
 		{
 			constexpr auto result = are_data_types_equal(forward<Args>(args)...);
 
@@ -116,7 +115,6 @@ namespace std
 				if (pointer)
 				{
 					delete[] pointer;
-					cout << "Executing delete[] pointer in char_buffer_deleter::void operator()(pointer_type pointer) const noexcept\n";
 				}
 			
 			}
@@ -130,8 +128,9 @@ namespace std
 
 				if (pointer)
 				{
-					delete[] pointer;
-					cout << "Executing delete[] pointer in wchar_t_buffer_deleter::void operator()(pointer_type pointer) const noexcept\n";
+					
+					delete[] pointer;									
+
 				}
 
 			}
@@ -143,7 +142,7 @@ namespace std
 			auto const buffer_size = _scprintf(format_string, args...) + 1;
 
 			unique_ptr<char[], char_buffer_deleter> output_buffer_sp(new char[buffer_size], char_buffer_deleter{});
-
+			
 			if (!output_buffer_sp) return -1;
 
 			_snprintf(output_buffer_sp.get(), buffer_size, format_string, args...);
