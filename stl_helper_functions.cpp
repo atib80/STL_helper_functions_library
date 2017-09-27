@@ -6,11 +6,11 @@ namespace std
 	{
 		bool trim(char* str)
 		{
-			size_t begin{ 0u };
+			size_t begin{0u};
 
-			const size_t original_end{ strlen(str) - 1 };
+			const size_t original_end{strlen(str) - 1};
 
-			size_t end{ original_end };
+			size_t end{original_end};
 
 			if (strlen(str) == 0) return false;
 
@@ -86,11 +86,11 @@ namespace std
 
 		bool trim(wchar_t* str)
 		{
-			size_t begin{ 0u };
+			size_t begin{0u};
 
-			const size_t original_end{ wcslen(str) - 1 };
+			const size_t original_end{wcslen(str) - 1};
 
-			size_t end{ original_end };
+			size_t end{original_end};
 
 			if (wcslen(str) == 0) return false;
 
@@ -168,11 +168,11 @@ namespace std
 		{
 			std::u16string u16_str{str};
 
-			size_t begin{ 0u };
+			size_t begin{0u};
 
-			const size_t original_end { u16_str.size() - 1 };
+			const size_t original_end{u16_str.size() - 1};
 
-			size_t end{ original_end };
+			size_t end{original_end};
 
 			if (u16_str.size() == 0) return false;
 
@@ -251,11 +251,11 @@ namespace std
 		{
 			std::u32string u32_str{str};
 
-			size_t begin{ 0u };
+			size_t begin{0u};
 
-			const size_t original_end{ u32_str.size() - 1 };
+			const size_t original_end{u32_str.size() - 1};
 
-			size_t end{ original_end };
+			size_t end{original_end};
 
 			if (u32_str.size() == 0) return false;
 
@@ -332,9 +332,9 @@ namespace std
 
 		bool ltrim(char* str)
 		{
-			size_t begin{ 0u };
+			size_t begin{0u};
 
-			const size_t end{ strlen(str) - 1 };
+			const size_t end{strlen(str) - 1};
 
 			if (strlen(str) == 0) return false;
 
@@ -384,9 +384,9 @@ namespace std
 
 		bool ltrim(wchar_t* str)
 		{
-			size_t begin{ 0u };
+			size_t begin{0u};
 
-			const size_t end{ wcslen(str) - 1 };
+			const size_t end{wcslen(str) - 1};
 
 			if (wcslen(str) == 0) return false;
 
@@ -438,9 +438,9 @@ namespace std
 		{
 			std::u16string u16_str{str};
 
-			size_t begin { 0u };
+			size_t begin{0u};
 
-			const size_t end{ u16_str.size() - 1 };
+			const size_t end{u16_str.size() - 1};
 
 			if (u16_str.size() == 0) return false;
 
@@ -476,7 +476,7 @@ namespace std
 			size_t j{0u};
 
 			const size_t last{end + 1};
-			
+
 			for (auto i = begin; i < last; i++)
 			{
 				str[j] = str[i];
@@ -492,9 +492,9 @@ namespace std
 		{
 			std::u32string u32_str{str};
 
-			size_t begin{ 0u };
+			size_t begin{0u};
 
-			const size_t end{ u32_str.size() - 1 };
+			const size_t end{u32_str.size() - 1};
 
 			if (u32_str.size() == 0) return false;
 
@@ -544,11 +544,11 @@ namespace std
 
 		bool rtrim(char* str)
 		{
-			const size_t begin{ 0u };
+			const size_t begin{0u};
 
-			size_t end{ strlen(str) - 1 };
+			size_t end{strlen(str) - 1};
 
-			const size_t original_end{ end };
+			const size_t original_end{end};
 
 			if (strlen(str) == 0) return false;
 
@@ -574,18 +574,18 @@ namespace std
 
 			if (original_end == end) return false;
 
-			str[end + 1] = '\0';			
+			str[end + 1] = '\0';
 
 			return true;
 		}
 
 		bool rtrim(wchar_t* str)
 		{
-			const size_t begin{ 0u };
+			const size_t begin{0u};
 
-			size_t end{ wcslen(str) - 1 };
+			size_t end{wcslen(str) - 1};
 
-			const size_t original_end{ end };
+			const size_t original_end{end};
 
 			if (wcslen(str) == 0) return false;
 
@@ -620,11 +620,11 @@ namespace std
 		{
 			std::u16string u16_str{str};
 
-			size_t begin{ 0u };
+			size_t begin{0u};
 
-			size_t end{ u16_str.size() - 1 };
+			size_t end{u16_str.size() - 1};
 
-			const size_t original_end{ end };
+			const size_t original_end{end};
 
 			if (u16_str.size() == 0) return false;
 
@@ -659,11 +659,11 @@ namespace std
 		{
 			std::u32string u32_str{str};
 
-			size_t begin{ 0u };
+			size_t begin{0u};
 
-			size_t end{ u32_str.size() - 1 };
+			size_t end{u32_str.size() - 1};
 
-			const size_t original_end{ end };
+			const size_t original_end{end};
 
 			if (u32_str.size() == 0) return false;
 
@@ -1838,6 +1838,4129 @@ namespace std
 			if (!match_found) return nullptr;
 
 			return &src[si - needle_len - 1];
+		}
+
+		// global conversion functions from the appropriate signed/unsigned integral types as well as floating point types to std::u16string and std::u32string (newer STL C++11 string types)		
+
+		u16string to_u16string(short number, const number_base convert_to_number_base, const add_number_base_sign number_base_sign)
+		{
+			
+			u16string number_str{};
+
+			auto const base = static_cast<short>( [&]() {
+				
+				switch (convert_to_number_base)
+				{
+
+				case number_base::binary:
+					return 2;
+
+				case number_base::octal:
+					return 8;
+
+				case number_base::decimal:
+					return 10;
+
+				case number_base::hexadecimal:
+					return 16;
+
+				default:
+					return 10;
+				}
+
+			} () );
+
+			while (number)
+			{
+				auto character_code_offset = static_cast<size_t>(number % base);
+
+				char16_t character_to_use = static_cast<char16_t>(u'0' + character_code_offset);
+				
+				if ((base == 16) && (character_code_offset > 9))
+				{
+				
+					character_to_use = static_cast<char16_t>(u'A' + (character_code_offset - 10));
+
+				}
+
+				number_str.insert(begin(number_str), character_to_use);
+
+				number /= base;
+			}
+
+			switch (number_base_sign)
+			{
+
+			case add_number_base_sign::no_number_base_sign:
+
+				return number_str;
+
+			case add_number_base_sign::prepend_in_lower_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.insert(0, u"0b");
+					break;
+
+				case 8:
+					number_str.insert(0, u"0o");
+					break;
+
+				case 10:					
+					break;
+
+				case 16:
+					number_str.insert(0, u"0x");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::prepend_in_upper_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.insert(0, u"0B");
+					break;
+
+				case 8:
+					number_str.insert(0, u"0O");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.insert(0, u"0X");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::append_in_lower_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.append(u"0b");
+					break;
+
+				case 8:
+					number_str.append(u"0o");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.append(u"0x");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::append_in_upper_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.append(u"0B");
+					break;
+
+				case 8:
+					number_str.append(u"0O");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.append(u"0X");
+					break;
+
+				default:
+					break;
+
+				}
+
+				return number_str;
+
+			default:
+
+				return number_str;			
+
+			}
+		}
+
+
+		u16string to_u16string(unsigned short number, const number_base convert_to_number_base, const add_number_base_sign number_base_sign)
+		{
+			
+			u16string number_str{};
+
+			auto const base = static_cast<unsigned short> ( [&]() {
+
+				switch (convert_to_number_base)
+				{
+
+				case number_base::binary:
+					return 2;
+
+				case number_base::octal:
+					return 8;
+
+				case number_base::decimal:
+					return 10;
+
+				case number_base::hexadecimal:
+					return 16;
+
+				default:
+					return 10;
+				}
+
+			} () );
+
+			while (number)
+			{
+				auto character_code_offset = static_cast<size_t>(number % base);
+
+				char16_t character_to_use = static_cast<char16_t>(u'0' + character_code_offset);
+
+				if ((base == 16) && (character_code_offset > 9))
+				{
+
+					character_to_use = static_cast<char16_t>(u'A' + (character_code_offset - 10));
+
+				}
+
+				number_str.insert(begin(number_str), character_to_use);
+
+				number /= base;
+			}
+
+			switch (number_base_sign)
+			{
+
+			case add_number_base_sign::no_number_base_sign:
+
+				return number_str;
+
+			case add_number_base_sign::prepend_in_lower_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.insert(0, u"0b");
+					break;
+
+				case 8:
+					number_str.insert(0, u"0o");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.insert(0, u"0x");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::prepend_in_upper_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.insert(0, u"0B");
+					break;
+
+				case 8:
+					number_str.insert(0, u"0O");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.insert(0, u"0X");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::append_in_lower_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.append(u"0b");
+					break;
+
+				case 8:
+					number_str.append(u"0o");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.append(u"0x");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::append_in_upper_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.append(u"0B");
+					break;
+
+				case 8:
+					number_str.append(u"0O");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.append(u"0X");
+					break;
+
+				default:
+					break;
+
+				}
+
+				return number_str;
+
+			default:
+
+				return number_str;
+
+			}
+
+		}
+
+
+		u16string to_u16string(int number, const number_base convert_to_number_base, const add_number_base_sign number_base_sign)
+		{
+			
+			u16string number_str{};
+
+			auto const base = [&]() {
+
+				switch (convert_to_number_base)
+				{
+
+				case number_base::binary:
+					return 2;
+
+				case number_base::octal:
+					return 8;
+
+				case number_base::decimal:
+					return 10;
+
+				case number_base::hexadecimal:
+					return 16;
+
+				default:
+					return 10;
+				}
+
+			} ();
+
+			while (number)
+			{
+				auto character_code_offset = static_cast<size_t>(number % base);
+
+				char16_t character_to_use = static_cast<char16_t>(u'0' + character_code_offset);
+
+				if ((base == 16) && (character_code_offset > 9))
+				{
+
+					character_to_use = static_cast<char16_t>(u'A' + (character_code_offset - 10));
+
+				}
+
+				number_str.insert(begin(number_str), character_to_use);
+
+				number /= base;
+			}
+
+			switch (number_base_sign)
+			{
+
+			case add_number_base_sign::no_number_base_sign:
+
+				return number_str;
+
+			case add_number_base_sign::prepend_in_lower_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.insert(0, u"0b");
+					break;
+
+				case 8:
+					number_str.insert(0, u"0o");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.insert(0, u"0x");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::prepend_in_upper_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.insert(0, u"0B");
+					break;
+
+				case 8:
+					number_str.insert(0, u"0O");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.insert(0, u"0X");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::append_in_lower_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.append(u"0b");
+					break;
+
+				case 8:
+					number_str.append(u"0o");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.append(u"0x");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::append_in_upper_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.append(u"0B");
+					break;
+
+				case 8:
+					number_str.append(u"0O");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.append(u"0X");
+					break;
+
+				default:
+					break;
+
+				}
+
+				return number_str;
+
+			default:
+
+				return number_str;
+
+			}
+
+		}
+
+
+		u16string to_u16string(unsigned int number, const number_base convert_to_number_base, const add_number_base_sign number_base_sign)
+		{
+			
+			u16string number_str{};
+
+			auto const base = static_cast<unsigned int>( [&]() {
+
+				switch (convert_to_number_base)
+				{
+
+				case number_base::binary:
+					return 2;
+
+				case number_base::octal:
+					return 8;
+
+				case number_base::decimal:
+					return 10;
+
+				case number_base::hexadecimal:
+					return 16;
+
+				default:
+					return 10;
+				}
+
+			} () );
+
+			while (number)
+			{
+				auto character_code_offset = static_cast<size_t>(number % base);
+
+				char16_t character_to_use = static_cast<char16_t>(u'0' + character_code_offset);
+
+				if ((base == 16) && (character_code_offset > 9))
+				{
+
+					character_to_use = static_cast<char16_t>(u'A' + (character_code_offset - 10));
+
+				}
+
+				number_str.insert(begin(number_str), character_to_use);
+
+				number /= base;
+			}
+
+			switch (number_base_sign)
+			{
+
+			case add_number_base_sign::no_number_base_sign:
+
+				return number_str;
+
+			case add_number_base_sign::prepend_in_lower_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.insert(0, u"0b");
+					break;
+
+				case 8:
+					number_str.insert(0, u"0o");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.insert(0, u"0x");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::prepend_in_upper_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.insert(0, u"0B");
+					break;
+
+				case 8:
+					number_str.insert(0, u"0O");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.insert(0, u"0X");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::append_in_lower_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.append(u"0b");
+					break;
+
+				case 8:
+					number_str.append(u"0o");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.append(u"0x");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::append_in_upper_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.append(u"0B");
+					break;
+
+				case 8:
+					number_str.append(u"0O");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.append(u"0X");
+					break;
+
+				default:
+					break;
+
+				}
+
+				return number_str;
+
+			default:
+
+				return number_str;
+
+			}
+
+		}
+
+
+		u16string to_u16string(long number, const number_base convert_to_number_base, const add_number_base_sign number_base_sign)
+		{
+			u16string number_str{};
+
+			auto const base = static_cast<long>([&]() {
+
+				switch (convert_to_number_base)
+				{
+
+				case number_base::binary:
+					return 2;
+
+				case number_base::octal:
+					return 8;
+
+				case number_base::decimal:
+					return 10;
+
+				case number_base::hexadecimal:
+					return 16;
+
+				default:
+					return 10;
+				}
+
+			} () );
+
+			while (number)
+			{
+				auto character_code_offset = static_cast<size_t>(number % base);
+
+				char16_t character_to_use = static_cast<char16_t>(u'0' + character_code_offset);
+
+				if ((base == 16) && (character_code_offset > 9))
+				{
+
+					character_to_use = static_cast<char16_t>(u'A' + (character_code_offset - 10));
+
+				}
+
+				number_str.insert(begin(number_str), character_to_use);
+
+				number /= base;
+			}
+
+			switch (number_base_sign)
+			{
+
+			case add_number_base_sign::no_number_base_sign:
+
+				return number_str;
+
+			case add_number_base_sign::prepend_in_lower_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.insert(0, u"0b");
+					break;
+
+				case 8:
+					number_str.insert(0, u"0o");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.insert(0, u"0x");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::prepend_in_upper_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.insert(0, u"0B");
+					break;
+
+				case 8:
+					number_str.insert(0, u"0O");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.insert(0, u"0X");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::append_in_lower_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.append(u"0b");
+					break;
+
+				case 8:
+					number_str.append(u"0o");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.append(u"0x");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::append_in_upper_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.append(u"0B");
+					break;
+
+				case 8:
+					number_str.append(u"0O");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.append(u"0X");
+					break;
+
+				default:
+					break;
+
+				}
+
+				return number_str;
+
+			default:
+
+				return number_str;
+
+			}
+		
+		}
+
+			
+		u16string to_u16string(unsigned long number, const number_base convert_to_number_base, const add_number_base_sign number_base_sign)
+		{
+			u16string number_str{};
+
+			auto const base = static_cast<unsigned long>([&]() {
+
+				switch (convert_to_number_base)
+				{
+
+				case number_base::binary:
+					return 2;
+
+				case number_base::octal:
+					return 8;
+
+				case number_base::decimal:
+					return 10;
+
+				case number_base::hexadecimal:
+					return 16;
+
+				default:
+					return 10;
+				}
+
+			} ());
+
+			while (number)
+			{
+				auto character_code_offset = static_cast<size_t>(number % base);
+
+				char16_t character_to_use = static_cast<char16_t>(u'0' + character_code_offset);
+
+				if ((base == 16) && (character_code_offset > 9))
+				{
+
+					character_to_use = static_cast<char16_t>(u'A' + (character_code_offset - 10));
+
+				}
+
+				number_str.insert(begin(number_str), character_to_use);
+
+				number /= base;
+			}
+
+			switch (number_base_sign)
+			{
+
+			case add_number_base_sign::no_number_base_sign:
+
+				return number_str;
+
+			case add_number_base_sign::prepend_in_lower_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.insert(0, u"0b");
+					break;
+
+				case 8:
+					number_str.insert(0, u"0o");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.insert(0, u"0x");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::prepend_in_upper_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.insert(0, u"0B");
+					break;
+
+				case 8:
+					number_str.insert(0, u"0O");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.insert(0, u"0X");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::append_in_lower_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.append(u"0b");
+					break;
+
+				case 8:
+					number_str.append(u"0o");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.append(u"0x");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::append_in_upper_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.append(u"0B");
+					break;
+
+				case 8:
+					number_str.append(u"0O");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.append(u"0X");
+					break;
+
+				default:
+					break;
+
+				}
+
+				return number_str;
+
+			default:
+
+				return number_str;
+
+			}
+
+		}
+
+
+		u16string to_u16string(long long number, const number_base convert_to_number_base, const add_number_base_sign number_base_sign)
+		{
+			
+			u16string number_str{};
+
+			auto const base = static_cast<long long>([&]() {
+
+				switch (convert_to_number_base)
+				{
+
+				case number_base::binary:
+					return 2;
+
+				case number_base::octal:
+					return 8;
+
+				case number_base::decimal:
+					return 10;
+
+				case number_base::hexadecimal:
+					return 16;
+
+				default:
+					return 10;
+				}
+
+			} ());
+
+			while (number)
+			{
+				auto character_code_offset = static_cast<size_t>(number % base);
+
+				char16_t character_to_use = static_cast<char16_t>(u'0' + character_code_offset);
+
+				if ((base == 16) && (character_code_offset > 9))
+				{
+
+					character_to_use = static_cast<char16_t>(u'A' + (character_code_offset - 10));
+
+				}
+
+				number_str.insert(begin(number_str), character_to_use);
+
+				number /= base;
+			}
+
+			switch (number_base_sign)
+			{
+
+			case add_number_base_sign::no_number_base_sign:
+
+				return number_str;
+
+			case add_number_base_sign::prepend_in_lower_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.insert(0, u"0b");
+					break;
+
+				case 8:
+					number_str.insert(0, u"0o");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.insert(0, u"0x");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::prepend_in_upper_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.insert(0, u"0B");
+					break;
+
+				case 8:
+					number_str.insert(0, u"0O");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.insert(0, u"0X");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::append_in_lower_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.append(u"0b");
+					break;
+
+				case 8:
+					number_str.append(u"0o");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.append(u"0x");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::append_in_upper_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.append(u"0B");
+					break;
+
+				case 8:
+					number_str.append(u"0O");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.append(u"0X");
+					break;
+
+				default:
+					break;
+
+				}
+
+				return number_str;
+
+			default:
+
+				return number_str;
+
+			}
+		
+		}
+
+
+		u16string to_u16string(unsigned long long number, const number_base convert_to_number_base, const add_number_base_sign number_base_sign)
+		{
+			
+			u16string number_str{};
+
+			auto const base = static_cast<unsigned long long>([&]() {
+
+				switch (convert_to_number_base)
+				{
+
+				case number_base::binary:
+					return 2;
+
+				case number_base::octal:
+					return 8;
+
+				case number_base::decimal:
+					return 10;
+
+				case number_base::hexadecimal:
+					return 16;
+
+				default:
+					return 10;
+				}
+
+			} ());
+
+			while (number)
+			{
+				auto character_code_offset = static_cast<size_t>(number % base);
+
+				char16_t character_to_use = static_cast<char16_t>(u'0' + character_code_offset);
+
+				if ((base == 16) && (character_code_offset > 9))
+				{
+
+					character_to_use = static_cast<char16_t>(u'A' + (character_code_offset - 10));
+
+				}
+
+				number_str.insert(begin(number_str), character_to_use);
+
+				number /= base;
+			}
+
+			switch (number_base_sign)
+			{
+
+			case add_number_base_sign::no_number_base_sign:
+
+				return number_str;
+
+			case add_number_base_sign::prepend_in_lower_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.insert(0, u"0b");
+					break;
+
+				case 8:
+					number_str.insert(0, u"0o");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.insert(0, u"0x");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::prepend_in_upper_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.insert(0, u"0B");
+					break;
+
+				case 8:
+					number_str.insert(0, u"0O");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.insert(0, u"0X");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::append_in_lower_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.append(u"0b");
+					break;
+
+				case 8:
+					number_str.append(u"0o");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.append(u"0x");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::append_in_upper_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.append(u"0B");
+					break;
+
+				case 8:
+					number_str.append(u"0O");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.append(u"0X");
+					break;
+
+				default:
+					break;
+
+				}
+
+				return number_str;
+
+			default:
+
+				return number_str;
+
+			}
+
+		}
+
+		
+		u16string to_u16string(float number)
+		{
+			char buffer[128];
+			
+			auto const count = _snprintf(buffer, 128, "%f", number);
+			
+			u16string number_str{};
+
+			transform(buffer, buffer + count, back_inserter(number_str), [&](const auto ch)
+			{
+				return static_cast<char16_t>(ch);
+			});
+			
+		    return number_str;			
+
+		}
+
+
+
+		u16string to_u16string(double number)
+		{
+			char buffer[128];
+
+			auto const count = _snprintf(buffer, 128, "%lf", number);
+
+			u16string number_str{};
+
+			transform(buffer, buffer + count, back_inserter(number_str), [&](const auto ch)
+			{
+				return static_cast<char16_t>(ch);
+			});
+
+			return number_str;
+		}
+		
+		u16string to_u16string(long double number)
+		{
+			char buffer[128];
+
+			auto const count = _snprintf(buffer, 128, "%Lf", number);
+
+			u16string number_str{};
+
+			transform(buffer, buffer + count, back_inserter(number_str), [&](const auto ch)
+			{
+				return static_cast<char16_t>(ch);
+			});
+
+			return number_str;
+		}
+
+		u32string to_u32string(short number, const number_base convert_to_number_base, const add_number_base_sign number_base_sign)
+		{
+
+			u32string number_str{};
+
+			auto const base = static_cast<short>([&]() {
+
+				switch (convert_to_number_base)
+				{
+
+				case number_base::binary:
+					return 2;
+
+				case number_base::octal:
+					return 8;
+
+				case number_base::decimal:
+					return 10;
+
+				case number_base::hexadecimal:
+					return 16;
+
+				default:
+					return 10;
+				}
+
+			} ());
+
+			while (number)
+			{
+				auto character_code_offset = static_cast<size_t>(number % base);
+
+				char16_t character_to_use = static_cast<char32_t>(U'0' + character_code_offset);
+
+				if ((base == 16) && (character_code_offset > 9))
+				{
+
+					character_to_use = static_cast<char32_t>(U'A' + (character_code_offset - 10));
+
+				}
+
+				number_str.insert(begin(number_str), character_to_use);
+
+				number /= base;
+			}
+
+			switch (number_base_sign)
+			{
+
+			case add_number_base_sign::no_number_base_sign:
+
+				return number_str;
+
+			case add_number_base_sign::prepend_in_lower_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.insert(0, U"0b");
+					break;
+
+				case 8:
+					number_str.insert(0, U"0o");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.insert(0, U"0x");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::prepend_in_upper_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.insert(0, U"0B");
+					break;
+
+				case 8:
+					number_str.insert(0, U"0O");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.insert(0, U"0X");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::append_in_lower_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.append(U"0b");
+					break;
+
+				case 8:
+					number_str.append(U"0o");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.append(U"0x");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::append_in_upper_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.append(U"0B");
+					break;
+
+				case 8:
+					number_str.append(U"0O");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.append(U"0X");
+					break;
+
+				default:
+					break;
+
+				}
+
+				return number_str;
+
+			default:
+
+				return number_str;
+
+			}
+
+		}
+
+
+		u32string to_u32string(unsigned short number, const number_base convert_to_number_base, const add_number_base_sign number_base_sign)
+		{
+
+			u32string number_str{};
+
+			auto const base = static_cast<unsigned short> ([&]() {
+
+				switch (convert_to_number_base)
+				{
+
+				case number_base::binary:
+					return 2;
+
+				case number_base::octal:
+					return 8;
+
+				case number_base::decimal:
+					return 10;
+
+				case number_base::hexadecimal:
+					return 16;
+
+				default:
+					return 10;
+				}
+
+			} ());
+
+			while (number)
+			{
+				auto character_code_offset = static_cast<size_t>(number % base);
+
+				char16_t character_to_use = static_cast<char32_t>(U'0' + character_code_offset);
+
+				if ((base == 16) && (character_code_offset > 9))
+				{
+
+					character_to_use = static_cast<char32_t>(U'A' + (character_code_offset - 10));
+
+				}
+
+				number_str.insert(begin(number_str), character_to_use);
+
+				number /= base;
+			}
+
+			switch (number_base_sign)
+			{
+
+			case add_number_base_sign::no_number_base_sign:
+
+				return number_str;
+
+			case add_number_base_sign::prepend_in_lower_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.insert(0, U"0b");
+					break;
+
+				case 8:
+					number_str.insert(0, U"0o");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.insert(0, U"0x");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::prepend_in_upper_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.insert(0, U"0B");
+					break;
+
+				case 8:
+					number_str.insert(0, U"0O");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.insert(0, U"0X");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::append_in_lower_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.append(U"0b");
+					break;
+
+				case 8:
+					number_str.append(U"0o");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.append(U"0x");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::append_in_upper_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.append(U"0B");
+					break;
+
+				case 8:
+					number_str.append(U"0O");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.append(U"0X");
+					break;
+
+				default:
+					break;
+
+				}
+
+				return number_str;
+
+			default:
+
+				return number_str;
+
+			}
+
+		}
+
+
+		u32string to_u32string(int number, const number_base convert_to_number_base, const add_number_base_sign number_base_sign)
+		{
+
+			u32string number_str{};
+
+			auto const base = [&]() {
+
+				switch (convert_to_number_base)
+				{
+
+				case number_base::binary:
+					return 2;
+
+				case number_base::octal:
+					return 8;
+
+				case number_base::decimal:
+					return 10;
+
+				case number_base::hexadecimal:
+					return 16;
+
+				default:
+					return 10;
+				}
+
+			} ();
+
+			while (number)
+			{
+				auto character_code_offset = static_cast<size_t>(number % base);
+
+				char16_t character_to_use = static_cast<char32_t>(U'0' + character_code_offset);
+
+				if ((base == 16) && (character_code_offset > 9))
+				{
+
+					character_to_use = static_cast<char32_t>(U'A' + (character_code_offset - 10));
+
+				}
+
+				number_str.insert(begin(number_str), character_to_use);
+
+				number /= base;
+			}
+
+			switch (number_base_sign)
+			{
+
+			case add_number_base_sign::no_number_base_sign:
+
+				return number_str;
+
+			case add_number_base_sign::prepend_in_lower_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.insert(0, U"0b");
+					break;
+
+				case 8:
+					number_str.insert(0, U"0o");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.insert(0, U"0x");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::prepend_in_upper_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.insert(0, U"0B");
+					break;
+
+				case 8:
+					number_str.insert(0, U"0O");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.insert(0, U"0X");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::append_in_lower_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.append(U"0b");
+					break;
+
+				case 8:
+					number_str.append(U"0o");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.append(U"0x");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::append_in_upper_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.append(U"0B");
+					break;
+
+				case 8:
+					number_str.append(U"0O");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.append(U"0X");
+					break;
+
+				default:
+					break;
+
+				}
+
+				return number_str;
+
+			default:
+
+				return number_str;
+
+			}
+
+		}
+
+
+		u32string to_u32string(unsigned int number, const number_base convert_to_number_base, const add_number_base_sign number_base_sign)
+		{
+
+			u32string number_str{};
+
+			auto const base = static_cast<unsigned int>([&]() {
+
+				switch (convert_to_number_base)
+				{
+
+				case number_base::binary:
+					return 2;
+
+				case number_base::octal:
+					return 8;
+
+				case number_base::decimal:
+					return 10;
+
+				case number_base::hexadecimal:
+					return 16;
+
+				default:
+					return 10;
+				}
+
+			} ());
+
+			while (number)
+			{
+				auto character_code_offset = static_cast<size_t>(number % base);
+
+				char16_t character_to_use = static_cast<char32_t>(U'0' + character_code_offset);
+
+				if ((base == 16) && (character_code_offset > 9))
+				{
+
+					character_to_use = static_cast<char32_t>(U'A' + (character_code_offset - 10));
+
+				}
+
+				number_str.insert(begin(number_str), character_to_use);
+
+				number /= base;
+			}
+
+			switch (number_base_sign)
+			{
+
+			case add_number_base_sign::no_number_base_sign:
+
+				return number_str;
+
+			case add_number_base_sign::prepend_in_lower_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.insert(0, U"0b");
+					break;
+
+				case 8:
+					number_str.insert(0, U"0o");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.insert(0, U"0x");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::prepend_in_upper_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.insert(0, U"0B");
+					break;
+
+				case 8:
+					number_str.insert(0, U"0O");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.insert(0, U"0X");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::append_in_lower_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.append(U"0b");
+					break;
+
+				case 8:
+					number_str.append(U"0o");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.append(U"0x");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::append_in_upper_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.append(U"0B");
+					break;
+
+				case 8:
+					number_str.append(U"0O");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.append(U"0X");
+					break;
+
+				default:
+					break;
+
+				}
+
+				return number_str;
+
+			default:
+
+				return number_str;
+
+			}
+
+		}
+
+
+		u32string to_u32string(long number, const number_base convert_to_number_base, const add_number_base_sign number_base_sign)
+		{
+			u32string number_str{};
+
+			auto const base = static_cast<long>([&]() {
+
+				switch (convert_to_number_base)
+				{
+
+				case number_base::binary:
+					return 2;
+
+				case number_base::octal:
+					return 8;
+
+				case number_base::decimal:
+					return 10;
+
+				case number_base::hexadecimal:
+					return 16;
+
+				default:
+					return 10;
+				}
+
+			} ());
+
+			while (number)
+			{
+				auto character_code_offset = static_cast<size_t>(number % base);
+
+				char16_t character_to_use = static_cast<char32_t>(U'0' + character_code_offset);
+
+				if ((base == 16) && (character_code_offset > 9))
+				{
+
+					character_to_use = static_cast<char32_t>(U'A' + (character_code_offset - 10));
+
+				}
+
+				number_str.insert(begin(number_str), character_to_use);
+
+				number /= base;
+			}
+
+			switch (number_base_sign)
+			{
+
+			case add_number_base_sign::no_number_base_sign:
+
+				return number_str;
+
+			case add_number_base_sign::prepend_in_lower_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.insert(0, U"0b");
+					break;
+
+				case 8:
+					number_str.insert(0, U"0o");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.insert(0, U"0x");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::prepend_in_upper_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.insert(0, U"0B");
+					break;
+
+				case 8:
+					number_str.insert(0, U"0O");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.insert(0, U"0X");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::append_in_lower_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.append(U"0b");
+					break;
+
+				case 8:
+					number_str.append(U"0o");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.append(U"0x");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::append_in_upper_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.append(U"0B");
+					break;
+
+				case 8:
+					number_str.append(U"0O");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.append(U"0X");
+					break;
+
+				default:
+					break;
+
+				}
+
+				return number_str;
+
+			default:
+
+				return number_str;
+
+			}
+
+		}
+
+
+		u32string to_u32string(unsigned long number, const number_base convert_to_number_base, const add_number_base_sign number_base_sign)
+		{
+			u32string number_str{};
+
+			auto const base = static_cast<unsigned long>([&]() {
+
+				switch (convert_to_number_base)
+				{
+
+				case number_base::binary:
+					return 2;
+
+				case number_base::octal:
+					return 8;
+
+				case number_base::decimal:
+					return 10;
+
+				case number_base::hexadecimal:
+					return 16;
+
+				default:
+					return 10;
+				}
+
+			} ());
+
+			while (number)
+			{
+				auto character_code_offset = static_cast<size_t>(number % base);
+
+				char16_t character_to_use = static_cast<char32_t>(U'0' + character_code_offset);
+
+				if ((base == 16) && (character_code_offset > 9))
+				{
+
+					character_to_use = static_cast<char32_t>(U'A' + (character_code_offset - 10));
+
+				}
+
+				number_str.insert(begin(number_str), character_to_use);
+
+				number /= base;
+			}
+
+			switch (number_base_sign)
+			{
+
+			case add_number_base_sign::no_number_base_sign:
+
+				return number_str;
+
+			case add_number_base_sign::prepend_in_lower_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.insert(0, U"0b");
+					break;
+
+				case 8:
+					number_str.insert(0, U"0o");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.insert(0, U"0x");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::prepend_in_upper_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.insert(0, U"0B");
+					break;
+
+				case 8:
+					number_str.insert(0, U"0O");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.insert(0, U"0X");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::append_in_lower_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.append(U"0b");
+					break;
+
+				case 8:
+					number_str.append(U"0o");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.append(U"0x");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::append_in_upper_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.append(U"0B");
+					break;
+
+				case 8:
+					number_str.append(U"0O");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.append(U"0X");
+					break;
+
+				default:
+					break;
+
+				}
+
+				return number_str;
+
+			default:
+
+				return number_str;
+
+			}
+
+		}
+
+
+		u32string to_u32string(long long number, const number_base convert_to_number_base, const add_number_base_sign number_base_sign)
+		{
+
+			u32string number_str{};
+
+			auto const base = static_cast<long long>([&]() {
+
+				switch (convert_to_number_base)
+				{
+
+				case number_base::binary:
+					return 2;
+
+				case number_base::octal:
+					return 8;
+
+				case number_base::decimal:
+					return 10;
+
+				case number_base::hexadecimal:
+					return 16;
+
+				default:
+					return 10;
+				}
+
+			} ());
+
+			while (number)
+			{
+				auto character_code_offset = static_cast<size_t>(number % base);
+
+				char16_t character_to_use = static_cast<char32_t>(U'0' + character_code_offset);
+
+				if ((base == 16) && (character_code_offset > 9))
+				{
+
+					character_to_use = static_cast<char32_t>(U'A' + (character_code_offset - 10));
+
+				}
+
+				number_str.insert(begin(number_str), character_to_use);
+
+				number /= base;
+			}
+
+			switch (number_base_sign)
+			{
+
+			case add_number_base_sign::no_number_base_sign:
+
+				return number_str;
+
+			case add_number_base_sign::prepend_in_lower_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.insert(0, U"0b");
+					break;
+
+				case 8:
+					number_str.insert(0, U"0o");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.insert(0, U"0x");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::prepend_in_upper_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.insert(0, U"0B");
+					break;
+
+				case 8:
+					number_str.insert(0, U"0O");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.insert(0, U"0X");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::append_in_lower_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.append(U"0b");
+					break;
+
+				case 8:
+					number_str.append(U"0o");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.append(U"0x");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::append_in_upper_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.append(U"0B");
+					break;
+
+				case 8:
+					number_str.append(U"0O");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.append(U"0X");
+					break;
+
+				default:
+					break;
+
+				}
+
+				return number_str;
+
+			default:
+
+				return number_str;
+
+			}
+
+		}
+
+
+		u32string to_u32string(unsigned long long number, const number_base convert_to_number_base, const add_number_base_sign number_base_sign)
+		{
+
+			u32string number_str{};
+
+			auto const base = static_cast<unsigned long long>([&]() {
+
+				switch (convert_to_number_base)
+				{
+
+				case number_base::binary:
+					return 2;
+
+				case number_base::octal:
+					return 8;
+
+				case number_base::decimal:
+					return 10;
+
+				case number_base::hexadecimal:
+					return 16;
+
+				default:
+					return 10;
+				}
+
+			} ());
+
+			while (number)
+			{
+				auto character_code_offset = static_cast<size_t>(number % base);
+
+				char16_t character_to_use = static_cast<char32_t>(U'0' + character_code_offset);
+
+				if ((base == 16) && (character_code_offset > 9))
+				{
+
+					character_to_use = static_cast<char32_t>(U'A' + (character_code_offset - 10));
+
+				}
+
+				number_str.insert(begin(number_str), character_to_use);
+
+				number /= base;
+			}
+
+			switch (number_base_sign)
+			{
+
+			case add_number_base_sign::no_number_base_sign:
+
+				return number_str;
+
+			case add_number_base_sign::prepend_in_lower_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.insert(0, U"0b");
+					break;
+
+				case 8:
+					number_str.insert(0, U"0o");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.insert(0, U"0x");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::prepend_in_upper_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.insert(0, U"0B");
+					break;
+
+				case 8:
+					number_str.insert(0, U"0O");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.insert(0, U"0X");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::append_in_lower_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.append(U"0b");
+					break;
+
+				case 8:
+					number_str.append(U"0o");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.append(U"0x");
+					break;
+
+				default:
+					break;
+				}
+
+				return number_str;
+
+			case add_number_base_sign::append_in_upper_case_format:
+
+				switch (base)
+				{
+
+				case 2:
+					number_str.append(U"0B");
+					break;
+
+				case 8:
+					number_str.append(U"0O");
+					break;
+
+				case 10:
+					break;
+
+				case 16:
+					number_str.append(U"0X");
+					break;
+
+				default:
+					break;
+
+				}
+
+				return number_str;
+
+			default:
+
+				return number_str;
+
+			}
+
+		}
+
+
+		u32string to_u32string(float number)
+		{
+			char buffer[128];
+
+			auto const count = _snprintf(buffer, 128, "%f", number);
+
+			u32string number_str{};
+
+			transform(buffer, buffer + count, back_inserter(number_str), [&](const auto ch)
+			{
+				return static_cast<char32_t>(ch);
+			});
+
+			return number_str;
+
+		}
+
+
+
+		u32string to_u32string(double number)
+		{
+			char buffer[128];
+
+			auto const count = _snprintf(buffer, 128, "%lf", number);
+
+			u32string number_str{};
+
+			transform(buffer, buffer + count, back_inserter(number_str), [&](const auto ch)
+			{
+				return static_cast<char32_t>(ch);
+			});
+
+			return number_str;
+		}
+
+		u32string to_u32string(long double number)
+		{
+			char buffer[128];
+
+			auto const count = _snprintf(buffer, 128, "%Lf", number);
+
+			u32string number_str{};
+
+			transform(buffer, buffer + count, back_inserter(number_str), [&](const auto ch)
+			{
+				return static_cast<char32_t>(ch);
+			});
+
+			return number_str;
+		}
+
+
+		int stoi(const u16string& str, size_t* pos, int base, bool ignore_leading_white_space_characters)
+		{
+			int number_value{};
+
+			auto temp_str{ str };
+
+			if (ignore_leading_white_space_characters) temp_str = ltrim(str);
+
+			auto found_invalid_character{ false };			
+
+			if ((base == 2) && ((temp_str[0] == u'b') || (temp_str[0] == u'B')))
+			{
+				temp_str.erase(cbegin(temp_str));
+			}
+
+			else if ((base == 2) && ((temp_str.substr(0, 2) == u"0b") || (temp_str.substr(0, 2) == u"0B")))
+			{
+				temp_str.assign(temp_str.substr(2));
+			
+			}
+
+			else if ((base == 8) && ((temp_str[0] == u'0') || (temp_str[0] == u'o') || (temp_str[0] == u'O')))
+			{
+				temp_str.erase(cbegin(temp_str));
+			}
+
+			else if ((base == 8) && ((temp_str.substr(0, 2) == u"0o") || (temp_str.substr(0, 2) == u"0O")))
+			{
+				temp_str.assign(temp_str.substr(2));
+			}
+
+			else if ((base == 16) && ((temp_str[0] == u'x') || (temp_str[0] == u'X')))
+			{
+				temp_str.erase(cbegin(temp_str));
+			}
+
+			else if ((base == 16) && ((temp_str.substr(0, 2) == u"0x") || (temp_str.substr(0, 2) == u"0X")))
+			{
+				temp_str.assign(temp_str.substr(2));
+			}
+
+			u16string::size_type i{ 0u };
+
+			for (; (!found_invalid_character && (i < temp_str.size())); i++)
+			{
+				switch (base)
+				{
+
+				case 2:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'1')) found_invalid_character = true;
+
+					number_value *= 2;
+
+					number_value += static_cast<int>(temp_str[i] - u'0');
+
+					break;
+
+				case 8:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'7')) found_invalid_character = true;
+
+					number_value *= 8;
+
+					number_value += static_cast<int>(temp_str[i] - u'0');
+
+					break;
+
+				case 10:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'9')) found_invalid_character = true;
+
+					number_value *= 10;
+
+					number_value += static_cast<int>(temp_str[i] - u'0');
+
+					break;
+
+				case 16:
+					if (((temp_str[i] >= u'0') && (temp_str[i] <= u'9')) || ((temp_str[i] >= u'A') && (temp_str[i] <= u'F'))) {
+
+						number_value *= 16;
+
+						if ((temp_str[i] >= u'0') && (temp_str[i] <= u'9')) number_value += static_cast<int>(temp_str[i] - u'0');
+
+						else if ((temp_str[i] >= u'A') && (temp_str[i] <= u'F')) number_value += static_cast<int>(10 + temp_str[i] - u'A');
+
+						else if ((temp_str[i] >= u'a') && (temp_str[i] <= u'f')) number_value += static_cast<int>(10 + temp_str[i] - u'a');
+
+					}
+					else {
+						found_invalid_character = true;
+					}
+
+					break;
+
+				default:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'9')) found_invalid_character = true;
+
+					number_value *= 10;
+
+					number_value += static_cast<int>(temp_str[i] - u'0');
+
+					break;
+
+
+				}
+
+			}
+
+			if (pos) *pos = i;
+
+			return number_value;
+		}
+
+
+		long stol(const u16string& str, size_t* pos, int base, bool ignore_leading_white_space_characters)
+		{
+			long number_value{};
+
+			auto temp_str{ str };
+
+			if (ignore_leading_white_space_characters) temp_str = ltrim(str);
+
+			auto found_invalid_character{ false };
+
+			if ((base == 2) && ((temp_str[0] == u'b') || (temp_str[0] == u'B')))
+			{
+				temp_str.erase(cbegin(temp_str));
+			}
+
+			else if ((base == 2) && ((temp_str.substr(0, 2) == u"0b") || (temp_str.substr(0, 2) == u"0B")))
+			{
+				temp_str.assign(temp_str.substr(2));
+
+			}
+
+			else if ((base == 8) && ((temp_str[0] == u'0') || (temp_str[0] == u'o') || (temp_str[0] == u'O')))
+			{
+				temp_str.erase(cbegin(temp_str));
+			}
+
+			else if ((base == 8) && ((temp_str.substr(0, 2) == u"0o") || (temp_str.substr(0, 2) == u"0O")))
+			{
+				temp_str.assign(temp_str.substr(2));
+			}
+
+			else if ((base == 16) && ((temp_str[0] == u'x') || (temp_str[0] == u'X')))
+			{
+				temp_str.erase(cbegin(temp_str));
+			}
+
+			else if ((base == 16) && ((temp_str.substr(0, 2) == u"0x") || (temp_str.substr(0, 2) == u"0X")))
+			{
+				temp_str.assign(temp_str.substr(2));
+			}
+
+			u16string::size_type i{ 0u };
+
+			for (; (!found_invalid_character && (i < temp_str.size())); i++)
+			{
+				switch (base)
+				{
+
+				case 2:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'1')) found_invalid_character = true;
+
+					number_value *= 2;
+
+					number_value += static_cast<long>(temp_str[i] - u'0');
+
+					break;
+
+				case 8:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'7')) found_invalid_character = true;
+
+					number_value *= 8;
+
+					number_value += static_cast<long>(temp_str[i] - u'0');
+
+					break;
+
+				case 10:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'9')) found_invalid_character = true;
+
+					number_value *= 10;
+
+					number_value += static_cast<long>(temp_str[i] - u'0');
+
+					break;
+
+				case 16:
+					if (((temp_str[i] >= u'0') && (temp_str[i] <= u'9')) || ((temp_str[i] >= u'A') && (temp_str[i] <= u'F'))) {
+
+						number_value *= 16;
+
+						if ((temp_str[i] >= u'0') && (temp_str[i] <= u'9')) number_value += static_cast<long>(temp_str[i] - u'0');
+
+						else if ((temp_str[i] >= u'A') && (temp_str[i] <= u'F')) number_value += static_cast<long>(10 + temp_str[i] - u'A');
+
+						else if ((temp_str[i] >= u'a') && (temp_str[i] <= u'f')) number_value += static_cast<long>(10 + temp_str[i] - u'a');
+
+					}
+					else {
+						found_invalid_character = true;
+					}
+
+					break;
+
+				default:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'9')) found_invalid_character = true;
+
+					number_value *= 10;
+
+					number_value += static_cast<long>(temp_str[i] - u'0');
+
+					break;
+
+
+				}
+
+			}
+
+			if (pos) *pos = i;
+
+			return number_value;
+
+		}
+
+
+		unsigned long stoul(const u16string& str, size_t* pos, int base, bool ignore_leading_white_space_characters)
+		{
+
+			unsigned long number_value{};
+
+			auto temp_str{ str };
+
+			if (ignore_leading_white_space_characters) temp_str = ltrim(str);
+
+			auto found_invalid_character{ false };
+
+			if ((base == 2) && ((temp_str[0] == u'b') || (temp_str[0] == u'B')))
+			{
+				temp_str.erase(cbegin(temp_str));
+			}
+
+			else if ((base == 2) && ((temp_str.substr(0, 2) == u"0b") || (temp_str.substr(0, 2) == u"0B")))
+			{
+				temp_str.assign(temp_str.substr(2));
+
+			}
+
+			else if ((base == 8) && ((temp_str[0] == u'0') || (temp_str[0] == u'o') || (temp_str[0] == u'O')))
+			{
+				temp_str.erase(cbegin(temp_str));
+			}
+
+			else if ((base == 8) && ((temp_str.substr(0, 2) == u"0o") || (temp_str.substr(0, 2) == u"0O")))
+			{
+				temp_str.assign(temp_str.substr(2));
+			}
+
+			else if ((base == 16) && ((temp_str[0] == u'x') || (temp_str[0] == u'X')))
+			{
+				temp_str.erase(cbegin(temp_str));
+			}
+
+			else if ((base == 16) && ((temp_str.substr(0, 2) == u"0x") || (temp_str.substr(0, 2) == u"0X")))
+			{
+				temp_str.assign(temp_str.substr(2));
+			}
+
+			u16string::size_type i{ 0u };
+
+			for (; (!found_invalid_character && (i < temp_str.size())); i++)
+			{
+				switch (base)
+				{
+
+				case 2:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'1')) found_invalid_character = true;
+
+					number_value *= 2;
+
+					number_value += static_cast<unsigned long>(temp_str[i] - u'0');
+
+					break;
+
+				case 8:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'7')) found_invalid_character = true;
+
+					number_value *= 8;
+
+					number_value += static_cast<unsigned long>(temp_str[i] - u'0');
+
+					break;
+
+				case 10:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'9')) found_invalid_character = true;
+
+					number_value *= 10;
+
+					number_value += static_cast<unsigned long>(temp_str[i] - u'0');
+
+					break;
+
+				case 16:
+					if (((temp_str[i] >= u'0') && (temp_str[i] <= u'9')) || ((temp_str[i] >= u'A') && (temp_str[i] <= u'F'))) {
+
+						number_value *= 16;
+
+						if ((temp_str[i] >= u'0') && (temp_str[i] <= u'9')) number_value += static_cast<unsigned long>(temp_str[i] - u'0');
+
+						else if ((temp_str[i] >= u'A') && (temp_str[i] <= u'F')) number_value += static_cast<unsigned long>(10 + temp_str[i] - u'A');
+
+						else if ((temp_str[i] >= u'a') && (temp_str[i] <= u'f')) number_value += static_cast<unsigned long>(10 + temp_str[i] - u'a');
+
+					}
+					else {
+						found_invalid_character = true;
+					}
+
+					break;
+
+				default:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'9')) found_invalid_character = true;
+
+					number_value *= 10;
+
+					number_value += static_cast<unsigned long>(temp_str[i] - u'0');
+
+					break;
+
+
+				}
+
+			}
+
+			if (pos) *pos = i;
+
+			return number_value;
+			
+
+		}
+
+		long long stoll(const u16string& str, size_t* pos, int base, bool ignore_leading_white_space_characters)
+		{
+			
+			long long number_value{};
+
+			auto temp_str{ str };
+
+			if (ignore_leading_white_space_characters) temp_str = ltrim(str);
+
+			auto found_invalid_character{ false };
+
+			if ((base == 2) && ((temp_str[0] == u'b') || (temp_str[0] == u'B')))
+			{
+				temp_str.erase(cbegin(temp_str));
+			}
+
+			else if ((base == 2) && ((temp_str.substr(0, 2) == u"0b") || (temp_str.substr(0, 2) == u"0B")))
+			{
+				temp_str.assign(temp_str.substr(2));
+
+			}
+
+			else if ((base == 8) && ((temp_str[0] == u'0') || (temp_str[0] == u'o') || (temp_str[0] == u'O')))
+			{
+				temp_str.erase(cbegin(temp_str));
+			}
+
+			else if ((base == 8) && ((temp_str.substr(0, 2) == u"0o") || (temp_str.substr(0, 2) == u"0O")))
+			{
+				temp_str.assign(temp_str.substr(2));
+			}
+
+			else if ((base == 16) && ((temp_str[0] == u'x') || (temp_str[0] == u'X')))
+			{
+				temp_str.erase(cbegin(temp_str));
+			}
+
+			else if ((base == 16) && ((temp_str.substr(0, 2) == u"0x") || (temp_str.substr(0, 2) == u"0X")))
+			{
+				temp_str.assign(temp_str.substr(2));
+			}
+
+			u16string::size_type i{ 0u };
+
+			for (; (!found_invalid_character && (i < temp_str.size())); i++)
+			{
+				switch (base)
+				{
+
+				case 2:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'1')) found_invalid_character = true;
+
+					number_value *= 2;
+
+					number_value += static_cast<long long>(temp_str[i] - u'0');
+
+					break;
+
+				case 8:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'7')) found_invalid_character = true;
+
+					number_value *= 8;
+
+					number_value += static_cast<long long>(temp_str[i] - u'0');
+
+					break;
+
+				case 10:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'9')) found_invalid_character = true;
+
+					number_value *= 10;
+
+					number_value += static_cast<long long>(temp_str[i] - u'0');
+
+					break;
+
+				case 16:
+					if (((temp_str[i] >= u'0') && (temp_str[i] <= u'9')) || ((temp_str[i] >= u'A') && (temp_str[i] <= u'F'))) {
+
+						number_value *= 16;
+
+						if ((temp_str[i] >= u'0') && (temp_str[i] <= u'9')) number_value += static_cast<long long>(temp_str[i] - u'0');
+
+						else if ((temp_str[i] >= u'A') && (temp_str[i] <= u'F')) number_value += static_cast<long long>(10 + temp_str[i] - u'A');
+
+						else if ((temp_str[i] >= u'a') && (temp_str[i] <= u'f')) number_value += static_cast<long long>(10 + temp_str[i] - u'a');
+
+					}
+					else {
+						found_invalid_character = true;
+					}
+
+					break;
+
+				default:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'9')) found_invalid_character = true;
+
+					number_value *= 10;
+
+					number_value += static_cast<long long>(temp_str[i] - u'0');
+
+					break;
+
+
+				}
+
+			}
+
+			if (pos) *pos = i;
+			
+			return number_value;
+
+		}
+
+
+		unsigned long long stoull(const u16string& str, size_t* pos, int base, bool ignore_leading_white_space_characters)
+		{
+			unsigned long long number_value{};
+
+			auto temp_str{ str };
+
+			if (ignore_leading_white_space_characters) temp_str = ltrim(str);
+
+			auto found_invalid_character{ false };
+
+			if ((base == 2) && ((temp_str[0] == u'b') || (temp_str[0] == u'B')))
+			{
+				temp_str.erase(cbegin(temp_str));
+			}
+
+			else if ((base == 2) && ((temp_str.substr(0, 2) == u"0b") || (temp_str.substr(0, 2) == u"0B")))
+			{
+				temp_str.assign(temp_str.substr(2));
+
+			}
+
+			else if ((base == 8) && ((temp_str[0] == u'0') || (temp_str[0] == u'o') || (temp_str[0] == u'O')))
+			{
+				temp_str.erase(cbegin(temp_str));
+			}
+
+			else if ((base == 8) && ((temp_str.substr(0, 2) == u"0o") || (temp_str.substr(0, 2) == u"0O")))
+			{
+				temp_str.assign(temp_str.substr(2));
+			}
+
+			else if ((base == 16) && ((temp_str[0] == u'x') || (temp_str[0] == u'X')))
+			{
+				temp_str.erase(cbegin(temp_str));
+			}
+
+			else if ((base == 16) && ((temp_str.substr(0, 2) == u"0x") || (temp_str.substr(0, 2) == u"0X")))
+			{
+				temp_str.assign(temp_str.substr(2));
+			}
+
+			u16string::size_type i{ 0u };
+
+			for (; (!found_invalid_character && (i < temp_str.size())); i++)
+			{
+				switch (base)
+				{
+
+				case 2:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'1')) found_invalid_character = true;
+
+					number_value *= 2;
+
+					number_value += static_cast<unsigned long long>(temp_str[i] - u'0');
+
+					break;
+
+				case 8:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'7')) found_invalid_character = true;
+
+					number_value *= 8;
+
+					number_value += static_cast<unsigned long long>(temp_str[i] - u'0');
+
+					break;
+
+				case 10:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'9')) found_invalid_character = true;
+
+					number_value *= 10;
+
+					number_value += static_cast<unsigned long long>(temp_str[i] - u'0');
+
+					break;
+
+				case 16:
+					if (((temp_str[i] >= u'0') && (temp_str[i] <= u'9')) || ((temp_str[i] >= u'A') && (temp_str[i] <= u'F'))) {
+
+						number_value *= 16;
+
+						if ((temp_str[i] >= u'0') && (temp_str[i] <= u'9')) number_value += static_cast<unsigned long long>(temp_str[i] - u'0');
+
+						else if ((temp_str[i] >= u'A') && (temp_str[i] <= u'F')) number_value += static_cast<unsigned long long>(10 + temp_str[i] - u'A');
+
+						else if ((temp_str[i] >= u'a') && (temp_str[i] <= u'f')) number_value += static_cast<unsigned long long>(10 + temp_str[i] - u'a');
+
+					}
+					else {
+						found_invalid_character = true;
+					}
+
+					break;
+
+				default:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'9')) found_invalid_character = true;
+
+					number_value *= 10;
+
+					number_value += static_cast<unsigned long long>(temp_str[i] - u'0');
+
+					break;
+
+
+				}
+
+			}
+
+			if (pos) *pos = i;
+
+			return number_value;
+
+		}
+
+
+		float stof(const u16string& str, size_t* pos, int base, bool ignore_leading_white_space_characters)
+		{
+			float number_value{};
+			float fractional_part{};
+
+			auto negative_sign_found{ false };
+			auto fractional_part_found{ false };
+			auto exponential_sign_found{ false };
+
+			auto negative_exponent_sign_found{ false };
+			long exponential_part_value{};
+
+			auto temp_str{ str };
+
+			if (ignore_leading_white_space_characters) temp_str = ltrim(str);
+						
+			auto found_invalid_character{ false };
+
+			if (temp_str[0] == u'+')
+			{				
+				temp_str.erase(cbegin(temp_str));
+			}
+
+			else if (temp_str[0] == u'-')
+			{
+				negative_sign_found = true;
+				temp_str.erase(cbegin(temp_str));
+			}
+			
+			else if (temp_str[0] == u'.') {
+				
+				fractional_part_found = true;
+				temp_str.erase(cbegin(temp_str));
+
+			}
+			
+			
+			if (((temp_str[0] == u'e') || (temp_str[0] == u'E')) && (base != 16))
+			{
+				exponential_sign_found = true;
+				temp_str.erase(cbegin(temp_str));
+			}
+
+			if ((base == 2) && ((temp_str[0] == u'b') || (temp_str[0] == u'B')))
+			{
+				temp_str.erase(cbegin(temp_str));
+			}
+
+			else if ((base == 2) && ((temp_str.substr(0, 2) == u"0b") || (temp_str.substr(0, 2) == u"0B")))
+			{
+				temp_str.assign(temp_str.substr(2));
+
+			}
+
+			else if ((base == 8) && ((temp_str[0] == u'0') || (temp_str[0] == u'o') || (temp_str[0] == u'O')))
+			{
+				temp_str.erase(cbegin(temp_str));
+			}
+
+			else if ((base == 8) && ((temp_str.substr(0, 2) == u"0o") || (temp_str.substr(0, 2) == u"0O")))
+			{
+				temp_str.assign(temp_str.substr(2));
+			}
+
+			else if ((base == 16) && ((temp_str[0] == u'x') || (temp_str[0] == u'X')))
+			{
+				temp_str.erase(cbegin(temp_str));
+			}
+
+			else if ((base == 16) && ((temp_str.substr(0, 2) == u"0x") || (temp_str.substr(0, 2) == u"0X")))
+			{
+				temp_str.assign(temp_str.substr(2));
+			}
+
+			u16string::size_type i{ 0u };
+
+			
+
+			for (; (!found_invalid_character && (i < temp_str.size())); i++)
+			{
+				switch (base)
+				{
+
+				case 2:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'1')) found_invalid_character = true;
+
+					number_value *= 2;
+
+					number_value += static_cast<unsigned long long>(temp_str[i] - u'0');
+
+					break;
+
+				case 8:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'7')) found_invalid_character = true;
+
+					number_value *= 8;
+
+					number_value += static_cast<unsigned long long>(temp_str[i] - u'0');
+
+					break;
+
+				case 10:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'9')) found_invalid_character = true;
+
+					number_value *= 10;
+
+					number_value += static_cast<unsigned long long>(temp_str[i] - u'0');
+
+					break;
+
+				case 16:
+					if (((temp_str[i] >= u'0') && (temp_str[i] <= u'9')) || ((temp_str[i] >= u'A') && (temp_str[i] <= u'F'))) {
+
+						number_value *= 16;
+
+						if ((temp_str[i] >= u'0') && (temp_str[i] <= u'9')) number_value += static_cast<unsigned long long>(temp_str[i] - u'0');
+
+						else if ((temp_str[i] >= u'A') && (temp_str[i] <= u'F')) number_value += static_cast<unsigned long long>(10 + temp_str[i] - u'A');
+
+						else if ((temp_str[i] >= u'a') && (temp_str[i] <= u'f')) number_value += static_cast<unsigned long long>(10 + temp_str[i] - u'a');
+
+					}
+					else {
+						found_invalid_character = true;
+					}
+
+					break;
+
+				default:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'9')) found_invalid_character = true;
+
+					number_value *= 10;
+
+					number_value += static_cast<unsigned long long>(temp_str[i] - u'0');
+
+					break;
+
+
+				}
+
+			}
+
+			if (pos) *pos = i;
+
+			number_value += fractional_part;
+
+			return number_value;
+		}
+
+
+		double stod(const u16string& str, size_t* pos, int base, bool ignore_leading_white_space_characters)
+		{
+			
+			double number_value{};
+
+
+
+			return number_value;
+
+		}
+
+
+		long double stold(const u16string& str, size_t* pos, int base, bool ignore_leading_white_space_characters)
+		{
+
+			long double number_value{};
+
+
+
+
+			return number_value;
+
+		}
+
+
+		int stoi(const u32string& str, size_t* pos, int base, bool ignore_leading_white_space_characters)
+		{
+			int number_value{};
+
+			auto temp_str{ str };
+
+			if (ignore_leading_white_space_characters) temp_str = ltrim(str);
+
+			auto found_invalid_character{ false };
+
+			if ((base == 2) && ((temp_str[0] == u'b') || (temp_str[0] == u'B')))
+			{
+				temp_str.erase(cbegin(temp_str));
+			}
+
+			else if ((base == 2) && ((temp_str.substr(0, 2) == U"0b") || (temp_str.substr(0, 2) == U"0B")))
+			{
+				temp_str.assign(temp_str.substr(2));
+
+			}
+
+			else if ((base == 8) && ((temp_str[0] == u'0') || (temp_str[0] == u'o') || (temp_str[0] == u'O')))
+			{
+				temp_str.erase(cbegin(temp_str));
+			}
+
+			else if ((base == 8) && ((temp_str.substr(0, 2) == U"0o") || (temp_str.substr(0, 2) == U"0O")))
+			{
+				temp_str.assign(temp_str.substr(2));
+			}
+
+			else if ((base == 16) && ((temp_str[0] == u'x') || (temp_str[0] == u'X')))
+			{
+				temp_str.erase(cbegin(temp_str));
+			}
+
+			else if ((base == 16) && ((temp_str.substr(0, 2) == U"0x") || (temp_str.substr(0, 2) == U"0X")))
+			{
+				temp_str.assign(temp_str.substr(2));
+			}
+
+			u16string::size_type i{ 0u };
+
+			for (; (!found_invalid_character && (i < temp_str.size())); i++)
+			{
+				switch (base)
+				{
+
+				case 2:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'1')) found_invalid_character = true;
+
+					number_value *= 2;
+
+					number_value += static_cast<int>(temp_str[i] - u'0');
+
+					break;
+
+				case 8:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'7')) found_invalid_character = true;
+
+					number_value *= 8;
+
+					number_value += static_cast<int>(temp_str[i] - u'0');
+
+					break;
+
+				case 10:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'9')) found_invalid_character = true;
+
+					number_value *= 10;
+
+					number_value += static_cast<int>(temp_str[i] - u'0');
+
+					break;
+
+				case 16:
+					if (((temp_str[i] >= u'0') && (temp_str[i] <= u'9')) || ((temp_str[i] >= u'A') && (temp_str[i] <= u'F'))) {
+
+						number_value *= 16;
+
+						if ((temp_str[i] >= u'0') && (temp_str[i] <= u'9')) number_value += static_cast<int>(temp_str[i] - u'0');
+
+						else if ((temp_str[i] >= u'A') && (temp_str[i] <= u'F')) number_value += static_cast<int>(10 + temp_str[i] - u'A');
+
+						else if ((temp_str[i] >= u'a') && (temp_str[i] <= u'f')) number_value += static_cast<int>(10 + temp_str[i] - u'a');
+
+					}
+					else {
+						found_invalid_character = true;
+					}
+
+					break;
+
+				default:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'9')) found_invalid_character = true;
+
+					number_value *= 10;
+
+					number_value += static_cast<int>(temp_str[i] - u'0');
+
+					break;
+
+
+				}
+
+			}
+
+			if (pos) *pos = i;
+
+			return number_value;
+		}
+
+
+		long stol(const u32string& str, size_t* pos, int base, bool ignore_leading_white_space_characters)
+		{
+			long number_value{};
+
+			auto temp_str{ str };
+
+			if (ignore_leading_white_space_characters) temp_str = ltrim(str);
+
+			auto found_invalid_character{ false };
+
+			if ((base == 2) && ((temp_str[0] == u'b') || (temp_str[0] == u'B')))
+			{
+				temp_str.erase(cbegin(temp_str));
+			}
+
+			else if ((base == 2) && ((temp_str.substr(0, 2) == U"0b") || (temp_str.substr(0, 2) == U"0B")))
+			{
+				temp_str.assign(temp_str.substr(2));
+
+			}
+
+			else if ((base == 8) && ((temp_str[0] == u'0') || (temp_str[0] == u'o') || (temp_str[0] == u'O')))
+			{
+				temp_str.erase(cbegin(temp_str));
+			}
+
+			else if ((base == 8) && ((temp_str.substr(0, 2) == U"0o") || (temp_str.substr(0, 2) == U"0O")))
+			{
+				temp_str.assign(temp_str.substr(2));
+			}
+
+			else if ((base == 16) && ((temp_str[0] == u'x') || (temp_str[0] == u'X')))
+			{
+				temp_str.erase(cbegin(temp_str));
+			}
+
+			else if ((base == 16) && ((temp_str.substr(0, 2) == U"0x") || (temp_str.substr(0, 2) == U"0X")))
+			{
+				temp_str.assign(temp_str.substr(2));
+			}
+
+			u16string::size_type i{ 0u };
+
+			for (; (!found_invalid_character && (i < temp_str.size())); i++)
+			{
+				switch (base)
+				{
+
+				case 2:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'1')) found_invalid_character = true;
+
+					number_value *= 2;
+
+					number_value += static_cast<long>(temp_str[i] - u'0');
+
+					break;
+
+				case 8:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'7')) found_invalid_character = true;
+
+					number_value *= 8;
+
+					number_value += static_cast<long>(temp_str[i] - u'0');
+
+					break;
+
+				case 10:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'9')) found_invalid_character = true;
+
+					number_value *= 10;
+
+					number_value += static_cast<long>(temp_str[i] - u'0');
+
+					break;
+
+				case 16:
+					if (((temp_str[i] >= u'0') && (temp_str[i] <= u'9')) || ((temp_str[i] >= u'A') && (temp_str[i] <= u'F'))) {
+
+						number_value *= 16;
+
+						if ((temp_str[i] >= u'0') && (temp_str[i] <= u'9')) number_value += static_cast<long>(temp_str[i] - u'0');
+
+						else if ((temp_str[i] >= u'A') && (temp_str[i] <= u'F')) number_value += static_cast<long>(10 + temp_str[i] - u'A');
+
+						else if ((temp_str[i] >= u'a') && (temp_str[i] <= u'f')) number_value += static_cast<long>(10 + temp_str[i] - u'a');
+
+					}
+					else {
+						found_invalid_character = true;
+					}
+
+					break;
+
+				default:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'9')) found_invalid_character = true;
+
+					number_value *= 10;
+
+					number_value += static_cast<long>(temp_str[i] - u'0');
+
+					break;
+
+
+				}
+
+			}
+
+			if (pos) *pos = i;
+
+			return number_value;
+
+		}
+
+
+		unsigned long stoul(const u32string& str, size_t* pos, int base, bool ignore_leading_white_space_characters)
+		{
+
+			unsigned long number_value{};
+
+			auto temp_str{ str };
+
+			if (ignore_leading_white_space_characters) temp_str = ltrim(str);
+
+			auto found_invalid_character{ false };
+
+			if ((base == 2) && ((temp_str[0] == u'b') || (temp_str[0] == u'B')))
+			{
+				temp_str.erase(cbegin(temp_str));
+			}
+
+			else if ((base == 2) && ((temp_str.substr(0, 2) == U"0b") || (temp_str.substr(0, 2) == U"0B")))
+			{
+				temp_str.assign(temp_str.substr(2));
+
+			}
+
+			else if ((base == 8) && ((temp_str[0] == u'0') || (temp_str[0] == u'o') || (temp_str[0] == u'O')))
+			{
+				temp_str.erase(cbegin(temp_str));
+			}
+
+			else if ((base == 8) && ((temp_str.substr(0, 2) == U"0o") || (temp_str.substr(0, 2) == U"0O")))
+			{
+				temp_str.assign(temp_str.substr(2));
+			}
+
+			else if ((base == 16) && ((temp_str[0] == u'x') || (temp_str[0] == u'X')))
+			{
+				temp_str.erase(cbegin(temp_str));
+			}
+
+			else if ((base == 16) && ((temp_str.substr(0, 2) == U"0x") || (temp_str.substr(0, 2) == U"0X")))
+			{
+				temp_str.assign(temp_str.substr(2));
+			}
+
+			u16string::size_type i{ 0u };
+
+			for (; (!found_invalid_character && (i < temp_str.size())); i++)
+			{
+				switch (base)
+				{
+
+				case 2:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'1')) found_invalid_character = true;
+
+					number_value *= 2;
+
+					number_value += static_cast<unsigned long>(temp_str[i] - u'0');
+
+					break;
+
+				case 8:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'7')) found_invalid_character = true;
+
+					number_value *= 8;
+
+					number_value += static_cast<unsigned long>(temp_str[i] - u'0');
+
+					break;
+
+				case 10:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'9')) found_invalid_character = true;
+
+					number_value *= 10;
+
+					number_value += static_cast<unsigned long>(temp_str[i] - u'0');
+
+					break;
+
+				case 16:
+					if (((temp_str[i] >= u'0') && (temp_str[i] <= u'9')) || ((temp_str[i] >= u'A') && (temp_str[i] <= u'F'))) {
+
+						number_value *= 16;
+
+						if ((temp_str[i] >= u'0') && (temp_str[i] <= u'9')) number_value += static_cast<unsigned long>(temp_str[i] - u'0');
+
+						else if ((temp_str[i] >= u'A') && (temp_str[i] <= u'F')) number_value += static_cast<unsigned long>(10 + temp_str[i] - u'A');
+
+						else if ((temp_str[i] >= u'a') && (temp_str[i] <= u'f')) number_value += static_cast<unsigned long>(10 + temp_str[i] - u'a');
+
+					}
+					else {
+						found_invalid_character = true;
+					}
+
+					break;
+
+				default:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'9')) found_invalid_character = true;
+
+					number_value *= 10;
+
+					number_value += static_cast<unsigned long>(temp_str[i] - u'0');
+
+					break;
+
+
+				}
+
+			}
+
+			if (pos) *pos = i;
+
+			return number_value;
+
+
+		}
+
+		long long stoll(const u32string& str, size_t* pos, int base, bool ignore_leading_white_space_characters)
+		{
+
+			long long number_value{};
+
+			auto temp_str{ str };
+
+			if (ignore_leading_white_space_characters) temp_str = ltrim(str);
+
+			auto found_invalid_character{ false };
+
+			if ((base == 2) && ((temp_str[0] == u'b') || (temp_str[0] == u'B')))
+			{
+				temp_str.erase(cbegin(temp_str));
+			}
+
+			else if ((base == 2) && ((temp_str.substr(0, 2) == U"0b") || (temp_str.substr(0, 2) == U"0B")))
+			{
+				temp_str.assign(temp_str.substr(2));
+
+			}
+
+			else if ((base == 8) && ((temp_str[0] == u'0') || (temp_str[0] == u'o') || (temp_str[0] == u'O')))
+			{
+				temp_str.erase(cbegin(temp_str));
+			}
+
+			else if ((base == 8) && ((temp_str.substr(0, 2) == U"0o") || (temp_str.substr(0, 2) == U"0O")))
+			{
+				temp_str.assign(temp_str.substr(2));
+			}
+
+			else if ((base == 16) && ((temp_str[0] == u'x') || (temp_str[0] == u'X')))
+			{
+				temp_str.erase(cbegin(temp_str));
+			}
+
+			else if ((base == 16) && ((temp_str.substr(0, 2) == U"0x") || (temp_str.substr(0, 2) == U"0X")))
+			{
+				temp_str.assign(temp_str.substr(2));
+			}
+
+			u16string::size_type i{ 0u };
+
+			for (; (!found_invalid_character && (i < temp_str.size())); i++)
+			{
+				switch (base)
+				{
+
+				case 2:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'1')) found_invalid_character = true;
+
+					number_value *= 2;
+
+					number_value += static_cast<long long>(temp_str[i] - u'0');
+
+					break;
+
+				case 8:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'7')) found_invalid_character = true;
+
+					number_value *= 8;
+
+					number_value += static_cast<long long>(temp_str[i] - u'0');
+
+					break;
+
+				case 10:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'9')) found_invalid_character = true;
+
+					number_value *= 10;
+
+					number_value += static_cast<long long>(temp_str[i] - u'0');
+
+					break;
+
+				case 16:
+					if (((temp_str[i] >= u'0') && (temp_str[i] <= u'9')) || ((temp_str[i] >= u'A') && (temp_str[i] <= u'F'))) {
+
+						number_value *= 16;
+
+						if ((temp_str[i] >= u'0') && (temp_str[i] <= u'9')) number_value += static_cast<long long>(temp_str[i] - u'0');
+
+						else if ((temp_str[i] >= u'A') && (temp_str[i] <= u'F')) number_value += static_cast<long long>(10 + temp_str[i] - u'A');
+
+						else if ((temp_str[i] >= u'a') && (temp_str[i] <= u'f')) number_value += static_cast<long long>(10 + temp_str[i] - u'a');
+
+					}
+					else {
+						found_invalid_character = true;
+					}
+
+					break;
+
+				default:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'9')) found_invalid_character = true;
+
+					number_value *= 10;
+
+					number_value += static_cast<long long>(temp_str[i] - u'0');
+
+					break;
+
+
+				}
+
+			}
+
+			if (pos) *pos = i;
+
+			return number_value;
+
+		}
+
+
+		unsigned long long stoull(const u32string& str, size_t* pos, int base, bool ignore_leading_white_space_characters)
+		{
+			unsigned long long number_value{};
+
+			auto temp_str{ str };
+
+			if (ignore_leading_white_space_characters) temp_str = ltrim(str);
+
+			auto found_invalid_character{ false };
+
+			if ((base == 2) && ((temp_str[0] == u'b') || (temp_str[0] == u'B')))
+			{
+				temp_str.erase(cbegin(temp_str));
+			}
+
+			else if ((base == 2) && ((temp_str.substr(0, 2) == U"0b") || (temp_str.substr(0, 2) == U"0B")))
+			{
+				temp_str.assign(temp_str.substr(2));
+
+			}
+
+			else if ((base == 8) && ((temp_str[0] == U'0') || (temp_str[0] == U'o') || (temp_str[0] == U'O')))
+			{
+				temp_str.erase(cbegin(temp_str));
+			}
+
+			else if ((base == 8) && ((temp_str.substr(0, 2) == U"0o") || (temp_str.substr(0, 2) == U"0O")))
+			{
+				temp_str.assign(temp_str.substr(2));
+			}
+
+			else if ((base == 16) && ((temp_str[0] == u'x') || (temp_str[0] == u'X')))
+			{
+				temp_str.erase(cbegin(temp_str));
+			}
+
+			else if ((base == 16) && ((temp_str.substr(0, 2) == U"0x") || (temp_str.substr(0, 2) == U"0X")))
+			{
+				temp_str.assign(temp_str.substr(2));
+			}
+
+			u16string::size_type i{ 0u };
+
+			for (; (!found_invalid_character && (i < temp_str.size())); i++)
+			{
+				switch (base)
+				{
+
+				case 2:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'1')) found_invalid_character = true;
+
+					number_value *= 2;
+
+					number_value += static_cast<unsigned long long>(temp_str[i] - u'0');
+
+					break;
+
+				case 8:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'7')) found_invalid_character = true;
+
+					number_value *= 8;
+
+					number_value += static_cast<unsigned long long>(temp_str[i] - u'0');
+
+					break;
+
+				case 10:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'9')) found_invalid_character = true;
+
+					number_value *= 10;
+
+					number_value += static_cast<unsigned long long>(temp_str[i] - u'0');
+
+					break;
+
+				case 16:
+					if (((temp_str[i] >= u'0') && (temp_str[i] <= u'9')) || ((temp_str[i] >= u'A') && (temp_str[i] <= u'F'))) {
+
+						number_value *= 16;
+
+						if ((temp_str[i] >= u'0') && (temp_str[i] <= u'9')) number_value += static_cast<unsigned long long>(temp_str[i] - u'0');
+
+						else if ((temp_str[i] >= u'A') && (temp_str[i] <= u'F')) number_value += static_cast<unsigned long long>(10 + temp_str[i] - u'A');
+
+						else if ((temp_str[i] >= u'a') && (temp_str[i] <= u'f')) number_value += static_cast<unsigned long long>(10 + temp_str[i] - u'a');
+
+					}
+					else {
+						found_invalid_character = true;
+					}
+
+					break;
+
+				default:
+					if ((temp_str[i] < u'0') || (temp_str[i] > u'9')) found_invalid_character = true;
+
+					number_value *= 10;
+
+					number_value += static_cast<unsigned long long>(temp_str[i] - u'0');
+
+					break;
+
+
+				}
+
+			}
+
+			if (pos) *pos = i;
+
+			return number_value;
+
+		}
+
+		float stof(const u32string& str, size_t* pos, int base, bool ignore_leading_white_space_characters)
+		{
+			
+			float number_value{};
+
+
+
+
+			return number_value;
+		}
+
+		double stod(const u32string& str, size_t* pos, int base, bool ignore_leading_white_space_characters)
+		{
+
+			double number_value{};
+
+
+
+
+			return number_value;			
+
+		}
+
+		long double stold(const u32string& str, size_t* pos, int base, bool ignore_leading_white_space_characters)
+		{
+			
+			long double number_value{};
+
+
+
+
+			return number_value;
+
 		}
 
 		std::vector<std::string> split(const char* source, const char needle_char, int const max_count)

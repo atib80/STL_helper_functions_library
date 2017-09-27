@@ -19,6 +19,17 @@ using namespace std::helper;
 
 static random_device rd{};
 
+long long get_random_number(long long lower_bound, const long long upper_bound)
+{
+	
+	static mt19937 rand_engine { rd() };
+	
+	const auto num_distr = uniform_int_distribution<long long>(lower_bound, upper_bound);
+
+	return num_distr(rand_engine);
+
+}
+
 TEST_CASE("int say_slow(const size_t, const char*, Args...)",
 	"Testing correct work of global template function int say_slow(const size_t time_delay_in_ms, const char* format_string, Args... args)"
 )
@@ -1740,4 +1751,456 @@ TEST_CASE(
 
 	cout << "\ncheck_data_types_for_equality(src : wstring, parts : vector<wstring>) -> " <<
 		check_data_types_for_equality(src, parts) << '\n';
+}
+
+TEST_CASE("u16string to_u16string(const short value)", "Testing correct functionality of global conversion function: u16string to_u16string(const short value)")
+{
+	auto const result_u16string{ to_u16string(static_cast<short>(12345)) };
+	
+	string result_string(cbegin(result_u16string), cend(result_u16string));
+	
+	cout << "\nto_u16string(12345) = \"" << result_string << "\"\n";
+
+	REQUIRE(u16string{ u"12345" } == result_u16string);
+
+	const auto float_to_u16string{ to_u16string(7.51735f) };
+
+	REQUIRE(u16string{ u"7.51735" } == float_to_u16string);
+
+	result_string.assign(cbegin(float_to_u16string), cend(float_to_u16string));
+
+	cout << "to_u16string(7.51735f) = \"" << result_string << "\"\n";
+
+}
+
+TEST_CASE("u16string to_u16string(const unsigned short value)", "Testing correct functionality of global conversion function: u16string to_u16string(const unsigned short value)")
+{
+	auto const result_u16string{ to_u16string(static_cast<unsigned short>(12345)) };
+
+	const string result_string(cbegin(result_u16string), cend(result_u16string));
+
+	cout << "\nto_u16string(12345) = \"" << result_string << "\"\n";
+
+	REQUIRE(u16string{ u"12345" } == result_u16string);
+
+}
+
+TEST_CASE("u16string to_u16string(const short value)", "Testing correct functionality of global conversion function: u16string to_u16string(const short value)")
+{
+	auto const result_u16string{ to_u16string(static_cast<short>(12345)) };
+
+	string result_string(cbegin(result_u16string), cend(result_u16string));
+
+	cout << "\nto_u16string(12345)=\"" << result_string << "\"\n";
+
+	REQUIRE(u16string{ u"12345" } == to_u16string(static_cast<short>(12345)));
+
+	const auto float_to_u16string{ to_u16string(7.51735f) };
+
+	REQUIRE(u16string{ u"7.51735" } == float_to_u16string);
+
+	result_string.assign(cbegin(float_to_u16string), cend(float_to_u16string));
+
+	cout << "to_u16string(7.51735f)=\"" << result_string << "\"\n";
+
+
+}
+
+TEST_CASE("u16string to_u16string(const short value)", "Testing correct functionality of global conversion function: u16string to_u16string(const short value)")
+{
+	auto const result_u16string{ to_u16string(static_cast<short>(12345)) };
+
+	string result_string(cbegin(result_u16string), cend(result_u16string));
+
+	cout << "\nto_u16string(12345)=\"" << result_string << "\"\n";
+
+	REQUIRE(u16string{ u"12345" } == to_u16string(static_cast<short>(12345)));
+
+	const auto float_to_u16string{ to_u16string(7.51735f) };
+
+	REQUIRE(u16string{ u"7.51735" } == float_to_u16string);
+
+	result_string.assign(cbegin(float_to_u16string), cend(float_to_u16string));
+
+	cout << "to_u16string(7.51735f)=\"" << result_string << "\"\n";
+
+
+}
+
+TEST_CASE("u16string to_u16string(const short value)", "Testing correct functionality of global conversion function: u16string to_u16string(const short value)")
+{
+	auto const result_u16string{ to_u16string(static_cast<short>(12345)) };
+
+	string result_string(cbegin(result_u16string), cend(result_u16string));
+
+	cout << "\nto_u16string(12345)=\"" << result_string << "\"\n";
+
+	REQUIRE(u16string{ u"12345" } == to_u16string(static_cast<short>(12345)));
+
+	const auto float_to_u16string{ to_u16string(7.51735f) };
+
+	REQUIRE(u16string{ u"7.51735" } == float_to_u16string);
+
+	result_string.assign(cbegin(float_to_u16string), cend(float_to_u16string));
+
+	cout << "to_u16string(7.51735f)=\"" << result_string << "\"\n";
+
+
+}
+
+TEST_CASE("u16string to_u16string(const short value)", "Testing correct functionality of global conversion function: u16string to_u16string(const short value)")
+{
+	auto const result_u16string{ to_u16string(static_cast<short>(12345)) };
+
+	string result_string(cbegin(result_u16string), cend(result_u16string));
+
+	cout << "\nto_u16string(12345)=\"" << result_string << "\"\n";
+
+	REQUIRE(u16string{ u"12345" } == to_u16string(static_cast<short>(12345)));
+
+	const auto float_to_u16string{ to_u16string(7.51735f) };
+
+	REQUIRE(u16string{ u"7.51735" } == float_to_u16string);
+
+	result_string.assign(cbegin(float_to_u16string), cend(float_to_u16string));
+
+	cout << "to_u16string(7.51735f)=\"" << result_string << "\"\n";
+
+
+}
+
+TEST_CASE("u16string to_u16string(const short value)", "Testing correct functionality of global conversion function: u16string to_u16string(const short value)")
+{
+	auto const result_u16string{ to_u16string(static_cast<short>(12345)) };
+
+	string result_string(cbegin(result_u16string), cend(result_u16string));
+
+	cout << "\nto_u16string(12345)=\"" << result_string << "\"\n";
+
+	REQUIRE(u16string{ u"12345" } == to_u16string(static_cast<short>(12345)));
+
+	const auto float_to_u16string{ to_u16string(7.51735f) };
+
+	REQUIRE(u16string{ u"7.51735" } == float_to_u16string);
+
+	result_string.assign(cbegin(float_to_u16string), cend(float_to_u16string));
+
+	cout << "to_u16string(7.51735f)=\"" << result_string << "\"\n";
+
+
+}
+
+TEST_CASE("u16string to_u16string(const short value)", "Testing correct functionality of global conversion function: u16string to_u16string(const short value)")
+{
+	auto const result_u16string{ to_u16string(static_cast<short>(12345)) };
+
+	string result_string(cbegin(result_u16string), cend(result_u16string));
+
+	cout << "\nto_u16string(12345)=\"" << result_string << "\"\n";
+
+	REQUIRE(u16string{ u"12345" } == to_u16string(static_cast<short>(12345)));
+
+	const auto float_to_u16string{ to_u16string(7.51735f) };
+
+	REQUIRE(u16string{ u"7.51735" } == float_to_u16string);
+
+	result_string.assign(cbegin(float_to_u16string), cend(float_to_u16string));
+
+	cout << "to_u16string(7.51735f)=\"" << result_string << "\"\n";
+
+
+}
+
+TEST_CASE("u16string to_u16string(const short value)", "Testing correct functionality of global conversion function: u16string to_u16string(const short value)")
+{
+	auto const result_u16string{ to_u16string(static_cast<short>(12345)) };
+
+	string result_string(cbegin(result_u16string), cend(result_u16string));
+
+	cout << "\nto_u16string(12345)=\"" << result_string << "\"\n";
+
+	REQUIRE(u16string{ u"12345" } == to_u16string(static_cast<short>(12345)));
+
+	const auto float_to_u16string{ to_u16string(7.51735f) };
+
+	REQUIRE(u16string{ u"7.51735" } == float_to_u16string);
+
+	result_string.assign(cbegin(float_to_u16string), cend(float_to_u16string));
+
+	cout << "to_u16string(7.51735f)=\"" << result_string << "\"\n";
+
+
+}
+
+TEST_CASE("u16string to_u16string(const short value)", "Testing correct functionality of global conversion function: u16string to_u16string(const short value)")
+{
+	auto const result_u16string{ to_u16string(static_cast<short>(12345)) };
+
+	string result_string(cbegin(result_u16string), cend(result_u16string));
+
+	cout << "\nto_u16string(12345)=\"" << result_string << "\"\n";
+
+	REQUIRE(u16string{ u"12345" } == to_u16string(static_cast<short>(12345)));
+
+	const auto float_to_u16string{ to_u16string(7.51735f) };
+
+	REQUIRE(u16string{ u"7.51735" } == float_to_u16string);
+
+	result_string.assign(cbegin(float_to_u16string), cend(float_to_u16string));
+
+	cout << "to_u16string(7.51735f)=\"" << result_string << "\"\n";
+
+
+}
+
+TEST_CASE("u16string to_u16string(const short value)", "Testing correct functionality of global conversion function: u16string to_u16string(const short value)")
+{
+	auto const result_u16string{ to_u16string(static_cast<short>(12345)) };
+
+	string result_string(cbegin(result_u16string), cend(result_u16string));
+
+	cout << "\nto_u16string(12345)=\"" << result_string << "\"\n";
+
+	REQUIRE(u16string{ u"12345" } == to_u16string(static_cast<short>(12345)));
+
+	const auto float_to_u16string{ to_u16string(7.51735f) };
+
+	REQUIRE(u16string{ u"7.51735" } == float_to_u16string);
+
+	result_string.assign(cbegin(float_to_u16string), cend(float_to_u16string));
+
+	cout << "to_u16string(7.51735f)=\"" << result_string << "\"\n";
+
+
+}
+
+TEST_CASE("u16string to_u16string(const short value)", "Testing correct functionality of global conversion function: u16string to_u16string(const short value)")
+{
+	auto const result_u16string{ to_u16string(static_cast<short>(12345)) };
+
+	string result_string(cbegin(result_u16string), cend(result_u16string));
+
+	cout << "\nto_u16string(12345)=\"" << result_string << "\"\n";
+
+	REQUIRE(u16string{ u"12345" } == to_u16string(static_cast<short>(12345)));
+
+	const auto float_to_u16string{ to_u16string(7.51735f) };
+
+	REQUIRE(u16string{ u"7.51735" } == float_to_u16string);
+
+	result_string.assign(cbegin(float_to_u16string), cend(float_to_u16string));
+
+	cout << "to_u16string(7.51735f)=\"" << result_string << "\"\n";
+
+
+}
+
+TEST_CASE("u16string to_u16string(const short value)", "Testing correct functionality of global conversion function: u16string to_u16string(const short value)")
+{
+	auto const result_u16string{ to_u16string(static_cast<short>(12345)) };
+
+	string result_string(cbegin(result_u16string), cend(result_u16string));
+
+	cout << "\nto_u16string(12345)=\"" << result_string << "\"\n";
+
+	REQUIRE(u16string{ u"12345" } == to_u16string(static_cast<short>(12345)));
+
+	const auto float_to_u16string{ to_u16string(7.51735f) };
+
+	REQUIRE(u16string{ u"7.51735" } == float_to_u16string);
+
+	result_string.assign(cbegin(float_to_u16string), cend(float_to_u16string));
+
+	cout << "to_u16string(7.51735f)=\"" << result_string << "\"\n";
+
+
+}
+
+TEST_CASE("u16string to_u16string(const short value)", "Testing correct functionality of global conversion function: u16string to_u16string(const short value)")
+{
+	auto const result_u16string{ to_u16string(static_cast<short>(12345)) };
+
+	string result_string(cbegin(result_u16string), cend(result_u16string));
+
+	cout << "\nto_u16string(12345)=\"" << result_string << "\"\n";
+
+	REQUIRE(u16string{ u"12345" } == to_u16string(static_cast<short>(12345)));
+
+	const auto float_to_u16string{ to_u16string(7.51735f) };
+
+	REQUIRE(u16string{ u"7.51735" } == float_to_u16string);
+
+	result_string.assign(cbegin(float_to_u16string), cend(float_to_u16string));
+
+	cout << "to_u16string(7.51735f)=\"" << result_string << "\"\n";
+
+
+}
+
+TEST_CASE("u16string to_u16string(const short value)", "Testing correct functionality of global conversion function: u16string to_u16string(const short value)")
+{
+	auto const result_u16string{ to_u16string(static_cast<short>(12345)) };
+
+	string result_string(cbegin(result_u16string), cend(result_u16string));
+
+	cout << "\nto_u16string(12345)=\"" << result_string << "\"\n";
+
+	REQUIRE(u16string{ u"12345" } == to_u16string(static_cast<short>(12345)));
+
+	const auto float_to_u16string{ to_u16string(7.51735f) };
+
+	REQUIRE(u16string{ u"7.51735" } == float_to_u16string);
+
+	result_string.assign(cbegin(float_to_u16string), cend(float_to_u16string));
+
+	cout << "to_u16string(7.51735f)=\"" << result_string << "\"\n";
+
+
+}
+
+TEST_CASE("u16string to_u16string(const short value)", "Testing correct functionality of global conversion function: u16string to_u16string(const short value)")
+{
+	auto const result_u16string{ to_u16string(static_cast<short>(12345)) };
+
+	string result_string(cbegin(result_u16string), cend(result_u16string));
+
+	cout << "\nto_u16string(12345)=\"" << result_string << "\"\n";
+
+	REQUIRE(u16string{ u"12345" } == to_u16string(static_cast<short>(12345)));
+
+	const auto float_to_u16string{ to_u16string(7.51735f) };
+
+	REQUIRE(u16string{ u"7.51735" } == float_to_u16string);
+
+	result_string.assign(cbegin(float_to_u16string), cend(float_to_u16string));
+
+	cout << "to_u16string(7.51735f)=\"" << result_string << "\"\n";
+
+
+}
+
+TEST_CASE("u16string to_u16string(const short value)", "Testing correct functionality of global conversion function: u16string to_u16string(const short value)")
+{
+	auto const result_u16string{ to_u16string(static_cast<short>(12345)) };
+
+	string result_string(cbegin(result_u16string), cend(result_u16string));
+
+	cout << "\nto_u16string(12345)=\"" << result_string << "\"\n";
+
+	REQUIRE(u16string{ u"12345" } == to_u16string(static_cast<short>(12345)));
+
+	const auto float_to_u16string{ to_u16string(7.51735f) };
+
+	REQUIRE(u16string{ u"7.51735" } == float_to_u16string);
+
+	result_string.assign(cbegin(float_to_u16string), cend(float_to_u16string));
+
+	cout << "to_u16string(7.51735f)=\"" << result_string << "\"\n";
+
+
+}
+
+TEST_CASE("u16string to_u16string(const short value)", "Testing correct functionality of global conversion function: u16string to_u16string(const short value)")
+{
+	auto const result_u16string{ to_u16string(static_cast<short>(12345)) };
+
+	string result_string(cbegin(result_u16string), cend(result_u16string));
+
+	cout << "\nto_u16string(12345)=\"" << result_string << "\"\n";
+
+	REQUIRE(u16string{ u"12345" } == to_u16string(static_cast<short>(12345)));
+
+	const auto float_to_u16string{ to_u16string(7.51735f) };
+
+	REQUIRE(u16string{ u"7.51735" } == float_to_u16string);
+
+	result_string.assign(cbegin(float_to_u16string), cend(float_to_u16string));
+
+	cout << "to_u16string(7.51735f)=\"" << result_string << "\"\n";
+
+
+}
+
+TEST_CASE("u16string to_u16string(const short value)", "Testing correct functionality of global conversion function: u16string to_u16string(const short value)")
+{
+	auto const result_u16string{ to_u16string(static_cast<short>(12345)) };
+
+	string result_string(cbegin(result_u16string), cend(result_u16string));
+
+	cout << "\nto_u16string(12345)=\"" << result_string << "\"\n";
+
+	REQUIRE(u16string{ u"12345" } == to_u16string(static_cast<short>(12345)));
+
+	const auto float_to_u16string{ to_u16string(7.51735f) };
+
+	REQUIRE(u16string{ u"7.51735" } == float_to_u16string);
+
+	result_string.assign(cbegin(float_to_u16string), cend(float_to_u16string));
+
+	cout << "to_u16string(7.51735f)=\"" << result_string << "\"\n";
+
+
+}
+
+TEST_CASE("u16string to_u16string(const short value)", "Testing correct functionality of global conversion function: u16string to_u16string(const short value)")
+{
+	auto const result_u16string{ to_u16string(static_cast<short>(12345)) };
+
+	string result_string(cbegin(result_u16string), cend(result_u16string));
+
+	cout << "\nto_u16string(12345)=\"" << result_string << "\"\n";
+
+	REQUIRE(u16string{ u"12345" } == to_u16string(static_cast<short>(12345)));
+
+	const auto float_to_u16string{ to_u16string(7.51735f) };
+
+	REQUIRE(u16string{ u"7.51735" } == float_to_u16string);
+
+	result_string.assign(cbegin(float_to_u16string), cend(float_to_u16string));
+
+	cout << "to_u16string(7.51735f)=\"" << result_string << "\"\n";
+
+
+}
+
+TEST_CASE("u16string to_u16string(const short value)", "Testing correct functionality of global conversion function: u16string to_u16string(const short value)")
+{
+	auto const result_u16string{ to_u16string(static_cast<short>(12345)) };
+
+	string result_string(cbegin(result_u16string), cend(result_u16string));
+
+	cout << "\nto_u16string(12345)=\"" << result_string << "\"\n";
+
+	REQUIRE(u16string{ u"12345" } == to_u16string(static_cast<short>(12345)));
+
+	const auto float_to_u16string{ to_u16string(7.51735f) };
+
+	REQUIRE(u16string{ u"7.51735" } == float_to_u16string);
+
+	result_string.assign(cbegin(float_to_u16string), cend(float_to_u16string));
+
+	cout << "to_u16string(7.51735f)=\"" << result_string << "\"\n";
+
+
+}
+
+TEST_CASE("u16string to_u16string(const short value)", "Testing correct functionality of global conversion function: u16string to_u16string(const short value)")
+{
+	auto const result_u16string{ to_u16string(static_cast<short>(12345)) };
+
+	string result_string(cbegin(result_u16string), cend(result_u16string));
+
+	cout << "\nto_u16string(12345)=\"" << result_string << "\"\n";
+
+	REQUIRE(u16string{ u"12345" } == to_u16string(static_cast<short>(12345)));
+
+	const auto float_to_u16string{ to_u16string(7.51735f) };
+
+	REQUIRE(u16string{ u"7.51735" } == float_to_u16string);
+
+	result_string.assign(cbegin(float_to_u16string), cend(float_to_u16string));
+
+	cout << "to_u16string(7.51735f)=\"" << result_string << "\"\n";
+
+
 }

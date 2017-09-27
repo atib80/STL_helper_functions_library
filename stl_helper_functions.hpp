@@ -313,6 +313,70 @@ namespace std
 		char16_t* u16_strstri(char16_t* src, const char16_t* needle, const std::locale& loc = std::locale{});
 		char32_t* u32_strstri(char32_t* src, const char32_t* needle, const std::locale& loc = std::locale{});
 
+		// global conversion functions from the appropriate signed/unsigned integral as well as floating point types to std::u16string and std::u32string newer STL C++11 string types
+
+		enum class number_base {decimal, hexadecimal, octal, binary};
+
+		enum class add_number_base_sign { no_number_base_sign, prepend_in_lower_case_format, prepend_in_upper_case_format, append_in_lower_case_format, append_in_upper_case_format };
+
+		u16string to_u16string(short number, const number_base convert_to_number_base = number_base::decimal, 
+			const add_number_base_sign add_number_base_sign = add_number_base_sign::no_number_base_sign);
+		u16string to_u16string(unsigned short number, const number_base convert_to_number_base = number_base::decimal,
+			const add_number_base_sign add_number_base_sign = add_number_base_sign::no_number_base_sign);
+		u16string to_u16string(int number, const number_base convert_to_number_base = number_base::decimal,
+			const add_number_base_sign add_number_base_sign = add_number_base_sign::no_number_base_sign);
+		u16string to_u16string(unsigned int number, const number_base convert_to_number_base = number_base::decimal,
+			const add_number_base_sign add_number_base_sign = add_number_base_sign::no_number_base_sign);
+		u16string to_u16string(long number, const number_base convert_to_number_base = number_base::decimal,
+			const add_number_base_sign add_number_base_sign = add_number_base_sign::no_number_base_sign);
+		u16string to_u16string(unsigned long number, const number_base convert_to_number_base = number_base::decimal,
+			const add_number_base_sign add_number_base_sign = add_number_base_sign::no_number_base_sign);
+		u16string to_u16string(long long number, const number_base convert_to_number_base = number_base::decimal,
+			const add_number_base_sign add_number_base_sign = add_number_base_sign::no_number_base_sign);
+		u16string to_u16string(unsigned long long number, const number_base convert_to_number_base = number_base::decimal,
+			const add_number_base_sign add_number_base_sign = add_number_base_sign::no_number_base_sign);
+		u16string to_u16string(float number);
+		u16string to_u16string(double number);
+		u16string to_u16string(long double number);
+
+		u32string to_u32string(short number, const number_base convert_to_number_base = number_base::decimal,
+			const add_number_base_sign add_number_base_sign = add_number_base_sign::no_number_base_sign);
+		u32string to_u32string(unsigned short number, const number_base convert_to_number_base = number_base::decimal,
+			const add_number_base_sign add_number_base_sign = add_number_base_sign::no_number_base_sign);
+		u32string to_u32string(int number, const number_base convert_to_number_base = number_base::decimal,
+			const add_number_base_sign add_number_base_sign = add_number_base_sign::no_number_base_sign);
+		u32string to_u32string(unsigned int number, const number_base convert_to_number_base = number_base::decimal,
+			const add_number_base_sign add_number_base_sign = add_number_base_sign::no_number_base_sign);
+		u32string to_u32string(long number, const number_base convert_to_number_base = number_base::decimal,
+			const add_number_base_sign add_number_base_sign = add_number_base_sign::no_number_base_sign);
+		u32string to_u32string(unsigned long number, const number_base convert_to_number_base = number_base::decimal,
+			const add_number_base_sign add_number_base_sign = add_number_base_sign::no_number_base_sign);
+		u32string to_u32string(long long number, const number_base convert_to_number_base = number_base::decimal,
+			const add_number_base_sign add_number_base_sign = add_number_base_sign::no_number_base_sign);
+		u32string to_u32string(unsigned long long number, const number_base convert_to_number_base = number_base::decimal,
+			const add_number_base_sign add_number_base_sign = add_number_base_sign::no_number_base_sign);
+		u32string to_u32string(float number);
+		u32string to_u32string(double number);
+		u32string to_u32string(long double number);
+
+		int stoi(const u16string& str, size_t* pos = nullptr, int base = 10, bool ignore_leading_white_space_characters = true);
+		long stol(const u16string& str, size_t* pos = nullptr, int base = 10, bool ignore_leading_white_space_characters = true);
+		unsigned long stoul(const u16string& str, size_t* pos = nullptr, int base = 10, bool ignore_leading_white_space_characters = true);
+		long long stoll(const u16string& str, size_t* pos = nullptr, int base = 10, bool ignore_leading_white_space_characters = true);
+		unsigned long long stoull(const u16string& str, size_t* pos = nullptr, int base = 10, bool ignore_leading_white_space_characters = true);
+		float stof(const u16string& str, size_t* pos = nullptr, int base = 10, bool ignore_leading_white_space_characters = true);
+		double stod(const u16string& str, size_t* pos = nullptr, int base = 10, bool ignore_leading_white_space_characters = true);
+		long double stold(const u16string& str, size_t* pos = nullptr, int base = 10, bool ignore_leading_white_space_characters = true);
+
+		int stoi(const u32string& str, size_t* pos = nullptr, int base = 10, bool ignore_leading_white_space_characters = true);
+		long stol(const u32string& str, size_t* pos = nullptr, int base = 10, bool ignore_leading_white_space_characters = true);
+		unsigned long stoul(const u32string& str, size_t* pos = nullptr, int base = 10, bool ignore_leading_white_space_characters = true);
+		long long stoll(const u32string& str, size_t* pos = nullptr, int base = 10, bool ignore_leading_white_space_characters = true);
+		unsigned long long stoull(const u32string& str, size_t* pos = nullptr, int base = 10, bool ignore_leading_white_space_characters = true);
+		float stof(const u32string& str, size_t* pos = nullptr, int base = 10, bool ignore_leading_white_space_characters = true);
+		double stod(const u32string& str, size_t* pos = nullptr, int base = 10, bool ignore_leading_white_space_characters = true);
+		long double stold(const u32string& str, size_t* pos = nullptr, int base = 10, bool ignore_leading_white_space_characters = true);
+
 		template <typename StringType>
 		StringType trim(const StringType& str)
 		{
