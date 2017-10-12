@@ -594,7 +594,7 @@ namespace Catch {
 			swap(temp);
 			return *this;
 		}
-		void swap(Ptr& other) { std::swap(m_p, other.m_p); }
+		void swap(Ptr& other) noexcept { std::swap(m_p, other.m_p); }
 		T* get() const { return m_p; }
 		T& operator*() const { return *m_p; }
 		T* operator->() const { return m_p; }
@@ -761,8 +761,8 @@ namespace Catch {
 		~AutoReg();
 
 	private:
-		AutoReg(AutoReg const&);
-		void operator= (AutoReg const&);
+		AutoReg(AutoReg const&) = delete;
+		void operator= (AutoReg const&) = delete;
 	};
 
 	void registerTestCaseFunction
@@ -1060,10 +1060,12 @@ namespace Catch {
 			template<typename ObjectT>
 			struct MatcherMethod {
 				virtual bool match(ObjectT const& arg) const = 0;
+				inline virtual ~MatcherMethod() {}
 			};
 			template<typename PtrT>
 			struct MatcherMethod<PtrT*> {
 				virtual bool match(PtrT* arg) const = 0;
+				inline virtual ~MatcherMethod() {}
 			};
 
 			template<typename ObjectT, typename ComparatorT = ObjectT>
@@ -3224,7 +3226,7 @@ namespace Catch {
 
 		TestCaseInfo const& getTestCaseInfo() const;
 
-		void swap(TestCase& other);
+		void swap(TestCase& other) noexcept;
 		bool operator == (TestCase const& other) const;
 		bool operator < (TestCase const& other) const;
 		TestCase& operator = (TestCase const& other);
@@ -4429,7 +4431,7 @@ namespace Clara {
 		inline void convertInto(std::string const& _source, std::string& _dest) {
 			_dest = _source;
 		}
-		char toLowerCh(char c) {
+		inline char toLowerCh(char c) {
 			return static_cast<char>(std::tolower(c));
 		}
 		inline void convertInto(std::string const& _source, bool& _dest) {
@@ -6231,7 +6233,7 @@ namespace Catch {
 			virtual bool isSectionTracker() const CATCH_OVERRIDE { return true; }
 
 			static SectionTracker& acquire(TrackerContext& ctx, NameAndLocation const& nameAndLocation) {
-				SectionTracker* section = CATCH_NULL;
+				SectionTracker* section; // = CATCH_NULL;
 
 				ITracker& currentTracker = ctx.currentTracker();
 				if (ITracker* childTracker = currentTracker.findChild(nameAndLocation)) {
@@ -8315,33 +8317,33 @@ namespace Catch {
 		properties(other.properties)
 	{}
 
-	bool TestCaseInfo::isHidden() const {
+	inline bool TestCaseInfo::isHidden() const {
 		return (properties & IsHidden) != 0;
 	}
-	bool TestCaseInfo::throws() const {
+	inline bool TestCaseInfo::throws() const {
 		return (properties & Throws) != 0;
 	}
-	bool TestCaseInfo::okToFail() const {
+	inline bool TestCaseInfo::okToFail() const {
 		return (properties & (ShouldFail | MayFail)) != 0;
 	}
-	bool TestCaseInfo::expectedToFail() const {
+	inline bool TestCaseInfo::expectedToFail() const {
 		return (properties & (ShouldFail)) != 0;
 	}
 
-	TestCase::TestCase(ITestCase* testCase, TestCaseInfo const& info) : TestCaseInfo(info), test(testCase) {}
+	inline TestCase::TestCase(ITestCase* testCase, TestCaseInfo const& info) : TestCaseInfo(info), test(testCase) {}
 
-	TestCase::TestCase(TestCase const& other)
+	inline TestCase::TestCase(TestCase const& other)
 		: TestCaseInfo(other),
 		test(other.test)
 	{}
 
-	TestCase TestCase::withName(std::string const& _newName) const {
+	inline TestCase TestCase::withName(std::string const& _newName) const {
 		TestCase other(*this);
 		other.name = _newName;
 		return other;
 	}
 
-	void TestCase::swap(TestCase& other) {
+	inline void TestCase::swap(TestCase& other) noexcept {
 		test.swap(other.test);
 		name.swap(other.name);
 		className.swap(other.className);
@@ -8353,26 +8355,26 @@ namespace Catch {
 		std::swap(lineInfo, other.lineInfo);
 	}
 
-	void TestCase::invoke() const {
+	inline void TestCase::invoke() const {
 		test->invoke();
 	}
 
-	bool TestCase::operator == (TestCase const& other) const {
+	inline bool TestCase::operator == (TestCase const& other) const {
 		return  test.get() == other.test.get() &&
 			name == other.name &&
 			className == other.className;
 	}
 
-	bool TestCase::operator < (TestCase const& other) const {
+	inline bool TestCase::operator < (TestCase const& other) const {
 		return name < other.name;
 	}
-	TestCase& TestCase::operator = (TestCase const& other) {
+	inline TestCase& TestCase::operator = (TestCase const& other) {
 		TestCase temp(other);
 		swap(temp);
 		return *this;
 	}
 
-	TestCaseInfo const& TestCase::getTestCaseInfo() const
+	inline TestCaseInfo const& TestCase::getTestCaseInfo() const
 	{
 		return *this;
 	}
@@ -9827,11 +9829,11 @@ namespace Catch {
 	class LegacyReporterRegistrar {
 
 		class ReporterFactory : public IReporterFactory {
-			virtual IStreamingReporter* create(ReporterConfig const& config) const {
+			IStreamingReporter* create(ReporterConfig const& config) const override {
 				return new LegacyReporterAdapter(new T(config));
 			}
 
-			virtual std::string getDescription() const {
+			std::string getDescription() const override {
 				return T::getDescription();
 			}
 		};
@@ -9839,7 +9841,7 @@ namespace Catch {
 	public:
 
 		LegacyReporterRegistrar(std::string const& name) {
-			getMutableRegistryHub().registerReporter(name, new ReporterFactory());
+			getMutableRegistryHub().registerReporter(name, new LegacyReporterRegistrar());
 		}
 	};
 
@@ -11328,59 +11330,59 @@ namespace Catch {
 namespace Catch {
 	// These are all here to avoid warnings about not having any out of line
 	// virtual methods
-	NonCopyable::~NonCopyable() {}
-	IShared::~IShared() {}
-	IStream::~IStream() CATCH_NOEXCEPT {}
-	FileStream::~FileStream() CATCH_NOEXCEPT {}
-	CoutStream::~CoutStream() CATCH_NOEXCEPT {}
-	DebugOutStream::~DebugOutStream() CATCH_NOEXCEPT {}
-	StreamBufBase::~StreamBufBase() CATCH_NOEXCEPT {}
-	IContext::~IContext() {}
-	IResultCapture::~IResultCapture() {}
-	ITestCase::~ITestCase() {}
-	ITestCaseRegistry::~ITestCaseRegistry() {}
-	IRegistryHub::~IRegistryHub() {}
-	IMutableRegistryHub::~IMutableRegistryHub() {}
-	IExceptionTranslator::~IExceptionTranslator() {}
-	IExceptionTranslatorRegistry::~IExceptionTranslatorRegistry() {}
-	IReporter::~IReporter() {}
-	IReporterFactory::~IReporterFactory() {}
-	IReporterRegistry::~IReporterRegistry() {}
-	IStreamingReporter::~IStreamingReporter() {}
-	AssertionStats::~AssertionStats() {}
-	SectionStats::~SectionStats() {}
-	TestCaseStats::~TestCaseStats() {}
-	TestGroupStats::~TestGroupStats() {}
-	TestRunStats::~TestRunStats() {}
-	CumulativeReporterBase::SectionNode::~SectionNode() {}
-	CumulativeReporterBase::~CumulativeReporterBase() {}
+	inline NonCopyable::~NonCopyable() {}
+	inline IShared::~IShared() {}
+	inline IStream::~IStream() CATCH_NOEXCEPT {}
+	inline FileStream::~FileStream() CATCH_NOEXCEPT {}
+	inline CoutStream::~CoutStream() CATCH_NOEXCEPT {}
+	inline DebugOutStream::~DebugOutStream() CATCH_NOEXCEPT {}
+	inline StreamBufBase::~StreamBufBase() CATCH_NOEXCEPT {}
+	inline IContext::~IContext() {}
+	inline IResultCapture::~IResultCapture() {}
+	inline ITestCase::~ITestCase() {}
+	inline ITestCaseRegistry::~ITestCaseRegistry() {}
+	inline IRegistryHub::~IRegistryHub() {}
+	inline IMutableRegistryHub::~IMutableRegistryHub() {}
+	inline IExceptionTranslator::~IExceptionTranslator() {}
+	inline IExceptionTranslatorRegistry::~IExceptionTranslatorRegistry() {}
+	inline IReporter::~IReporter() {}
+	inline IReporterFactory::~IReporterFactory() {}
+	inline IReporterRegistry::~IReporterRegistry() {}
+	inline IStreamingReporter::~IStreamingReporter() {}
+	inline AssertionStats::~AssertionStats() {}
+	inline SectionStats::~SectionStats() {}
+	inline TestCaseStats::~TestCaseStats() {}
+	inline TestGroupStats::~TestGroupStats() {}
+	inline TestRunStats::~TestRunStats() {}
+	inline CumulativeReporterBase::SectionNode::~SectionNode() {}
+	inline CumulativeReporterBase::~CumulativeReporterBase() {}
 
-	StreamingReporterBase::~StreamingReporterBase() {}
-	ConsoleReporter::~ConsoleReporter() {}
-	CompactReporter::~CompactReporter() {}
-	IRunner::~IRunner() {}
-	IMutableContext::~IMutableContext() {}
-	IConfig::~IConfig() {}
-	XmlReporter::~XmlReporter() {}
-	JunitReporter::~JunitReporter() {}
-	TestRegistry::~TestRegistry() {}
-	FreeFunctionTestCase::~FreeFunctionTestCase() {}
-	IGeneratorInfo::~IGeneratorInfo() {}
-	IGeneratorsForTest::~IGeneratorsForTest() {}
-	WildcardPattern::~WildcardPattern() {}
-	TestSpec::Pattern::~Pattern() {}
-	TestSpec::NamePattern::~NamePattern() {}
-	TestSpec::TagPattern::~TagPattern() {}
-	TestSpec::ExcludedPattern::~ExcludedPattern() {}
-	Matchers::Impl::MatcherUntypedBase::~MatcherUntypedBase() {}
+	inline StreamingReporterBase::~StreamingReporterBase() {}
+	inline ConsoleReporter::~ConsoleReporter() {}
+	inline CompactReporter::~CompactReporter() {}
+	inline IRunner::~IRunner() {}
+	inline IMutableContext::~IMutableContext() {}
+	inline IConfig::~IConfig() {}
+	inline XmlReporter::~XmlReporter() {}
+	inline JunitReporter::~JunitReporter() {}
+	inline TestRegistry::~TestRegistry() {}
+	inline FreeFunctionTestCase::~FreeFunctionTestCase() {}
+	inline IGeneratorInfo::~IGeneratorInfo() {}
+	inline IGeneratorsForTest::~IGeneratorsForTest() {}
+	inline WildcardPattern::~WildcardPattern() {}
+	inline TestSpec::Pattern::~Pattern() {}
+	inline TestSpec::NamePattern::~NamePattern() {}
+	inline TestSpec::TagPattern::~TagPattern() {}
+	inline TestSpec::ExcludedPattern::~ExcludedPattern() {}
+	inline Matchers::Impl::MatcherUntypedBase::~MatcherUntypedBase() {}
 
-	void Config::dummy() {}
+	inline void Config::dummy() {}
 
 	namespace TestCaseTracking {
-		ITracker::~ITracker() {}
-		TrackerBase::~TrackerBase() {}
-		SectionTracker::~SectionTracker() {}
-		IndexTracker::~IndexTracker() {}
+		inline ITracker::~ITracker() {}
+		inline TrackerBase::~TrackerBase() {}
+		inline SectionTracker::~SectionTracker() {}
+		inline IndexTracker::~IndexTracker() {}
 	}
 }
 
