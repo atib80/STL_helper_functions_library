@@ -10,7 +10,7 @@ namespace std
 
 			if (!(*str)) return 0u;
 
-			size_t length{0u};
+			size_t length{};
 
 			while (*str)
 			{
@@ -29,7 +29,7 @@ namespace std
 
 			if (!(*str)) return 0u;
 
-			size_t length{0u};
+			size_t length{};
 
 			while (*str)
 			{
@@ -48,7 +48,7 @@ namespace std
 
 			if (!(*str)) return 0u;
 
-			size_t length{0u};
+			size_t length{};
 
 			while (*str)
 			{
@@ -67,7 +67,7 @@ namespace std
 
 			if (!(*str)) return 0u;
 
-			size_t length{0u};
+			size_t length{};
 
 			while (*str)
 			{
@@ -86,7 +86,7 @@ namespace std
 
 			if (!(*str)) return 0u;
 
-			size_t length{0u};
+			size_t length{};
 
 			while (*str)
 			{
@@ -105,7 +105,7 @@ namespace std
 
 			if (!(*str)) return 0u;
 
-			size_t length{0u};
+			size_t length{};
 
 			while (*str)
 			{
@@ -124,7 +124,7 @@ namespace std
 
 			if (!(*str)) return 0u;
 
-			size_t length{0u};
+			size_t length{};
 
 			while (*str)
 			{
@@ -143,7 +143,7 @@ namespace std
 
 			if (!(*str)) return 0u;
 
-			size_t length{0u};
+			size_t length{};
 
 			while (*str)
 			{
@@ -158,7 +158,7 @@ namespace std
 
 		bool trim(char* str)
 		{
-			auto begin = size_t{0u};
+			size_t begin{};
 
 			const auto str_len{str_length(str)};
 
@@ -223,7 +223,7 @@ namespace std
 				return true;
 			}
 
-			size_t j{0u};
+			size_t j{};
 
 			const size_t last{end + 1};
 
@@ -240,7 +240,7 @@ namespace std
 
 		bool trim(wchar_t* str)
 		{
-			auto begin = size_t{0u};
+			size_t begin{};
 
 			const auto str_len{str_length(str)};
 
@@ -306,7 +306,7 @@ namespace std
 				return true;
 			}
 
-			size_t j{0u};
+			size_t j{};
 			const size_t last{end + 1};
 
 			for (auto i = begin; i < last; i++)
@@ -322,7 +322,7 @@ namespace std
 
 		bool trim(char16_t* str)
 		{
-			auto begin = size_t{0u};
+			size_t begin{};
 
 			const auto str_len{str_length(str)};
 
@@ -388,7 +388,7 @@ namespace std
 				return true;
 			}
 
-			size_t j{0u};
+			size_t j{};
 
 			const size_t last{end + 1};
 
@@ -405,7 +405,7 @@ namespace std
 
 		bool trim(char32_t* str)
 		{
-			auto begin = size_t{0u};
+			size_t begin{};
 
 			const auto str_len{str_length(str)};
 
@@ -471,7 +471,7 @@ namespace std
 				return true;
 			}
 
-			size_t j{0u};
+			size_t j{};
 
 			const size_t last{end + 1};
 
@@ -488,7 +488,7 @@ namespace std
 
 		bool ltrim(char* str)
 		{
-			auto begin = size_t{0u};
+			size_t begin{};
 
 			const auto str_len{str_length(str)};
 
@@ -525,7 +525,7 @@ namespace std
 
 			if (0u == begin) return false;
 
-			size_t j{0u};
+			size_t j{};
 
 			const size_t last{end + 1};
 
@@ -542,7 +542,7 @@ namespace std
 
 		bool ltrim(wchar_t* str)
 		{
-			auto begin = size_t{0u};
+			size_t begin{};
 
 			const auto str_len{str_length(str)};
 
@@ -579,7 +579,7 @@ namespace std
 
 			if (0u == begin) return false;
 
-			size_t j{0u};
+			size_t j{};
 
 			const size_t last{end + 1};
 
@@ -596,7 +596,7 @@ namespace std
 
 		bool ltrim(char16_t* str)
 		{
-			auto begin = size_t{0u};
+			size_t begin{};
 
 			const auto str_len{str_length(str)};
 
@@ -633,7 +633,7 @@ namespace std
 
 			if (0u == begin) return false;
 
-			size_t j{0u};
+			size_t j{};
 
 			const size_t last{end + 1};
 
@@ -650,7 +650,7 @@ namespace std
 
 		bool ltrim(char32_t* str)
 		{
-			auto begin = size_t{0u};
+			size_t begin{};
 
 			const auto str_len{str_length(str)};
 
@@ -687,7 +687,7 @@ namespace std
 
 			if (0u == begin) return false;
 
-			size_t j{0u};
+			size_t j{};
 
 			const size_t last{end + 1};
 
@@ -704,15 +704,15 @@ namespace std
 
 		bool rtrim(char* str)
 		{
-			const auto begin = size_t{0u};
+			const size_t begin{};
 
 			const auto str_len{str_length(str)};
 
+			if (0u == str_len) return false;
+
 			auto end{str_len - 1};
 
-			const auto original_end{end};
-
-			if (0u == str_len) return false;
+			const auto original_end{end};			
 
 			for (auto is_ws_char{true}; end > begin; --end)
 			{
@@ -743,15 +743,15 @@ namespace std
 
 		bool rtrim(wchar_t* str)
 		{
-			const auto begin = size_t{0u};
+			const size_t begin{};
 
 			const auto str_len{str_length(str)};
 
+			if (0u == str_len) return false;
+
 			auto end{str_len - 1};
 
-			const auto original_end{end};
-
-			if (0u == str_len) return false;
+			const auto original_end{end};			
 
 			for (auto is_ws_char{true}; end > begin; --end)
 			{
@@ -782,15 +782,15 @@ namespace std
 
 		bool rtrim(char16_t* str)
 		{
-			const auto begin = size_t{0u};
+			const size_t begin{};
 
 			const auto str_len{str_length(str)};
+
+			if (0u == str_len) return false;
 
 			auto end{str_len - 1};
 
 			const auto original_end{end};
-
-			if (0u == str_len) return false;
 
 			for (auto is_ws_char{true}; end > begin; --end)
 			{
@@ -821,9 +821,11 @@ namespace std
 
 		bool rtrim(char32_t* str)
 		{
-			const auto begin = size_t{0u};
+			const size_t begin{};
 
 			const auto str_len{str_length(str)};
+
+			if (0u == str_len) return false;
 
 			auto end{str_len - 1};
 
@@ -862,11 +864,11 @@ namespace std
 		{
 			string source_str{str};
 
-			auto begin = size_t{0u};
-
-			auto end = source_str.length() - 1;
-
 			if (0u == source_str.length()) return string{};
+
+			size_t begin{};
+
+			auto end{source_str.length() - 1};			
 
 			for (auto is_ws_char{true}; begin <= end; ++begin)
 			{
@@ -917,11 +919,11 @@ namespace std
 		{
 			wstring source_str{str};
 
-			auto begin = size_t{0u};
-
-			auto end = source_str.length() - 1;
-
 			if (0u == source_str.length()) return wstring{};
+
+			size_t begin{};
+
+			auto end{source_str.length() - 1};			
 
 			for (auto is_ws_char{true}; begin <= end; ++begin)
 			{
@@ -972,11 +974,11 @@ namespace std
 		{
 			u16string source_str{str};
 
-			auto begin = size_t{0u};
-
-			auto end = source_str.length() - 1;
-
 			if (0u == source_str.length()) return u16string{};
+
+			size_t begin{};
+
+			auto end{source_str.length() - 1};			
 
 			for (auto is_ws_char{true}; begin <= end; ++begin)
 			{
@@ -1027,11 +1029,11 @@ namespace std
 		{
 			u32string source_str{str};
 
-			auto begin = size_t{0u};
-
-			auto end = source_str.length() - 1;
-
 			if (0u == source_str.length()) return u32string{};
+
+			size_t begin{};
+
+			auto end{source_str.length() - 1};			
 
 			for (auto is_ws_char{true}; begin <= end; ++begin)
 			{
@@ -1082,11 +1084,11 @@ namespace std
 		{
 			string source_str{str};
 
-			auto begin = size_t{0u};
-
-			const auto end = source_str.length() - 1;
-
 			if (0u == source_str.length()) return string{};
+
+			size_t begin{};
+
+			const auto end{source_str.length() - 1};			
 
 			for (auto is_ws_char{true}; begin <= end; ++begin)
 			{
@@ -1117,11 +1119,11 @@ namespace std
 		{
 			wstring source_str{str};
 
-			auto begin = size_t{0u};
-
-			const auto end = source_str.length() - 1;
-
 			if (0u == source_str.length()) return wstring{};
+
+			size_t begin{};
+
+			const auto end{source_str.length() - 1};			
 
 			for (auto is_ws_char{true}; begin <= end; ++begin)
 			{
@@ -1152,11 +1154,11 @@ namespace std
 		{
 			u16string source_str{str};
 
-			auto begin = size_t{0u};
-
-			const auto end = source_str.length() - 1;
-
 			if (0u == source_str.length()) return u16string{};
+
+			size_t begin{};
+
+			const auto end{source_str.length() - 1};			
 
 			for (auto is_ws_char{true}; begin <= end; ++begin)
 			{
@@ -1187,11 +1189,11 @@ namespace std
 		{
 			u32string source_str{str};
 
-			auto begin = size_t{0u};
-
-			const auto end = source_str.length() - 1;
-
 			if (0u == source_str.length()) return u32string{};
+
+			size_t begin{};
+
+			const auto end{source_str.length() - 1};			
 
 			for (auto is_ws_char{true}; begin <= end; ++begin)
 			{
@@ -1222,10 +1224,10 @@ namespace std
 		{
 			string source_str{str};
 
-			const auto begin = size_t{0u};
-			auto end = source_str.length() - 1;
-
 			if (0u == source_str.length()) return string{};
+
+			const size_t begin{};
+			size_t end{source_str.length() - 1};			
 
 			for (auto is_ws_char{true}; end > begin; --end)
 			{
@@ -1254,10 +1256,10 @@ namespace std
 		{
 			wstring source_str{str};
 
-			const auto begin = size_t{0u};
-			auto end = source_str.length() - 1;
-
 			if (0u == source_str.length()) return wstring{};
+
+			const size_t begin{};
+			auto end{source_str.length() - 1};			
 
 			for (auto is_ws_char{true}; end > begin; --end)
 			{
@@ -1286,10 +1288,10 @@ namespace std
 		{
 			u16string source_str{str};
 
-			const auto begin = size_t{0u};
-			auto end = source_str.length() - 1;
-
 			if (0u == source_str.length()) return u16string{};
+
+			const size_t begin{};
+			auto end{source_str.length() - 1};			
 
 			for (auto is_ws_char{true}; end > begin; --end)
 			{
@@ -1318,10 +1320,10 @@ namespace std
 		{
 			u32string source_str{str};
 
-			const auto begin = size_t{0u};
-			auto end = source_str.length() - 1;
-
 			if (0u == source_str.length()) return u32string{};
+
+			const size_t begin{};
+			auto end{source_str.length() - 1};			
 
 			for (auto is_ws_char{true}; end > begin; --end)
 			{
@@ -1899,7 +1901,7 @@ namespace std
 			          return tolower(ch, loc);
 		          });
 
-			if (string::npos == text_lc.find(tolower(needle_lc_str, loc), start_pos)) return true;
+			if (string::npos == text_lc.find(needle_lc_str, start_pos)) return true;
 
 			return false;
 		}
@@ -1933,7 +1935,7 @@ namespace std
 			          return tolower(ch, loc);
 		          });
 
-			if (wstring::npos == text_lc.find(tolower(needle_lc_str, loc), start_pos)) return true;
+			if (wstring::npos == text_lc.find(needle_lc_str, start_pos)) return true;
 
 			return false;
 		}
@@ -1967,7 +1969,7 @@ namespace std
 			          return tolower(ch, loc);
 		          });
 
-			if (u16string::npos == text_lc.find(tolower(needle_lc_str, loc), start_pos)) return true;
+			if (u16string::npos == text_lc.find(needle_lc_str, start_pos)) return true;
 
 			return false;
 		}
@@ -2001,7 +2003,7 @@ namespace std
 			          return tolower(ch, loc);
 		          });
 
-			if (u32string::npos == text_lc.find(tolower(needle_lc_str, loc), start_pos)) return true;
+			if (u32string::npos == text_lc.find(needle_lc_str, start_pos)) return true;
 
 			return false;
 		}
@@ -3621,28 +3623,28 @@ namespace std
 
 			if (prepend_options == str_prepend_behaviour::do_not_prepend_return_required_dst_buffer_capacity_only)
 			{
-				ret_val = dst_len + src_len + 1;
+				ret_val = dst_len + number_of_characters_to_prepend + 1;
 			}
 			else if (prepend_options == str_prepend_behaviour::disallow_partial_prepend)
 			{
-				if (dst_capacity_in_number_of_characters < dst_len + src_len + 1)
+				if (dst_capacity_in_number_of_characters < (number_of_characters_to_prepend + dst_len + 1))
 				{
 					ret_val = 0u;
 				}
 				else
 				{
-					copy_backward(dst, dst + dst_len, dst + dst_len + src_len);
+					copy_backward(dst, dst + dst_len, dst + dst_len + number_of_characters_to_prepend);
 
-					copy(src, src + src_len, dst);
+					copy(src, src + number_of_characters_to_prepend, dst);
 
-					dst[dst_len + src_len] = U'\0';
+					dst[dst_len + number_of_characters_to_prepend] = U'\0';
 
-					ret_val = src_len;
+					ret_val = number_of_characters_to_prepend;
 				}
 			}
 			else if (prepend_options == str_prepend_behaviour::allow_partial_prepend)
 			{
-				if (dst_capacity_in_number_of_characters < dst_len + src_len + 1)
+				if (dst_capacity_in_number_of_characters < (dst_len + number_of_characters_to_prepend + 1))
 				{
 					auto const no_of_chars_to_copy = dst_capacity_in_number_of_characters - dst_len - 1;
 
@@ -3656,17 +3658,17 @@ namespace std
 				}
 				else
 				{
-					copy_backward(dst, dst + dst_len, dst + dst_len + src_len);
+					copy_backward(dst, dst + dst_len, dst + dst_len + number_of_characters_to_prepend);
 
-					copy(src, src + src_len, dst);
+					copy(src, src + number_of_characters_to_prepend, dst);
 
-					dst[dst_len + src_len] = U'\0';
+					dst[dst_len + number_of_characters_to_prepend] = U'\0';
 
-					ret_val = src_len;
+					ret_val = number_of_characters_to_prepend;
 				}
 			}
 
-			if (required_dst_capacity) *required_dst_capacity = dst_len + src_len + 1;
+			if (required_dst_capacity) *required_dst_capacity = dst_len + number_of_characters_to_prepend + 1;
 
 			return ret_val;
 		}
@@ -4026,7 +4028,7 @@ namespace std
 		}
 
 		size_t str_replace_first(char* dst, const size_t dst_capacity_in_number_of_characters, const char* needle,
-		                         const char* replace, size_t* required_dst_capacity = nullptr)
+		                         const char* replace, size_t* required_dst_capacity)
 		{
 			auto const dst_len{str_length(dst)};
 			auto const needle_len{str_length(needle)};
@@ -4094,7 +4096,7 @@ namespace std
 				// if needle_len == 10 and replace_len == 2, all the characters in the upper part of dst ( characters with positions >= dst + start_pos + needle_len characters ) 
 				// have to be moved 'noctm' (8) character positions toward dst + start_pos + replace_len.
 
-				for (auto i = 0; i < dst_len - (start_pos + needle_len); i++) dst[start_pos + replace_len + i] = dst[start_pos + needle_len + i];
+				for (size_t i{}; i < dst_len - (start_pos + needle_len); i++) dst[start_pos + replace_len + i] = dst[start_pos + needle_len + i];
 
 				dst[dst_len - noctm] = '\0';
 
@@ -4175,7 +4177,7 @@ namespace std
 				// if needle_len == 10 and replace_len == 2, all the characters in the upper part of dst ( characters with positions >= dst + start_pos + needle_len characters ) 
 				// have to be moved 'noctm' (8) character positions toward dst + start_pos + replace_len.
 
-				for (auto i = 0; i < dst_len - (start_pos + needle_len); i++) dst[start_pos + replace_len + i] = dst[start_pos + needle_len + i];
+				for (size_t i{}; i < dst_len - (start_pos + needle_len); i++) dst[start_pos + replace_len + i] = dst[start_pos + needle_len + i];
 
 				dst[dst_len - noctm] = L'\0';
 
@@ -4258,7 +4260,7 @@ namespace std
 				// if needle_len == 10 and replace_len == 2, all the characters in the upper part of dst ( characters with positions >= dst + start_pos + needle_len characters ) 
 				// have to be moved 'noctm' (8) character positions toward dst + start_pos + replace_len.
 
-				for (auto i = 0; i < dst_len - (start_pos + needle_len); i++) dst[start_pos + replace_len + i] = dst[start_pos + needle_len + i];
+				for (size_t i{}; i < dst_len - (start_pos + needle_len); i++) dst[start_pos + replace_len + i] = dst[start_pos + needle_len + i];
 
 				dst[dst_len - noctm] = u'\0';
 
@@ -4341,7 +4343,7 @@ namespace std
 				// if needle_len == 10 and replace_len == 2, all the characters in the upper part of dst ( characters with positions >= dst + start_pos + needle_len characters ) 
 				// have to be moved 'noctm' (8) character positions toward dst + start_pos + replace_len.
 
-				for (auto i = 0; i < dst_len - (start_pos + needle_len); i++) dst[start_pos + replace_len + i] = dst[start_pos + needle_len + i];
+				for (size_t i{}; i < dst_len - (start_pos + needle_len); i++) dst[start_pos + replace_len + i] = dst[start_pos + needle_len + i];
 
 				dst[dst_len - noctm] = U'\0';
 
@@ -11611,16 +11613,16 @@ namespace std
 		{
 			vector<string> parts{};
 
-			size_t prev = 0, current;
+			size_t prev{}, current;
 
-			const string source_st{ source };
+			const string source_st{source};
 			const string needle_st(1, needle_char);
 
-			auto const source_len{ source_st.size() };
+			auto const source_len{source_st.size()};
 
-			if ((0u == source_len) || (source_len <= 1)) return parts;
+			if ((0u == source_len) || (source_len <= 1u)) return parts;
 
-			size_t number_of_parts = 0;
+			size_t number_of_parts{};
 
 			do
 			{
