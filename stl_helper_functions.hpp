@@ -2474,9 +2474,9 @@ namespace std
 		template <typename StringType>
 		StringType str_insert(const StringType& dst, const size_t position_index_in_dst, const StringType& src)
 		{
-			auto const dst_len{ dst.size() };
+			auto const dst_len { dst.size() };
 
-			if (!dst_len && (position_index_in_dst == 0)) return StringType{ src };
+			if (!dst_len && (0u == position_index_in_dst)) return StringType{ src };
 
 			StringType final_str{dst};
 
@@ -2488,9 +2488,9 @@ namespace std
 		template <typename StringType>
 		void str_insert(StringType& dst, const size_t position_index_in_dst, const StringType& src)
 		{
-			auto const dst_len{ dst.size() };
+			auto const dst_len { dst.size() };
 
-			if (!dst_len && (position_index_in_dst == 0)) dst = src;
+			if (!dst_len && (0u == position_index_in_dst)) dst = src;
 
 			dst.insert(position_index_in_dst, src);
 		}
@@ -2704,15 +2704,15 @@ namespace std
 		                        const size_t number_of_characters_to_insert)
 		{		
 
-			const auto dst_length{ dst.size() };
+			const auto dst_length { dst.size() };
 
 			const auto src_length { src.size() };
 
 			const auto no_of_chars = min(number_of_characters_to_insert, src_length);
 
-			if (!dst_length && (position_index_in_dst == 0)) return StringType { src.substr(0, no_of_chars) };	
+			if (!dst_length && (0u == position_index_in_dst)) return StringType { src.substr(0, no_of_chars) };	
 
-			StringType final_str{ dst };
+			StringType final_str { dst };
 
 			final_str.insert(position_index_in_dst, src.substr(0, no_of_chars));
 
@@ -2723,13 +2723,13 @@ namespace std
 		void str_insert_n(StringType& dst, const size_t position_index_in_dst, const StringType& src,
 		                  const size_t number_of_characters_to_insert)
 		{
-			const auto dst_length{ dst.size() };
+			const auto dst_length { dst.size() };
 
-			const auto src_length{ src.size() };
+			const auto src_length { src.size() };
 
 			const auto no_of_chars = min(number_of_characters_to_insert, src_length);
 
-			if (!dst_length && (position_index_in_dst == 0)) dst = src.substr(0, no_of_chars);
+			if (!dst_length && (0u == position_index_in_dst)) dst = src.substr(0, no_of_chars);
 
 			dst.insert(position_index_in_dst, src.substr(0, no_of_chars));
 		}
@@ -3457,12 +3457,12 @@ namespace std
 		template <typename StringType>
 		StringType trim(const StringType& str)
 		{
-			size_t begin = 0u;
-			size_t end = str.size() - 1;
-
 			using char_type = typename StringType::value_type;
 
-			if (str.size() == 0u) return StringType{};
+			if (0u == str.length()) return StringType{};
+
+			size_t begin{};
+			size_t end{str.length() - 1};						
 
 			for (auto is_ws_char{true}; begin <= end; ++begin)
 			{
@@ -3512,12 +3512,12 @@ namespace std
 		template <typename StringType>
 		StringType ltrim(const StringType& str)
 		{
-			size_t begin = 0u;
-			size_t const end = str.size() - 1;
-
 			using char_type = typename StringType::value_type;
 
-			if (str.size() == 0u) return StringType{};
+			if (0u == str.length()) return StringType{};
+
+			size_t begin{};
+			size_t const end{str.length() - 1};
 
 			for (auto is_ws_char{true}; (is_ws_char && (begin <= end)); ++begin)
 			{
@@ -3547,12 +3547,14 @@ namespace std
 		template <typename StringType>
 		StringType rtrim(const StringType& str)
 		{
-			size_t begin = 0u;
-			size_t end = str.size() - 1;
+			using char_type = typename StringType::value_type;
+
+			size_t begin{};
+			size_t end{str.size() - 1};
 
 			using char_type = typename StringType::value_type;
 
-			if (str.size() == 0u) return StringType{};
+			if (0u == str.length()) return StringType{};
 
 			for (auto is_ws_char{true}; (is_ws_char && (end != StringType::npos)); --end)
 			{
@@ -3574,7 +3576,7 @@ namespace std
 				if (!is_ws_char) break;
 			}
 
-			if (end == StringType::npos) return StringType{};
+			if (StringType::npos == end) return StringType{};
 
 			return str.substr(begin, end - begin + 1);
 		}
@@ -3595,15 +3597,16 @@ namespace std
 		{
 			std::vector<StringType> parts{};
 
-			size_t prev = 0, current;
+			size_t prev{}, current;
 
 			StringType needle_st(1, needle_char);
 
-			const size_t needle_len = needle_st.size();
+			const size_t source_len{source.length()};
+			const size_t needle_len{needle_st.length()};
 
-			if ((source.size() == 0) || (needle_st.size() == 0) || (needle_st.size() >= source.size())) return parts;
+			if ((0u == source_len) || (0u == needle_len) || (needle_len >= source_len)) return parts;
 
-			size_t number_of_parts = 0;
+			size_t number_of_parts{};
 
 			do
 			{
@@ -3619,11 +3622,11 @@ namespace std
 
 				prev = current + needle_len;
 
-				if (prev >= source.size()) break;
+				if (prev >= source_len) break;
 			}
 			while (StringType::npos != current);
 
-			if (number_of_parts > 0 && prev < source.size())
+			if (prev < source_len)
 			{
 				if (StringType::npos == max_count) parts.emplace_back(source.substr(prev));
 
@@ -3639,15 +3642,16 @@ namespace std
 		{
 			std::vector<StringType> parts{};
 
-			size_t prev = 0, current;
+			size_t prev{}, current;
 
 			StringType needle_st{needle};
 
-			const size_t needle_len = needle_st.size();
+			const size_t source_len{source.length()};
+			const size_t needle_len{needle_st.length()};
 
-			if ((source.size() == 0) || (needle_st.size() == 0) || (needle_st.size() >= source.size())) return parts;
+			if ((0u == source_len) || (0u == needle_len) || (needle_len >= source_len)) return parts;
 
-			size_t number_of_parts = 0;
+			size_t number_of_parts{};
 
 			do
 			{
@@ -3663,11 +3667,11 @@ namespace std
 
 				prev = current + needle_len;
 
-				if (prev >= source.size()) break;
+				if (prev >= source_len) break;
 			}
 			while (StringType::npos != current);
 
-			if (number_of_parts > 0 && prev < source.size())
+			if (prev < source_len)
 			{
 				if (StringType::npos == max_count) parts.emplace_back(source.substr(prev));
 
@@ -3683,13 +3687,14 @@ namespace std
 		{
 			std::vector<StringType> parts{};
 
-			size_t prev = 0, current;
+			size_t prev{}, current;
 
-			const size_t needle_len = needle.size();
+			const size_t source_len{source.length()};
+			const size_t needle_len{needle.length()};
 
-			if ((source.size() == 0) || (needle.size() == 0) || (needle.size() >= source.size())) return parts;
+			if ((0u == source_len) || (0u == needle_len) || (needle_len >= source_len)) return parts;
 
-			size_t number_of_parts = 0;
+			size_t number_of_parts{};
 
 			do
 			{
@@ -3705,11 +3710,11 @@ namespace std
 
 				prev = current + needle_len;
 
-				if (prev >= source.size()) break;
+				if (prev >= source_len) break;
 			}
 			while (StringType::npos != current);
 
-			if (number_of_parts > 0 && prev < source.size())
+			if (prev < source_len)
 			{
 				if (StringType::npos == max_count) parts.emplace_back(source.substr(prev));
 
