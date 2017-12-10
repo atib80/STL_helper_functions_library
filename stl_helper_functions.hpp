@@ -421,7 +421,7 @@ namespace std
 		typename StringType::size_type str_index_of(const StringType& text, typename StringType::const_pointer needle,
 			const size_t start_pos = 0u, bool ignore_case = false, const locale& loc = locale{})
 		{
-			const auto needle_str{ needle };
+			const StringType needle_str{ needle };
 
 			const auto text_len{ text.size() };
 			const auto needle_len{ needle_str.size() };
@@ -3595,22 +3595,20 @@ namespace std
 		std::vector<StringType> split(const StringType& source, const typename StringType::value_type needle_char,
 		                              size_t const max_count = StringType::npos)
 		{
-			std::vector<StringType> parts{};
-
-			size_t prev{}, current;
+			std::vector<StringType> parts{};			
 
 			StringType needle_st(1, needle_char);
 
-			const size_t source_len{source.length()};
-			const size_t needle_len{needle_st.length()};
+			const size_t source_len { source.length() };
+			const size_t needle_len { needle_st.length() };
 
 			if ((0u == source_len) || (0u == needle_len) || (needle_len >= source_len)) return parts;
 
-			size_t number_of_parts{};
+			size_t number_of_parts{}, prev{};
 
-			do
+			while (true)
 			{
-				current = source.find(needle_st, prev);
+				const size_t current { source.find(needle_st, prev) };
 
 				if (StringType::npos == current) break;
 
@@ -3623,8 +3621,7 @@ namespace std
 				prev = current + needle_len;
 
 				if (prev >= source_len) break;
-			}
-			while (StringType::npos != current);
+			}			
 
 			if (prev < source_len)
 			{
@@ -3640,9 +3637,7 @@ namespace std
 		std::vector<StringType> split(const StringType& source, typename StringType::const_pointer needle,
 		                              size_t const max_count = StringType::npos)
 		{
-			std::vector<StringType> parts{};
-
-			size_t prev{}, current;
+			std::vector<StringType> parts{};			
 
 			StringType needle_st{needle};
 
@@ -3651,11 +3646,11 @@ namespace std
 
 			if ((0u == source_len) || (0u == needle_len) || (needle_len >= source_len)) return parts;
 
-			size_t number_of_parts{};
+			size_t number_of_parts{}, prev{};
 
-			do
+			while (true)
 			{
-				current = source.find(needle_st, prev);
+				const size_t current { source.find(needle_st, prev) };
 
 				if (StringType::npos == current) break;
 
@@ -3669,7 +3664,6 @@ namespace std
 
 				if (prev >= source_len) break;
 			}
-			while (StringType::npos != current);
 
 			if (prev < source_len)
 			{
@@ -3687,18 +3681,16 @@ namespace std
 		{
 			std::vector<StringType> parts{};
 
-			size_t prev{}, current;
-
-			const size_t source_len{source.length()};
-			const size_t needle_len{needle.length()};
+			const size_t source_len { source.length() };
+			const size_t needle_len { needle.length() };
 
 			if ((0u == source_len) || (0u == needle_len) || (needle_len >= source_len)) return parts;
 
-			size_t number_of_parts{};
+			size_t number_of_parts{}, prev{};
 
-			do
+			while (true)
 			{
-				current = source.find(needle, prev);
+				const size_t current { source.find(needle, prev) };
 
 				if (StringType::npos == current) break;
 
@@ -3712,7 +3704,6 @@ namespace std
 
 				if (prev >= source_len) break;
 			}
-			while (StringType::npos != current);
 
 			if (prev < source_len)
 			{
