@@ -11611,22 +11611,20 @@ namespace std
 
 		vector<string> split(const char* source, const char needle_char, int const max_count)
 		{
-			vector<string> parts{};
-
-			size_t prev{}, current;
+			vector<string> parts{};			
 
 			const string source_st{source};
 			const string needle_st(1, needle_char);
 
-			auto const source_len{source_st.size()};
+			auto const source_len { source_st.length() };
 
 			if ((0u == source_len) || (source_len <= 1u)) return parts;
 
-			size_t number_of_parts{};
+			size_t number_of_parts{}, prev{};
 
-			do
+			while (true)
 			{
-				current = source_st.find(needle_st, prev);
+				const size_t current { source_st.find(needle_st, prev) };
 
 				if (string::npos == current) break;
 
@@ -11640,15 +11638,13 @@ namespace std
 
 				if (prev >= source_len) break;
 			}
-			while (string::npos != current);
 
-			if (number_of_parts > 0 && prev < source_len)
+			if (prev < source_len)
 			{
 				if (-1 == max_count) parts.emplace_back(source_st.substr(prev));
 
 				else if ((-1 != max_count) && (static_cast<int>(parts.size()) < max_count))
-					parts.emplace_back(
-						source_st.substr(prev));
+					parts.emplace_back(source_st.substr(prev));
 			}
 
 			return parts;
@@ -11656,22 +11652,20 @@ namespace std
 
 		vector<wstring> split(const wchar_t* source, const wchar_t needle_char, int const max_count)
 		{
-			vector<wstring> parts{};
+			vector<wstring> parts{};			
 
-			size_t prev = 0, current;
-
-			const wstring source_st{ source };
+			const wstring source_st { source };
 			const wstring needle_st(1, needle_char);
 
-			auto const source_len{ source_st.size() };
+			auto const source_len { source_st.length() };
 
 			if ((0u == source_len) || (source_len <= 1)) return parts;
 
-			size_t number_of_parts = 0;
+			size_t number_of_parts{}, prev{};
 
-			do
+			while (true)
 			{
-				current = source_st.find(needle_st, prev);
+				const size_t current { source_st.find(needle_st, prev) };
 
 				if (wstring::npos == current) break;
 
@@ -11685,15 +11679,13 @@ namespace std
 
 				if (prev >= source_len) break;
 			}
-			while (wstring::npos != current);
 
-			if (number_of_parts > 0 && prev < source_len)
+			if (prev < source_len)
 			{
 				if (-1 == max_count) parts.emplace_back(source_st.substr(prev));
 
 				else if ((-1 != max_count) && (static_cast<int>(parts.size()) < max_count))
-					parts.emplace_back(
-						source_st.substr(prev));
+					parts.emplace_back(source_st.substr(prev));
 			}
 
 			return parts;
@@ -11701,22 +11693,20 @@ namespace std
 
 		vector<u16string> split(const char16_t* source, const char16_t needle_char, int const max_count)
 		{
-			vector<u16string> parts{};
+			vector<u16string> parts{};			
 
-			size_t prev = 0, current;
-
-			const u16string source_st{ source };
+			const u16string source_st { source };
 			const u16string needle_st(1, needle_char);
 
-			auto const source_len{ source_st.size() };
+			auto const source_len { source_st.length() };
 
 			if ((0u == source_len) || (source_len <= 1)) return parts;
 
-			size_t number_of_parts = 0;
+			size_t number_of_parts{}, prev{};
 
-			do
+			while (true)
 			{
-				current = source_st.find(needle_st, prev);
+				const size_t current { source_st.find(needle_st, prev) };
 
 				if (u16string::npos == current) break;
 
@@ -11730,15 +11720,13 @@ namespace std
 
 				if (prev >= source_len) break;
 			}
-			while (u16string::npos != current);
 
-			if (number_of_parts > 0 && prev < source_len)
+			if (prev < source_len)
 			{
 				if (-1 == max_count) parts.emplace_back(source_st.substr(prev));
 
 				else if ((-1 != max_count) && (static_cast<int>(parts.size()) < max_count))
-					parts.emplace_back(
-						source_st.substr(prev));
+					parts.emplace_back(source_st.substr(prev));
 			}
 
 			return parts;
@@ -11746,22 +11734,20 @@ namespace std
 
 		vector<u32string> split(const char32_t* source, const char32_t needle_char, int const max_count)
 		{
-			vector<u32string> parts{};
-
-			size_t prev = 0, current;
+			vector<u32string> parts{};			
 
 			const u32string source_st{source};
 			const u32string needle_st(1, needle_char);
 
-			auto const source_len{ source_st.size() };			
+			auto const source_len { source_st.length() };			
 
 			if ((0u == source_len) || (source_len <= 1)) return parts;
 
-			size_t number_of_parts = 0;
+			size_t number_of_parts{}, prev{};
 
-			do
+			while (true)
 			{
-				current = source_st.find(needle_st, prev);
+				const size_t current { source_st.find(needle_st, prev) };
 
 				if (u32string::npos == current) break;
 
@@ -11775,9 +11761,8 @@ namespace std
 
 				if (prev >= source_len) break;
 			}
-			while (u32string::npos != current);
 
-			if (number_of_parts > 0 && prev < source_len)
+			if (prev < source_len)
 			{
 				if (-1 == max_count) parts.emplace_back(source_st.substr(prev));
 
@@ -11790,23 +11775,23 @@ namespace std
 
 		vector<string> split(const char* source, const char* needle, const int max_count)
 		{
-			vector<string> parts{};
-
-			size_t prev = 0, current;
+			vector<string> parts{};			
 
 			string source_st{source};
 			string needle_st{needle};
 
-			auto const source_len{ source_st.size() };
-			auto const needle_len{ needle_st.size() };
+			auto const source_len { source_st.length() };
+			auto const needle_len { needle_st.length() };
 
 			if ((0u == source_len) || (0u == needle_len) || (needle_len >= source_len)) return parts;
 
-			int number_of_parts = 0;
+			int number_of_parts{};
 
-			do
+			size_t prev{};
+
+			while (true)
 			{
-				current = source_st.find(needle_st, prev);
+				const size_t current { source_st.find(needle_st, prev) };
 
 				if (string::npos == current) break;
 
@@ -11820,9 +11805,8 @@ namespace std
 
 				if (prev >= source_len) break;
 			}
-			while (string::npos != current);
 
-			if (number_of_parts > 0 && prev < source_len)
+			if (prev < source_len)
 			{
 				if (-1 == max_count) parts.emplace_back(source_st.substr(prev));
 
@@ -11835,23 +11819,23 @@ namespace std
 
 		vector<wstring> split(const wchar_t* source, const wchar_t* needle, const int max_count)
 		{
-			vector<wstring> parts{};
-
-			size_t prev = 0, current;
+			vector<wstring> parts{};			
 
 			wstring source_st{source};
 			wstring needle_st{needle};
 
-			auto const source_len{ source_st.size() };
-			auto const needle_len{ needle_st.size() };
+			auto const source_len { source_st.length() };
+			auto const needle_len { needle_st.length() };
 
 			if ((0u == source_len) || (0u == needle_len) || (needle_len >= source_len)) return parts;
 
-			auto number_of_parts = 0;
+			int number_of_parts{};
 
-			do
+			size_t prev{};
+
+			while (true)
 			{
-				current = source_st.find(needle_st, prev);
+				const size_t current { source_st.find(needle_st, prev) };
 
 				if (wstring::npos == current) break;
 
@@ -11865,9 +11849,8 @@ namespace std
 
 				if (prev >= source_len) break;
 			}
-			while (wstring::npos != current);
 
-			if (number_of_parts > 0 && prev < source_len)
+			if (prev < source_len)
 			{
 				if (-1 == max_count) parts.emplace_back(source_st.substr(prev));
 
@@ -11882,21 +11865,21 @@ namespace std
 		{
 			vector<u16string> parts{};
 
-			size_t prev = 0, current;
-
 			u16string source_st{source};
 			u16string needle_st{needle};
 
-			auto const source_len{ source_st.size() };
-			auto const needle_len{ needle_st.size() };
+			auto const source_len { source_st.length() };
+			auto const needle_len { needle_st.length() };
 
 			if ((0u == source_len) || (0u == needle_len) || (needle_len >= source_len)) return parts;
 
-			auto number_of_parts = 0;
+			int number_of_parts{};
 
-			do
-			{
-				current = source_st.find(needle_st, prev);
+			size_t prev{};
+
+			while (true) {
+			
+				const size_t current { source_st.find(needle_st, prev) };
 
 				if (u16string::npos == current) break;
 
@@ -11910,9 +11893,8 @@ namespace std
 
 				if (prev >= source_len) break;
 			}
-			while (u16string::npos != current);
 
-			if (number_of_parts > 0 && prev < source_len)
+			if (prev < source_len)
 			{
 				if (-1 == max_count) parts.emplace_back(source_st.substr(prev));
 
@@ -11925,23 +11907,23 @@ namespace std
 
 		vector<u32string> split(const char32_t* source, const char32_t* needle, const int max_count)
 		{
-			vector<u32string> parts{};
-
-			size_t prev = 0, current;
+			vector<u32string> parts{};			
 
 			u32string source_st{source};
 			u32string needle_st{needle};
 
-			auto const source_len{ source_st.size() };
-			auto const needle_len{ needle_st.size() };
+			auto const source_len{ source_st.length() };
+			auto const needle_len{ needle_st.length() };
 
 			if ((0u == source_len) || (0u == needle_len) || (needle_len >= source_len)) return parts;
 
-			auto number_of_parts = 0;
+			int number_of_parts{};
 
-			do
-			{
-				current = source_st.find(needle_st, prev);
+			size_t prev{};
+
+			while (true) {
+
+				const size_t current = source_st.find(needle_st, prev);
 
 				if (u32string::npos == current) break;
 
@@ -11955,9 +11937,8 @@ namespace std
 
 				if (prev >= source_len) break;
 			}
-			while (u32string::npos != current);
 
-			if (number_of_parts > 0 && prev < source_len)
+			if (prev < source_len)
 			{
 				if (-1 == max_count) parts.emplace_back(source_st.substr(prev));
 
