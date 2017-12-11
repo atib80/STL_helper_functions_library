@@ -21,7 +21,7 @@
 #include <filesystem>
 
 #define STL_HELPER_UTILITY_MAJOR_VERSION 1
-#define STL_HELPER_UTILITY_MINOR_VERSION 0
+#define STL_HELPER_UTILITY_MINOR_VERSION 1
 
 #define PRINT_VAR_NAME(arg) std::cout << #arg << ' '
 #define PRINT_VAR_NAMEW(arg) std::wcout << #arg << L' '
@@ -3243,7 +3243,7 @@ namespace std
 		}
 
 		template <typename StringType>
-		StringType to_lower_case(const StringType& str, const std::locale loc = std::locale{})
+		StringType to_lower_case(const StringType& str, const std::locale& loc = std::locale{})
 		{
 			using char_type = typename StringType::value_type;
 
@@ -3259,14 +3259,14 @@ namespace std
 		}
 
 		template <typename StringType>
-		void to_lower_case_in_place(StringType& str, const std::locale loc = std::locale{})
+		void to_lower_case_in_place(StringType& str, const std::locale& loc = std::locale{})
 		{
 			for (auto& ch : str) ch = tolower(ch, loc);
 
 		}
 
 		template <typename StringType>
-		StringType to_upper_case(const StringType& str, const std::locale loc = std::locale{})
+		StringType to_upper_case(const StringType& str, const std::locale& loc = std::locale{})
 		{
 			using char_type = typename StringType::value_type;
 
@@ -3282,14 +3282,14 @@ namespace std
 		}
 
 		template <typename StringType>
-		void to_upper_case_in_place(StringType& str, const locale loc = locale{})
+		void to_upper_case_in_place(StringType& str, const locale& loc = locale{})
 		{
 			for (auto& ch : str) ch = toupper(ch, loc);
 
 		}
 
 		template <typename StringType>
-		StringType to_title_case(const StringType& str, const locale loc = locale{})
+		StringType to_title_case(const StringType& str, const locale& loc = locale{})
 		{
 
 			using char_type = typename StringType::value_type;
@@ -3319,7 +3319,7 @@ namespace std
 
 
 		template <typename StringType>
-		void to_title_case_in_place(StringType& str, const locale loc = locale{})
+		void to_title_case_in_place(StringType& str, const locale& loc = locale{})
 		{
 			using char_type = typename StringType::value_type;
 
