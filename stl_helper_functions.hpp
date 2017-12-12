@@ -3602,7 +3602,8 @@ namespace std
 			const size_t source_len { source.length() };
 			const size_t needle_len { needle_st.length() };
 
-			if ((0u == source_len) || (0u == needle_len) || (needle_len >= source_len)) return parts;
+			// if ((0u == source_len) || (0u == needle_len) || (needle_len >= source_len)) return parts;
+			if ((0u == source_len) || (0u == needle_len)) return parts;
 
 			size_t number_of_parts{}, prev{};
 
@@ -3644,7 +3645,8 @@ namespace std
 			const size_t source_len{source.length()};
 			const size_t needle_len{needle_st.length()};
 
-			if ((0u == source_len) || (0u == needle_len) || (needle_len >= source_len)) return parts;
+			// if ((0u == source_len) || (0u == needle_len) || (needle_len >= source_len)) return parts;
+			if ((0u == source_len) || (0u == needle_len)) return parts;
 
 			size_t number_of_parts{}, prev{};
 
@@ -3684,7 +3686,8 @@ namespace std
 			const size_t source_len { source.length() };
 			const size_t needle_len { needle.length() };
 
-			if ((0u == source_len) || (0u == needle_len) || (needle_len >= source_len)) return parts;
+			// if ((0u == source_len) || (0u == needle_len) || (needle_len >= source_len)) return parts;
+			if ((0u == source_len) || (0u == needle_len)) return parts;
 
 			size_t number_of_parts{}, prev{};
 
