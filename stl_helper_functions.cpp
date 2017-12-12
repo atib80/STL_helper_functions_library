@@ -11618,7 +11618,8 @@ namespace std
 
 			auto const source_len { source_st.length() };
 
-			if ((0u == source_len) || (source_len <= 1u)) return parts;
+			// if ((0u == source_len) || (source_len <= 1u)) return parts;
+			if (0u == source_len) return parts;
 
 			size_t number_of_parts{}, prev{};
 
@@ -11659,7 +11660,8 @@ namespace std
 
 			auto const source_len { source_st.length() };
 
-			if ((0u == source_len) || (source_len <= 1)) return parts;
+			// if ((0u == source_len) || (source_len <= 1)) return parts;
+			if (0u == source_len) return parts;
 
 			size_t number_of_parts{}, prev{};
 
@@ -11700,7 +11702,8 @@ namespace std
 
 			auto const source_len { source_st.length() };
 
-			if ((0u == source_len) || (source_len <= 1)) return parts;
+			// if ((0u == source_len) || (source_len <= 1)) return parts;
+			if (0u == source_len) return parts;
 
 			size_t number_of_parts{}, prev{};
 
@@ -11741,7 +11744,8 @@ namespace std
 
 			auto const source_len { source_st.length() };			
 
-			if ((0u == source_len) || (source_len <= 1)) return parts;
+			// if ((0u == source_len) || (source_len <= 1)) return parts;
+			if (0u == source_len) return parts;
 
 			size_t number_of_parts{}, prev{};
 
@@ -11783,7 +11787,8 @@ namespace std
 			auto const source_len { source_st.length() };
 			auto const needle_len { needle_st.length() };
 
-			if ((0u == source_len) || (0u == needle_len) || (needle_len >= source_len)) return parts;
+			// if ((0u == source_len) || (0u == needle_len) || (needle_len >= source_len)) return parts;
+			if ((0u == source_len) || (0u == needle_len)) return parts;
 
 			int number_of_parts{};
 
@@ -11827,7 +11832,8 @@ namespace std
 			auto const source_len { source_st.length() };
 			auto const needle_len { needle_st.length() };
 
-			if ((0u == source_len) || (0u == needle_len) || (needle_len >= source_len)) return parts;
+			// if ((0u == source_len) || (0u == needle_len) || (needle_len >= source_len)) return parts;
+			if ((0u == source_len) || (0u == needle_len)) return parts;
 
 			int number_of_parts{};
 
@@ -11871,7 +11877,8 @@ namespace std
 			auto const source_len { source_st.length() };
 			auto const needle_len { needle_st.length() };
 
-			if ((0u == source_len) || (0u == needle_len) || (needle_len >= source_len)) return parts;
+			// if ((0u == source_len) || (0u == needle_len) || (needle_len >= source_len)) return parts;
+			if ((0u == source_len) || (0u == needle_len)) return parts;
 
 			int number_of_parts{};
 
@@ -11915,7 +11922,8 @@ namespace std
 			auto const source_len{ source_st.length() };
 			auto const needle_len{ needle_st.length() };
 
-			if ((0u == source_len) || (0u == needle_len) || (needle_len >= source_len)) return parts;
+			// if ((0u == source_len) || (0u == needle_len) || (needle_len >= source_len)) return parts;
+			if ((0u == source_len) || (0u == needle_len)) return parts;
 
 			int number_of_parts{};
 
