@@ -5,6 +5,8 @@
 #define _SCL_SECURE_NO_WARNINGS
 
 #include <iostream>
+#include <string>
+#include <sstream>
 #include <typeinfo>
 #include <cwchar>
 #include <locale>
@@ -3716,6 +3718,238 @@ namespace std
 			}
 
 			return parts;
+		}
+
+
+		template <typename T>
+		std::string join_helper(const std::string&, T&& arg) {
+
+			std::ostringstream oss{};
+
+			oss << arg;
+
+			return oss.str();
+		}
+
+
+		template <typename T, typename ...Args>
+		std::string join_helper(const std::string& needle, T&& arg, Args&&... args) {
+
+			std::ostringstream oss{};
+
+			oss << arg << needle << join_helper(needle, args...);
+
+			return oss.str();
+
+		}
+
+
+		template <typename ...Args>
+		std::string join(const std::string& needle, Args&&... args) {
+
+			std::string result { join_helper(needle, std::forward<Args>(args)...) };
+
+			return result;
+		}
+
+
+		template <typename T>
+		std::wstring join_helper(const std::wstring&, T&& arg) {
+
+			std::wostringstream woss{};
+
+			woss << arg;
+
+			return woss.str();
+		}
+
+
+		template <typename T, typename ..._Args>
+		std::wstring join_helper(const std::wstring& needle, T&& arg, _Args&&... args) {
+
+			std::wostringstream woss{};
+
+			woss << arg << needle << join_helper(needle, args...);
+
+			return woss.str();
+		}
+
+
+		template <typename ..._Args>
+		std::wstring join(const std::wstring& needle, _Args&&... args) {
+
+			std::wstring result { join_helper(needle, std::forward<_Args>(args)...) };
+
+			return result;
+		}
+
+		using u16ostringstream = std::basic_ostringstream<char16_t>;
+		using u32ostringstream = std::basic_ostringstream<char32_t>;
+
+
+		template <typename T>
+		std::u16string join_helper(const std::u16string&, T&& arg) {
+
+			u16ostringstream u16oss{};
+
+			u16oss << arg;
+
+			return u16oss.str();
+		}
+
+
+		template <typename T, typename ..._Args>
+		std::u16string join_helper(const std::u16string& needle, T&& arg, _Args&&... args) {
+
+			std::u16ostringstream u16oss{};
+
+			u16oss << arg << needle << join_helper(needle, args...);
+
+			return u16oss.str();
+		}	
+
+
+		template <typename ..._Args>
+		std::u16string join(const std::u16string& needle, _Args&&... args) {
+
+			std::u16string result { join_helper(needle, std::forward<_Args>(args)...) };
+
+			return result;
+		}
+		
+
+		template <typename T>
+		std::u32string join_helper(const std::u32string&, T&& arg) {
+
+			u32ostringstream u32oss{};
+
+			u32oss << arg;
+
+			return u32oss.str();
+		}
+
+
+		template <typename T, typename ..._Args>
+		std::u32string join_helper(const std::u32string& needle, T&& arg, _Args&&... args) {
+
+			std::u32ostringstream u32oss{};
+
+			u32oss << arg << needle << join_helper(needle, args...);
+
+			return u32oss.str();
+		}
+
+
+		template <typename ..._Args>
+		std::u32string join(const std::u32string& needle, _Args&&... args) {
+
+			std::u32string result { join_helper(needle, std::forward<_Args>(args)...) };
+
+			return result;
+		}
+
+		template <typename _Container>
+		std::string str_join(const std::string& needle, const _Container& items) {
+
+			std::ostringstream oss{};
+
+			auto start = std::cbegin(items);
+
+			const auto last = std::cend(items);
+
+			while (start != last) {
+
+				oss << *start << needle;
+
+				++start;
+
+			}
+
+			std::string result { oss.str() };
+
+			const size_t needle_len { needle.length() };
+
+			result.erase(result.length() - needle_len, needle_len);
+
+			return result;
+		}
+
+		template <typename _Container>
+		std::wstring str_join(const std::wstring& needle, const _Container& items) {
+
+			std::wostringstream woss{};
+
+			auto start = std::cbegin(items);
+			
+			const auto last = std::cend(items);
+
+			while (start != last) {
+
+				woss << *start << needle;
+
+				++start;
+
+			}
+
+			std::wstring result { woss.str() };
+
+			const size_t needle_len { needle.length() };
+
+			result.erase(result.length() - needle_len, needle_len);
+
+			return result;
+		}
+
+		template <typename _Container>
+		std::u16string str_join(const std::u16string& needle, const _Container& items) {
+
+			std::u16ostringstream u16oss{};
+
+			auto start = std::cbegin(items);
+
+			const auto last = std::cend(items);
+
+			while (start != last) {
+
+				u16oss << *start << needle;
+
+				++start;
+
+			}
+
+			std::u16string result { u16oss.str() };
+
+			const size_t needle_len { needle.length() };
+
+			result.erase(result.length() - needle_len, needle_len);
+
+			return result;
+		}
+
+		template <typename _Container>
+		std::u32string str_join(const std::u32string& needle, const _Container& items) {
+
+			std::u32ostringstream u32oss{};
+
+			auto start = std::cbegin(items);
+			
+			const auto last = std::cend(items);
+
+			while (start != last) {
+
+				u32oss << *start << needle;
+
+				++start;
+
+			}
+
+			std::u32string result { u32oss.str() };
+
+			const size_t needle_len { needle.length() };
+
+			result.erase(result.length() - needle_len, needle_len);
+
+			return result;
 		}
 
 		
