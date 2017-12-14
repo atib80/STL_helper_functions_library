@@ -235,7 +235,7 @@ namespace std
 			return ret_val;
 		}
 
-		constexpr size_t max_string_length = static_cast<size_t>((2ULL << 31ULL) - 1ULL);
+		const size_t max_string_length { string::npos };
 
 		size_t str_length(char* str, const size_t max_allowed_string_length = max_string_length);
 		size_t str_length(wchar_t* str, const size_t max_allowed_string_length = max_string_length);
