@@ -4,11 +4,11 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define _SCL_SECURE_NO_WARNINGS
 
-#include <conio.h>
+#include <Strsafe.h>
 #include <algorithm>
 #include <chrono>
+#include <cstdio>
 #include <cwchar>
-#include <filesystem>
 #include <iostream>
 #include <locale>
 #include <map>
@@ -28,8 +28,10 @@
 #define PRINT_VAR_NAME(arg) std::cout << #arg << ' '
 #define PRINT_VAR_NAMEW(arg) std::wcout << #arg << L' '
 
-namespace std {
+namespace cpp {
 namespace experimental {
+
+using size_t = unsigned long;
 enum class string_type { cstr, wstr, u16_str, u32_str };
 
 template <typename T>
@@ -38,29 +40,29 @@ constexpr const type_info& get_type_id(const T&) {
 }
 
 template <typename T>
-string get_type_name(T&&) {
-  return string{typeid(T).name()};
+std::string get_type_name(T&&) {
+  return std::string{typeid(T).name()};
 }
 
 template <typename T>
-wstring get_type_name_wstr(T&&) {
-  const string cstr{typeid(T).name()};
+std::wstring get_type_name_wstr(T&&) {
+  const std::string cstr{typeid(T).name()};
 
-  return wstring{cbegin(cstr), cend(cstr)};
+  return std::wstring{std::cbegin(cstr), std::cend(cstr)};
 }
 
 template <typename T>
-u16string get_type_name_u16str(T&&) {
-  const string cstr{typeid(T).name()};
+std::u16string get_type_name_u16str(T&&) {
+  const std::string cstr{typeid(T).name()};
 
-  return u16string{cbegin(cstr), cend(cstr)};
+  return std::u16string{std::cbegin(cstr), std::cend(cstr)};
 }
 
 template <typename T>
-u32string get_type_name_u32str(T&&) {
-  const string cstr{typeid(T).name()};
+std::u32string get_type_name_u32str(T&&) {
+  const std::string cstr{typeid(T).name()};
 
-  return u32string{cbegin(cstr), cend(cstr)};
+  return std::u32string{std::cbegin(cstr), std::cend(cstr)};
 }
 
 constexpr bool are_data_types_equal() {
@@ -82,26 +84,24 @@ constexpr bool check_data_types_for_equality(const T& arg1,
 }
 
 template <typename T>
-void show_var_info(const T& arg) {
-  cout << "\nName: ";
+void show_var_info(const T& arg, std::ostream& os) {
+  os << "\nName: ";
   PRINT_VAR_NAME(arg);
-  cout << "\nType: " << get_type_name(arg) << "\nValue: " << arg << endl;
+  os << "\nType: " << get_type_name(arg) << "\nValue: " << arg << '\n';
 }
 
 template <typename T>
-void show_var_info_w(const T& arg) {
-  wcout << L"\nName: ";
+void show_var_info_w(const T& arg, std::wostream& wos) {
+  wos << L"\nName: ";
   PRINT_VAR_NAMEW(arg);
-  wcout << L"\nType: " << get_type_name(arg) << L"\nValue: " << arg << endl;
+  wos << L"\nType: " << get_type_name(arg) << L"\nValue: " << arg << '\n';
 }
 
 struct char_buffer_deleter {
   using pointer_type = char*;
 
   void operator()(const pointer_type pointer) const noexcept {
-    if (pointer) {
-      delete[] pointer;
-    }
+    delete[] pointer;
   }
 };
 
@@ -109,9 +109,7 @@ struct wchar_t_buffer_deleter {
   using pointer_type = wchar_t*;
 
   void operator()(const pointer_type pointer) const noexcept {
-    if (pointer) {
-      delete[] pointer;
-    }
+    delete[] pointer;
   }
 };
 
@@ -121,7 +119,7 @@ int say_slow(const size_t time_delay_in_ms,
              Args... args) {
   auto const buffer_size = _scprintf(format_string, args...) + 1;
 
-  unique_ptr<char[], char_buffer_deleter> output_buffer_sp(
+  std::unique_ptr<char[], char_buffer_deleter> output_buffer_sp(
       new char[buffer_size], char_buffer_deleter{});
 
   if (!output_buffer_sp)
@@ -129,26 +127,17 @@ int say_slow(const size_t time_delay_in_ms,
 
   _snprintf(output_buffer_sp.get(), buffer_size, format_string, args...);
 
-  auto sleep_on{true};
-
   int final_ret_val{};
 
-  for (size_t i = 0; i < strlen(output_buffer_sp.get()); ++i) {
-    auto const ret_val = printf("%c", output_buffer_sp.get()[i]);
+  for (size_t i{}; i < strlen(output_buffer_sp.get()); ++i) {
+    const int ret_val{printf("%c", output_buffer_sp.get()[i])};
 
     if (ret_val < 0)
       return final_ret_val;
 
     final_ret_val += ret_val;
 
-    if (sleep_on)
-      std::this_thread::sleep_for(std::chrono::milliseconds(time_delay_in_ms));
-
-    if (_kbhit()) {
-      (void)_getch();
-
-      sleep_on = false;
-    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(time_delay_in_ms));
   }
 
   return final_ret_val;
@@ -160,7 +149,7 @@ int say_slow(const size_t time_delay_in_ms,
              Args... args) {
   auto const buffer_size = _scwprintf(format_string, args...) + 1;
 
-  unique_ptr<wchar_t[], wchar_t_buffer_deleter> output_buffer_sp(
+  std::unique_ptr<wchar_t[], wchar_t_buffer_deleter> output_buffer_sp(
       new wchar_t[buffer_size], wchar_t_buffer_deleter{});
 
   if (!output_buffer_sp)
@@ -168,26 +157,17 @@ int say_slow(const size_t time_delay_in_ms,
 
   _snwprintf(output_buffer_sp.get(), buffer_size, format_string, args...);
 
-  auto sleep_on{true};
-
   int final_ret_val{};
 
   for (size_t i = 0; i < wcslen(output_buffer_sp.get()); ++i) {
-    auto const ret_val = wprintf(L"%c", output_buffer_sp.get()[i]);
+    const int ret_val{wprintf(L"%c", output_buffer_sp.get()[i])};
 
     if (ret_val < 0)
       return final_ret_val;
 
     final_ret_val += ret_val;
 
-    if (sleep_on)
-      std::this_thread::sleep_for(std::chrono::milliseconds(time_delay_in_ms));
-
-    if (_kbhit()) {
-      (void)_getch();
-
-      sleep_on = false;
-    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(time_delay_in_ms));
   }
 
   return final_ret_val;
@@ -197,7 +177,7 @@ template <typename... Args>
 int say(const char* format_string, Args... args) {
   auto const buffer_size = _scprintf(format_string, args...) + 1;
 
-  unique_ptr<char[], char_buffer_deleter> output_buffer_sp(
+  std::unique_ptr<char[], char_buffer_deleter> output_buffer_sp(
       new char[buffer_size], char_buffer_deleter{});
 
   if (!output_buffer_sp)
@@ -205,16 +185,14 @@ int say(const char* format_string, Args... args) {
 
   _snprintf(output_buffer_sp.get(), buffer_size, format_string, args...);
 
-  auto const ret_val = printf("%s", output_buffer_sp.get());
-
-  return ret_val;
+  return printf("%s", output_buffer_sp.get());
 }
 
 template <typename... Args>
 int say(const wchar_t* format_string, Args... args) {
   auto const buffer_size = _scwprintf(format_string, args...) + 1;
 
-  unique_ptr<wchar_t[], wchar_t_buffer_deleter> output_buffer_sp(
+  std::unique_ptr<wchar_t[], wchar_t_buffer_deleter> output_buffer_sp(
       new wchar_t[buffer_size], wchar_t_buffer_deleter{});
 
   if (!output_buffer_sp)
@@ -222,105 +200,325 @@ int say(const wchar_t* format_string, Args... args) {
 
   _snwprintf(output_buffer_sp.get(), buffer_size, format_string, args...);
 
-  auto const ret_val = wprintf(L"%s", output_buffer_sp.get());
-
-  return ret_val;
+  return wprintf(L"%s", output_buffer_sp.get());
 }
 
-const size_t max_string_length{string::npos};
+static constexpr size_t max_string_length{std::string::npos};
 
-size_t str_length(char* str,
-                  const size_t max_allowed_string_length = max_string_length);
-size_t str_length(wchar_t* str,
-                  const size_t max_allowed_string_length = max_string_length);
-size_t str_length(char16_t* str,
-                  const size_t max_allowed_string_length = max_string_length);
-size_t str_length(char32_t* str,
-                  const size_t max_allowed_string_length = max_string_length);
+template <typename CharacterPointerType,
+          std::enable_if_t<
+              std::is_array_v<CharacterPointerType> ||
+                  std::is_same_v<CharacterPointerType, const char*> ||
+                  std::is_same_v<CharacterPointerType, const wchar_t*> ||
+                  std::is_same_v<CharacterPointerType, const char16_t*> ||
+                  std::is_same_v<CharacterPointerType, const char32_t*> ||
+                  std::is_same_v<CharacterPointerType, char*> ||
+                  std::is_same_v<CharacterPointerType, wchar_t*> ||
+                  std::is_same_v<CharacterPointerType, char16_t*> ||
+                  std::is_same_v<CharacterPointerType, char32_t*>,
+              void*> = nullptr>
 
-size_t str_length(const char* str,
-                  const size_t max_allowed_string_length = max_string_length);
-size_t str_length(const wchar_t* str,
-                  const size_t max_allowed_string_length = max_string_length);
-size_t str_length(const char16_t* str,
-                  const size_t max_allowed_string_length = max_string_length);
-size_t str_length(const char32_t* str,
-                  const size_t max_allowed_string_length = max_string_length);
-
-template <typename StringType>
-size_t str_length(const StringType& str,
+size_t str_length(CharacterPointerType src,
                   const size_t max_allowed_string_length = max_string_length) {
-  auto const str_len{str.size()};
+  if (!src)
+    return 0u;
 
-  return (str_len > max_allowed_string_length ? max_allowed_string_length
-                                              : str_len);
+  size_t length{};
+
+  while (*src++) {
+    ++length;
+
+    if (max_allowed_string_length == length)
+      return max_allowed_string_length;
+  }
+
+  return length;
 }
 
-bool trim(char* str);
-bool trim(wchar_t* str);
-bool trim(char16_t* str);
-bool trim(char32_t* str);
+template <typename StringType,
+          std::enable_if_t<std::is_same_v<StringType, std::string> ||
+                               std::is_same_v<StringType, std::wstring> ||
+                               std::is_same_v<StringType, std::u16string> ||
+                               std::is_same_v<StringType, std::u32string>,
+                           void*> = nullptr>
+size_t str_length(StringType&& str,
+                  const size_t max_allowed_string_length = max_string_length) {
+  const size_t str_len{str.size()};
 
-bool ltrim(char* str);
-bool ltrim(wchar_t* str);
-bool ltrim(char16_t* str);
-bool ltrim(char32_t* str);
+  return str_len > max_allowed_string_length ? max_allowed_string_length
+                                             : str_len;
+}
 
-bool rtrim(char* str);
-bool rtrim(wchar_t* str);
-bool rtrim(char16_t* str);
-bool rtrim(char32_t* str);
+template <typename CharPointerType,
+          std::enable_if_t<std::is_array_v<CharPointerType> ||
+                               std::is_same_v<CharPointerType, char*> ||
+                               std::is_same_v<CharPointerType, wchar_t*> ||
+                               std::is_same_v<CharPointerType, char16_t*> ||
+                               std::is_same_v<CharPointerType, char32_t*>,
+                           void*> = nullptr>
 
-string trim(const char* str);
-wstring trim(const wchar_t* str);
-u16string trim(const char16_t* str);
-u32string trim(const char32_t* str);
+bool trim(CharPointerType src) {
+  using char_type = std::remove_extent_t<CharPointerType>;
 
-string ltrim(const char* str);
-wstring ltrim(const wchar_t* str);
-u16string ltrim(const char16_t* str);
-u32string ltrim(const char32_t* str);
+  const size_t str_len{str_length(src)};
 
-string rtrim(const char* str);
-wstring rtrim(const wchar_t* str);
-u16string rtrim(const char16_t* str);
-u32string rtrim(const char32_t* str);
+  if (!str_length)
+    return false;
 
-bool str_starts_with(const char* src,
-                     const char start_char,
-                     bool ignore_case = false,
-                     const std::locale& loc = std::locale{});
-bool str_starts_with(const wchar_t* src,
-                     const wchar_t start_char,
-                     bool ignore_case = false,
-                     const std::locale& loc = std::locale{});
-bool str_starts_with(const char16_t* src,
-                     const char16_t start_char,
-                     bool ignore_case = false,
-                     const std::locale& loc = std::locale{});
-bool str_starts_with(const char32_t* src,
-                     const char32_t start_char,
-                     bool ignore_case = false,
-                     const std::locale& loc = std::locale{});
+  size_t begin{};
 
-bool str_starts_with(const char* src,
-                     const char* start_tag,
-                     bool ignore_case = false,
-                     const std::locale& loc = std::locale{});
-bool str_starts_with(const wchar_t* src,
-                     const wchar_t* start_tag,
-                     bool ignore_case = false,
-                     const std::locale& loc = std::locale{});
-bool str_starts_with(const char16_t* src,
-                     const char16_t* start_tag,
-                     bool ignore_case = false,
-                     const std::locale& loc = std::locale{});
-bool str_starts_with(const char32_t* src,
-                     const char32_t* start_tag,
-                     bool ignore_case = false,
-                     const std::locale& loc = std::locale{});
+  const size_t original_end{str_len - 1};
 
-template <typename StringType>
+  size_t end{original_end};
+
+  while (begin <= end) {
+    if (!is_ws_char(src[begin]))
+      break;
+    ++begin;
+  }
+
+  if (begin > end) {
+    *src = static_cast<char_type>('\0');
+    return true;
+  }
+
+  while (end > begin) {
+    if (!is_ws_char(src[end]))
+      break;
+    --end;
+  }
+
+  if (!begin) {
+    if (original_end == end)
+      return false;
+
+    src[end + 1] = static_cast<char_type>('\0');
+
+    return true;
+  }
+
+  size_t j{};
+
+  const size_t last{end + 1};
+
+  for (size_t i{begin}; i < last; ++i)
+    src[j++] = src[i];
+
+  src[j] = static_cast<char_type>('\0');
+  return true;
+}
+
+template <typename CharPointerType,
+          std::enable_if_t<std::is_array_v<CharPointerType> ||
+                               std::is_same_v<CharPointerType, char*> ||
+                               std::is_same_v<CharPointerType, wchar_t*> ||
+                               std::is_same_v<CharPointerType, char16_t*> ||
+                               std::is_same_v<CharPointerType, char32_t*>,
+                           void*>>
+
+bool ltrim(CharPointerType src) {
+  using char_type = std::remove_extent_t<CharPointerType>;
+
+  const size_t str_len{str_length(src)};
+
+  if (!str_len)
+    return false;
+
+  size_t begin{};
+
+  const size_t end{str_len - 1};
+
+  while (begin <= end) {
+    if (!is_ws_char(src[begin]))
+      break;
+    ++begin;
+  }
+
+  if (begin > end) {
+    *src = static_cast<char_type>('\0');
+
+    return true;
+  }
+
+  if (!begin)
+    return false;
+
+  size_t j{};
+
+  const size_t last{end + 1};
+
+  for (size_t i{begin}; i < last; i++)
+    src[j++] = src[i];
+
+  src[j] = static_cast<char_type>('\0');
+
+  return true;
+}
+
+template <typename CharPointerType,
+          std::enable_if_t<std::is_array_v<CharPointerType> ||
+                               std::is_same_v<CharPointerType, char*> ||
+                               std::is_same_v<CharPointerType, wchar_t*> ||
+                               std::is_same_v<CharPointerType, char16_t*> ||
+                               std::is_same_v<CharPointerType, char32_t*>,
+                           void*>>
+
+bool rtrim(CharPointerType src) {
+  using char_type = std::remove_extent_t<CharPointerType>;
+
+  const auto str_len{str_length(src)};
+
+  if (!str_len)
+    return false;
+
+  const size_t begin{};
+
+  size_t end{str_len - 1};
+
+  const size_t original_end{end};
+
+  while (end > begin) {
+    if (!is_ws_char(src[end]))
+      break;
+    --end;
+  }
+
+  if (original_end == end)
+    return false;
+
+  src[end + 1] = static_cast<char_type>('\0');
+
+  return true;
+}
+
+template <typename ConstCharPointerType,
+          std::enable_if_t<
+              (std::is_const_v<ConstCharPointerType> &&
+               std::is_array_v<ConstCharPointerType>) ||
+                  std::is_same_v<ConstCharPointerType, const char*> ||
+                  std::is_same_v<ConstCharPointerType, const wchar_t*> ||
+                  std::is_same_v<ConstCharPointerType, const char16_t*> ||
+                  std::is_same_v<ConstCharPointerType, const char32_t*>,
+              void*>>
+
+std::basic_string<std::remove_cv_t<std::remove_extent_t<ConstCharPointerType>>>
+trim(ConstCharPointerType src) {
+  std::basic_string<
+      std::remove_cv_t<std::remove_extent_t<ConstCharPointerType>>>
+      source_str{src};
+
+  const size_t src_len{source_str.length()};
+
+  if (!src_len)
+    return std::basic_string<
+        std::remove_cv_t<std::remove_extent_t<ConstCharPointerType>>>{};
+
+  size_t begin{}, end{source_str.length() - 1};
+
+  while (begin <= end) {
+    if (!is_ws_char(source_str[begin]))
+      break;
+    ++begin;
+  }
+
+  if (begin > end)
+    return std::basic_string<
+        std::remove_cv_t<std::remove_extent_t<ConstCharPointerType>>>{};
+
+  while (end > begin) {
+    if (!is_ws_char(source_str[end]))
+      break;
+    --end;
+  }
+
+  return source_str.substr(begin, end - begin + 1);
+
+  return output;
+}
+
+template <typename ConstCharPointerType,
+          std::enable_if_t<
+              (std::is_const_v<ConstCharPointerType> &&
+               std::is_array_v<ConstCharPointerType>) ||
+                  std::is_same_v<ConstCharPointerType, const char*> ||
+                  std::is_same_v<ConstCharPointerType, const wchar_t*> ||
+                  std::is_same_v<ConstCharPointerType, const char16_t*> ||
+                  std::is_same_v<ConstCharPointerType, const char32_t*>,
+              void*>>
+
+std::basic_string<std::remove_cv_t<std::remove_extent_t<ConstCharPointerType>>>
+ltrim(ConstCharPointerType src) {
+  std::basic_string<
+      std::remove_cv_t<std::remove_extent_t<ConstCharPointerType>>>
+      output{};
+
+  return output;
+}
+
+template <typename ConstCharPointerType,
+          std::enable_if_t<
+              (std::is_const_v<ConstCharPointerType> &&
+               std::is_array_v<ConstCharPointerType>) ||
+                  std::is_same_v<ConstCharPointerType, const char*> ||
+                  std::is_same_v<ConstCharPointerType, const wchar_t*> ||
+                  std::is_same_v<ConstCharPointerType, const char16_t*> ||
+                  std::is_same_v<ConstCharPointerType, const char32_t*>,
+              void*>>
+
+std::basic_string<std::remove_cv_t<std::remove_extent_t<ConstCharPointerType>>>
+rtrim(ConstCharPointerType src) {
+  std::basic_string<
+      std::remove_cv_t<std::remove_extent_t<ConstCharPointerType>>>
+      output{};
+
+  return output;
+}
+
+template <
+    typename CharPointerType,
+    std::enable_if_t<std::is_array_v<CharPointerType> ||
+                         std::is_same_v<CharPointerType, char*> ||
+                         std::is_same_v<CharPointerType, wchar_t*> ||
+                         std::is_same_v<CharPointerType, char16_t*> ||
+                         std::is_same_v<CharPointerType, char32_t*> ||
+                         std::is_same_v<CharPointerType, const char*> ||
+                         std::is_same_v<CharPointerType, const wchar_t*> ||
+                         std::is_same_v<CharPointerType, const char16_t*> ||
+                         std::is_same_v<CharPointerType, const char32_t*>,
+                     void*>>
+bool str_starts_with(
+    CharPointerType src,
+    const std::remove_cv_t<std::remove_extent_t<CharPointerType>> start_char,
+    bool ignore_case = false,
+    const std::locale& loc = std::locale{}) {
+  return true;
+}
+
+template <
+    typename CharPointerType,
+    std::enable_if_t<std::is_array_v<CharPointerType> ||
+                         std::is_same_v<CharPointerType, char*> ||
+                         std::is_same_v<CharPointerType, wchar_t*> ||
+                         std::is_same_v<CharPointerType, char16_t*> ||
+                         std::is_same_v<CharPointerType, char32_t*> ||
+                         std::is_same_v<CharPointerType, const char*> ||
+                         std::is_same_v<CharPointerType, const wchar_t*> ||
+                         std::is_same_v<CharPointerType, const char16_t*> ||
+                         std::is_same_v<CharPointerType, const char32_t*>,
+                     void*>>
+bool str_starts_with(CharPointerType src,
+                     std::add_cv_t<CharPointerType> start_tag,
+                     bool ignore_case = false,
+                     const std::locale& loc = std::locale{}) {
+  return true;
+}
+
+template <typename StringType,
+          std::enable_if_t<std::is_same_v<StringType, std::string> ||
+                               std::is_same_v<StringType, std::wstring> ||
+                               std::is_same_v<StringType, std::u16string> ||
+                               std::is_same_v<StringType, std::u32string>,
+                           void*>>
 bool str_starts_with(const StringType& src,
                      const typename StringType::value_type start_char,
                      const bool ignore_case = false,
@@ -332,20 +530,25 @@ bool str_starts_with(const StringType& src,
     return (src[0] == start_char);
   }
 
-  return (std::tolower(start_char, loc) == std::tolower(src[0], loc));
+  return std::tolower(start_char, loc) == std::tolower(src[0], loc);
 }
 
-template <typename StringType>
+template <typename StringType,
+          std::enable_if_t<std::is_same_v<StringType, std::string> ||
+                               std::is_same_v<StringType, std::wstring> ||
+                               std::is_same_v<StringType, std::u16string> ||
+                               std::is_same_v<StringType, std::u32string>,
+                           void*>>
 bool str_starts_with(const StringType& src,
                      typename StringType::const_pointer start_tag,
                      const bool ignore_case = false,
                      const std::locale& loc = std::locale{}) {
-  const auto start_tag_str{start_tag};
+  const StringType start_tag_str{start_tag};
 
-  const auto src_len{src.size()};
-  const auto start_tag_len{start_tag_str.size()};
+  const size_t src_len{src.size()};
+  const size_t start_tag_len{start_tag_str.size()};
 
-  if ((0u == src_len) || (0u == start_tag_len) || (start_tag_len > src_len))
+  if (0u == src_len || 0u == start_tag_len || start_tag_len > src_len)
     return false;
 
   if (!ignore_case) {
@@ -461,7 +664,7 @@ typename StringType::size_type str_index_of(
     const typename StringType::value_type needle_char,
     const size_t start_pos = 0u,
     const bool ignore_case = false,
-    const locale& loc = locale{}) {
+    const std::locale& loc = std::locale{}) {
   const StringType needle_str(1, needle_char);
 
   if (0u == text.size())
@@ -488,7 +691,7 @@ typename StringType::size_type str_index_of(
     typename StringType::const_pointer needle,
     const size_t start_pos = 0u,
     const bool ignore_case = false,
-    const locale& loc = locale{}) {
+    const std::locale& loc = std::locale{}) {
   const StringType needle_str{needle};
 
   const auto text_len{text.size()};
@@ -519,11 +722,12 @@ typename StringType::size_type str_index_of(
 }
 
 template <typename StringType>
-typename StringType::size_type str_index_of(const StringType& text,
-                                            const StringType& needle,
-                                            const size_t start_pos = 0u,
-                                            const bool ignore_case = false,
-                                            const locale& loc = locale{}) {
+typename StringType::size_type str_index_of(
+    const StringType& text,
+    const StringType& needle,
+    const size_t start_pos = 0u,
+    const bool ignore_case = false,
+    const std::locale& loc = std::locale{}) {
   const auto text_len{text.size()};
   const auto needle_len{needle.size()};
 
@@ -554,50 +758,50 @@ bool str_contains(const char* src,
                   const char needle_char,
                   const size_t start_pos = 0u,
                   bool ignore_case = false,
-                  const locale& loc = locale{});
+                  const std::locale& loc = std::locale{});
 bool str_contains(const wchar_t* src,
                   const wchar_t needle_char,
                   const size_t start_pos = 0u,
                   bool ignore_case = false,
-                  const locale& loc = locale{});
+                  const std::locale& loc = std::locale{});
 bool str_contains(const char16_t* src,
                   const char16_t needle_char,
                   const size_t start_pos = 0u,
                   bool ignore_case = false,
-                  const locale& loc = locale{});
+                  const std::locale& loc = std::locale{});
 bool str_contains(const char32_t* src,
                   const char32_t needle_char,
                   const size_t start_pos = 0u,
                   bool ignore_case = false,
-                  const locale& loc = locale{});
+                  const std::locale& loc = std::locale{});
 
 bool str_contains(const char* src,
                   const char* needle,
                   const size_t start_pos = 0u,
                   bool ignore_case = false,
-                  const locale& loc = locale{});
+                  const std::locale& loc = std::locale{});
 bool str_contains(const wchar_t* src,
                   const wchar_t* needle,
                   const size_t start_pos = 0u,
                   bool ignore_case = false,
-                  const locale& loc = locale{});
+                  const std::locale& loc = std::locale{});
 bool str_contains(const char16_t* src,
                   const char16_t* needle,
                   const size_t start_pos = 0u,
                   bool ignore_case = false,
-                  const locale& loc = locale{});
+                  const std::locale& loc = std::locale{});
 bool str_contains(const char32_t* src,
                   const char32_t* needle,
                   const size_t start_pos = 0u,
                   bool ignore_case = false,
-                  const locale& loc = locale{});
+                  const std::locale& loc = std::locale{});
 
 template <typename StringType>
 bool str_contains(const StringType& text,
                   const typename StringType::value_type needle_char,
                   const size_t start_pos = 0u,
                   const bool ignore_case = false,
-                  const locale& loc = locale{}) {
+                  const std::locale& loc = std::locale{}) {
   const StringType needle_str(1, needle_char);
 
   if (0u == text.size())
@@ -629,13 +833,13 @@ bool str_contains(const StringType& text,
                   typename StringType::const_pointer needle,
                   const size_t start_pos = 0u,
                   const bool ignore_case = false,
-                  const locale& loc = locale{}) {
+                  const std::locale& loc = std::locale{}) {
   StringType needle_str{needle};
 
   const auto text_len{text.size()};
   const auto needle_len{needle_str.size()};
 
-  if ((0u == text_len) || (0u == needle_len) || (needle_len > text_len))
+  if (0u == text_len || 0u == needle_len || needle_len > text_len)
     return false;
 
   if (!ignore_case) {
@@ -647,17 +851,19 @@ bool str_contains(const StringType& text,
 
   StringType text_lc{text};
 
-  transform(begin(text), end(text), begin(text_lc), [&loc](const auto ch) {
-    return static_cast<typename StringType::value_type>(tolower(ch, loc));
-  });
+  std::transform(std::begin(text), std::end(text), std::begin(text_lc),
+                 [&loc](const auto ch) {
+                   return static_cast<typename StringType::value_type>(
+                       std::tolower(ch, loc));
+                 });
 
   StringType needle_str_lc{needle_str};
 
-  transform(
-      begin(needle_str), end(needle_str), begin(needle_str_lc),
-      [&loc](const auto ch) {
-        return static_cast<typename StringType::value_type>(tolower(ch, loc));
-      });
+  std::transform(std::begin(needle_str), std::end(needle_str),
+                 std::begin(needle_str_lc), [&loc](const auto ch) {
+                   return static_cast<typename StringType::value_type>(
+                       std::tolower(ch, loc));
+                 });
 
   if (text_lc.find(needle_str_lc, start_pos) != StringType::npos)
     return true;
@@ -670,7 +876,7 @@ bool str_contains(const StringType& text,
                   const StringType& needle,
                   const size_t start_pos = 0u,
                   const bool ignore_case = false,
-                  const locale& loc = locale{}) {
+                  const std::locale& loc = std::locale{}) {
   const auto text_len{text.size()};
   const auto needle_len{needle.size()};
 
@@ -706,42 +912,42 @@ bool str_contains(const StringType& text,
 bool str_ends_with(const char* src,
                    const char end_char,
                    bool ignore_case = false,
-                   const locale& loc = locale{});
+                   const std::locale& loc = std::locale{});
 bool str_ends_with(const wchar_t* src,
                    const wchar_t end_char,
                    bool ignore_case = false,
-                   const locale& loc = locale{});
+                   const std::locale& loc = std::locale{});
 bool str_ends_with(const char16_t* src,
                    const char16_t end_char,
                    bool ignore_case = false,
-                   const locale& loc = locale{});
+                   const std::locale& loc = std::locale{});
 bool str_ends_with(const char32_t* src,
                    const char32_t end_char,
                    bool ignore_case = false,
-                   const locale& loc = locale{});
+                   const std::locale& loc = std::locale{});
 
 bool str_ends_with(const char* src,
                    const char* end_tag,
                    bool ignore_case = false,
-                   const locale& loc = locale{});
+                   const std::locale& loc = std::locale{});
 bool str_ends_with(const wchar_t* src,
                    const wchar_t* end_tag,
                    bool ignore_case = false,
-                   const locale& loc = locale{});
+                   const std::locale& loc = std::locale{});
 bool str_ends_with(const char16_t* src,
                    const char16_t* end_tag,
                    bool ignore_case = false,
-                   const locale& loc = locale{});
+                   const std::locale& loc = std::locale{});
 bool str_ends_with(const char32_t* src,
                    const char32_t* end_tag,
                    bool ignore_case = false,
-                   const locale& loc = locale{});
+                   const std::locale& loc = std::locale{});
 
 template <typename StringType>
 bool str_ends_with(const StringType& text,
                    const typename StringType::value_type end_char,
                    const bool ignore_case = false,
-                   const locale& loc = locale{}) {
+                   const std::locale& loc = std::locale{}) {
   if (0u == text.size())
     return false;
 
@@ -756,7 +962,7 @@ template <typename StringType>
 bool str_ends_with(const StringType& src,
                    typename StringType::const_pointer end_tag,
                    const bool ignore_case = false,
-                   const locale& loc = locale{}) {
+                   const std::locale& loc = std::locale{}) {
   const StringType end_tag_str{end_tag};
   const auto src_len{src.size()};
   const auto end_tag_len{end_tag_str.size()};
@@ -797,7 +1003,7 @@ template <typename StringType>
 bool str_ends_with(const StringType& src,
                    const StringType& end_tag,
                    const bool ignore_case = false,
-                   const locale& loc = locale{}) {
+                   const std::locale& loc = std::locale{}) {
   const auto src_len{src.size()};
   const auto end_tag_len{end_tag.size()};
 
@@ -836,101 +1042,103 @@ template <typename... Args>
 void unused_args(Args&&...) {}
 
 template <typename ValueType>
-bool has_key(const set<ValueType>& container,
-             const typename set<ValueType>::key_type& item) {
-  return (container.find(item) != cend(container));
+bool has_key(const std::set<ValueType>& container,
+             const typename std::set<ValueType>::key_type& item) {
+  return (container.find(item) != std::cend(container));
 }
 
 template <typename ValueType>
-bool has_key(set<ValueType>& container,
-             const typename set<ValueType>::key_type& item) {
-  return (container.find(item) != end(container));
+bool has_key(std::set<ValueType>& container,
+             const typename std::set<ValueType>::key_type& item) {
+  return (container.find(item) != std::end(container));
 }
 
 template <typename ValueType>
-bool has_key(const multiset<ValueType>& container,
-             const typename multiset<ValueType>::key_type item) {
-  return (container.find(item) != cend(container));
+bool has_key(const std::multiset<ValueType>& container,
+             const typename std::multiset<ValueType>::key_type item) {
+  return (container.find(item) != std::cend(container));
 }
 
 template <typename ValueType>
-bool has_key(multiset<ValueType>& container,
-             const typename multiset<ValueType>::key_type item) {
-  return (container.find(item) != end(container));
+bool has_key(std::multiset<ValueType>& container,
+             const typename std::multiset<ValueType>::key_type item) {
+  return (container.find(item) != std::end(container));
 }
 
 template <typename ValueType>
-bool has_key(const unordered_set<ValueType>& container,
-             const typename unordered_set<ValueType>::key_type item) {
-  return (container.find(item) != cend(container));
+bool has_key(const std::unordered_set<ValueType>& container,
+             const typename std::unordered_set<ValueType>::key_type item) {
+  return (container.find(item) != std::cend(container));
 }
 
 template <typename ValueType>
-bool has_key(unordered_set<ValueType>& container,
-             const typename unordered_set<ValueType>::key_type item) {
-  return (container.find(item) != end(container));
+bool has_key(std::unordered_set<ValueType>& container,
+             const typename std::unordered_set<ValueType>::key_type item) {
+  return (container.find(item) != std::end(container));
 }
 
 template <typename ValueType>
-bool has_key(const unordered_multiset<ValueType>& container,
-             const typename unordered_multiset<ValueType>::key_type item) {
-  return (container.find(item) != cend(container));
+bool has_key(const std::unordered_multiset<ValueType>& container,
+             const typename std::unordered_multiset<ValueType>::key_type item) {
+  return (container.find(item) != std::cend(container));
 }
 
 template <typename ValueType>
-bool has_key(unordered_multiset<ValueType>& container,
-             const typename unordered_multiset<ValueType>::key_type item) {
-  return (container.find(item) != end(container));
+bool has_key(std::unordered_multiset<ValueType>& container,
+             const typename std::unordered_multiset<ValueType>::key_type item) {
+  return (container.find(item) != std::end(container));
 }
 
 template <typename KeyType, typename ValueType>
-bool has_key(const map<KeyType, ValueType>& container,
-             const typename map<KeyType, ValueType>::key_type& key) {
-  return (container.find(key) != cend(container));
+bool has_key(const std::map<KeyType, ValueType>& container,
+             const typename std::map<KeyType, ValueType>::key_type& key) {
+  return (container.find(key) != std::cend(container));
 }
 
 template <typename KeyType, typename ValueType>
-bool has_key(map<KeyType, ValueType>& container,
-             const typename map<KeyType, ValueType>::key_type& key) {
-  return (container.find(key) != end(container));
+bool has_key(std::map<KeyType, ValueType>& container,
+             const typename std::map<KeyType, ValueType>::key_type& key) {
+  return (container.find(key) != std::end(container));
 }
 
 template <typename KeyType, typename ValueType>
-bool has_key(const multimap<KeyType, ValueType>& container,
-             const typename multimap<KeyType, ValueType>::key_type& key) {
-  return (container.find(key) != cend(container));
+bool has_key(const std::multimap<KeyType, ValueType>& container,
+             const typename std::multimap<KeyType, ValueType>::key_type& key) {
+  return (container.find(key) != std::cend(container));
 }
 
 template <typename KeyType, typename ValueType>
-bool has_key(multimap<KeyType, ValueType>& container,
-             const typename multimap<KeyType, ValueType>::key_type& key) {
-  return (container.find(key) != end(container));
-}
-
-template <typename KeyType, typename ValueType>
-bool has_key(const unordered_map<KeyType, ValueType>& container,
-             const typename unordered_map<KeyType, ValueType>::key_type& key) {
-  return (container.find(key) != cend(container));
-}
-
-template <typename KeyType, typename ValueType>
-bool has_key(unordered_map<KeyType, ValueType>& container,
-             const typename unordered_map<KeyType, ValueType>::key_type& key) {
-  return (container.find(key) != end(container));
+bool has_key(std::multimap<KeyType, ValueType>& container,
+             const typename std::multimap<KeyType, ValueType>::key_type& key) {
+  return (container.find(key) != std::end(container));
 }
 
 template <typename KeyType, typename ValueType>
 bool has_key(
-    const unordered_multimap<KeyType, ValueType>& container,
-    const typename unordered_multimap<KeyType, ValueType>::key_type& key) {
-  return (container.find(key) != cend(container));
+    const std::unordered_map<KeyType, ValueType>& container,
+    const typename std::unordered_map<KeyType, ValueType>::key_type& key) {
+  return (container.find(key) != std::cend(container));
 }
 
 template <typename KeyType, typename ValueType>
 bool has_key(
-    unordered_multimap<KeyType, ValueType>& container,
-    const typename unordered_multimap<KeyType, ValueType>::key_type& key) {
-  return (container.find(key) != end(container));
+    std::unordered_map<KeyType, ValueType>& container,
+    const typename std::unordered_map<KeyType, ValueType>::key_type& key) {
+  return (container.find(key) != std::end(container));
+}
+
+template <typename KeyType, typename ValueType>
+bool has_key(
+    const std::unordered_multimap<KeyType, ValueType>& container,
+    const typename std::unordered_multimap<KeyType, ValueType>::key_type& key) {
+  return (container.find(key) != std::cend(container));
+}
+
+template <typename KeyType, typename ValueType>
+bool has_key(
+    std::unordered_multimap<KeyType, ValueType>& container,
+    const typename std::unordered_multimap<KeyType, ValueType>::key_type& key) {
+  return (container.find(key) != std::end(container));
 }
 
 template <typename ContainerType>
@@ -997,7 +1205,7 @@ int str_compare_n(const StringType& str1,
     number_of_characters_to_compare = min(str1_len, str2_len);
   }
 
-  for (auto i = size_t{0u}; i < number_of_characters_to_compare; i++) {
+  for (size_t i{}; i < number_of_characters_to_compare; i++) {
     if (str1[i] != str2[i])
       return static_cast<int>(str1[i] - str2[i]);
   }
@@ -1007,21 +1215,21 @@ int str_compare_n(const StringType& str1,
 
 int str_compare_i(const char* str1,
                   const char* str2,
-                  const locale& loc = std::locale{});
+                  const std::locale& loc = std::locale{});
 int str_compare_i(const wchar_t* str1,
                   const wchar_t* str2,
-                  const locale& loc = std::locale{});
+                  const std::locale& loc = std::locale{});
 int str_compare_i(const char16_t* str1,
                   const char16_t* str2,
-                  const locale& loc = std::locale{});
+                  const std::locale& loc = std::locale{});
 int str_compare_i(const char32_t* str1,
                   const char32_t* str2,
-                  const locale& loc = std::locale{});
+                  const std::locale& loc = std::locale{});
 
 template <typename StringType>
 int str_compare_i(const StringType& str1,
                   const StringType& str2,
-                  const locale& loc = std::locale{}) {
+                  const std::locale& loc = std::locale{}) {
   auto citr1 = cbegin(str1);
   auto citr2 = cbegin(str2);
 
@@ -1273,7 +1481,7 @@ size_t str_copy_n(char (&dst)[ARRAY_SIZE],
                   size_t* required_dst_capacity = nullptr) {
   auto const src_len = str_length(src);
 
-  auto const noctc = min(number_of_characters_to_copy, src_len);
+  auto const noctc{std::min(number_of_characters_to_copy, src_len)};
 
   const auto ret_val{noctc + 1};
 
@@ -1315,7 +1523,7 @@ size_t str_copy_n(wchar_t (&dst)[ARRAY_SIZE],
                   size_t* required_dst_capacity = nullptr) {
   auto const src_len = str_length(src);
 
-  auto const noctc = min(number_of_characters_to_copy, src_len);
+  auto const noctc{std::min(number_of_characters_to_copy, src_len)};
 
   const auto ret_val{noctc + 1};
 
@@ -1357,7 +1565,7 @@ size_t str_copy_n(char16_t (&dst)[ARRAY_SIZE],
                   size_t* required_dst_capacity = nullptr) {
   auto const src_len = str_length(src);
 
-  auto const noctc = min(number_of_characters_to_copy, src_len);
+  auto const noctc{std::min(number_of_characters_to_copy, src_len)};
 
   const auto ret_val{noctc + 1};
 
@@ -1399,7 +1607,7 @@ size_t str_copy_n(char32_t (&dst)[ARRAY_SIZE],
                   size_t* required_dst_capacity = nullptr) {
   auto const src_len = str_length(src);
 
-  auto const noctc = min(number_of_characters_to_copy, src_len);
+  const auto noctc{std::min(number_of_characters_to_copy, src_len)};
 
   const auto ret_val{noctc + 1};
 
@@ -1694,7 +1902,7 @@ size_t str_append_n(char (&dst)[ARRAY_SIZE],
 
   const auto dst_len{str_length(dst)};
 
-  auto no_of_chars_to_append = min(str_len, number_of_characters_to_append);
+  auto no_of_chars_to_append{std::min(str_len, number_of_characters_to_append)};
 
   const size_t ret_val{dst_len + no_of_chars_to_append + 1};
 
@@ -1740,7 +1948,7 @@ size_t str_append_n(wchar_t (&dst)[ARRAY_SIZE],
 
   const auto dst_len{str_length(dst)};
 
-  auto no_of_chars_to_append = min(str_len, number_of_characters_to_append);
+  auto no_of_chars_to_append{std::min(str_len, number_of_characters_to_append)};
 
   const size_t ret_val{dst_len + no_of_chars_to_append + 1};
 
@@ -1786,7 +1994,7 @@ size_t str_append_n(char16_t (&dst)[ARRAY_SIZE],
 
   const auto dst_len{str_length(dst)};
 
-  auto no_of_chars_to_append = min(str_len, number_of_characters_to_append);
+  auto no_of_chars_to_append{std::min(str_len, number_of_characters_to_append)};
 
   const size_t ret_val{dst_len + no_of_chars_to_append + 1};
 
@@ -1832,7 +2040,7 @@ size_t str_append_n(char32_t (&dst)[ARRAY_SIZE],
 
   const auto dst_len{str_length(dst)};
 
-  auto no_of_chars_to_append = min(str_len, number_of_characters_to_append);
+  auto no_of_chars_to_append{std::min(str_len, number_of_characters_to_append)};
 
   const size_t ret_val{dst_len + no_of_chars_to_append + 1};
 
@@ -1940,8 +2148,8 @@ size_t str_prepend(char (&dst)[ARRAY_SIZE],
       /*for (auto start = 0u; start != src_len; start++)
       {
 
-              dst[dst + dst_len + src_len - 1 - start] = dst[dst + dst_len - 1 -
-      start];
+                      dst[dst + dst_len + src_len - 1 - start] = dst[dst +
+      dst_len - 1 - start];
 
 
       }*/
@@ -2553,7 +2761,7 @@ size_t str_insert(char (&dst)[ARRAY_SIZE],
     ret_val = 0u;
 
   } else {
-    auto const nocti = min(ARRAY_SIZE - position_index_in_dst - 1, src_len);
+    const auto nocti{std::min(ARRAY_SIZE - position_index_in_dst - 1, src_len)};
 
     copy_backward(dst + position_index_in_dst, dst + dst_len,
                   dst + dst_len + nocti);
@@ -2601,7 +2809,7 @@ size_t str_insert(wchar_t (&dst)[ARRAY_SIZE],
     ret_val = 0u;
 
   } else {
-    auto const nocti = min(ARRAY_SIZE - position_index_in_dst - 1, src_len);
+    const auto nocti{std::min(ARRAY_SIZE - position_index_in_dst - 1, src_len)};
 
     copy_backward(dst + position_index_in_dst, dst + dst_len,
                   dst + dst_len + nocti);
@@ -2649,7 +2857,7 @@ size_t str_insert(char16_t (&dst)[ARRAY_SIZE],
     ret_val = 0u;
 
   } else {
-    auto const nocti = min(ARRAY_SIZE - position_index_in_dst - 1, src_len);
+    const auto nocti{std::min(ARRAY_SIZE - position_index_in_dst - 1, src_len)};
 
     copy_backward(dst + position_index_in_dst, dst + dst_len,
                   dst + dst_len + nocti);
@@ -2697,7 +2905,7 @@ size_t str_insert(char32_t (&dst)[ARRAY_SIZE],
     ret_val = 0u;
 
   } else {
-    auto const nocti = min(ARRAY_SIZE - position_index_in_dst - 1, src_len);
+    const auto nocti{std::min(ARRAY_SIZE - position_index_in_dst - 1, src_len)};
 
     copy_backward(dst + position_index_in_dst, dst + dst_len,
                   dst + dst_len + nocti);
@@ -2786,7 +2994,7 @@ size_t str_insert_n(char (&dst)[ARRAY_SIZE],
   auto const src_len = str_length(src);
   auto const dst_len = str_length(dst);
 
-  auto nocti = min(number_of_characters_to_insert, src_len);
+  auto nocti{std::min(number_of_characters_to_insert, src_len)};
 
   if (position_index_in_dst > dst_len) {
     if (required_dst_capacity)
@@ -2808,7 +3016,7 @@ size_t str_insert_n(char (&dst)[ARRAY_SIZE],
     ret_val = 0u;
 
   } else {
-    nocti = min(ARRAY_SIZE - position_index_in_dst - 1, nocti);
+    nocti = std::min(ARRAY_SIZE - position_index_in_dst - 1, nocti);
 
     copy_backward(dst + position_index_in_dst, dst + dst_len,
                   dst + dst_len + nocti);
@@ -2837,7 +3045,7 @@ size_t str_insert_n(wchar_t (&dst)[ARRAY_SIZE],
   auto const src_len = str_length(src);
   auto const dst_len = str_length(dst);
 
-  auto nocti = min(number_of_characters_to_insert, src_len);
+  auto nocti{std::min(number_of_characters_to_insert, src_len)};
 
   if (position_index_in_dst > dst_len) {
     if (required_dst_capacity)
@@ -2859,7 +3067,7 @@ size_t str_insert_n(wchar_t (&dst)[ARRAY_SIZE],
     ret_val = 0u;
 
   } else {
-    nocti = min(ARRAY_SIZE - position_index_in_dst - 1, nocti);
+    nocti = std::min(ARRAY_SIZE - position_index_in_dst - 1, nocti);
 
     copy_backward(dst + position_index_in_dst, dst + dst_len,
                   dst + dst_len + nocti);
@@ -2888,7 +3096,7 @@ size_t str_insert_n(char16_t (&dst)[ARRAY_SIZE],
   auto const src_len = str_length(src);
   auto const dst_len = str_length(dst);
 
-  auto nocti = min(number_of_characters_to_insert, src_len);
+  auto nocti{std::min(number_of_characters_to_insert, src_len)};
 
   if (position_index_in_dst > dst_len) {
     if (required_dst_capacity)
@@ -3056,11 +3264,24 @@ void str_insert_n(StringType& dst,
 // enum class str_replace_behavior { no_partial_replace, allow_partial_place,
 // do_not_replace_return_required_dst_capacity_only };
 
-template <size_t ARRAY_SIZE>
-size_t str_replace_first(char (&dst)[ARRAY_SIZE],
+template <
+    typename T,
+    typename ConditionCheckTypeParam = std::enable_if_t<
+        std::is_array_v<T> &&
+            (std::is_same_v<std::remove_extent_t<std::remove_cv_t<T>>, char> ||
+             std::is_same_v<std::remove_extent_t<std::remove_cv_t<T>>,
+                            wchar_t> ||
+             std::is_same_v<std::remove_extent_t<std::remove_cv_t<T>>,
+                            char16_t> ||
+             std::is_same_v<std::remove_extent_t<std::remove_cv_t<T>>,
+                            char32_t>),
+        void*>>
+size_t str_replace_first(T dst,
                          const char* needle,
                          const char* replace,
                          size_t* required_dst_capacity = nullptr) {
+  using char_type = std::remove_extent_t<std::remove_cv_t<T>>;
+  const size_t ARRAY_SIZE{std::size(dst)};
   auto const dst_len{str_length(dst)};
   auto const needle_len{str_length(needle)};
   auto const replace_len{str_length(replace)};
@@ -3437,85 +3658,153 @@ size_t str_replace_first(char32_t* dst,
                          const char* replace,
                          size_t* required_dst_capacity = nullptr);
 
-template <typename CharacterPointerType>
-typename remove_const<CharacterPointerType>::type str_replace_nth(
-    typename remove_const<CharacterPointerType>::type src,
-    typename add_const<CharacterPointerType>::type needle,
-    const size_t nth_index = 1) {
+template <typename CharacterPointerType,
+          typename ConditionCheckTypeParam = std::enable_if_t<
+              std::is_array_v<CharacterPointerType> ||
+                  std::is_same_v<CharacterPointerType, char*> ||
+                  std::is_same_v<CharacterPointerType, wchar_t*> ||
+                  std::is_same_v<CharacterPointerType, char16_t*> ||
+                  std::is_same_v<CharacterPointerType, char32_t*>,
+              void*>>
+CharacterPointerType str_replace_nth(CharacterPointerType src,
+                                     const CharacterPointerType needle,
+                                     const size_t nth_index = 1) {
   return nullptr;
 }
 
-template <typename CharacterPointerType>
-typename remove_const<CharacterPointerType>::type str_replace_last(
-    typename remove_const<CharacterPointerType>::type src,
-    typename add_const<CharacterPointerType>::type needle) {
+template <typename CharacterPointerType,
+          typename ConditionCheckTypeParam = std::enable_if_t<
+              std::is_array_v<CharacterPointerType> ||
+                  std::is_same_v<CharacterPointerType, char*> ||
+                  std::is_same_v<CharacterPointerType, wchar_t*> ||
+                  std::is_same_v<CharacterPointerType, char16_t*> ||
+                  std::is_same_v<CharacterPointerType, char32_t*>,
+              void*>>
+CharacterPointerType str_replace_last(CharacterPointerType src,
+                                      const CharacterPointerType needle) {
   return nullptr;
 }
 
-template <typename CharacterPointerType>
-typename remove_const<CharacterPointerType>::type str_replace_all(
-    typename remove_const<CharacterPointerType>::type src,
-    typename add_const<CharacterPointerType>::type needle) {
+template <typename CharacterPointerType,
+          typename ConditionCheckTypeParam = std::enable_if_t<
+              std::is_array_v<CharacterPointerType> ||
+                  std::is_same_v<CharacterPointerType, char*> ||
+                  std::is_same_v<CharacterPointerType, wchar_t*> ||
+                  std::is_same_v<CharacterPointerType, char16_t*> ||
+                  std::is_same_v<CharacterPointerType, char32_t*>,
+              void*>>
+CharacterPointerType str_replace_all(CharacterPointerType src,
+                                     const CharacterPointerType needle) {
   return nullptr;
 }
 
-template <typename CharacterPointerType>
-typename remove_const<CharacterPointerType>::type str_replace_first_n(
-    typename remove_const<CharacterPointerType>::type src,
-    typename add_const<CharacterPointerType>::type needle,
+template <typename CharacterPointerType,
+          typename ConditionCheckTypeParam = std::enable_if_t<
+              std::is_array_v<CharacterPointerType> ||
+                  std::is_same_v<CharacterPointerType, char*> ||
+                  std::is_same_v<CharacterPointerType, wchar_t*> ||
+                  std::is_same_v<CharacterPointerType, char16_t*> ||
+                  std::is_same_v<CharacterPointerType, char32_t*>,
+              void*>>
+CharacterPointerType str_replace_first_n(
+    CharacterPointerType src,
+    const CharacterPointerType needle,
     const size_t number_of_copies_to_replace = 1) {
   return nullptr;
 }
 
-template <typename CharacterPointerType>
-typename remove_const<CharacterPointerType>::type str_replace_last_n(
-    typename remove_const<CharacterPointerType>::type src,
-    typename add_const<CharacterPointerType>::type needle,
+template <typename CharacterPointerType,
+          typename ConditionCheckTypeParam = std::enable_if_t<
+              std::is_array_v<CharacterPointerType> ||
+                  std::is_same_v<CharacterPointerType, char*> ||
+                  std::is_same_v<CharacterPointerType, wchar_t*> ||
+                  std::is_same_v<CharacterPointerType, char16_t*> ||
+                  std::is_same_v<CharacterPointerType, char32_t*>,
+              void*>>
+CharacterPointerType str_replace_last_n(
+    CharacterPointerType src,
+    const CharacterPointerType needle,
     const size_t number_of_copies_to_replace = 1) {
   return nullptr;
 }
 
-template <typename CharacterPointerType>
-typename remove_const<CharacterPointerType>::type str_erase_first(
-    typename remove_const<CharacterPointerType>::type src,
-    typename add_const<CharacterPointerType>::type needle) {
+template <typename CharacterPointerType,
+          typename ConditionCheckTypeParam = std::enable_if_t<
+              std::is_array_v<CharacterPointerType> ||
+                  std::is_same_v<CharacterPointerType, char*> ||
+                  std::is_same_v<CharacterPointerType, wchar_t*> ||
+                  std::is_same_v<CharacterPointerType, char16_t*> ||
+                  std::is_same_v<CharacterPointerType, char32_t*>,
+              void*>>
+CharacterPointerType str_erase_first(CharacterPointerType src,
+                                     const CharacterPointerType needle) {
   return nullptr;
 }
 
-template <typename CharacterPointerType>
-typename remove_const<CharacterPointerType>::type str_erase_nth(
-    typename remove_const<CharacterPointerType>::type src,
-    typename add_const<CharacterPointerType>::type needle) {
+template <typename CharacterPointerType,
+          typename ConditionCheckTypeParam = std::enable_if_t<
+              std::is_array_v<CharacterPointerType> ||
+                  std::is_same_v<CharacterPointerType, char*> ||
+                  std::is_same_v<CharacterPointerType, wchar_t*> ||
+                  std::is_same_v<CharacterPointerType, char16_t*> ||
+                  std::is_same_v<CharacterPointerType, char32_t*>,
+              void*>>
+CharacterPointerType str_erase_nth(CharacterPointerType src,
+                                   const CharacterPointerType needle) {
   return nullptr;
 }
 
-template <typename CharacterPointerType>
-typename remove_const<CharacterPointerType>::type str_erase_last(
-    typename remove_const<CharacterPointerType>::type src,
-    typename add_const<CharacterPointerType>::type needle) {
+template <typename CharacterPointerType,
+          typename ConditionCheckTypeParam = std::enable_if_t<
+              std::is_array_v<CharacterPointerType> ||
+                  std::is_same_v<CharacterPointerType, char*> ||
+                  std::is_same_v<CharacterPointerType, wchar_t*> ||
+                  std::is_same_v<CharacterPointerType, char16_t*> ||
+                  std::is_same_v<CharacterPointerType, char32_t*>,
+              void*>>
+CharacterPointerType str_erase_last(CharacterPointerType src,
+                                    const CharacterPointerType needle) {
   return nullptr;
 }
 
-template <typename CharacterPointerType>
-typename remove_const<CharacterPointerType>::type str_erase_all(
-    typename remove_const<CharacterPointerType>::type src,
-    typename add_const<CharacterPointerType>::type needle) {
+template <typename CharacterPointerType,
+          typename ConditionCheckTypeParam = std::enable_if_t<
+              std::is_array_v<CharacterPointerType> ||
+                  std::is_same_v<CharacterPointerType, char*> ||
+                  std::is_same_v<CharacterPointerType, wchar_t*> ||
+                  std::is_same_v<CharacterPointerType, char16_t*> ||
+                  std::is_same_v<CharacterPointerType, char32_t*>,
+              void*>>
+CharacterPointerType str_erase_all(CharacterPointerType src,
+                                   const CharacterPointerType needle) {
   return nullptr;
 }
 
-template <typename CharacterPointerType>
-typename remove_const<CharacterPointerType>::type str_erase_first_n(
-    typename remove_const<CharacterPointerType>::type src,
-    typename add_const<CharacterPointerType>::type needle,
-    const size_t number_of_copies_to_erase) {
+template <typename CharacterPointerType,
+          typename ConditionCheckTypeParam = std::enable_if_t<
+              std::is_array_v<CharacterPointerType> ||
+                  std::is_same_v<CharacterPointerType, char*> ||
+                  std::is_same_v<CharacterPointerType, wchar_t*> ||
+                  std::is_same_v<CharacterPointerType, char16_t*> ||
+                  std::is_same_v<CharacterPointerType, char32_t*>,
+              void*>>
+CharacterPointerType str_erase_first_n(CharacterPointerType src,
+                                       const CharacterPointerType needle,
+                                       const size_t number_of_copies_to_erase) {
   return nullptr;
 }
 
-template <typename CharacterPointerType>
-typename remove_const<CharacterPointerType>::type str_erase_last_n(
-    typename remove_const<CharacterPointerType>::type src,
-    typename add_const<CharacterPointerType>::type needle,
-    const size_t number_of_copies_to_erase) {
+template <typename CharacterPointerType,
+          typename ConditionCheckTypeParam = std::enable_if_t<
+              std::is_array_v<CharacterPointerType> ||
+                  std::is_same_v<CharacterPointerType, char*> ||
+                  std::is_same_v<CharacterPointerType, wchar_t*> ||
+                  std::is_same_v<CharacterPointerType, char16_t*> ||
+                  std::is_same_v<CharacterPointerType, char32_t*>,
+              void*>>
+CharacterPointerType str_erase_last_n(CharacterPointerType src,
+                                      const CharacterPointerType needle,
+                                      const size_t number_of_copies_to_erase) {
   return nullptr;
 }
 
@@ -3631,13 +3920,15 @@ StringType to_upper_case(const StringType& str,
 }
 
 template <typename StringType>
-void to_upper_case_in_place(StringType& str, const locale& loc = locale{}) {
+void to_upper_case_in_place(StringType& str,
+                            const std::locale& loc = std::locale{}) {
   for (auto& ch : str)
     ch = toupper(ch, loc);
 }
 
 template <typename StringType>
-StringType to_title_case(const StringType& str, const locale& loc = locale{}) {
+StringType to_title_case(const StringType& str,
+                         const std::locale& loc = std::locale{}) {
   using char_type = typename StringType::value_type;
 
   StringType final_str{str};
@@ -3663,7 +3954,8 @@ StringType to_title_case(const StringType& str, const locale& loc = locale{}) {
 }
 
 template <typename StringType>
-void to_title_case_in_place(StringType& str, const locale& loc = locale{}) {
+void to_title_case_in_place(StringType& str,
+                            const std::locale& loc = std::locale{}) {
   using char_type = typename StringType::value_type;
 
   auto is_new_sentence{true};
@@ -3684,17 +3976,20 @@ void to_title_case_in_place(StringType& str, const locale& loc = locale{}) {
   }
 }
 
-template <typename StringType>
-bool is_ws_char(const typename StringType::value_type ch) {
-  using char_type = typename StringType::value_type;
-
+template <typename CharType,
+          std::enable_if_t<std::is_same_v<CharType, char> ||
+                               std::is_same_v<CharType, wchar_t> ||
+                               std::is_same_v<CharType, char16_t> ||
+                               std::is_same_v<CharType, char32_t>,
+                           void*>>
+bool is_ws_char(CharType ch) {
   switch (ch) {
-    case static_cast<char_type>(' '):
-    case static_cast<char_type>('\n'):
-    case static_cast<char_type>('\r'):
-    case static_cast<char_type>('\t'):
-    case static_cast<char_type>('\v'):
-    case static_cast<char_type>('\f'):
+    case static_cast<CharType>(' '):
+    case static_cast<CharType>('\n'):
+    case static_cast<CharType>('\r'):
+    case static_cast<CharType>('\t'):
+    case static_cast<CharType>('\v'):
+    case static_cast<CharType>('\f'):
       return true;
 
     default:
@@ -3716,162 +4011,162 @@ enum class add_number_base_sign {
   append_in_upper_case_format
 };
 
-u16string to_u16string(
+std::u16string to_u16string(
     short number,
     const number_base convert_to_number_base = number_base::decimal,
     const add_number_base_sign add_number_base_sign =
         add_number_base_sign::no_number_base_sign);
-u16string to_u16string(
+std::u16string to_u16string(
     unsigned short number,
     const number_base convert_to_number_base = number_base::decimal,
     const add_number_base_sign add_number_base_sign =
         add_number_base_sign::no_number_base_sign);
-u16string to_u16string(
+std::u16string to_u16string(
     int number,
     const number_base convert_to_number_base = number_base::decimal,
     const add_number_base_sign add_number_base_sign =
         add_number_base_sign::no_number_base_sign);
-u16string to_u16string(
+std::u16string to_u16string(
     unsigned int number,
     const number_base convert_to_number_base = number_base::decimal,
     const add_number_base_sign add_number_base_sign =
         add_number_base_sign::no_number_base_sign);
-u16string to_u16string(
+std::u16string to_u16string(
     long number,
     const number_base convert_to_number_base = number_base::decimal,
     const add_number_base_sign add_number_base_sign =
         add_number_base_sign::no_number_base_sign);
-u16string to_u16string(
+std::u16string to_u16string(
     unsigned long number,
     const number_base convert_to_number_base = number_base::decimal,
     const add_number_base_sign add_number_base_sign =
         add_number_base_sign::no_number_base_sign);
-u16string to_u16string(
+std::u16string to_u16string(
     long long number,
     const number_base convert_to_number_base = number_base::decimal,
     const add_number_base_sign add_number_base_sign =
         add_number_base_sign::no_number_base_sign);
-u16string to_u16string(
+std::u16string to_u16string(
     unsigned long long number,
     const number_base convert_to_number_base = number_base::decimal,
     const add_number_base_sign add_number_base_sign =
         add_number_base_sign::no_number_base_sign);
-u16string to_u16string(float number,
-                       const int round_to_specified_number_of_digits = 6);
-u16string to_u16string(double number,
-                       const int round_to_specified_number_of_digits = 6);
-u16string to_u16string(long double number,
-                       const int round_to_specified_number_of_digits = 6);
+std::u16string to_u16string(float number,
+                            const int round_to_specified_number_of_digits = 6);
+std::u16string to_u16string(double number,
+                            const int round_to_specified_number_of_digits = 6);
+std::u16string to_u16string(long double number,
+                            const int round_to_specified_number_of_digits = 6);
 
-u32string to_u32string(
+std::u32string to_u32string(
     short number,
     const number_base convert_to_number_base = number_base::decimal,
     const add_number_base_sign add_number_base_sign =
         add_number_base_sign::no_number_base_sign);
-u32string to_u32string(
+std::u32string to_u32string(
     unsigned short number,
     const number_base convert_to_number_base = number_base::decimal,
     const add_number_base_sign add_number_base_sign =
         add_number_base_sign::no_number_base_sign);
-u32string to_u32string(
+std::u32string to_u32string(
     int number,
     const number_base convert_to_number_base = number_base::decimal,
     const add_number_base_sign add_number_base_sign =
         add_number_base_sign::no_number_base_sign);
-u32string to_u32string(
+std::u32string to_u32string(
     unsigned int number,
     const number_base convert_to_number_base = number_base::decimal,
     const add_number_base_sign add_number_base_sign =
         add_number_base_sign::no_number_base_sign);
-u32string to_u32string(
+std::u32string to_u32string(
     long number,
     const number_base convert_to_number_base = number_base::decimal,
     const add_number_base_sign add_number_base_sign =
         add_number_base_sign::no_number_base_sign);
-u32string to_u32string(
+std::u32string to_u32string(
     unsigned long number,
     const number_base convert_to_number_base = number_base::decimal,
     const add_number_base_sign add_number_base_sign =
         add_number_base_sign::no_number_base_sign);
-u32string to_u32string(
+std::u32string to_u32string(
     long long number,
     const number_base convert_to_number_base = number_base::decimal,
     const add_number_base_sign add_number_base_sign =
         add_number_base_sign::no_number_base_sign);
-u32string to_u32string(
+std::u32string to_u32string(
     unsigned long long number,
     const number_base convert_to_number_base = number_base::decimal,
     const add_number_base_sign add_number_base_sign =
         add_number_base_sign::no_number_base_sign);
-u32string to_u32string(float number,
-                       const int round_to_specified_number_of_digits = 6);
-u32string to_u32string(double number,
-                       const int round_to_specified_number_of_digits = 6);
-u32string to_u32string(long double number,
-                       const int round_to_specified_number_of_digits = 6);
+std::u32string to_u32string(float number,
+                            const int round_to_specified_number_of_digits = 6);
+std::u32string to_u32string(double number,
+                            const int round_to_specified_number_of_digits = 6);
+std::u32string to_u32string(long double number,
+                            const int round_to_specified_number_of_digits = 6);
 
-int stoi(const u16string& str,
+int stoi(const std::u16string& str,
          size_t* pos = nullptr,
          int base = 10,
          bool ignore_leading_white_space_characters = true);
-long stol(const u16string& str,
+long stol(const std::u16string& str,
           size_t* pos = nullptr,
           int base = 10,
           bool ignore_leading_white_space_characters = true);
-unsigned long stoul(const u16string& str,
+unsigned long stoul(const std::u16string& str,
                     size_t* pos = nullptr,
                     int base = 10,
                     bool ignore_leading_white_space_characters = true);
-long long stoll(const u16string& str,
+long long stoll(const std::u16string& str,
                 size_t* pos = nullptr,
                 int base = 10,
                 bool ignore_leading_white_space_characters = true);
-unsigned long long stoull(const u16string& str,
+unsigned long long stoull(const std::u16string& str,
                           size_t* pos = nullptr,
                           int base = 10,
                           bool ignore_leading_white_space_characters = true);
-float stof(const u16string& str,
+float stof(const std::u16string& str,
            size_t* pos = nullptr,
            int base = 10,
            bool ignore_leading_white_space_characters = true);
-double stod(const u16string& str,
+double stod(const std::u16string& str,
             size_t* pos = nullptr,
             int base = 10,
             bool ignore_leading_white_space_characters = true);
-long double stold(const u16string& str,
+long double stold(const std::u16string& str,
                   size_t* pos = nullptr,
                   int base = 10,
                   bool ignore_leading_white_space_characters = true);
 
-int stoi(const u32string& str,
+int stoi(const std::u32string& str,
          size_t* pos = nullptr,
          int base = 10,
          bool ignore_leading_white_space_characters = true);
-long stol(const u32string& str,
+long stol(const std::u32string& str,
           size_t* pos = nullptr,
           int base = 10,
           bool ignore_leading_white_space_characters = true);
-unsigned long stoul(const u32string& str,
+unsigned long stoul(const std::u32string& str,
                     size_t* pos = nullptr,
                     int base = 10,
                     bool ignore_leading_white_space_characters = true);
-long long stoll(const u32string& str,
+long long stoll(const std::u32string& str,
                 size_t* pos = nullptr,
                 int base = 10,
                 bool ignore_leading_white_space_characters = true);
-unsigned long long stoull(const u32string& str,
+unsigned long long stoull(const std::u32string& str,
                           size_t* pos = nullptr,
                           int base = 10,
                           bool ignore_leading_white_space_characters = true);
-float stof(const u32string& str,
+float stof(const std::u32string& str,
            size_t* pos = nullptr,
            int base = 10,
            bool ignore_leading_white_space_characters = true);
-double stod(const u32string& str,
+double stod(const std::u32string& str,
             size_t* pos = nullptr,
             int base = 10,
             bool ignore_leading_white_space_characters = true);
-long double stold(const u32string& str,
+long double stold(const std::u32string& str,
                   size_t* pos = nullptr,
                   int base = 10,
                   bool ignore_leading_white_space_characters = true);
@@ -4281,9 +4576,16 @@ std::u32string join(const std::u32string& needle, _Args&&... args) {
   return result;
 }
 
-template <typename _Container>
-std::string str_join(const std::string& needle, const _Container& items) {
-  std::ostringstream oss{};
+template <typename StringType,
+          typename ContainerType,
+          std::enable_if_t<std::is_same_v<StringType, std::string> ||
+                               std::is_same_v<StringType, std::wstring> ||
+                               std::is_same_v<StringType, std::u16string> ||
+                               std::is_same_v<StringType, std::u32string>,
+                           void*>>
+std::string str_join(const StringType& needle, const ContainerType& items) {
+  using char_type = typename StringType::value_type;
+  std::basic_ostringstream<char_type> oss{};
 
   auto start = std::cbegin(items);
 
@@ -4295,7 +4597,7 @@ std::string str_join(const std::string& needle, const _Container& items) {
     ++start;
   }
 
-  std::string result{oss.str()};
+  StringType result{oss.str()};
 
   const size_t needle_len{needle.length()};
 
@@ -4374,6 +4676,6 @@ std::u32string str_join(const std::u32string& needle, const _Container& items) {
 }
 
 }  // namespace experimental
-}  // namespace std
+}  // namespace cpp
 
 #endif /* _STL_HELPER_FUNCTIONS_H_ */
