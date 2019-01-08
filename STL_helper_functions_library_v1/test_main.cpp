@@ -1,15 +1,18 @@
 #define CATCH_CONFIG_MAIN
 
-#include <catch2/catch.hpp>
+#include <crtdbg.h>
 #include <chrono>
-#include <map>
+// #include <map>
 #include <random>
 #include <set>
 #include <string>
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
+// #include <unordered_map>
+// #include <unordered_set>
+// #include <vector>
 #include "stl_helper_functions.hpp"
+#include "catch.hpp"
+
+#define ASSERT _ASSERTE
 
 using namespace std;
 using namespace std::chrono;
@@ -19,13 +22,14 @@ using namespace cpp::experimental;
 static random_device rd{};
 
 long long get_random_number(long long lower_bound,
-                            const long long upper_bound) {
-  static mt19937 rand_engine{rd()};
+							const long long upper_bound)
+{
+	static mt19937 rand_engine{rd()};
 
-  const auto num_distr =
-      uniform_int_distribution<long long>(lower_bound, upper_bound);
+	const auto num_distr =
+		uniform_int_distribution<long long>(lower_bound, upper_bound);
 
-  return num_distr(rand_engine);
+	return num_distr(rand_engine);
 }
 
 // TEST_CASE("int say_slow(const size_t, const char*, Args...)",
@@ -121,339 +125,347 @@ long long get_random_number(long long lower_bound,
 //
 //	REQUIRE(length == ret_val);
 //}
-//
-// TEST_CASE("bool trim(char* mutable_source_string_buffer)",
-//	"Testing global function bool trim(char* source_string_buffer)")
-//{
-//	char src[512] = " \t Hello World!\t \n";
-//
-//	const char* dst = "Hello World!";
-//
-//	REQUIRE(trim(src));
-//
-//	REQUIRE(strcmp(src, dst) == 0);
-//}
-//
-// TEST_CASE("bool trim(wchar_t* mutable_source_string_buffer)",
-//	"Testing global function bool trim(wchar_t*
-// mutable_source_string_buffer)")
-//{
-//	wchar_t src[512] = L" \t Hello World!\t \n";
-//
-//	const wchar_t* dst = L"Hello World!";
-//
-//	REQUIRE(trim(src));
-//
-//	REQUIRE(wcscmp(src, dst) == 0);
-//}
-//
-// TEST_CASE("bool trim(char16_t* mutable_source_string_buffer)",
-//	"Testing global function bool trim(char16_t*
-// mutable_source_string_buffer)")
-//{
-//	char16_t src[512] = u" \t Hello World!\t \n";
-//
-//	const char16_t* dst = u"Hello World!";
-//
-//	REQUIRE(trim(src));
-//
-//	u16string src_wstring{src};
-//	u16string dst_wstring{dst};
-//
-//	REQUIRE(src_wstring == dst_wstring);
-//}
-//
-// TEST_CASE("bool trim(char32_t* mutable_source_string_buffer)",
-//	"Testing global function bool trim(char32_t*
-// mutable_source_string_buffer)")
-//{
-//	char32_t src[512] = U" \t Hello World!\t \n";
-//
-//	const char32_t* dst = U"Hello World!";
-//
-//	REQUIRE(trim(src));
-//
-//	u32string src_wstring{src};
-//	u32string dst_wstring{dst};
-//
-//	REQUIRE(src_wstring == dst_wstring);
-//}
-//
-//
-// TEST_CASE("bool ltrim(char* mutable_source_string_buffer)",
-//	"Testing global function bool trim(char* mutable_source_string_buffer)")
-//{
-//	char src[512] = " \t Hello World!\t \n";
-//
-//	const char* dst = "Hello World!\t \n";
-//
-//	REQUIRE(ltrim(src));
-//
-//	REQUIRE(strcmp(src, dst) == 0);
-//}
-//
-// TEST_CASE("bool ltrim(wchar_t* mutable_source_string_buffer)",
-//	"Testing global function bool trim(wchar_t*
-// mutable_source_string_buffer)")
-//{
-//	wchar_t src[512] = L" \t Hello World!\t \n";
-//
-//	const wchar_t* dst = L"Hello World!\t \n";
-//
-//	REQUIRE(ltrim(src));
-//
-//	REQUIRE(wcscmp(src, dst) == 0);
-//}
-//
-// TEST_CASE("bool ltrim(char16_t* mutable_source_string_buffer)",
-//	"Testing global function bool trim(char16_t*
-// mutable_source_string_buffer)")
-//{
-//	char16_t src[512] = u" \t Hello World!\t \n";
-//
-//	const char16_t* dst = u"Hello World!\t \n";
-//
-//	REQUIRE(ltrim(src));
-//
-//	u16string src_wstring{src};
-//	u16string dst_wstring{dst};
-//
-//	REQUIRE(src_wstring == dst_wstring);
-//}
-//
-// TEST_CASE("bool ltrim(char32_t* mutable_source_string_buffer)",
-//	"Testing global function bool trim(char32_t*
-// mutable_source_string_buffer)")
-//{
-//	char32_t src[512] = U" \t Hello World!\t \n";
-//
-//	const char32_t* dst = U"Hello World!\t \n";
-//
-//	REQUIRE(ltrim(src));
-//
-//	u32string src_wstring{src};
-//	u32string dst_wstring{dst};
-//
-//	REQUIRE(src_wstring == dst_wstring);
-//}
-//
-// TEST_CASE("bool rtrim(char* mutable_source_string_buffer)",
-//	"Testing global function bool rtrim(char*
-// mutable_source_string_buffer)")
-//{
-//	char src[512] = " \t Hello World!\t \n";
-//
-//	const char* dst = " \t Hello World!";
-//
-//	REQUIRE(rtrim(src));
-//
-//	REQUIRE(strcmp(src, dst) == 0);
-//}
-//
-// TEST_CASE("bool rtrim(wchar_t* mutable_source_string_buffer)",
-//	"Testing global function bool rtrim(wchar_t*
-// mutable_source_string_buffer)")
-//{
-//	wchar_t src[512] = L" \t Hello World!\t \n";
-//
-//	const wchar_t* dst = L" \t Hello World!";
-//
-//	REQUIRE(rtrim(src));
-//
-//	REQUIRE(wcscmp(src, dst) == 0);
-//}
-//
-// TEST_CASE("bool rtrim(char16_t* mutable_source_string_buffer)",
-//	"Testing global function bool rtrim(char16_t*
-// mutable_source_string_buffer)")
-//{
-//	char16_t src[512] = u" \t Hello World!\t \n";
-//
-//	const char16_t* dst = u" \t Hello World!";
-//
-//	REQUIRE(rtrim(src));
-//
-//	const u16string src_wstring{src};
-//
-//	const u16string dst_wstring{dst};
-//
-//	REQUIRE(src_wstring == dst_wstring);
-//}
-//
-// TEST_CASE("bool rtrim(char32_t* mutable_source_string_buffer)",
-//	"Testing global function bool rtrim(char32_t*
-// mutable_source_string_buffer)")
-//{
-//	char32_t src[512] = U" \t Hello World!\t \n";
-//
-//	const char32_t* dst = U" \t Hello World!";
-//
-//	REQUIRE(rtrim(src));
-//
-//	const u32string src_wstring{src};
-//
-//	const u32string dst_wstring{dst};
-//
-//	REQUIRE(src_wstring == dst_wstring);
-//}
-//
-// TEST_CASE("string trim(const char* src)", "Testing global function string
-// trim(const char* src)")
-//{
-//	const char* src = " \t Hello World!\t \n";
-//
-//	const string dst_string{"Hello World!"};
-//
-//	const string src_string{trim(src)};
-//
-//	REQUIRE(src_string == dst_string);
-//}
-//
-// TEST_CASE("wstring trim(const wchar_t* src)", "Testing global function
-// wstring trim(const wchar_t* src)")
-//{
-//	const wchar_t* src = L" \t Hello World!\t \n";
-//
-//	const wstring dst_wstring{L"Hello World!"};
-//
-//	const wstring src_wstring{trim(src)};
-//
-//	REQUIRE(src_wstring == dst_wstring);
-//}
-//
-// TEST_CASE("u16string trim(const char16_t* src)", "Testing global function
-// u16string trim(const char16_t* src)")
-//{
-//	const char16_t* src = u" \t Hello World!\t \n";
-//
-//	const u16string dst_u16string{u"Hello World!"};
-//
-//	const u16string src_u16string{trim(src)};
-//
-//	REQUIRE(src_u16string == dst_u16string);
-//}
-//
-// TEST_CASE("u32string trim(const char32_t* src)", "Testing global function
-// u32string trim(const char32_t* src)")
-//{
-//	const char32_t* src = U" \t Hello World!\t \n";
-//
-//	const u32string dst_u32string{U"Hello World!"};
-//
-//	const u32string src_u32string{trim(src)};
-//
-//	REQUIRE(dst_u32string == src_u32string);
-//}
-//
-// TEST_CASE("string ltrim(const char* src)", "Testing global function string
-// ltrim(const char* src)")
-//{
-//	const char* src = " \t Hello World!\t \n";
-//
-//	const string dst_string{"Hello World!\t \n"};
-//
-//	const string src_string{ltrim(src)};
-//
-//	REQUIRE(src_string == dst_string);
-//}
-//
-// TEST_CASE("wstring ltrim(const wchar_t* src)", "Testing global function
-// wstring ltrim(const wchar_t* src)")
-//{
-//	const wchar_t* src = L" \t Hello World!\t \n";
-//
-//	const wstring dst_wstring{L"Hello World!\t \n"};
-//
-//	const wstring src_wstring{ltrim(src)};
-//
-//	REQUIRE(src_wstring == dst_wstring);
-//}
-//
-// TEST_CASE("u16string ltrim(const char16_t* src)", "Testing global function
-// u16string ltrim(const char16_t* src)")
-//{
-//	const char16_t* src = u" \t Hello World!\t \n";
-//
-//	const u16string dst_u16string{u"Hello World!\t \n"};
-//
-//	const u16string src_u16string{ltrim(src)};
-//
-//	REQUIRE(src_u16string == dst_u16string);
-//}
-//
-// TEST_CASE("u32string ltrim(const char32_t* src)", "Testing global function
-// u32string ltrim(const char32_t* src)")
-//{
-//	const char32_t* src = U" \t Hello World!\t \n";
-//
-//	const u32string dst_u32string{U"Hello World!\t \n"};
-//
-//	const u32string src_u32string{ltrim(src)};
-//
-//	REQUIRE(dst_u32string == src_u32string);
-//}
-//
-// TEST_CASE("string rtrim(const char* src)", "Testing global function string
-// rtrim(const char* src)")
-//{
-//	const char* src = " \t Hello World!\t \n";
-//
-//	const string dst_string{" \t Hello World!"};
-//
-//	const string src_string{rtrim(src)};
-//
-//	REQUIRE(src_string == dst_string);
-//}
-//
-// TEST_CASE("wstring rtrim(const wchar_t* src)", "Testing global function
-// wstring rtrim(const wchar_t* src)")
-//{
-//	const wchar_t* src = L" \t Hello World!\t \n";
-//
-//	const wstring dst_wstring{L" \t Hello World!"};
-//
-//	const wstring src_wstring{rtrim(src)};
-//
-//	REQUIRE(src_wstring == dst_wstring);
-//}
-//
-// TEST_CASE("u16string rtrim(const char16_t* src)", "Testing global function
-// u16string rtrim(const char16_t* src)")
-//{
-//	const char16_t* src = u" \t Hello World!\t \n";
-//
-//	const u16string dst_u16string{u" \t Hello World!"};
-//
-//	const u16string src_u16string{rtrim(src)};
-//
-//	REQUIRE(src_u16string == dst_u16string);
-//}
-//
-// TEST_CASE("u32string rtrim(const char32_t* src)", "Testing global function
-// u32string rtrim(const char32_t* src)")
-//{
-//	const char32_t* src = U" \t Hello World!\t \n";
-//
-//	const u32string dst_u32string{U" \t Hello World!"};
-//
-//	const u32string src_u32string{rtrim(src)};
-//
-//	REQUIRE(dst_u32string == src_u32string);
-//}
 
-TEST_CASE("Test1", "Testing global function str_length)") {
-  const char16_t* src = u"Hello World!\n";
+TEST_CASE("size_t len(T src, const size_t max_allowed_string_length = "
+          "max_string_length)",
+          "Testing global function len)") {
+			  
+  const char *src1 = "Hello World!\n";
+  REQUIRE(len(src1) == strlen(src1));
 
-  REQUIRE(str_length(src) == 13);
+  const wchar_t *src2 = L"\tHello there, my friend!\n";
+  REQUIRE(len(src2) == wcslen(src2));
+
+  const char16_t *src3 = u"\tHello there, my friend!\n";
+	u16string src3_str{src3};
+  REQUIRE(len(src3) == src3_str.length());
+	
+	const char32_t *src4 = U"\tHello there, my friend!\n";
+	u32string src4_str{src4};
+  REQUIRE(len(src4) == src4_str.length());
+
+  string src5{"Hello World!\n"};
+  REQUIRE(len(src5) == src5.length());
+
+  wstring src6{L"\tHello there, my friend!\n"};
+  REQUIRE(len(src6) == src6.length());
+
+  u16string src7{u"Hello World!\n"};
+  REQUIRE(len(src7) == src7.length());
+
+  u32string src8{U"\tHello there, my friend!\n"};
+  REQUIRE(len(src8) == src8.length());
+
 }
 
-// TEST_CASE("size_t u32_strlen(const char32_t* src)", "Testing global function
-// size_t u32_strlen(const char32_t* src)")
-//{
-//	const char32_t* src = U"Hello World!\n";
-//
-//	REQUIRE(str_length(src) == 13);
-//}
+TEST_CASE("bool trim_in_place(CharPointerType mutable_char_buffer)",
+		  "Testing global function template bool trim_in_place(CharPointerType "
+		  "mutable_char_buffer)")
+{
+	char char_buffer[64] = "\t Hello World!\t \n";
+
+	const char *char_str = "Hello World!";
+
+	REQUIRE(trim_in_place(char_buffer));
+
+	REQUIRE(strcmp(char_buffer, char_str) == 0);
+
+	wchar_t wchar_t_buffer[64] = L" \t Hello World!\t \n";
+
+	const wchar_t *wchar_t_str = L"Hello World!";
+
+	REQUIRE(trim_in_place(wchar_t_buffer));
+
+	REQUIRE(wcscmp(wchar_t_buffer, wchar_t_str) == 0);
+
+	char16_t char16_t_buffer[64] = u" \t Hello World!\t \n";
+
+	const char16_t *char16_t_str = u"Hello World!";
+
+	REQUIRE(trim_in_place(char16_t_buffer));
+
+	u16string src_u16string{char16_t_buffer};
+	u16string dst_u16string{char16_t_str};
+
+	REQUIRE(src_u16string == dst_u16string);
+
+	char32_t char32_t_buffer[64] = U" \t Hello World!\t \n";
+
+	const char32_t *char32_t_str_dst = U"Hello World!";
+
+	REQUIRE(trim_in_place(char32_t_buffer));
+
+	u32string src_u32string{char32_t_buffer};
+	u32string dst_u32string{char32_t_str_dst};
+
+	REQUIRE(src_u32string == dst_u32string);
+}
+
+TEST_CASE("bool ltrim_in_place(CharPointerType mutable_char_buffer)",
+		  "Testing global function template bool "
+		  "ltrim_in_place(CharPointerType mutable_char_buffer)")
+{
+	char char_buffer[64] = "\t Hello World!";
+
+	const char *char_str = "Hello World!";
+
+	REQUIRE(ltrim_in_place(char_buffer));
+
+	REQUIRE(strcmp(char_buffer, char_str) == 0);
+
+	wchar_t wchar_t_buffer[64] = L" \t Hello World!";
+
+	const wchar_t *wchar_t_str = L"Hello World!";
+
+	REQUIRE(ltrim_in_place(wchar_t_buffer));
+
+	REQUIRE(wcscmp(wchar_t_buffer, wchar_t_str) == 0);
+
+	char16_t char16_t_buffer[64] = u" \t Hello World!";
+
+	const char16_t *char16_t_str = u"Hello World!";
+
+	REQUIRE(ltrim_in_place(char16_t_buffer));
+
+	u16string src_u16string{char16_t_buffer};
+	u16string dst_u16string{char16_t_str};
+
+	REQUIRE(src_u16string == dst_u16string);
+
+	char32_t char32_t_buffer[64] = U" \t Hello World!";
+
+	const char32_t *char32_t_str_dst = U"Hello World!";
+
+	REQUIRE(ltrim_in_place(char32_t_buffer));
+
+	u32string src_u32string{char32_t_buffer};
+	u32string dst_u32string{char32_t_str_dst};
+
+	REQUIRE(src_u32string == dst_u32string);
+}
+
+TEST_CASE("bool rtrim_in_place(CharPointerType mutable_char_buffer)",
+		  "Testing global function template bool "
+		  "rtrim_in_place(CharPointerType mutable_char_buffer)")
+{
+
+	char char_buffer[64] = "Hello World!\t\n";
+
+	const char *char_str = "Hello World!";
+
+	REQUIRE(rtrim_in_place(char_buffer));
+
+	REQUIRE(strcmp(char_buffer, char_str) == 0);
+
+	wchar_t wchar_t_buffer[64] = L"Hello World!\t\n";
+
+	const wchar_t *wchar_t_str = L"Hello World!";
+
+	REQUIRE(rtrim_in_place(wchar_t_buffer));
+
+	REQUIRE(wcscmp(wchar_t_buffer, wchar_t_str) == 0);
+
+	char16_t char16_t_buffer[64] = u"Hello World!\t\n";
+
+	const char16_t *char16_t_str = u"Hello World!";
+
+	REQUIRE(rtrim_in_place(char16_t_buffer));
+
+	u16string src_u16string{char16_t_buffer};
+	u16string dst_u16string{char16_t_str};
+
+	REQUIRE(src_u16string == dst_u16string);
+
+	char32_t char32_t_buffer[64] = U"Hello World!\t\n";
+
+	const char32_t *char32_t_str_dst = U"Hello World!";
+
+	REQUIRE(rtrim_in_place(char32_t_buffer));
+
+	u32string src_u32string{char32_t_buffer};
+	u32string dst_u32string{char32_t_str_dst};
+
+	REQUIRE(src_u32string == dst_u32string);
+}
+
+TEST_CASE("auto trim(ConstCharPointerType src)", "Testing global function auto trim(ConstCharPointerType src)")
+{
+	const char* src_char = " \t Hello World!\t \n";
+
+	const string src_string{" \t Hello World!\t \n"};
+
+	const string dst_string{"Hello World!"};
+
+	string output_string{trim(src_char)};
+
+	REQUIRE(output_string == dst_string);
+
+	output_string = trim(src_string);
+
+	REQUIRE(output_string == dst_string);
+
+	const wchar_t* src_wchar_t = L" \t Hello World!\t \n";
+
+	const wstring src_wstring{L" \t Hello World!\t \n"};
+
+	const wstring dst_wstring{L"Hello World!"};
+
+	wstring output_wstring{trim(src_wchar_t)};
+
+	REQUIRE(output_wstring == dst_wstring);
+
+	output_wstring = trim(src_wstring);
+
+	REQUIRE(output_wstring == dst_wstring);
+
+	const char16_t* src_char16_t = u" \t Hello World!\t \n";
+
+	const u16string src_u16string{u" \t Hello World!\t \n"};
+
+	const u16string dst_u16string{u"Hello World!"};
+
+	u16string output_u16string{trim(src_char16_t)};
+
+	REQUIRE(output_u16string == dst_u16string);
+
+	output_u16string = trim(src_u16string);
+
+	REQUIRE(output_u16string == dst_u16string);
+
+	const char32_t* src_char32_t = U" \t Hello World!\t \n";
+
+	const u32string src_u32string{U" \t Hello World!\t \n"};
+
+	const u32string dst_u32string{U"Hello World!"};
+
+	u32string output_u32string{trim(src_char32_t)};
+
+	REQUIRE(output_u32string == dst_u32string);
+
+	output_u32string = trim(src_u32string);
+
+	REQUIRE(output_u32string == dst_u32string);
+
+}
+
+TEST_CASE("auto ltrim(ConstCharPointerType src)", "Testing global function auto ltrim(ConstCharPointerType src)")
+{
+	const char* src_char = " \t Hello World!";
+
+	const string src_string{" \t Hello World!"};
+
+	const string dst_string{"Hello World!"};
+
+	string output_string{ltrim(src_char)};
+
+	REQUIRE(output_string == dst_string);
+
+	output_string = ltrim(src_string);
+
+	REQUIRE(output_string == dst_string);
+
+	const wchar_t* src_wchar_t = L" \t Hello World!";
+
+	const wstring src_wstring{L" \t Hello World!"};
+
+	const wstring dst_wstring{L"Hello World!"};
+
+	wstring output_wstring{ltrim(src_wchar_t)};
+
+	REQUIRE(output_wstring == dst_wstring);
+
+	output_wstring = ltrim(src_wstring);
+
+	REQUIRE(output_wstring == dst_wstring);
+
+	const char16_t* src_char16_t = u" \t Hello World!";
+
+	const u16string src_u16string{u" \t Hello World!"};
+
+	const u16string dst_u16string{u"Hello World!"};
+
+	u16string output_u16string{ltrim(src_char16_t)};
+
+	REQUIRE(output_u16string == dst_u16string);
+
+	output_u16string = ltrim(src_u16string);
+
+	REQUIRE(output_u16string == dst_u16string);
+
+	const char32_t* src_char32_t = U" \t Hello World!";
+
+	const u32string src_u32string{U" \t Hello World!"};
+
+	const u32string dst_u32string{U"Hello World!"};
+
+	u32string output_u32string{ltrim(src_char32_t)};
+
+	REQUIRE(output_u32string == dst_u32string);
+
+	output_u32string = ltrim(src_u32string);
+
+	REQUIRE(output_u32string == dst_u32string);
+
+}
+
+TEST_CASE("auto rtrim(ConstCharPointerType src)", "Testing global function auto rtrim(ConstCharPointerType src)")
+{
+	const char* src_char = "Hello World!\t \n";
+
+	const string src_string{"Hello World!\t \n"};
+
+	const string dst_string{"Hello World!"};
+
+	string output_string{rtrim(src_char)};
+
+	REQUIRE(output_string == dst_string);
+
+	output_string = rtrim(src_string);
+
+	REQUIRE(output_string == dst_string);
+
+	const wchar_t* src_wchar_t = L"Hello World!\t \n";
+
+	const wstring src_wstring{L"Hello World!\t \n"};
+
+	const wstring dst_wstring{L"Hello World!"};
+
+	wstring output_wstring{rtrim(src_wchar_t)};
+
+	REQUIRE(output_wstring == dst_wstring);
+
+	output_wstring = rtrim(src_wstring);
+
+	REQUIRE(output_wstring == dst_wstring);
+
+	const char16_t* src_char16_t = u"Hello World!\t \n";
+
+	const u16string src_u16string{u"Hello World!\t \n"};
+
+	const u16string dst_u16string{u"Hello World!"};
+
+	u16string output_u16string{rtrim(src_char16_t)};
+
+	REQUIRE(output_u16string == dst_u16string);
+
+	output_u16string = rtrim(src_u16string);
+
+	REQUIRE(output_u16string == dst_u16string);
+
+	const char32_t* src_char32_t = U"Hello World!\t \n";
+
+	const u32string src_u32string{U"Hello World!\t \n"};
+
+	const u32string dst_u32string{U"Hello World!"};
+
+	u32string output_u32string{rtrim(src_char32_t)};
+
+	REQUIRE(output_u32string == dst_u32string);
+
+	output_u32string = rtrim(src_u32string);
+
+	REQUIRE(output_u32string == dst_u32string);
+}
 
 // TEST_CASE("int u16_strcmp(const char16_t* str1, const char16_t* str2)",
 //	"Testing global function int u16_strcmp(const char16_t* str1, const
@@ -550,22 +562,21 @@ TEST_CASE("Test1", "Testing global function str_length)") {
 //}
 
 /*
-
 TEST_CASE("char16_t* u16_strcpy(char16_t* dst, const size_t
 dst_capacity_in_number_of_characters, const char16_t* src)", "Testing global
 function char16_t* u16_strcpy(char16_t* dst, const size_t
 dst_capacity_in_number_of_characters, const char16_t* src)"
 )
 {
-        char16_t src[128];
+		char16_t src[128];
 
-        char16_t dst[64] = u"\tHello World!\n";
+		char16_t dst[64] = u"\tHello World!\n";
 
-        REQUIRE(trim(dst));
+		REQUIRE(trim(dst));
 
-        REQUIRE(str_copy(src, sizeof(src)/sizeof(src[0]), dst) != nullptr);
+		REQUIRE(str_copy(src, sizeof(src)/sizeof(src[0]), dst) != nullptr);
 
-        REQUIRE(str_compare(src, u"Hello World!") == 0);
+		REQUIRE(str_compare(src, u"Hello World!") == 0);
 }
 
 TEST_CASE("char32_t* u32_strcpy(char32_t* dst, const size_t
@@ -574,59 +585,59 @@ function char32_t* u32_strcpy(char32_t* dst, const size_t
 dst_capacity_in_number_of_characters, const char32_t* src)"
 )
 {
-        char32_t src[128];
+		char32_t src[128];
 
-        char32_t dst[64] = U"\tHello World!\n";
+		char32_t dst[64] = U"\tHello World!\n";
 
-        REQUIRE(trim(dst));
+		REQUIRE(trim(dst));
 
-        REQUIRE(u32_strcpy(src, sizeof(src) / sizeof(src[0]), dst) != nullptr);
+		REQUIRE(u32_strcpy(src, sizeof(src) / sizeof(src[0]), dst) != nullptr);
 
-        REQUIRE(u32_strcmp(src, U"Hello World!") == 0);
+		REQUIRE(u32_strcmp(src, U"Hello World!") == 0);
 }
 
 TEST_CASE(
-        "char16_t* u16_strncpy(char16_t* dst, const size_t
+		"char16_t* u16_strncpy(char16_t* dst, const size_t
 dst_capacity_in_number_of_characters, const char16_t* src, const size_t
 number_of_characters_to_copy)"
-        ,
-        "Testing global function char16_t* u16_strncpy(char16_t* dst, const
+		,
+		"Testing global function char16_t* u16_strncpy(char16_t* dst, const
 size_t dst_capacity_in_number_of_characters, const char16_t* src, const size_t
 number_of_characters_to_copy)"
 )
 {
-        char16_t src[128];
+		char16_t src[128];
 
-        char16_t dst[64] = u"\tHello World!\n";
+		char16_t dst[64] = u"\tHello World!\n";
 
-        REQUIRE(trim(dst));
+		REQUIRE(trim(dst));
 
-        REQUIRE(u16_strncpy(src, sizeof(src) / sizeof(src[0]), dst, 5) !=
+		REQUIRE(u16_strncpy(src, sizeof(src) / sizeof(src[0]), dst, 5) !=
 nullptr);
 
-        REQUIRE(u16_strncmp(src, u"Hello World!", 5) == 0);
+		REQUIRE(u16_strncmp(src, u"Hello World!", 5) == 0);
 }
 
 TEST_CASE(
-        "char32_t* u32_strncpy(char32_t* dst, const size_t
+		"char32_t* u32_strncpy(char32_t* dst, const size_t
 dst_capacity_in_number_of_characters, const char32_t* src, const size_t
 number_of_characters_to_copy)"
-        ,
-        "Testing global function char32_t* u32_strncpy(char32_t* dst, const
+		,
+		"Testing global function char32_t* u32_strncpy(char32_t* dst, const
 size_t dst_capacity_in_number_of_characters, const char32_t* src, const size_t
 number_of_characters_to_copy)"
 )
 {
-        char32_t src[128];
+		char32_t src[128];
 
-        char32_t dst[64] = U"\tHello World!\n";
+		char32_t dst[64] = U"\tHello World!\n";
 
-        REQUIRE(trim(dst));
+		REQUIRE(trim(dst));
 
-        REQUIRE(u32_strncpy(src, sizeof(src) / sizeof(src[0]), dst, 5) !=
+		REQUIRE(u32_strncpy(src, sizeof(src) / sizeof(src[0]), dst, 5) !=
 nullptr);
 
-        REQUIRE(u32_strncmp(src, U"Hello World!", 5) == 0);
+		REQUIRE(u32_strncmp(src, U"Hello World!", 5) == 0);
 }
 
 TEST_CASE("char16_t* u16_strcat(char16_t* dst, const size_t
@@ -635,15 +646,15 @@ function char16_t* u16_strcat(char16_t* dst, const size_t
 dst_capacity_in_number_of_characters, const char16_t* src)"
 )
 {
-        char16_t src[512] = u" \t Hello World!\t \n";
+		char16_t src[512] = u" \t Hello World!\t \n";
 
-        const char16_t* dst = u" How are you today?";
+		const char16_t* dst = u" How are you today?";
 
-        REQUIRE(trim(src));
+		REQUIRE(trim(src));
 
-        REQUIRE(u16_strcat(src, sizeof(src) / sizeof(src[0]), dst) != nullptr);
+		REQUIRE(u16_strcat(src, sizeof(src) / sizeof(src[0]), dst) != nullptr);
 
-        REQUIRE(u16_strcmp(src, u"Hello World! How are you today?") == 0);
+		REQUIRE(u16_strcmp(src, u"Hello World! How are you today?") == 0);
 }
 
 TEST_CASE("char32_t* u32_strcat(char32_t* dst, const size_t
@@ -652,135 +663,135 @@ function char32_t* u32_strcat(char32_t* dst, const size_t
 dst_capacity_in_number_of_characters, const char32_t* src)"
 )
 {
-        char32_t src[512] = U" \t Hello World!\t \n";
+		char32_t src[512] = U" \t Hello World!\t \n";
 
-        const char32_t* dst = U" How are you today?";
+		const char32_t* dst = U" How are you today?";
 
-        REQUIRE(trim(src));
+		REQUIRE(trim(src));
 
-        REQUIRE(u32_strcat(src, sizeof(src) / sizeof(src[0]), dst) != nullptr);
+		REQUIRE(u32_strcat(src, sizeof(src) / sizeof(src[0]), dst) != nullptr);
 
-        REQUIRE(u32_strcmp(src, U"Hello World! How are you today?") == 0);
+		REQUIRE(u32_strcmp(src, U"Hello World! How are you today?") == 0);
 }
 
 TEST_CASE(
-        "char16_t* u16_strncat(char16_t* dst, const size_t
+		"char16_t* u16_strncat(char16_t* dst, const size_t
 dst_capacity_in_number_of_characters, const char16_t* src, const size_t
 number_of_characters_to_concatenate)"
-        ,
-        "Testing global function char16_t* u16_strncat(char16_t* dst, const
+		,
+		"Testing global function char16_t* u16_strncat(char16_t* dst, const
 size_t dst_capacity_in_number_of_characters, const char16_t* src, const size_t
 number_of_characters_to_concatenate)"
 )
 {
-        char16_t src[512] = u" \t Hello World!\t \n";
+		char16_t src[512] = u" \t Hello World!\t \n";
 
-        const char16_t* dst = u" How are you today?";
+		const char16_t* dst = u" How are you today?";
 
-        REQUIRE(trim(src));
+		REQUIRE(trim(src));
 
-        REQUIRE(u16_strncat(src, sizeof(src) / sizeof(src[0]), dst, 4) !=
+		REQUIRE(u16_strncat(src, sizeof(src) / sizeof(src[0]), dst, 4) !=
 nullptr);
 
-        REQUIRE(u16_strcmp(src, u"Hello World! How") == 0);
+		REQUIRE(u16_strcmp(src, u"Hello World! How") == 0);
 }
 
 TEST_CASE(
-        "char32_t* u32_strncat(char32_t* dst, const size_t
+		"char32_t* u32_strncat(char32_t* dst, const size_t
 dst_capacity_in_number_of_characters, const char32_t* src, const size_t
 number_of_characters_to_concatenate)"
-        ,
-        "Testing global function char32_t* u32_strncat(char32_t* dst, const
+		,
+		"Testing global function char32_t* u32_strncat(char32_t* dst, const
 size_t dst_capacity_in_number_of_characters, const char32_t* src, const size_t
 number_of_characters_to_concatenate)"
 )
 {
-        char32_t src[512] = U" \t Hello World!\t \n";
+		char32_t src[512] = U" \t Hello World!\t \n";
 
-        const char32_t* dst = U" How are you today?";
+		const char32_t* dst = U" How are you today?";
 
-        REQUIRE(trim(src));
+		REQUIRE(trim(src));
 
-        REQUIRE(u32_strncat(src, sizeof(src) / sizeof(src[0]), dst, 4) !=
+		REQUIRE(u32_strncat(src, sizeof(src) / sizeof(src[0]), dst, 4) !=
 nullptr);
 
-        REQUIRE(u32_strcmp(src, U"Hello World! How") == 0);
+		REQUIRE(u32_strcmp(src, U"Hello World! How") == 0);
 }
 
 TEST_CASE("const char16_t* u16_strstr(const char16_t* src, const char16_t*
 needle)", "Testing global function const char16_t* u16_strstr(const char16_t*
 src, const char16_t* needle)")
 {
-        const char16_t* src = u"Hello World! How are you today?";
+		const char16_t* src = u"Hello World! How are you today?";
 
-        const char16_t* needle = u"today";
+		const char16_t* needle = u"today";
 
-        REQUIRE(u16_strstr(src, needle) != nullptr);
+		REQUIRE(u16_strstr(src, needle) != nullptr);
 }
 
 TEST_CASE("const char32_t* u32_strstr(const char32_t* src, const char32_t*
 needle)", "Testing global function const char32_t* u32_strstr(const char32_t*
 src, const char32_t* needle)")
 {
-        const char32_t* src = U"Hello World! How are you today?";
+		const char32_t* src = U"Hello World! How are you today?";
 
-        const char32_t* needle = U"today";
+		const char32_t* needle = U"today";
 
-        REQUIRE(u32_strstr(src, needle) != nullptr);
+		REQUIRE(u32_strstr(src, needle) != nullptr);
 }
 
 TEST_CASE("char16_t* u16_strstr(char16_t* src, const char16_t* needle)",
-        "Testing global function char16_t* u16_strstr(char16_t* src, const
+		"Testing global function char16_t* u16_strstr(char16_t* src, const
 char16_t* needle)")
 {
-        char16_t src[512] = u" \t Hello World!\t \n";
+		char16_t src[512] = u" \t Hello World!\t \n";
 
-        const char16_t* dst = u"World";
+		const char16_t* dst = u"World";
 
-        REQUIRE(trim(src));
+		REQUIRE(trim(src));
 
-        REQUIRE(u16_strstr(src, dst) != nullptr);
+		REQUIRE(u16_strstr(src, dst) != nullptr);
 }
 
 TEST_CASE("char32_t* u32_strstr(char32_t* src, const char32_t* needle)",
-        "Testing global function char32_t* u32_strstr(char32_t* src, const
+		"Testing global function char32_t* u32_strstr(char32_t* src, const
 char32_t* needle)")
 {
-        char32_t src[512] = U" \t Hello World!\t \n";
+		char32_t src[512] = U" \t Hello World!\t \n";
 
-        const char32_t* dst = U"World";
+		const char32_t* dst = U"World";
 
-        REQUIRE(trim(src));
+		REQUIRE(trim(src));
 
-        REQUIRE(u32_strstr(src, dst) != nullptr);
+		REQUIRE(u32_strstr(src, dst) != nullptr);
 }
 
 TEST_CASE(
-        "const char16_t* u16_strstri(const char16_t* src, const char16_t*
+		"const char16_t* u16_strstri(const char16_t* src, const char16_t*
 needle, const std::locale& loc = std::locale{})", "Testing global function const
 char16_t* u16_strstri(const char16_t* src, const char16_t* needle, const
 std::locale& loc = std::locale{})"
 )
 {
-        const char16_t* src = u"Hello World! How are you TODAY?";
+		const char16_t* src = u"Hello World! How are you TODAY?";
 
-        const char16_t* needle = u"today";
+		const char16_t* needle = u"today";
 
-        REQUIRE(u16_strstri(src, needle) != nullptr);
+		REQUIRE(u16_strstri(src, needle) != nullptr);
 }
 
 TEST_CASE(
-        "const char32_t* u32_strstri(const char32_t* src, const char32_t*
+		"const char32_t* u32_strstri(const char32_t* src, const char32_t*
 needle, const std::locale& loc = std::locale{})", "Testing global function const
 char32_t* u32_strstri(const char32_t* src, const char32_t* needle, const
 std::locale& loc = std::locale{})"
 )
 {
-        const char32_t* src = U"Hello World! How are you TODAY?";
+		const char32_t* src = U"Hello World! How are you TODAY?";
 
-        const char32_t* needle = U"today";
+		const char32_t* needle = U"today";
 
-        REQUIRE(u32_strstri(src, needle) != nullptr);
+		REQUIRE(u32_strstri(src, needle) != nullptr);
 }
 
 TEST_CASE("char16_t* u16_strstri(char16_t* src, const char16_t* needle, const
@@ -789,13 +800,13 @@ u16_strstri(char16_t* src, const char16_t* needle, const std::locale& loc =
 std::locale{})"
 )
 {
-        char16_t src[512] = u" \t Hello World!\t \n";
+		char16_t src[512] = u" \t Hello World!\t \n";
 
-        const char16_t* dst = u"Hello World!";
+		const char16_t* dst = u"Hello World!";
 
-        REQUIRE(trim(src));
+		REQUIRE(trim(src));
 
-        REQUIRE(u16_strstri(src, dst) != nullptr);
+		REQUIRE(u16_strstri(src, dst) != nullptr);
 }
 
 TEST_CASE("char32_t* u32_strstri(char32_t* src, const char32_t* needle, const
@@ -804,46 +815,46 @@ u32_strstri(char32_t* src, const char32_t* needle, const std::locale& loc =
 std::locale{})"
 )
 {
-        char32_t src[512] = U" \t Hello World!\t \n";
+		char32_t src[512] = U" \t Hello World!\t \n";
 
-        const char32_t* dst = U"Hello World!";
+		const char32_t* dst = U"Hello World!";
 
-        REQUIRE(trim(src));
+		REQUIRE(trim(src));
 
-        REQUIRE(u32_strstri(src, dst) != nullptr);
+		REQUIRE(u32_strstri(src, dst) != nullptr);
 }
 
 TEST_CASE("StringType trim(const StringType& str)",
-        "Testing global template function StringType trim(const StringType&
+		"Testing global template function StringType trim(const StringType&
 str)")
 {
-        const string src{"\t Hello World!\t \n"};
+		const string src{"\t Hello World!\t \n"};
 
-        const string dst{trim(src)};
+		const string dst{trim(src)};
 
-        REQUIRE(dst == string{ "Hello World!" });
+		REQUIRE(dst == string{ "Hello World!" });
 }
 
 TEST_CASE("StringType ltrim(const StringType& str)",
-        "Testing global template function StringType ltrim(const StringType&
+		"Testing global template function StringType ltrim(const StringType&
 str)")
 {
-        const wstring src{L"\t Hello World!\t \n"};
+		const wstring src{L"\t Hello World!\t \n"};
 
-        const wstring dst{ltrim(src)};
+		const wstring dst{ltrim(src)};
 
-        REQUIRE(dst == wstring{ L"Hello World!\t \n" });
+		REQUIRE(dst == wstring{ L"Hello World!\t \n" });
 }
 
 TEST_CASE("StringType rtrim(const StringType& str)",
-        "Testing global template function StringType rtrim(const StringType&
+		"Testing global template function StringType rtrim(const StringType&
 str)")
 {
-        const u32string src{U"\t Hello World!\t \n"};
+		const u32string src{U"\t Hello World!\t \n"};
 
-        const u32string dst{rtrim(src)};
+		const u32string dst{rtrim(src)};
 
-        REQUIRE(dst == u32string{ U"\t Hello World!" });
+		REQUIRE(dst == u32string{ U"\t Hello World!" });
 }
 
 TEST_CASE("vector<string> split(const char* source, const char needle_char, int
@@ -851,17 +862,17 @@ const max_count = -1)", "Testing global function vector<std::string> split(const
 char* source, const char needle_char, int const max_count = -1)"
 )
 {
-        const char* source{"apple|banana|cabbage|lemon|orange|pepper|plum"};
+		const char* source{"apple|banana|cabbage|lemon|orange|pepper|plum"};
 
-        const char needle_char{'|'};
+		const char needle_char{'|'};
 
-        auto const parts{split(source, needle_char)};
+		auto const parts{split(source, needle_char)};
 
-        REQUIRE(parts.front() == "apple");
+		REQUIRE(parts.front() == "apple");
 
-        REQUIRE(parts[3] == "lemon");
+		REQUIRE(parts[3] == "lemon");
 
-        REQUIRE(parts.back() == "plum");
+		REQUIRE(parts.back() == "plum");
 }
 
 TEST_CASE("vector<wstring> split(const wchar_t* source, const wchar_t
@@ -870,17 +881,17 @@ vector<wstring> split(const wchar_t* source, const wchar_t needle_char, int
 const max_count = -1)"
 )
 {
-        const wchar_t* source{L"apple|banana|cabbage|lemon|orange|pepper|plum"};
+		const wchar_t* source{L"apple|banana|cabbage|lemon|orange|pepper|plum"};
 
-        const wchar_t needle_char{L'|'};
+		const wchar_t needle_char{L'|'};
 
-        auto const parts{split(source, needle_char)};
+		auto const parts{split(source, needle_char)};
 
-        REQUIRE(parts.front() == L"apple");
+		REQUIRE(parts.front() == L"apple");
 
-        REQUIRE(parts[3] == L"lemon");
+		REQUIRE(parts[3] == L"lemon");
 
-        REQUIRE(parts.back() == L"plum");
+		REQUIRE(parts.back() == L"plum");
 }
 
 TEST_CASE("vector<u16string> split(const char16_t* source, const char16_t
@@ -889,18 +900,18 @@ vector<u16string> split(const char16_t* source, const char16_t needle_char, int
 const max_count = -1)"
 )
 {
-        const char16_t*
+		const char16_t*
 source{u"apple|banana|cabbage|lemon|orange|pepper|plum"};
 
-        const char16_t needle_char{u'|'};
+		const char16_t needle_char{u'|'};
 
-        auto const parts{split(source, needle_char)};
+		auto const parts{split(source, needle_char)};
 
-        REQUIRE(parts.front() == u"apple");
+		REQUIRE(parts.front() == u"apple");
 
-        REQUIRE(parts[3] == u"lemon");
+		REQUIRE(parts[3] == u"lemon");
 
-        REQUIRE(parts.back() == u"plum");
+		REQUIRE(parts.back() == u"plum");
 }
 
 TEST_CASE("vector<u32string> split(const char32_t* source, const char32_t
@@ -909,36 +920,36 @@ vector<u32string> split(const char32_t* source, const char32_t needle_char, int
 const max_count = -1)"
 )
 {
-        const char32_t*
+		const char32_t*
 source{U"apple|banana|cabbage|lemon|orange|pepper|plum"};
 
-        const char32_t needle_char{U'|'};
+		const char32_t needle_char{U'|'};
 
-        auto const parts{split(source, needle_char)};
+		auto const parts{split(source, needle_char)};
 
-        REQUIRE(parts.front() == U"apple");
+		REQUIRE(parts.front() == U"apple");
 
-        REQUIRE(parts[3] == U"lemon");
+		REQUIRE(parts[3] == U"lemon");
 
-        REQUIRE(parts.back() == U"plum");
+		REQUIRE(parts.back() == U"plum");
 }
 
 TEST_CASE("vector<string> split(const char* source, const char* needle, const
 int max_count = -1)", "Testing global function vector<string> split(const char*
 source, const char* needle, const int max_count = -1)")
 {
-        const char*
+		const char*
 source{"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:plum"};
 
-        const char* needle_char{":|:"};
+		const char* needle_char{":|:"};
 
-        auto const parts{split(source, needle_char)};
+		auto const parts{split(source, needle_char)};
 
-        REQUIRE(parts.front() == "apple");
+		REQUIRE(parts.front() == "apple");
 
-        REQUIRE(parts[3] == "lemon");
+		REQUIRE(parts[3] == "lemon");
 
-        REQUIRE(parts.back() == "plum");
+		REQUIRE(parts.back() == "plum");
 }
 
 TEST_CASE("vector<wstring> split(const wchar_t* source, const wchar_t* needle,
@@ -946,18 +957,18 @@ const int max_count = -1)", "Testing global function vector<wstring> split(const
 wchar_t* source, const wchar_t* needle, const int max_count = -1)"
 )
 {
-        const wchar_t*
+		const wchar_t*
 source{L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:plum"};
 
-        const wchar_t* needle_char{L":|:"};
+		const wchar_t* needle_char{L":|:"};
 
-        auto const parts{split(source, needle_char)};
+		auto const parts{split(source, needle_char)};
 
-        REQUIRE(parts.front() == L"apple");
+		REQUIRE(parts.front() == L"apple");
 
-        REQUIRE(parts[3] == L"lemon");
+		REQUIRE(parts[3] == L"lemon");
 
-        REQUIRE(parts.back() == L"plum");
+		REQUIRE(parts.back() == L"plum");
 }
 
 TEST_CASE("vector<u16string> split(const char16_t* source, const char16_t*
@@ -965,18 +976,18 @@ needle, const int max_count = -1)", "Testing global function vector<u16string>
 split(const char16_t* source, const char16_t* needle, const int max_count = -1)"
 )
 {
-        const char16_t*
+		const char16_t*
 source{u"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:plum"};
 
-        const char16_t* needle_char{u":|:"};
+		const char16_t* needle_char{u":|:"};
 
-        auto const parts{split(source, needle_char)};
+		auto const parts{split(source, needle_char)};
 
-        REQUIRE(parts.front() == u"apple");
+		REQUIRE(parts.front() == u"apple");
 
-        REQUIRE(parts[3] == u"lemon");
+		REQUIRE(parts[3] == u"lemon");
 
-        REQUIRE(parts.back() == u"plum");
+		REQUIRE(parts.back() == u"plum");
 }
 
 TEST_CASE("vector<u32string> split(const char32_t* source, const char32_t*
@@ -984,1085 +995,1104 @@ needle, const int max_count = -1)", "Testing global function vector<u32string>
 split(const char32_t* source, const char32_t* needle, const int max_count = -1)"
 )
 {
-        const char32_t*
+		const char32_t*
 source{U"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:plum"};
 
-        const char32_t* needle_char{U":|:"};
+		const char32_t* needle_char{U":|:"};
 
-        auto const parts{split(source, needle_char)};
+		auto const parts{split(source, needle_char)};
 
-        REQUIRE(parts.front() == U"apple");
+		REQUIRE(parts.front() == U"apple");
 
-        REQUIRE(parts[3] == U"lemon");
+		REQUIRE(parts[3] == U"lemon");
 
-        REQUIRE(parts.back() == U"plum");
+		REQUIRE(parts.back() == U"plum");
 }
 
 TEST_CASE(
-        "vector<StringType> split(const StringType& source, const typename
+		"vector<StringType> split(const StringType& source, const typename
 StringType::value_type needle_char, size_t const max_count = StringType::npos)"
-        ,
-        "Testing global template function vector<StringType> split(const
+		,
+		"Testing global template function vector<StringType> split(const
 StringType& source, const typename StringType::value_type needle_char, size_t
 const max_count = StringType::npos)"
 )
 {
-        const wstring src{L"apple | banana | cabbage | lemon | orange | pepper |
+		const wstring src{L"apple | banana | cabbage | lemon | orange | pepper |
 plum"};
 
-        auto parts{split(src, L'|')};
+		auto parts{split(src, L'|')};
 
-        for (auto& part : parts) part = trim(part);
+		for (auto& part : parts) part = trim(part);
 
-        REQUIRE(parts.front() == L"apple");
+		REQUIRE(parts.front() == L"apple");
 
-        REQUIRE(parts[3] == L"lemon");
+		REQUIRE(parts[3] == L"lemon");
 
-        REQUIRE(parts.back() == L"plum");
+		REQUIRE(parts.back() == L"plum");
 }
 
 TEST_CASE(
-        "vector<StringType> split(const StringType& source, const typename
+		"vector<StringType> split(const StringType& source, const typename
 StringType::const_pointer_type needle, size_t const max_count =
 StringType::npos)"
-        ,
-        "Testing global template function vector<StringType> split(const
+		,
+		"Testing global template function vector<StringType> split(const
 StringType& source, const typename StringType::const_pointer_type needle, size_t
 const max_count = StringType::npos)"
 )
 {
-        const u16string
+		const u16string
 src{u"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:plum"};
 
-        auto parts{split(src, u":|:")};
+		auto parts{split(src, u":|:")};
 
-        REQUIRE(parts.front() == u"apple");
+		REQUIRE(parts.front() == u"apple");
 
-        REQUIRE(parts[3] == u"lemon");
+		REQUIRE(parts[3] == u"lemon");
 
-        REQUIRE(parts.back() == u"plum");
+		REQUIRE(parts.back() == u"plum");
 }
 
 TEST_CASE(
-        "vector<StringType> split(const StringType& source, const StringType&
+		"vector<StringType> split(const StringType& source, const StringType&
 needle, size_t const max_count = StringType::npos)"
-        ,
-        "Testing global template function vector<StringType> split(const
+		,
+		"Testing global template function vector<StringType> split(const
 StringType& source, const StringType& needle, size_t const max_count =
 StringType::npos)"
 )
 {
-        const u32string
+		const u32string
 src{U"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:plum"};
 
-        const u32string needle{U":|:"};
+		const u32string needle{U":|:"};
 
-        auto parts{split(src, needle)};
+		auto parts{split(src, needle)};
 
-        REQUIRE(parts.front() == U"apple");
+		REQUIRE(parts.front() == U"apple");
 
-        REQUIRE(parts[3] == U"lemon");
+		REQUIRE(parts[3] == U"lemon");
 
-        REQUIRE(parts.back() == U"plum");
-}
-
-TEST_CASE(
-        "bool str_starts_with(const StringType& src, const typename
-StringType::value_type start_char, bool ignore_case = false, const std::locale&
-loc = std::locale{})"
-        ,
-        "Testing global template function bool starts_with(const StringType&
-src, const typename StringType::value_type start_char, bool ignore_case = false,
-const std::locale& loc = std::locale{})"
-)
-{
-        const wstring src{L"Apple is one my favorite, most beloved fruits."};
-
-        REQUIRE(str_starts_with(src, L'A'));
-
-        REQUIRE(str_starts_with(src, L'a', true));
-}
-
-
-TEST_CASE(
-        "bool str_starts_with(const StringType& src, const typename
-StringType::const_pointer start_tag, bool ignore_case = false, const
-std::locale& loc = std::locale{})"
-        ,
-        "Testing global template function bool starts_with(const StringType&
-src, const typename StringType::const_pointer start_tag, bool ignore_case =
-false, const std::locale& loc = std::locale{})"
-)
-{
-        const u16string src{u"Apple is one my favorite, most beloved fruits."};
-
-        REQUIRE(str_starts_with(src, u"Apple"));
-
-        REQUIRE(str_starts_with(src, u"aPPLE", true));
-}
-
-TEST_CASE(
-        "bool str_starts_with(const StringType& src, const StringType&
-start_tag, bool ignore_case = false, const std::locale& loc = std::locale{})"
-        ,
-        "Testing global template function bool starts_with(const StringType&
-src, const StringType& start_tag, bool ignore_case = false, const std::locale&
-loc = std::locale{})"
-)
-{
-        const u32string src{U"Apple is one my favorite, most beloved fruits."};
-
-        const u32string needle{U"Apple"};
-
-        REQUIRE(str_starts_with(src, needle));
-
-        REQUIRE(str_starts_with(src, u32string{ U"aPPLE" }, true));
-}
-
-TEST_CASE(
-        "typename StringType::size_type index_of(const StringType& text, const
-typename StringType::value_type needle_char, const size_t start_pos = 0u, bool
-ignore_case = false,\ const std::locale& loc = std::locale{})"
-        ,
-        "Testing global template function typename StringType::size_type
-index_of(const StringType& text, const typename StringType::value_type
-needle_char, const size_t start_pos = 0u, bool ignore_case = false,\ const
-std::locale& loc = std::locale{})"
-)
-{
-        const wstring src{L"apple,banana,cabbage,lemon,orange,pepper,plum"};
-
-        wstring::size_type correct_index = src.find(L'b');
-
-        REQUIRE(index_of(src, L'b') == correct_index);
-
-        correct_index = src.find(L'b');
-
-        REQUIRE(index_of(src, L'B', 0, true) == correct_index);
-}
-
-TEST_CASE(
-        "typename StringType::size_type index_of(const StringType& text, const
-typename StringType::const_pointer needle, const size_t start_pos = 0u, bool
-ignore_case = false,\ const std::locale& loc = std::locale{})"
-        ,
-        "Testing global template function typename StringType::size_type
-index_of(const StringType& text, const typename StringType::const_pointer
-needle, const size_t start_pos = 0u, bool ignore_case = false,\ const
-std::locale& loc = std::locale{})"
-)
-{
-        const wstring src{L"apple,banana,cabbage,lemon,orange,pepper,plum"};
-
-        wstring::size_type correct_index = src.find(L"banana");
-
-        REQUIRE(index_of(src, L"banana") == correct_index);
-
-        correct_index = src.find(L"cabbage");
-
-        REQUIRE(index_of(src, L"CaBbaGE", 0, true) == correct_index);
-}
-
-TEST_CASE(
-        "typename StringType::size_type index_of(const StringType& text, const
-StringType& needle, bool ignore_case = false, const std::locale& loc =
-std::locale{})"
-        ,
-        "Testing global template function typename StringType::size_type
-index_of(const StringType& text, const StringType& needle, bool ignore_case =
-false, const std::locale& loc = std::locale{})"
-)
-{
-        const wstring src{L"apple,banana,cabbage,lemon,orange,pepper,plum"};
-
-        const wstring needle{L"banana"};
-
-        wstring::size_type correct_index = src.find(needle);
-
-        REQUIRE(index_of(src, needle) == correct_index);
-
-        correct_index = src.find(L"cabbage");
-
-        REQUIRE(index_of(src, wstring{ L"cabbage" }) == correct_index);
-
-        REQUIRE(index_of(src, wstring{ L"CaBbaGe" }, 0, true) == correct_index);
-}
-
-TEST_CASE(
-        "bool contains(const StringType& text, const typename
-StringType::value_type needle_char, const size_t start_pos = 0u, bool
-ignore_case = false, const std::locale& loc = std::locale{})"
-        ,
-        "Testing global template function bool contains(const StringType& text,
-const typename StringType::value_type needle_char, const size_t start_pos = 0u,\
-                 bool ignore_case = false, const std::locale& loc =
-std::locale{})"
-)
-{
-        const wstring src{L"apple,banana,cabbage,lemon,orange,pepper,plum"};
-
-        REQUIRE(contains(src, L'b'));
-
-        REQUIRE(!contains(src, L'x'));
-
-        REQUIRE(contains(src, L'B', 0, true));
-
-        REQUIRE(!contains(src, L'X', 0, true));
-}
-
-TEST_CASE(
-        "bool contains(const StringType& text, typename
-StringType::const_pointer needle, const size_t start_pos = 0u, bool ignore_case
-= false, const std::locale& loc = std::locale{})"
-        ,
-        "Testing global template function bool contains(const StringType& text,
-typename StringType::const_pointer needle, const size_t start_pos = 0u, bool
-ignore_case = false, const std::locale& loc = std::locale{})"
-)
-{
-        const wstring src{L"apple,banana,cabbage,lemon,orange,pepper,plum"};
-
-        REQUIRE(contains(src, L"banana"));
-
-        REQUIRE(contains(src, L"CaBbaGE", 0, true));
-
-        REQUIRE(!contains(src, L"pear"));
-
-        REQUIRE(!contains(src, L"PEAR", 0, true));
-}
-
-TEST_CASE(
-        "bool contains(const StringType& text, const StringType& needle, bool
-ignore_case = false, const std::locale& loc = std::locale{})"
-        ,
-        "Testing global template function bool contains(const StringType& text,
-const StringType& needle, bool ignore_case = false, const std::locale& loc =
-std::locale{})"
-)
-{
-        const wstring src{L"apple,banana,cabbage,lemon,orange,pepper,plum"};
-
-        const wstring needle{L"banana"};
-
-        REQUIRE(contains(src, needle));
-
-        REQUIRE(contains(src, wstring{L"CaBbAgE"}, true));
-
-        REQUIRE(!contains(src, wstring{ L"pear" }));
-}
-
-TEST_CASE(
-        "bool ends_with(const StringType& text, const typename
-StringType::value_type end_char, bool ignore_case = false, const std::locale&
-loc = std::locale{})"
-        ,
-        "Testing global template function bool ends_with(const StringType& text,
-const typename StringType::value_type end_char, bool ignore_case = false, const
-std::locale& loc = std::locale{})"
-)
-{
-        const wstring src{L"Apples"};
-
-        REQUIRE(ends_with(src, L's'));
-
-        REQUIRE(ends_with(src, L'S', true));
-}
-
-TEST_CASE(
-        "bool ends_with(const StringType& src, const typename
-StringType::const_pointer end_tag, bool ignore_case = false, const std::locale&
-loc = std::locale{})"
-        ,
-        "Testing global template function bool ends_with(const StringType& src,
-const typename StringType::const_pointer end_tag, bool ignore_case = false,
-const std::locale& loc = std::locale{})"
-)
-{
-        const u32string src{U"Apple is one my favorite, most beloved fruits."};
-
-        REQUIRE(ends_with(src, U"fruits."));
-
-        REQUIRE(ends_with(src, U"FrUiTs.", true));
-}
-
-TEST_CASE(
-        "bool ends_with(const StringType& src, const StringType& end_tag, bool
-ignore_case = false, const std::locale& loc = std::locale{})"
-        ,
-        "Testing global template function bool ends_with(const StringType& src,
-const StringType& end_tag, bool ignore_case = false, const std::locale& loc =
-std::locale{})"
-)
-{
-        const u32string src{U"Apple is one my favorite, most beloved fruits."};
-
-        const u32string needle{U"fruits."};
-
-        REQUIRE(ends_with(src, needle));
-
-        REQUIRE(ends_with(src, u32string{ U"FrUiTs." }, true));
-}
-
-TEST_CASE("void unused_args(Args&&... args)",
-        "Testing global template function void unused_args(Args&&... args)")
-{
-        const int number{42};
-
-        const wchar_t* important_message = L"Number 42 is the meaning of life.";
-
-        struct NumberInfo
-        {
-                NumberInfo() : number{42}, message{L"Number 42 is the meaning of
-life."}
-                {
-                }
-
-                NumberInfo(const int num, const wchar_t* msg) : number{num},
-message{msg}
-                {
-                }
-
-                const int number;
-
-                const wchar_t* message;
-        } num_info;
-
-        unused_args(number, important_message, num_info);
-}
-
-TEST_CASE("bool has_key(const map<KeyType, ValueType>& container, const typename
-map<KeyType, ValueType>::key_type& key)", "Testing global template function bool
-has_key(const map<KeyType, ValueType>& container, const typename map<KeyType,
-ValueType>::key_type& key)")
-{
-        const wstring
-src{L"apple:10:banana:20:cabbage:30:lemon:40:orange:50:pepper:60:plum:70"};
-
-        const auto parts{split(src, L':')};
-
-        const map<wstring, size_t> fruit_count = [&]()
-        {
-                map<wstring, size_t> fruits{};
-
-                for (size_t i = 0; i < parts.size(); i += 2)
-                {
-                        fruits[parts[i]] = stoul(parts[i + 1]);
-                }
-
-                return fruits;
-        }();
-
-        const vector<wstring> random_fruits{
-                L"apple", L"apricot", L"banana", L"orange", L"grapefruit",
-L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
-        };
-
-        mt19937 rand_engine{rd()};
-
-        auto const num_distr = uniform_int_distribution<unsigned>(0,
-random_fruits.size() - 1);
-
-        const auto random_fruit{random_fruits[num_distr(rand_engine)]};
-
-        if (fruit_count.find(random_fruit) != cend(fruit_count))
-        {
-                REQUIRE(has_key(fruit_count, random_fruit));
-        }
-        else
-        {
-                REQUIRE(!has_key(fruit_count, random_fruit));
-        }
-
-        REQUIRE(has_key(fruit_count, wstring{ L"orange" }));
-
-        REQUIRE(!has_key(fruit_count, L"grapefruit"));
-}
-
-TEST_CASE("bool has_key(map<KeyType, ValueType>& container, const typename
-map<KeyType, ValueType>::key_type& key)", "Testing global template function bool
-has_key(map<KeyType, ValueType>& container, const typename map<KeyType,
-ValueType>::key_type& key)")
-{
-        const wstring src{
-L"apple:10:banana:20:cabbage:30:lemon:40:orange:50:pepper:60:plum:70" };
-
-        const auto parts{ split(src, L':') };
-
-        auto fruit_count = map<wstring, size_t>{};
-
-        for (size_t i = 0; i < parts.size(); i += 2)
-        {
-                fruit_count[parts[i]] = std::stoul(parts[i + 1]);
-        }
-
-        const vector<wstring> random_fruits{
-                L"apple", L"apricot", L"banana", L"orange", L"grapefruit",
-L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
-        };
-
-        mt19937 rand_engine{ rd() };
-
-        auto const num_distr = uniform_int_distribution<unsigned>(0,
-random_fruits.size() - 1);
-
-        const auto random_fruit{ random_fruits[num_distr(rand_engine)] };
-
-        if (fruit_count.find(random_fruit) != end(fruit_count))
-        {
-                REQUIRE(has_key(fruit_count, random_fruit));
-        }
-        else
-        {
-                REQUIRE(!has_key(fruit_count, random_fruit));
-        }
-
-        REQUIRE(has_key(fruit_count, L"orange"));
-
-        REQUIRE(!has_key(fruit_count, L"grapefruit"));
-}
-
-TEST_CASE("bool has_key(const multimap<KeyType, ValueType>& container, const
-typename multimap<KeyType, ValueType>::key_type& key)", "Testing global template
-function bool has_key(const multimap<KeyType, ValueType>& container, const
-typename multimap<KeyType, ValueType>::key_type& key)")
-{
-        const wstring
-src{L"apple:10:banana:20:cherries:30:lemon:40:orange:50:pepper:60:plum:70"};
-
-        const auto parts{split(src, L':')};
-
-        const multimap<wstring, size_t> fruit_count = [&]()
-        {
-                multimap<wstring, size_t> fruits{};
-
-                for (size_t i = 0; i < parts.size(); i += 2)
-                {
-                        fruits.insert(make_pair(parts[i], stoul(parts[i + 1])));
-                }
-
-                return fruits;
-        }();
-
-        const vector<wstring> random_fruits{
-                L"apple", L"apricot", L"banana", L"orange", L"grapefruit",
-L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
-        };
-
-        mt19937 rand_engine{rd()};
-
-        auto const num_distr = uniform_int_distribution<unsigned>(0,
-random_fruits.size() - 1);
-
-        const auto random_fruit{random_fruits[num_distr(rand_engine)]};
-
-        if (fruit_count.find(random_fruit) != cend(fruit_count))
-        {
-                REQUIRE(has_key(fruit_count, random_fruit));
-        }
-        else
-        {
-                REQUIRE(!has_key(fruit_count, random_fruit));
-        }
-
-        REQUIRE(has_key(fruit_count, wstring{ L"orange" }));
-
-        REQUIRE(!has_key(fruit_count, wstring{ L"grapefruit" }));
-}
-
-TEST_CASE("bool has_key(multimap<KeyType, ValueType>& container, const typename
-multimap<KeyType, ValueType>::key_type& key)", "Testing global template function
-bool has_key(multimap<KeyType, ValueType>& container, const typename
-multimap<KeyType, ValueType>::key_type& key)")
-{
-        const wstring src{
-L"apple:10:banana:20:cherries:30:lemon:40:orange:50:pepper:60:plum:70" };
-
-        const auto parts{ split(src, L':') };
-
-
-        auto fruit_count = multimap<wstring, size_t>{};
-
-        for (size_t i = 0; i < parts.size(); i += 2)
-        {
-                fruit_count.insert(make_pair(parts[i], stoul(parts[i + 1])));
-        }
-
-        const vector<wstring> random_fruits{
-                L"apple", L"apricot", L"banana", L"orange", L"grapefruit",
-L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
-        };
-
-        mt19937 rand_engine{ rd() };
-
-        auto const num_distr = uniform_int_distribution<unsigned>(0,
-random_fruits.size() - 1);
-
-        const auto random_fruit{ random_fruits[num_distr(rand_engine)] };
-
-        if (fruit_count.find(random_fruit) != end(fruit_count))
-        {
-                REQUIRE(has_key(fruit_count, random_fruit));
-        }
-        else
-        {
-                REQUIRE(!has_key(fruit_count, random_fruit));
-        }
-
-        REQUIRE(has_key(fruit_count, wstring{ L"orange" }));
-
-        REQUIRE(!has_key(fruit_count, wstring{ L"grapefruit" }));
-}
-
-
-TEST_CASE("bool has_key(const unordered_map<KeyType, ValueType>& container,
-const typename unordered_map<KeyType, ValueType>::key_type& key)", "Testing
-global template function bool has_key(const unordered_map<KeyType, ValueType>&
-container, const typename unordered_map<KeyType, ValueType>::key_type& key)"
-)
-{
-        const wstring
-src{L"apple:10:banana:20:cabbage:30:lemon:40:orange:50:pepper:60:plum:70"};
-
-        const auto parts{split(src, L':')};
-
-        const unordered_map<wstring, size_t> fruit_count = [&]()
-        {
-                unordered_map<wstring, size_t> fruits{};
-
-                for (size_t i = 0; i < parts.size(); i += 2)
-                {
-                        fruits[parts[i]] = stoul(parts[i + 1]);
-                }
-
-                return fruits;
-        }();
-
-        const vector<wstring> random_fruits{
-                L"apple", L"apricot", L"banana", L"orange", L"grapefruit",
-L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
-        };
-
-        mt19937 rand_engine{rd()};
-
-        auto const num_distr = uniform_int_distribution<unsigned>(0,
-random_fruits.size() - 1);
-
-        const auto random_fruit{random_fruits[num_distr(rand_engine)]};
-
-        if (fruit_count.find(random_fruit) != cend(fruit_count))
-        {
-                REQUIRE(has_key(fruit_count, random_fruit));
-        }
-        else
-        {
-                REQUIRE(!has_key(fruit_count, random_fruit));
-        }
-
-        REQUIRE(has_key(fruit_count, wstring{ L"orange" }));
-
-        REQUIRE(!has_key(fruit_count, L"grapefruit" ));
-}
-
-TEST_CASE("bool has_key(unordered_map<KeyType, ValueType>& container, const
-typename unordered_map<KeyType, ValueType>::key_type& key)", "Testing global
-template function bool has_key(unordered_map<KeyType, ValueType>& container,
-const typename unordered_map<KeyType, ValueType>::key_type& key)")
-{
-        const wstring src{
-L"apple:10:banana:20:cabbage:30:lemon:40:orange:50:pepper:60:plum:70" };
-
-        const auto parts{ split(src, L':') };
-
-        auto fruit_count = unordered_map<wstring, size_t>{};
-
-        for (size_t i = 0; i < parts.size(); i += 2)
-        {
-                fruit_count[parts[i]] = std::stoul(parts[i + 1]);
-        }
-
-        const vector<wstring> random_fruits{
-                L"apple", L"apricot", L"banana", L"orange", L"grapefruit",
-L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
-        };
-
-        mt19937 rand_engine{ rd() };
-
-        auto const num_distr = uniform_int_distribution<unsigned>(0,
-random_fruits.size() - 1);
-
-        const auto random_fruit{ random_fruits[num_distr(rand_engine)] };
-
-        if (fruit_count.find(random_fruit) != end(fruit_count))
-        {
-                REQUIRE(has_key(fruit_count, random_fruit));
-        }
-        else
-        {
-                REQUIRE(!has_key(fruit_count, random_fruit));
-        }
-
-        REQUIRE(has_key(fruit_count, L"orange" ));
-
-        REQUIRE(!has_key(fruit_count, wstring{ L"grapefruit" }));
-}
-
-
-TEST_CASE("bool has_key(const unordered_multimap<KeyType, ValueType>& container,
-const typename unordered_multimap<KeyType, ValueType>::key_type& key)", "Testing
-global template function bool has_key(const unordered_multimap<KeyType,
-ValueType>& container, const typename unordered_multimap<KeyType,
-ValueType>::key_type& key)"
-)
-{
-        const wstring
-src{L"apple:10:banana:20:cabbage:30:lemon:40:orange:50:pepper:60:plum:70"};
-
-        const auto parts{split(src, L':')};
-
-        const unordered_multimap<wstring, size_t> fruit_count = [&]()
-        {
-                unordered_multimap<wstring, size_t> fruits{};
-
-                for (size_t i = 0; i < parts.size(); i += 2)
-                {
-                        fruits.insert(make_pair(parts[i], stoul(parts[i + 1])));
-                }
-
-                return fruits;
-        }();
-
-        const vector<wstring> random_fruits{
-                L"apple", L"apricot", L"banana", L"orange", L"grapefruit",
-L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
-        };
-
-        mt19937 rand_engine{rd()};
-
-        auto const num_distr = uniform_int_distribution<unsigned>(0,
-random_fruits.size() - 1);
-
-        const auto random_fruit{random_fruits[num_distr(rand_engine)]};
-
-        if (fruit_count.find(random_fruit) != cend(fruit_count))
-        {
-                REQUIRE(has_key(fruit_count, random_fruit));
-        }
-        else
-        {
-                REQUIRE(!has_key(fruit_count, random_fruit));
-        }
-
-        REQUIRE(has_key(fruit_count, wstring{ L"orange" }));
-
-        REQUIRE(!has_key(fruit_count, L"grapefruit" ));
-}
-
-TEST_CASE("bool has_key(unordered_multimap<KeyType, ValueType>& container, const
-typename unordered_multimap<KeyType, ValueType>::key_type& key)", "Testing
-global template function bool has_key(unordered_multimap<KeyType, ValueType>&
-container, const typename unordered_multimap<KeyType, ValueType>::key_type&
-key)")
-{
-        const wstring
-src{L"apple:10:banana:20:cabbage:30:lemon:40:orange:50:pepper:60:plum:70"};
-
-        const auto parts{split(src, L':')};
-
-        auto fruit_count = unordered_multimap<wstring, size_t>{};
-
-        for (size_t i = 0; i < parts.size(); i += 2)
-        {
-                fruit_count.insert(make_pair(parts[i], std::stoul(parts[i +
-1])));
-        }
-
-        const vector<wstring> random_fruits{
-                L"apple", L"apricot", L"banana", L"orange", L"grapefruit",
-L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
-        };
-
-        mt19937 rand_engine{rd()};
-
-        auto const num_distr = uniform_int_distribution<unsigned>(0,
-random_fruits.size() - 1);
-
-        const auto random_fruit{random_fruits[num_distr(rand_engine)]};
-
-        if (fruit_count.find(random_fruit) != end(fruit_count))
-        {
-                REQUIRE(has_key(fruit_count, random_fruit));
-        }
-        else
-        {
-                REQUIRE(!has_key(fruit_count, random_fruit));
-        }
-
-        REQUIRE(has_key(fruit_count, wstring{ L"orange" }));
-
-        REQUIRE(!has_key(fruit_count, L"grapefruit" ));
-}
-
-TEST_CASE("bool has_value(const ContainerType& container, const typename
-ContainerType::value_type& search_value)", "Testing global template function
-bool has_value(const ContainerType& container, const typename
-ContainerType::value_type& search_value)"
-)
-{
-        const wstring
-src{L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:pineapple:|:plum:|:walnut"};
-
-        const wstring needle{L":|:"};
-
-        const auto parts{split(src, needle)};
-
-        REQUIRE(has_value(parts, L"orange"));
-
-        REQUIRE(!has_value(parts, wstring{ L"grapefruit" }));
-
-        const vector<wstring> random_fruits{
-                L"apple", L"apricot", L"banana", L"orange", L"grapefruit",
-L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
-        };
-
-        mt19937 rand_engine{rd()};
-
-        auto const num_distr = uniform_int_distribution<unsigned>(0,
-random_fruits.size() - 1);
-
-        const auto random_fruit{random_fruits[num_distr(rand_engine)]};
-
-        if (find(cbegin(parts), cend(parts), random_fruit) != cend(parts))
-                REQUIRE(has_value(parts, random_fruit));
-
-        else
-                REQUIRE(!has_value(parts, random_fruit));
-}
-
-TEST_CASE("bool has_value(ContainerType& container, const typename
-ContainerType::value_type& search_value)", "Testing global template function
-bool has_value(ContainerType& container, const typename
-ContainerType::value_type& search_value)"
-)
-{
-        const wstring
-src{L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:pineapple:|:plum:|:walnut"};
-
-        const wstring needle{L":|:"};
-
-        auto parts{split(src, needle)};
-
-        REQUIRE(has_value(parts, L"orange"));
-
-        REQUIRE(!has_value(parts, wstring{ L"grapefruit" }));
-
-        const vector<wstring> random_fruits{
-                L"apple", L"apricot", L"banana", L"orange", L"grapefruit",
-L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
-        };
-
-        mt19937 rand_engine{rd()};
-
-        auto const num_distr = uniform_int_distribution<unsigned>(0,
-random_fruits.size() - 1);
-
-        const auto random_fruit{random_fruits[num_distr(rand_engine)]};
-
-        if (find(begin(parts), end(parts), random_fruit) != end(parts))
-                REQUIRE(has_value(parts, random_fruit));
-
-        else
-                REQUIRE(!has_value(parts, random_fruit));
-}
-
-TEST_CASE("bool has_key(const set<ValueType>& container, const typename
-set<ValueType>::key_type& item)", "Testing global template function bool
-has_key(const set<ValueType>& container, const typename
-set<ValueType>::key_type& item)")
-{
-        const wstring src{
-                L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:pineapple:|:plum:|:walnut:|:lemon:|:apricot:|:plum"
-        };
-
-        const wstring needle{L":|:"};
-
-        const auto parts{split(src, needle)};
-
-        const set<wstring> all_fruits = [&]()
-        {
-                set<wstring> fruits{};
-
-                for (const auto& fruit : parts)
-                {
-                        fruits.insert(fruit);
-                }
-
-                return fruits;
-        }();
-
-        REQUIRE(has_key(all_fruits, wstring{ L"orange" }));
-
-        REQUIRE(!has_key(all_fruits, L"grapefruit" ));
-
-        const vector<wstring> random_fruits{
-                L"apple", L"apricot", L"banana", L"orange", L"grapefruit",
-L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
-        };
-
-        mt19937 rand_engine{rd()};
-
-        auto const num_distr = uniform_int_distribution<unsigned>(0,
-random_fruits.size() - 1);
-
-        const auto random_fruit{random_fruits[num_distr(rand_engine)]};
-
-        if (all_fruits.find(random_fruit) != cend(all_fruits))
-                REQUIRE(has_key(all_fruits, random_fruit));
-
-        else
-                REQUIRE(!has_key(all_fruits, random_fruit));
-}
-
-TEST_CASE("bool has_value(const multiset<ValueType>& container, const typename
-multiset<ValueType>::key_type& item)", "Testing global template function bool
-has_value(const multiset<ValueType>& container, const typename
-multiset<ValueType>::key_type& item)")
-{
-        const wstring src{
-                L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:pineapple:|:plum:|:walnut:|:lemon:|:apricot:|:plum"
-        };
-
-        const wstring needle{L":|:"};
-
-        const auto parts{split(src, needle)};
-
-        const multiset<wstring> all_fruits = [&]()
-        {
-                multiset<wstring> fruits{};
-
-                for (const auto& fruit : parts)
-                {
-                        fruits.insert(fruit);
-                }
-
-                return fruits;
-        }();
-
-        REQUIRE(has_key(all_fruits, wstring{ L"orange" }));
-
-        REQUIRE(!has_key(all_fruits, L"grapefruit" ));
-
-        const vector<wstring> random_fruits{
-                L"apple", L"apricot", L"banana", L"orange", L"grapefruit",
-L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
-        };
-
-        mt19937 rand_engine{rd()};
-
-        auto const num_distr = uniform_int_distribution<unsigned>(0,
-random_fruits.size() - 1);
-
-        const auto random_fruit{random_fruits[num_distr(rand_engine)]};
-
-        if (all_fruits.find(random_fruit) != cend(all_fruits))
-                REQUIRE(has_key(all_fruits, random_fruit));
-
-        else
-                REQUIRE(!has_key(all_fruits, random_fruit));
-}
-
-TEST_CASE("bool has_key(const unordered_set<ValueType>& container, const
-typename unordered_set<ValueType>::key_type& item)", "Testing global template
-function bool has_key(const unordered_set<ValueType>& container, const typename
-unordered_set<ValueType>::key_type& item)")
-{
-        const wstring src{
-                L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:pineapple:|:plum:|:walnut:|:lemon:|:apricot:|:plum"
-        };
-
-        const wstring needle{L":|:"};
-
-        const auto parts{split(src, needle)};
-
-        const unordered_set<wstring> all_fruits = [&]()
-        {
-                unordered_set<wstring> fruits{};
-
-                for (const auto& fruit : parts)
-                {
-                        fruits.insert(fruit);
-                }
-
-                return fruits;
-        }();
-
-        REQUIRE(has_key(all_fruits, wstring{ L"orange" }));
-
-        REQUIRE(!has_key(all_fruits, L"grapefruit" ));
-
-        const vector<wstring> random_fruits{
-                L"apple", L"apricot", L"banana", L"orange", L"grapefruit",
-L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
-        };
-
-        mt19937 rand_engine{rd()};
-
-        auto const num_distr = uniform_int_distribution<unsigned>(0,
-random_fruits.size() - 1);
-
-        const auto random_fruit{random_fruits[num_distr(rand_engine)]};
-
-        if (all_fruits.find(random_fruit) != cend(all_fruits))
-                REQUIRE(has_key(all_fruits, random_fruit));
-
-        else
-                REQUIRE(!has_key(all_fruits, random_fruit));
-}
-
-TEST_CASE("bool has_key(const unordered_multiset<ValueType>& container, const
-typename unordered_multiset<ValueType>::key_type&  item)", "Testing global
-template function bool has_key(const unordered_multiset<ValueType>& container,
-const typename unordered_multiset<ValueType>::key_type& item)"
-)
-{
-        const wstring src{
-                L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:pineapple:|:plum:|:walnut:|:lemon:|:apricot:|:plum"
-        };
-
-        const wstring needle{L":|:"};
-
-        const auto parts{split(src, needle)};
-
-        const unordered_multiset<wstring> all_fruits = [&]()
-        {
-                unordered_multiset<wstring> fruits{};
-
-                for (const auto& fruit : parts)
-                {
-                        fruits.insert(fruit);
-                }
-
-                return fruits;
-        }();
-
-        REQUIRE(has_key(all_fruits, L"orange"));
-
-        REQUIRE(!has_key(all_fruits, wstring{ L"grapefruit" }));
-
-        const vector<wstring> random_fruits{
-                L"apple", L"apricot", L"banana", L"orange", L"grapefruit",
-L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
-        };
-
-        mt19937 rand_engine{rd()};
-
-        auto const num_distr = uniform_int_distribution<unsigned>(0,
-random_fruits.size() - 1);
-
-        const auto random_fruit{random_fruits[num_distr(rand_engine)]};
-
-        if (all_fruits.find(random_fruit) != cend(all_fruits))
-                REQUIRE(has_key(all_fruits, random_fruit));
-
-        else
-                REQUIRE(!has_key(all_fruits, random_fruit));
-}
-
-TEST_CASE(
-        "string get_type_name(T&& arg) | wstring get_type_name_w(T&& arg) | void
-show_var_info(const T& arg) | void show_var_info_w(const T& arg) || bool
-check_data_types_for_equality(Args&&... args)"
-        ,
-        "Testing global template functions: get_type_name, get_type_name_w,
-show_var_info, show_var_info_w and check_data_types_for_equality"
-)
-{
-        const wstring
-src{L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:plum"};
-
-        const wstring needle{L":|:"};
-
-        const auto parts{split(src, needle)};
-
-        cout << '\n' << get_type_name(src) << '\n';
-
-        wcout << get_type_name_w(needle) << L'\n';
-
-        const string info_message{"Hello World!"};
-
-        show_var_info(info_message);
-
-        show_var_info_w(src);
-
-        show_var_info_w(needle);
-
-        cout << "\ncheck_data_types_for_equality(src : wstring, needle :
-wstring) -> " << boolalpha << check_data_types_for_equality(src, needle) <<
-'\n';
-
-        cout << "\ncheck_data_types_for_equality(src : wstring, parts :
-vector<wstring>) -> " << check_data_types_for_equality(src, parts) << '\n';
-}
-
-TEST_CASE("u16string to_u16string(const short value)", "Testing correct
-functionality of global conversion function: u16string to_u16string(const short
-value)")
-{
-        auto const result_u16string{ to_u16string(static_cast<short>(12345)) };
-        
-        string result_string(cbegin(result_u16string), cend(result_u16string));
-        
-        cout << "\nto_u16string(12345) = \"" << result_string << "\"\n";
-
-        REQUIRE(u16string{ u"12345" } == result_u16string);
-
-        const auto float_to_u16string{ to_u16string(7.51735f) };
-
-        REQUIRE(u16string{ u"7.51735" } == float_to_u16string);
-
-        result_string.assign(cbegin(float_to_u16string),
-cend(float_to_u16string));
-
-        cout << "to_u16string(7.51735f) = \"" << result_string << "\"\n";
-
-}
-
-TEST_CASE("u16string to_u16string(const unsigned short value)", "Testing correct
-functionality of global conversion function: u16string to_u16string(const
-unsigned short value)")
-{
-        auto const result_u16string{ to_u16string(static_cast<unsigned
-short>(12345)) };
-
-        const string result_string(cbegin(result_u16string),
-cend(result_u16string));
-
-        cout << "\nto_u16string(12345) = \"" << result_string << "\"\n";
-
-        REQUIRE(u16string{ u"12345" } == result_u16string);
-
-}
-
-TEST_CASE("float stof(const u16string& str, size_t* pos = nullptr, int base =
-10, bool ignore_leading_white_space_characters = true), u16string
-to_u16string(float value)", "Testing correct functionality of global conversion
-functions: stof, to_u16string")
-{
-        size_t end_pos{};
-        // add code (function) for rounding to N decimal digits
-        auto const float_value { stof(u"7.53", &end_pos, 10) };
-
-        cout << "\nstof(u\"7.53\") = " << float_value << '\n' << "end_pos = " <<
-end_pos << '\n';
-
-        REQUIRE(float_value == 7.53);
-
-        const auto float_to_u16string{ to_u16string(float_value) };
-
-        REQUIRE(float_to_u16string == u"7.53");
-
-
+		REQUIRE(parts.back() == U"plum");
 }
 */
+
+TEST_CASE("bool str_starts_with(const StringType& src, const typename StringType::value_type start_char,\
+		                     const bool ignore_case = false,\
+		                     const std::locale& loc = std::locale{})",
+		  "Testing global function template bool str_starts_with(const StringType& src, const typename StringType::value_type start_char,\
+		                     const bool ignore_case = false,\
+		                     const std::locale& loc = std::locale{})")
+{
+		const string src_string{"Apple is one my favorite, most beloved fruits."};
+
+		REQUIRE(str_starts_with(src_string, 'A'));
+
+		REQUIRE(str_starts_with(src_string, 'a', true));
+		
+		const wstring src_wstring{L"Apple is one my favorite, most beloved fruits."};
+
+		REQUIRE(str_starts_with(src_wstring, L'A'));
+
+		REQUIRE(str_starts_with(src_wstring, L'a', true));
+
+		const u16string src_u16string{u"Apple is one my favorite, most beloved fruits."};
+
+		REQUIRE(str_starts_with(src_u16string, u'A'));
+
+		REQUIRE(str_starts_with(src_u16string, u'a', true));
+		
+		const u32string src_u32string{U"Apple is one my favorite, most beloved fruits."};
+
+		REQUIRE(str_starts_with(src_u32string, U'A'));
+
+		REQUIRE(str_starts_with(src_u32string, U'a', true));
+}
+
+
+//TEST_CASE(
+//		"bool str_starts_with(const StringType& src, const typename
+//StringType::const_pointer start_tag, bool ignore_case = false, const
+//std::locale& loc = std::locale{})"
+//		,
+//		"Testing global template function bool starts_with(const StringType&
+//src, const typename StringType::const_pointer start_tag, bool ignore_case =
+//false, const std::locale& loc = std::locale{})"
+//)
+//{
+//		const u16string src{u"Apple is one my favorite, most beloved fruits."};
+//
+//		REQUIRE(str_starts_with(src, u"Apple"));
+//
+//		REQUIRE(str_starts_with(src, u"aPPLE", true));
+//}
+//
+//TEST_CASE(
+//		"bool str_starts_with(const StringType& src, const StringType&
+//start_tag, bool ignore_case = false, const std::locale& loc = std::locale{})"
+//		,
+//		"Testing global template function bool starts_with(const StringType&
+//src, const StringType& start_tag, bool ignore_case = false, const std::locale&
+//loc = std::locale{})"
+//)
+//{
+//		const u32string src{U"Apple is one my favorite, most beloved fruits."};
+//
+//		const u32string needle{U"Apple"};
+//
+//		REQUIRE(str_starts_with(src, needle));
+//
+//		REQUIRE(str_starts_with(src, u32string{ U"aPPLE" }, true));
+//}
+//
+//TEST_CASE(
+//		"typename StringType::size_type index_of(const StringType& text, const
+//typename StringType::value_type needle_char, const size_t start_pos = 0u, bool
+//ignore_case = false,\ const std::locale& loc = std::locale{})"
+//		,
+//		"Testing global template function typename StringType::size_type
+//index_of(const StringType& text, const typename StringType::value_type
+//needle_char, const size_t start_pos = 0u, bool ignore_case = false,\ const
+//std::locale& loc = std::locale{})"
+//)
+//{
+//		const wstring src{L"apple,banana,cabbage,lemon,orange,pepper,plum"};
+//
+//		wstring::size_type correct_index = src.find(L'b');
+//
+//		REQUIRE(index_of(src, L'b') == correct_index);
+//
+//		correct_index = src.find(L'b');
+//
+//		REQUIRE(index_of(src, L'B', 0, true) == correct_index);
+//}
+//
+//TEST_CASE(
+//		"typename StringType::size_type index_of(const StringType& text, const
+//typename StringType::const_pointer needle, const size_t start_pos = 0u, bool
+//ignore_case = false,\ const std::locale& loc = std::locale{})"
+//		,
+//		"Testing global template function typename StringType::size_type
+//index_of(const StringType& text, const typename StringType::const_pointer
+//needle, const size_t start_pos = 0u, bool ignore_case = false,\ const
+//std::locale& loc = std::locale{})"
+//)
+//{
+//		const wstring src{L"apple,banana,cabbage,lemon,orange,pepper,plum"};
+//
+//		wstring::size_type correct_index = src.find(L"banana");
+//
+//		REQUIRE(index_of(src, L"banana") == correct_index);
+//
+//		correct_index = src.find(L"cabbage");
+//
+//		REQUIRE(index_of(src, L"CaBbaGE", 0, true) == correct_index);
+//}
+//
+//TEST_CASE(
+//		"typename StringType::size_type index_of(const StringType& text, const
+//StringType& needle, bool ignore_case = false, const std::locale& loc =
+//std::locale{})"
+//		,
+//		"Testing global template function typename StringType::size_type
+//index_of(const StringType& text, const StringType& needle, bool ignore_case =
+//false, const std::locale& loc = std::locale{})"
+//)
+//{
+//		const wstring src{L"apple,banana,cabbage,lemon,orange,pepper,plum"};
+//
+//		const wstring needle{L"banana"};
+//
+//		wstring::size_type correct_index = src.find(needle);
+//
+//		REQUIRE(index_of(src, needle) == correct_index);
+//
+//		correct_index = src.find(L"cabbage");
+//
+//		REQUIRE(index_of(src, wstring{ L"cabbage" }) == correct_index);
+//
+//		REQUIRE(index_of(src, wstring{ L"CaBbaGe" }, 0, true) == correct_index);
+//}
+//
+//TEST_CASE(
+//		"bool contains(const StringType& text, const typename
+//StringType::value_type needle_char, const size_t start_pos = 0u, bool
+//ignore_case = false, const std::locale& loc = std::locale{})"
+//		,
+//		"Testing global template function bool contains(const StringType& text,
+//const typename StringType::value_type needle_char, const size_t start_pos = 0u,\
+//				 bool ignore_case = false, const std::locale& loc =
+//std::locale{})"
+//)
+//{
+//		const wstring src{L"apple,banana,cabbage,lemon,orange,pepper,plum"};
+//
+//		REQUIRE(contains(src, L'b'));
+//
+//		REQUIRE(!contains(src, L'x'));
+//
+//		REQUIRE(contains(src, L'B', 0, true));
+//
+//		REQUIRE(!contains(src, L'X', 0, true));
+//}
+//
+//TEST_CASE(
+//		"bool contains(const StringType& text, typename
+//StringType::const_pointer needle, const size_t start_pos = 0u, bool ignore_case
+//= false, const std::locale& loc = std::locale{})"
+//		,
+//		"Testing global template function bool contains(const StringType& text,
+//typename StringType::const_pointer needle, const size_t start_pos = 0u, bool
+//ignore_case = false, const std::locale& loc = std::locale{})"
+//)
+//{
+//		const wstring src{L"apple,banana,cabbage,lemon,orange,pepper,plum"};
+//
+//		REQUIRE(contains(src, L"banana"));
+//
+//		REQUIRE(contains(src, L"CaBbaGE", 0, true));
+//
+//		REQUIRE(!contains(src, L"pear"));
+//
+//		REQUIRE(!contains(src, L"PEAR", 0, true));
+//}
+//
+//TEST_CASE(
+//		"bool contains(const StringType& text, const StringType& needle, bool
+//ignore_case = false, const std::locale& loc = std::locale{})"
+//		,
+//		"Testing global template function bool contains(const StringType& text,
+//const StringType& needle, bool ignore_case = false, const std::locale& loc =
+//std::locale{})"
+//)
+//{
+//		const wstring src{L"apple,banana,cabbage,lemon,orange,pepper,plum"};
+//
+//		const wstring needle{L"banana"};
+//
+//		REQUIRE(contains(src, needle));
+//
+//		REQUIRE(contains(src, wstring{L"CaBbAgE"}, true));
+//
+//		REQUIRE(!contains(src, wstring{ L"pear" }));
+//}
+//
+//TEST_CASE(
+//		"bool ends_with(const StringType& text, const typename
+//StringType::value_type end_char, bool ignore_case = false, const std::locale&
+//loc = std::locale{})"
+//		,
+//		"Testing global template function bool ends_with(const StringType& text,
+//const typename StringType::value_type end_char, bool ignore_case = false, const
+//std::locale& loc = std::locale{})"
+//)
+//{
+//		const wstring src{L"Apples"};
+//
+//		REQUIRE(ends_with(src, L's'));
+//
+//		REQUIRE(ends_with(src, L'S', true));
+//}
+//
+//TEST_CASE(
+//		"bool ends_with(const StringType& src, const typename
+//StringType::const_pointer end_tag, bool ignore_case = false, const std::locale&
+//loc = std::locale{})"
+//		,
+//		"Testing global template function bool ends_with(const StringType& src,
+//const typename StringType::const_pointer end_tag, bool ignore_case = false,
+//const std::locale& loc = std::locale{})"
+//)
+//{
+//		const u32string src{U"Apple is one my favorite, most beloved fruits."};
+//
+//		REQUIRE(ends_with(src, U"fruits."));
+//
+//		REQUIRE(ends_with(src, U"FrUiTs.", true));
+//}
+//
+//TEST_CASE(
+//		"bool ends_with(const StringType& src, const StringType& end_tag, bool
+//ignore_case = false, const std::locale& loc = std::locale{})"
+//		,
+//		"Testing global template function bool ends_with(const StringType& src,
+//const StringType& end_tag, bool ignore_case = false, const std::locale& loc =
+//std::locale{})"
+//)
+//{
+//		const u32string src{U"Apple is one my favorite, most beloved fruits."};
+//
+//		const u32string needle{U"fruits."};
+//
+//		REQUIRE(ends_with(src, needle));
+//
+//		REQUIRE(ends_with(src, u32string{ U"FrUiTs." }, true));
+//}
+//
+//TEST_CASE("void unused_args(Args&&... args)",
+//		"Testing global template function void unused_args(Args&&... args)")
+//{
+//		const int number{42};
+//
+//		const wchar_t* important_message = L"Number 42 is the meaning of life.";
+//
+//		struct NumberInfo
+//		{
+//				NumberInfo() : number{42}, message{L"Number 42 is the meaning of
+//life."}
+//				{
+//				}
+//
+//				NumberInfo(const int num, const wchar_t* msg) : number{num},
+//message{msg}
+//				{
+//				}
+//
+//				const int number;
+//
+//				const wchar_t* message;
+//		} num_info;
+//
+//		unused_args(number, important_message, num_info);
+//}
+//
+//TEST_CASE("bool has_key(const map<KeyType, ValueType>& container, const typename
+//map<KeyType, ValueType>::key_type& key)", "Testing global template function bool
+//has_key(const map<KeyType, ValueType>& container, const typename map<KeyType,
+//ValueType>::key_type& key)")
+//{
+//		const wstring
+//src{L"apple:10:banana:20:cabbage:30:lemon:40:orange:50:pepper:60:plum:70"};
+//
+//		const auto parts{split(src, L':')};
+//
+//		const map<wstring, size_t> fruit_count = [&]()
+//		{
+//				map<wstring, size_t> fruits{};
+//
+//				for (size_t i = 0; i < parts.size(); i += 2)
+//				{
+//						fruits[parts[i]] = stoul(parts[i + 1]);
+//				}
+//
+//				return fruits;
+//		}();
+//
+//		const vector<wstring> random_fruits{
+//				L"apple", L"apricot", L"banana", L"orange", L"grapefruit",
+//L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
+//		};
+//
+//		mt19937 rand_engine{rd()};
+//
+//		auto const num_distr = uniform_int_distribution<unsigned>(0,
+//random_fruits.size() - 1);
+//
+//		const auto random_fruit{random_fruits[num_distr(rand_engine)]};
+//
+//		if (fruit_count.find(random_fruit) != cend(fruit_count))
+//		{
+//				REQUIRE(has_key(fruit_count, random_fruit));
+//		}
+//		else
+//		{
+//				REQUIRE(!has_key(fruit_count, random_fruit));
+//		}
+//
+//		REQUIRE(has_key(fruit_count, wstring{ L"orange" }));
+//
+//		REQUIRE(!has_key(fruit_count, L"grapefruit"));
+//}
+//
+//TEST_CASE("bool has_key(map<KeyType, ValueType>& container, const typename
+//map<KeyType, ValueType>::key_type& key)", "Testing global template function bool
+//has_key(map<KeyType, ValueType>& container, const typename map<KeyType,
+//ValueType>::key_type& key)")
+//{
+//		const wstring src{
+//L"apple:10:banana:20:cabbage:30:lemon:40:orange:50:pepper:60:plum:70" };
+//
+//		const auto parts{ split(src, L':') };
+//
+//		auto fruit_count = map<wstring, size_t>{};
+//
+//		for (size_t i = 0; i < parts.size(); i += 2)
+//		{
+//				fruit_count[parts[i]] = std::stoul(parts[i + 1]);
+//		}
+//
+//		const vector<wstring> random_fruits{
+//				L"apple", L"apricot", L"banana", L"orange", L"grapefruit",
+//L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
+//		};
+//
+//		mt19937 rand_engine{ rd() };
+//
+//		auto const num_distr = uniform_int_distribution<unsigned>(0,
+//random_fruits.size() - 1);
+//
+//		const auto random_fruit{ random_fruits[num_distr(rand_engine)] };
+//
+//		if (fruit_count.find(random_fruit) != end(fruit_count))
+//		{
+//				REQUIRE(has_key(fruit_count, random_fruit));
+//		}
+//		else
+//		{
+//				REQUIRE(!has_key(fruit_count, random_fruit));
+//		}
+//
+//		REQUIRE(has_key(fruit_count, L"orange"));
+//
+//		REQUIRE(!has_key(fruit_count, L"grapefruit"));
+//}
+//
+//TEST_CASE("bool has_key(const multimap<KeyType, ValueType>& container, const
+//typename multimap<KeyType, ValueType>::key_type& key)", "Testing global template
+//function bool has_key(const multimap<KeyType, ValueType>& container, const
+//typename multimap<KeyType, ValueType>::key_type& key)")
+//{
+//		const wstring
+//src{L"apple:10:banana:20:cherries:30:lemon:40:orange:50:pepper:60:plum:70"};
+//
+//		const auto parts{split(src, L':')};
+//
+//		const multimap<wstring, size_t> fruit_count = [&]()
+//		{
+//				multimap<wstring, size_t> fruits{};
+//
+//				for (size_t i = 0; i < parts.size(); i += 2)
+//				{
+//						fruits.insert(make_pair(parts[i], stoul(parts[i + 1])));
+//				}
+//
+//				return fruits;
+//		}();
+//
+//		const vector<wstring> random_fruits{
+//				L"apple", L"apricot", L"banana", L"orange", L"grapefruit",
+//L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
+//		};
+//
+//		mt19937 rand_engine{rd()};
+//
+//		auto const num_distr = uniform_int_distribution<unsigned>(0,
+//random_fruits.size() - 1);
+//
+//		const auto random_fruit{random_fruits[num_distr(rand_engine)]};
+//
+//		if (fruit_count.find(random_fruit) != cend(fruit_count))
+//		{
+//				REQUIRE(has_key(fruit_count, random_fruit));
+//		}
+//		else
+//		{
+//				REQUIRE(!has_key(fruit_count, random_fruit));
+//		}
+//
+//		REQUIRE(has_key(fruit_count, wstring{ L"orange" }));
+//
+//		REQUIRE(!has_key(fruit_count, wstring{ L"grapefruit" }));
+//}
+//
+//TEST_CASE("bool has_key(multimap<KeyType, ValueType>& container, const typename
+//multimap<KeyType, ValueType>::key_type& key)", "Testing global template function
+//bool has_key(multimap<KeyType, ValueType>& container, const typename
+//multimap<KeyType, ValueType>::key_type& key)")
+//{
+//		const wstring src{
+//L"apple:10:banana:20:cherries:30:lemon:40:orange:50:pepper:60:plum:70" };
+//
+//		const auto parts{ split(src, L':') };
+//
+//
+//		auto fruit_count = multimap<wstring, size_t>{};
+//
+//		for (size_t i = 0; i < parts.size(); i += 2)
+//		{
+//				fruit_count.insert(make_pair(parts[i], stoul(parts[i + 1])));
+//		}
+//
+//		const vector<wstring> random_fruits{
+//				L"apple", L"apricot", L"banana", L"orange", L"grapefruit",
+//L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
+//		};
+//
+//		mt19937 rand_engine{ rd() };
+//
+//		auto const num_distr = uniform_int_distribution<unsigned>(0,
+//random_fruits.size() - 1);
+//
+//		const auto random_fruit{ random_fruits[num_distr(rand_engine)] };
+//
+//		if (fruit_count.find(random_fruit) != end(fruit_count))
+//		{
+//				REQUIRE(has_key(fruit_count, random_fruit));
+//		}
+//		else
+//		{
+//				REQUIRE(!has_key(fruit_count, random_fruit));
+//		}
+//
+//		REQUIRE(has_key(fruit_count, wstring{ L"orange" }));
+//
+//		REQUIRE(!has_key(fruit_count, wstring{ L"grapefruit" }));
+//}
+//
+//
+//TEST_CASE("bool has_key(const unordered_map<KeyType, ValueType>& container,
+//const typename unordered_map<KeyType, ValueType>::key_type& key)", "Testing
+//global template function bool has_key(const unordered_map<KeyType, ValueType>&
+//container, const typename unordered_map<KeyType, ValueType>::key_type& key)"
+//)
+//{
+//		const wstring
+//src{L"apple:10:banana:20:cabbage:30:lemon:40:orange:50:pepper:60:plum:70"};
+//
+//		const auto parts{split(src, L':')};
+//
+//		const unordered_map<wstring, size_t> fruit_count = [&]()
+//		{
+//				unordered_map<wstring, size_t> fruits{};
+//
+//				for (size_t i = 0; i < parts.size(); i += 2)
+//				{
+//						fruits[parts[i]] = stoul(parts[i + 1]);
+//				}
+//
+//				return fruits;
+//		}();
+//
+//		const vector<wstring> random_fruits{
+//				L"apple", L"apricot", L"banana", L"orange", L"grapefruit",
+//L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
+//		};
+//
+//		mt19937 rand_engine{rd()};
+//
+//		auto const num_distr = uniform_int_distribution<unsigned>(0,
+//random_fruits.size() - 1);
+//
+//		const auto random_fruit{random_fruits[num_distr(rand_engine)]};
+//
+//		if (fruit_count.find(random_fruit) != cend(fruit_count))
+//		{
+//				REQUIRE(has_key(fruit_count, random_fruit));
+//		}
+//		else
+//		{
+//				REQUIRE(!has_key(fruit_count, random_fruit));
+//		}
+//
+//		REQUIRE(has_key(fruit_count, wstring{ L"orange" }));
+//
+//		REQUIRE(!has_key(fruit_count, L"grapefruit" ));
+//}
+//
+//TEST_CASE("bool has_key(unordered_map<KeyType, ValueType>& container, const
+//typename unordered_map<KeyType, ValueType>::key_type& key)", "Testing global
+//template function bool has_key(unordered_map<KeyType, ValueType>& container,
+//const typename unordered_map<KeyType, ValueType>::key_type& key)")
+//{
+//		const wstring src{
+//L"apple:10:banana:20:cabbage:30:lemon:40:orange:50:pepper:60:plum:70" };
+//
+//		const auto parts{ split(src, L':') };
+//
+//		auto fruit_count = unordered_map<wstring, size_t>{};
+//
+//		for (size_t i = 0; i < parts.size(); i += 2)
+//		{
+//				fruit_count[parts[i]] = std::stoul(parts[i + 1]);
+//		}
+//
+//		const vector<wstring> random_fruits{
+//				L"apple", L"apricot", L"banana", L"orange", L"grapefruit",
+//L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
+//		};
+//
+//		mt19937 rand_engine{ rd() };
+//
+//		auto const num_distr = uniform_int_distribution<unsigned>(0,
+//random_fruits.size() - 1);
+//
+//		const auto random_fruit{ random_fruits[num_distr(rand_engine)] };
+//
+//		if (fruit_count.find(random_fruit) != end(fruit_count))
+//		{
+//				REQUIRE(has_key(fruit_count, random_fruit));
+//		}
+//		else
+//		{
+//				REQUIRE(!has_key(fruit_count, random_fruit));
+//		}
+//
+//		REQUIRE(has_key(fruit_count, L"orange" ));
+//
+//		REQUIRE(!has_key(fruit_count, wstring{ L"grapefruit" }));
+//}
+//
+//
+//TEST_CASE("bool has_key(const unordered_multimap<KeyType, ValueType>& container,
+//const typename unordered_multimap<KeyType, ValueType>::key_type& key)", "Testing
+//global template function bool has_key(const unordered_multimap<KeyType,
+//ValueType>& container, const typename unordered_multimap<KeyType,
+//ValueType>::key_type& key)"
+//)
+//{
+//		const wstring
+//src{L"apple:10:banana:20:cabbage:30:lemon:40:orange:50:pepper:60:plum:70"};
+//
+//		const auto parts{split(src, L':')};
+//
+//		const unordered_multimap<wstring, size_t> fruit_count = [&]()
+//		{
+//				unordered_multimap<wstring, size_t> fruits{};
+//
+//				for (size_t i = 0; i < parts.size(); i += 2)
+//				{
+//						fruits.insert(make_pair(parts[i], stoul(parts[i + 1])));
+//				}
+//
+//				return fruits;
+//		}();
+//
+//		const vector<wstring> random_fruits{
+//				L"apple", L"apricot", L"banana", L"orange", L"grapefruit",
+//L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
+//		};
+//
+//		mt19937 rand_engine{rd()};
+//
+//		auto const num_distr = uniform_int_distribution<unsigned>(0,
+//random_fruits.size() - 1);
+//
+//		const auto random_fruit{random_fruits[num_distr(rand_engine)]};
+//
+//		if (fruit_count.find(random_fruit) != cend(fruit_count))
+//		{
+//				REQUIRE(has_key(fruit_count, random_fruit));
+//		}
+//		else
+//		{
+//				REQUIRE(!has_key(fruit_count, random_fruit));
+//		}
+//
+//		REQUIRE(has_key(fruit_count, wstring{ L"orange" }));
+//
+//		REQUIRE(!has_key(fruit_count, L"grapefruit" ));
+//}
+//
+//TEST_CASE("bool has_key(unordered_multimap<KeyType, ValueType>& container, const
+//typename unordered_multimap<KeyType, ValueType>::key_type& key)", "Testing
+//global template function bool has_key(unordered_multimap<KeyType, ValueType>&
+//container, const typename unordered_multimap<KeyType, ValueType>::key_type&
+//key)")
+//{
+//		const wstring
+//src{L"apple:10:banana:20:cabbage:30:lemon:40:orange:50:pepper:60:plum:70"};
+//
+//		const auto parts{split(src, L':')};
+//
+//		auto fruit_count = unordered_multimap<wstring, size_t>{};
+//
+//		for (size_t i = 0; i < parts.size(); i += 2)
+//		{
+//				fruit_count.insert(make_pair(parts[i], std::stoul(parts[i +
+//1])));
+//		}
+//
+//		const vector<wstring> random_fruits{
+//				L"apple", L"apricot", L"banana", L"orange", L"grapefruit",
+//L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
+//		};
+//
+//		mt19937 rand_engine{rd()};
+//
+//		auto const num_distr = uniform_int_distribution<unsigned>(0,
+//random_fruits.size() - 1);
+//
+//		const auto random_fruit{random_fruits[num_distr(rand_engine)]};
+//
+//		if (fruit_count.find(random_fruit) != end(fruit_count))
+//		{
+//				REQUIRE(has_key(fruit_count, random_fruit));
+//		}
+//		else
+//		{
+//				REQUIRE(!has_key(fruit_count, random_fruit));
+//		}
+//
+//		REQUIRE(has_key(fruit_count, wstring{ L"orange" }));
+//
+//		REQUIRE(!has_key(fruit_count, L"grapefruit" ));
+//}
+//
+//TEST_CASE("bool has_value(const ContainerType& container, const typename
+//ContainerType::value_type& search_value)", "Testing global template function
+//bool has_value(const ContainerType& container, const typename
+//ContainerType::value_type& search_value)"
+//)
+//{
+//		const wstring
+//src{L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:pineapple:|:plum:|:walnut"};
+//
+//		const wstring needle{L":|:"};
+//
+//		const auto parts{split(src, needle)};
+//
+//		REQUIRE(has_value(parts, L"orange"));
+//
+//		REQUIRE(!has_value(parts, wstring{ L"grapefruit" }));
+//
+//		const vector<wstring> random_fruits{
+//				L"apple", L"apricot", L"banana", L"orange", L"grapefruit",
+//L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
+//		};
+//
+//		mt19937 rand_engine{rd()};
+//
+//		auto const num_distr = uniform_int_distribution<unsigned>(0,
+//random_fruits.size() - 1);
+//
+//		const auto random_fruit{random_fruits[num_distr(rand_engine)]};
+//
+//		if (find(cbegin(parts), cend(parts), random_fruit) != cend(parts))
+//				REQUIRE(has_value(parts, random_fruit));
+//
+//		else
+//				REQUIRE(!has_value(parts, random_fruit));
+//}
+//
+//TEST_CASE("bool has_value(ContainerType& container, const typename
+//ContainerType::value_type& search_value)", "Testing global template function
+//bool has_value(ContainerType& container, const typename
+//ContainerType::value_type& search_value)"
+//)
+//{
+//		const wstring
+//src{L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:pineapple:|:plum:|:walnut"};
+//
+//		const wstring needle{L":|:"};
+//
+//		auto parts{split(src, needle)};
+//
+//		REQUIRE(has_value(parts, L"orange"));
+//
+//		REQUIRE(!has_value(parts, wstring{ L"grapefruit" }));
+//
+//		const vector<wstring> random_fruits{
+//				L"apple", L"apricot", L"banana", L"orange", L"grapefruit",
+//L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
+//		};
+//
+//		mt19937 rand_engine{rd()};
+//
+//		auto const num_distr = uniform_int_distribution<unsigned>(0,
+//random_fruits.size() - 1);
+//
+//		const auto random_fruit{random_fruits[num_distr(rand_engine)]};
+//
+//		if (find(begin(parts), end(parts), random_fruit) != end(parts))
+//				REQUIRE(has_value(parts, random_fruit));
+//
+//		else
+//				REQUIRE(!has_value(parts, random_fruit));
+//}
+//
+//TEST_CASE("bool has_key(const set<ValueType>& container, const typename
+//set<ValueType>::key_type& item)", "Testing global template function bool
+//has_key(const set<ValueType>& container, const typename
+//set<ValueType>::key_type& item)")
+//{
+//		const wstring src{
+//				L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:pineapple:|:plum:|:walnut:|:lemon:|:apricot:|:plum"
+//		};
+//
+//		const wstring needle{L":|:"};
+//
+//		const auto parts{split(src, needle)};
+//
+//		const set<wstring> all_fruits = [&]()
+//		{
+//				set<wstring> fruits{};
+//
+//				for (const auto& fruit : parts)
+//				{
+//						fruits.insert(fruit);
+//				}
+//
+//				return fruits;
+//		}();
+//
+//		REQUIRE(has_key(all_fruits, wstring{ L"orange" }));
+//
+//		REQUIRE(!has_key(all_fruits, L"grapefruit" ));
+//
+//		const vector<wstring> random_fruits{
+//				L"apple", L"apricot", L"banana", L"orange", L"grapefruit",
+//L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
+//		};
+//
+//		mt19937 rand_engine{rd()};
+//
+//		auto const num_distr = uniform_int_distribution<unsigned>(0,
+//random_fruits.size() - 1);
+//
+//		const auto random_fruit{random_fruits[num_distr(rand_engine)]};
+//
+//		if (all_fruits.find(random_fruit) != cend(all_fruits))
+//				REQUIRE(has_key(all_fruits, random_fruit));
+//
+//		else
+//				REQUIRE(!has_key(all_fruits, random_fruit));
+//}
+//
+//TEST_CASE("bool has_value(const multiset<ValueType>& container, const typename
+//multiset<ValueType>::key_type& item)", "Testing global template function bool
+//has_value(const multiset<ValueType>& container, const typename
+//multiset<ValueType>::key_type& item)")
+//{
+//		const wstring src{
+//				L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:pineapple:|:plum:|:walnut:|:lemon:|:apricot:|:plum"
+//		};
+//
+//		const wstring needle{L":|:"};
+//
+//		const auto parts{split(src, needle)};
+//
+//		const multiset<wstring> all_fruits = [&]()
+//		{
+//				multiset<wstring> fruits{};
+//
+//				for (const auto& fruit : parts)
+//				{
+//						fruits.insert(fruit);
+//				}
+//
+//				return fruits;
+//		}();
+//
+//		REQUIRE(has_key(all_fruits, wstring{ L"orange" }));
+//
+//		REQUIRE(!has_key(all_fruits, L"grapefruit" ));
+//
+//		const vector<wstring> random_fruits{
+//				L"apple", L"apricot", L"banana", L"orange", L"grapefruit",
+//L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
+//		};
+//
+//		mt19937 rand_engine{rd()};
+//
+//		auto const num_distr = uniform_int_distribution<unsigned>(0,
+//random_fruits.size() - 1);
+//
+//		const auto random_fruit{random_fruits[num_distr(rand_engine)]};
+//
+//		if (all_fruits.find(random_fruit) != cend(all_fruits))
+//				REQUIRE(has_key(all_fruits, random_fruit));
+//
+//		else
+//				REQUIRE(!has_key(all_fruits, random_fruit));
+//}
+//
+//TEST_CASE("bool has_key(const unordered_set<ValueType>& container, const
+//typename unordered_set<ValueType>::key_type& item)", "Testing global template
+//function bool has_key(const unordered_set<ValueType>& container, const typename
+//unordered_set<ValueType>::key_type& item)")
+//{
+//		const wstring src{
+//				L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:pineapple:|:plum:|:walnut:|:lemon:|:apricot:|:plum"
+//		};
+//
+//		const wstring needle{L":|:"};
+//
+//		const auto parts{split(src, needle)};
+//
+//		const unordered_set<wstring> all_fruits = [&]()
+//		{
+//				unordered_set<wstring> fruits{};
+//
+//				for (const auto& fruit : parts)
+//				{
+//						fruits.insert(fruit);
+//				}
+//
+//				return fruits;
+//		}();
+//
+//		REQUIRE(has_key(all_fruits, wstring{ L"orange" }));
+//
+//		REQUIRE(!has_key(all_fruits, L"grapefruit" ));
+//
+//		const vector<wstring> random_fruits{
+//				L"apple", L"apricot", L"banana", L"orange", L"grapefruit",
+//L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
+//		};
+//
+//		mt19937 rand_engine{rd()};
+//
+//		auto const num_distr = uniform_int_distribution<unsigned>(0,
+//random_fruits.size() - 1);
+//
+//		const auto random_fruit{random_fruits[num_distr(rand_engine)]};
+//
+//		if (all_fruits.find(random_fruit) != cend(all_fruits))
+//				REQUIRE(has_key(all_fruits, random_fruit));
+//
+//		else
+//				REQUIRE(!has_key(all_fruits, random_fruit));
+//}
+//
+//TEST_CASE("bool has_key(const unordered_multiset<ValueType>& container, const
+//typename unordered_multiset<ValueType>::key_type&  item)", "Testing global
+//template function bool has_key(const unordered_multiset<ValueType>& container,
+//const typename unordered_multiset<ValueType>::key_type& item)"
+//)
+//{
+//		const wstring src{
+//				L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:pineapple:|:plum:|:walnut:|:lemon:|:apricot:|:plum"
+//		};
+//
+//		const wstring needle{L":|:"};
+//
+//		const auto parts{split(src, needle)};
+//
+//		const unordered_multiset<wstring> all_fruits = [&]()
+//		{
+//				unordered_multiset<wstring> fruits{};
+//
+//				for (const auto& fruit : parts)
+//				{
+//						fruits.insert(fruit);
+//				}
+//
+//				return fruits;
+//		}();
+//
+//		REQUIRE(has_key(all_fruits, L"orange"));
+//
+//		REQUIRE(!has_key(all_fruits, wstring{ L"grapefruit" }));
+//
+//		const vector<wstring> random_fruits{
+//				L"apple", L"apricot", L"banana", L"orange", L"grapefruit",
+//L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
+//		};
+//
+//		mt19937 rand_engine{rd()};
+//
+//		auto const num_distr = uniform_int_distribution<unsigned>(0,
+//random_fruits.size() - 1);
+//
+//		const auto random_fruit{random_fruits[num_distr(rand_engine)]};
+//
+//		if (all_fruits.find(random_fruit) != cend(all_fruits))
+//				REQUIRE(has_key(all_fruits, random_fruit));
+//
+//		else
+//				REQUIRE(!has_key(all_fruits, random_fruit));
+//}
+//
+//TEST_CASE(
+//		"string get_type_name(T&& arg) | wstring get_type_name_w(T&& arg) | void
+//show_var_info(const T& arg) | void show_var_info_w(const T& arg) || bool
+//check_data_types_for_equality(Args&&... args)"
+//		,
+//		"Testing global template functions: get_type_name, get_type_name_w,
+//show_var_info, show_var_info_w and check_data_types_for_equality"
+//)
+//{
+//		const wstring
+//src{L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:plum"};
+//
+//		const wstring needle{L":|:"};
+//
+//		const auto parts{split(src, needle)};
+//
+//		cout << '\n' << get_type_name(src) << '\n';
+//
+//		wcout << get_type_name_w(needle) << L'\n';
+//
+//		const string info_message{"Hello World!"};
+//
+//		show_var_info(info_message);
+//
+//		show_var_info_w(src);
+//
+//		show_var_info_w(needle);
+//
+//		cout << "\ncheck_data_types_for_equality(src : wstring, needle :
+//wstring) -> " << boolalpha << check_data_types_for_equality(src, needle) <<
+//'\n';
+//
+//		cout << "\ncheck_data_types_for_equality(src : wstring, parts :
+//vector<wstring>) -> " << check_data_types_for_equality(src, parts) << '\n';
+//}
+//
+//TEST_CASE("u16string to_u16string(const short value)", "Testing correct
+//functionality of global conversion function: u16string to_u16string(const short
+//value)")
+//{
+//		auto const result_u16string{ to_u16string(static_cast<short>(12345)) };
+//
+//
+//
+//		string result_string(cbegin(result_u16string), cend(result_u16string));
+//
+//
+//
+//		cout << "\nto_u16string(12345) = \"" << result_string << "\"\n";
+//
+//		REQUIRE(u16string{ u"12345" } == result_u16string);
+//
+//		const auto float_to_u16string{ to_u16string(7.51735f) };
+//
+//		REQUIRE(u16string{ u"7.51735" } == float_to_u16string);
+//
+//		result_string.assign(cbegin(float_to_u16string),
+//cend(float_to_u16string));
+//
+//		cout << "to_u16string(7.51735f) = \"" << result_string << "\"\n";
+//
+//}
+//
+//TEST_CASE("u16string to_u16string(const unsigned short value)", "Testing correct
+//functionality of global conversion function: u16string to_u16string(const
+//unsigned short value)")
+//{
+//		auto const result_u16string{ to_u16string(static_cast<unsigned
+//short>(12345)) };
+//
+//		const string result_string(cbegin(result_u16string),
+//cend(result_u16string));
+//
+//		cout << "\nto_u16string(12345) = \"" << result_string << "\"\n";
+//
+//		REQUIRE(u16string{ u"12345" } == result_u16string);
+//
+//}
+//
+//TEST_CASE("float stof(const u16string& str, size_t* pos = nullptr, int base =
+//10, bool ignore_leading_white_space_characters = true), u16string
+//to_u16string(float value)", "Testing correct functionality of global conversion
+//functions: stof, to_u16string")
+//{
+//		size_t end_pos{};
+//		// add code (function) for rounding to N decimal digits
+//		auto const float_value { stof(u"7.53", &end_pos, 10) };
+//
+//		cout << "\nstof(u\"7.53\") = " << float_value << '\n' << "end_pos = " <<
+//end_pos << '\n';
+//
+//		REQUIRE(float_value == 7.53);
+//
+//		const auto float_to_u16string{ to_u16string(float_value) };
+//
+//		REQUIRE(float_to_u16string == u"7.53");
+//
+//
+//}
 
 // TEST_CASE("u16string to_u16string(const short value)", "Testing correct
 // functionality of global conversion function: u16string to_u16string(const

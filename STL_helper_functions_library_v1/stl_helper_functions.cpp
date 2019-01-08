@@ -5,7 +5,7 @@ using namespace std;
 namespace cpp {
 namespace experimental {
 
-/*size_t str_length(char* str, const size_t max_allowed_string_length)
+/*size_t len(char* str, const size_t max_allowed_string_length)
 {
         if (!str) return 0u;
 
@@ -25,7 +25,7 @@ max_allowed_string_length;
         return length;
 }
 
-size_t str_length(wchar_t* str, const size_t max_allowed_string_length)
+size_t len(wchar_t* str, const size_t max_allowed_string_length)
 {
         if (!str) return 0u;
 
@@ -45,7 +45,7 @@ max_allowed_string_length;
         return length;
 }
 
-size_t str_length(char16_t* str, const size_t max_allowed_string_length)
+size_t len(char16_t* str, const size_t max_allowed_string_length)
 {
         if (!str) return 0u;
 
@@ -65,7 +65,7 @@ max_allowed_string_length;
         return length;
 }
 
-size_t str_length(char32_t* str, const size_t max_allowed_string_length)
+size_t len(char32_t* str, const size_t max_allowed_string_length)
 {
         if (!str) return 0u;
 
@@ -85,7 +85,7 @@ max_allowed_string_length;
         return length;
 }
 
-size_t str_length(const char* str, const size_t max_allowed_string_length)
+size_t len(const char* str, const size_t max_allowed_string_length)
 {
         if (!str) return 0u;
 
@@ -105,7 +105,7 @@ max_allowed_string_length;
         return length;
 }
 
-size_t str_length(const wchar_t* str, const size_t max_allowed_string_length)
+size_t len(const wchar_t* str, const size_t max_allowed_string_length)
 {
         if (!str) return 0u;
 
@@ -125,7 +125,7 @@ max_allowed_string_length;
         return length;
 }
 
-size_t str_length(const char16_t* str, const size_t max_allowed_string_length)
+size_t len(const char16_t* str, const size_t max_allowed_string_length)
 {
         if (!str) return 0u;
 
@@ -145,7 +145,7 @@ max_allowed_string_length;
         return length;
 }
 
-size_t str_length(const char32_t* str, const size_t max_allowed_string_length)
+size_t len(const char32_t* str, const size_t max_allowed_string_length)
 {
         if (!str) return 0u;
 
@@ -169,13 +169,13 @@ bool trim(char* str)
 {
         auto begin = size_t{0u};
 
-        const auto str_len{str_length(str)};
+        const auto len{len(str)};
 
-        const auto original_end{str_len - 1};
+        const auto original_end{len - 1};
 
         auto end{original_end};
 
-        if (0u == str_len) return false;
+        if (0u == len) return false;
 
         for (auto is_ws_char{true}; begin <= end; ++begin)
         {
@@ -251,13 +251,13 @@ bool trim(wchar_t* str)
 {
         auto begin = size_t{0u};
 
-        const auto str_len{str_length(str)};
+        const auto len{len(str)};
 
-        const auto original_end{str_len - 1};
+        const auto original_end{len - 1};
 
         auto end{original_end};
 
-        if (0u == str_len) return false;
+        if (0u == len) return false;
 
         for (auto is_ws_char{true}; begin <= end; ++begin)
         {
@@ -333,13 +333,13 @@ bool trim(char16_t* str)
 {
         auto begin = size_t{0u};
 
-        const auto str_len{str_length(str)};
+        const auto len{len(str)};
 
-        const auto original_end{str_len - 1};
+        const auto original_end{len - 1};
 
         auto end{original_end};
 
-        if (0u == str_len) return false;
+        if (0u == len) return false;
 
         for (auto is_ws_char{true}; begin <= end; ++begin)
         {
@@ -416,13 +416,13 @@ bool trim(char32_t* str)
 {
         auto begin = size_t{0u};
 
-        const auto str_len{str_length(str)};
+        const auto len{len(str)};
 
-        const auto original_end{str_len - 1};
+        const auto original_end{len - 1};
 
         auto end{original_end};
 
-        if (0u == str_len) return false;
+        if (0u == len) return false;
 
         for (auto is_ws_char{true}; begin <= end; ++begin)
         {
@@ -499,11 +499,11 @@ bool ltrim(char* str)
 {
         auto begin = size_t{0u};
 
-        const auto str_len{str_length(str)};
+        const auto len{len(str)};
 
-        const auto end{str_len - 1};
+        const auto end{len - 1};
 
-        if (0u == str_len) return false;
+        if (0u == len) return false;
 
         for (auto is_ws_char{true}; begin <= end; ++begin)
         {
@@ -553,11 +553,11 @@ bool ltrim(wchar_t* str)
 {
         auto begin = size_t{0u};
 
-        const auto str_len{str_length(str)};
+        const auto len{len(str)};
 
-        const auto end{str_len - 1};
+        const auto end{len - 1};
 
-        if (0u == str_len) return false;
+        if (0u == len) return false;
 
         for (auto is_ws_char{true}; begin <= end; ++begin)
         {
@@ -607,11 +607,11 @@ bool ltrim(char16_t* str)
 {
         auto begin = size_t{0u};
 
-        const auto str_len{str_length(str)};
+        const auto len{len(str)};
 
-        const auto end{str_len - 1};
+        const auto end{len - 1};
 
-        if (0u == str_len) return false;
+        if (0u == len) return false;
 
         for (auto is_ws_char{true}; begin <= end; ++begin)
         {
@@ -661,11 +661,11 @@ bool ltrim(char32_t* str)
 {
         auto begin = size_t{0u};
 
-        const auto str_len{str_length(str)};
+        const auto len{len(str)};
 
-        const auto end{str_len - 1};
+        const auto end{len - 1};
 
-        if (0u == str_len) return false;
+        if (0u == len) return false;
 
         for (auto is_ws_char{true}; begin <= end; ++begin)
         {
@@ -716,13 +716,13 @@ bool rtrim(char* str)
 {
         const auto begin = size_t{0u};
 
-        const auto str_len{str_length(str)};
+        const auto len{len(str)};
 
-        auto end{str_len - 1};
+        auto end{len - 1};
 
         const auto original_end{end};
 
-        if (0u == str_len) return false;
+        if (0u == len) return false;
 
         for (auto is_ws_char{true}; end > begin; --end)
         {
@@ -755,13 +755,13 @@ bool rtrim(wchar_t* str)
 {
         const auto begin = size_t{0u};
 
-        const auto str_len{str_length(str)};
+        const auto len{len(str)};
 
-        auto end{str_len - 1};
+        auto end{len - 1};
 
         const auto original_end{end};
 
-        if (0u == str_len) return false;
+        if (0u == len) return false;
 
         for (auto is_ws_char{true}; end > begin; --end)
         {
@@ -794,13 +794,13 @@ bool rtrim(char16_t* str)
 {
         const auto begin = size_t{0u};
 
-        const auto str_len{str_length(str)};
+        const auto len{len(str)};
 
-        auto end{str_len - 1};
+        auto end{len - 1};
 
         const auto original_end{end};
 
-        if (0u == str_len) return false;
+        if (0u == len) return false;
 
         for (auto is_ws_char{true}; end > begin; --end)
         {
@@ -833,13 +833,13 @@ bool rtrim(char32_t* str)
 {
         const auto begin = size_t{0u};
 
-        const auto str_len{str_length(str)};
+        const auto len{len(str)};
 
-        auto end{str_len - 1};
+        auto end{len - 1};
 
         const auto original_end{end};
 
-        if (0u == str_len) return false;
+        if (0u == len) return false;
 
         for (auto is_ws_char{true}; end > begin; --end)
         {
@@ -872,7 +872,7 @@ bool str_starts_with(const char* src,
                      const char start_char,
                      bool ignore_case,
                      const locale& loc) {
-  if (0u == str_length(src))
+  if (0u == len(src))
     return false;
 
   if (!ignore_case) {
@@ -886,7 +886,7 @@ bool str_starts_with(const wchar_t* src,
                      const wchar_t start_char,
                      bool ignore_case,
                      const locale& loc) {
-  if (0u == str_length(src))
+  if (0u == len(src))
     return false;
 
   if (!ignore_case) {
@@ -900,7 +900,7 @@ bool str_starts_with(const char16_t* src,
                      const char16_t start_char,
                      bool ignore_case,
                      const locale& loc) {
-  if (0u == str_length(src))
+  if (0u == len(src))
     return false;
 
   if (!ignore_case) {
@@ -914,7 +914,7 @@ bool str_starts_with(const char32_t* src,
                      const char32_t start_char,
                      bool ignore_case,
                      const locale& loc) {
-  if (0u == str_length(src))
+  if (0u == len(src))
     return false;
 
   if (!ignore_case) {
@@ -1288,7 +1288,7 @@ bool str_contains(const char* src,
                   const locale& loc) {
   const string src_str{src};
 
-  if (0u == str_length(src))
+  if (0u == len(src))
     return false;
 
   if (!ignore_case) {
@@ -1316,7 +1316,7 @@ bool str_contains(const wchar_t* src,
                   const locale& loc) {
   const wstring src_str{src};
 
-  if (0u == str_length(src))
+  if (0u == len(src))
     return false;
 
   if (!ignore_case) {
@@ -1344,7 +1344,7 @@ bool str_contains(const char16_t* src,
                   const locale& loc) {
   const u16string src_str{src};
 
-  if (0u == str_length(src))
+  if (0u == len(src))
     return false;
 
   if (!ignore_case) {
@@ -1372,7 +1372,7 @@ bool str_contains(const char32_t* src,
                   const locale& loc) {
   const u32string src_str{src};
 
-  if (0u == str_length(src))
+  if (0u == len(src))
     return false;
 
   if (!ignore_case) {
@@ -1401,7 +1401,7 @@ bool str_contains(const char* src,
   const string src_str{src};
   const string needle_str{needle};
 
-  if (0u == str_length(src))
+  if (0u == len(src))
     return false;
 
   if (!ignore_case) {
@@ -1435,7 +1435,7 @@ bool str_contains(const wchar_t* src,
   const wstring src_str{src};
   const wstring needle_str{needle};
 
-  if (0u == str_length(src))
+  if (0u == len(src))
     return false;
 
   if (!ignore_case) {
@@ -1455,7 +1455,7 @@ bool str_contains(const wchar_t* src,
   transform(cbegin(needle_str), cend(needle_str), begin(needle_lc_str),
             [&loc](const wchar_t ch) { return tolower(ch, loc); });
 
-  if (wstring::npos == text_lc.find(tolower(needle_lc_str, loc), start_pos))
+  if (wstring::npos == text_lc.find(needle_lc_str, start_pos))
     return true;
 
   return false;
@@ -1469,7 +1469,7 @@ bool str_contains(const char16_t* src,
   const u16string src_str{src};
   const u16string needle_str{needle};
 
-  if (0u == str_length(src))
+  if (0u == len(src))
     return false;
 
   if (!ignore_case) {
@@ -1503,7 +1503,7 @@ bool str_contains(const char32_t* src,
   const u32string src_str{src};
   const u32string needle_str{needle};
 
-  if (0u == str_length(src))
+  if (0u == len(src))
     return false;
 
   if (!ignore_case) {
@@ -1535,7 +1535,7 @@ bool str_ends_with(const char* src,
                    const char end_char,
                    bool ignore_case,
                    const locale& loc) {
-  const auto src_len{str_length(src)};
+  const auto src_len{len(src)};
 
   if (0u == src_len)
     return false;
@@ -1551,7 +1551,7 @@ bool str_ends_with(const wchar_t* src,
                    const wchar_t end_char,
                    bool ignore_case,
                    const locale& loc) {
-  const auto src_len{str_length(src)};
+  const auto src_len{len(src)};
 
   if (0u == src_len)
     return false;
@@ -1567,7 +1567,7 @@ bool str_ends_with(const char16_t* src,
                    const char16_t end_char,
                    bool ignore_case,
                    const locale& loc) {
-  const auto src_len{str_length(src)};
+  const auto src_len{len(src)};
 
   if (0u == src_len)
     return false;
@@ -1583,7 +1583,7 @@ bool str_ends_with(const char32_t* src,
                    const char32_t end_char,
                    bool ignore_case,
                    const locale& loc) {
-  const auto src_len{str_length(src)};
+  const auto src_len{len(src)};
 
   if (0u == src_len)
     return false;
@@ -1757,8 +1757,8 @@ int str_compare(const char* str1, const char* str2) {
   if (!str2)
     return 1;
 
-  auto const str1_len{str_length(str1)};
-  auto const str2_len{str_length(str2)};
+  auto const str1_len{len(str1)};
+  auto const str2_len{len(str2)};
 
   auto const number_of_characters_to_compare = min(str1_len, str2_len);
 
@@ -1777,8 +1777,8 @@ int str_compare(const wchar_t* str1, const wchar_t* str2) {
   if (!str2)
     return 1;
 
-  auto const str1_len{str_length(str1)};
-  auto const str2_len{str_length(str2)};
+  auto const str1_len{len(str1)};
+  auto const str2_len{len(str2)};
 
   auto const number_of_characters_to_compare = min(str1_len, str2_len);
 
@@ -1797,8 +1797,8 @@ int str_compare(const char16_t* str1, const char16_t* str2) {
   if (!str2)
     return 1;
 
-  auto const str1_len{str_length(str1)};
-  auto const str2_len{str_length(str2)};
+  auto const str1_len{len(str1)};
+  auto const str2_len{len(str2)};
 
   auto const number_of_characters_to_compare = min(str1_len, str2_len);
 
@@ -1817,8 +1817,8 @@ int str_compare(const char32_t* str1, const char32_t* str2) {
   if (!str2)
     return 1;
 
-  auto const str1_len{str_length(str1)};
-  auto const str2_len{str_length(str2)};
+  auto const str1_len{len(str1)};
+  auto const str2_len{len(str2)};
 
   auto const number_of_characters_to_compare = min(str1_len, str2_len);
 
@@ -1839,8 +1839,8 @@ int str_compare_n(const char* str1,
   if (!str2)
     return 1;
 
-  auto const str1_len{str_length(str1)};
-  auto const str2_len{str_length(str2)};
+  auto const str1_len{len(str1)};
+  auto const str2_len{len(str2)};
 
   if (str1_len < number_of_characters_to_compare ||
       str2_len < number_of_characters_to_compare) {
@@ -1864,8 +1864,8 @@ int str_compare_n(const wchar_t* str1,
   if (!str2)
     return 1;
 
-  auto const str1_len{str_length(str1)};
-  auto const str2_len{str_length(str2)};
+  auto const str1_len{len(str1)};
+  auto const str2_len{len(str2)};
 
   if (str1_len < number_of_characters_to_compare ||
       str2_len < number_of_characters_to_compare) {
@@ -1889,8 +1889,8 @@ int str_compare_n(const char16_t* str1,
   if (!str2)
     return 1;
 
-  auto const str1_len{str_length(str1)};
-  auto const str2_len{str_length(str2)};
+  auto const str1_len{len(str1)};
+  auto const str2_len{len(str2)};
 
   if (str1_len < number_of_characters_to_compare ||
       str2_len < number_of_characters_to_compare) {
@@ -1914,8 +1914,8 @@ int str_compare_n(const char32_t* str1,
   if (!str2)
     return 1;
 
-  auto const str1_len{str_length(str1)};
-  auto const str2_len{str_length(str2)};
+  auto const str1_len{len(str1)};
+  auto const str2_len{len(str2)};
 
   if (str1_len < number_of_characters_to_compare ||
       str2_len < number_of_characters_to_compare) {
@@ -1937,8 +1937,8 @@ int str_compare_i(const char* str1, const char* str2, const locale& loc) {
   if (!str2)
     return 1;
 
-  auto const str1_len = str_length(str1);
-  auto const str2_len = str_length(str2);
+  auto const str1_len = len(str1);
+  auto const str2_len = len(str2);
 
   auto const number_of_characters_to_compare = min(str1_len, str2_len);
 
@@ -1960,8 +1960,8 @@ int str_compare_i(const wchar_t* str1, const wchar_t* str2, const locale& loc) {
   if (!str2)
     return 1;
 
-  auto const str1_len = str_length(str1);
-  auto const str2_len = str_length(str2);
+  auto const str1_len = len(str1);
+  auto const str2_len = len(str2);
 
   auto const number_of_characters_to_compare = min(str1_len, str2_len);
 
@@ -1985,8 +1985,8 @@ int str_compare_i(const char16_t* str1,
   if (!str2)
     return 1;
 
-  auto const str1_len = str_length(str1);
-  auto const str2_len = str_length(str2);
+  auto const str1_len = len(str1);
+  auto const str2_len = len(str2);
 
   auto const number_of_characters_to_compare = min(str1_len, str2_len);
 
@@ -2010,8 +2010,8 @@ int str_compare_i(const char32_t* str1,
   if (!str2)
     return 1;
 
-  auto const str1_len = str_length(str1);
-  auto const str2_len = str_length(str2);
+  auto const str1_len = len(str1);
+  auto const str2_len = len(str2);
 
   auto const number_of_characters_to_compare = min(str1_len, str2_len);
 
@@ -2036,8 +2036,8 @@ int str_compare_n_i(const char* str1,
   if (!str2)
     return 1;
 
-  auto const str1_len = str_length(str1);
-  auto const str2_len = str_length(str2);
+  auto const str1_len = len(str1);
+  auto const str2_len = len(str2);
 
   if (str1_len < number_of_characters_to_compare ||
       str2_len < number_of_characters_to_compare) {
@@ -2059,8 +2059,8 @@ int str_compare_n_i(const wchar_t* str1,
                     const wchar_t* str2,
                     size_t number_of_characters_to_compare,
                     const locale& loc) {
-  auto const str1_len = str_length(str1);
-  auto const str2_len = str_length(str2);
+  auto const str1_len = len(str1);
+  auto const str2_len = len(str2);
 
   if (str1_len < number_of_characters_to_compare ||
       str2_len < number_of_characters_to_compare) {
@@ -2082,8 +2082,8 @@ int str_compare_n_i(const char16_t* str1,
                     const char16_t* str2,
                     size_t number_of_characters_to_compare,
                     const locale& loc) {
-  auto const str1_len = str_length(str1);
-  auto const str2_len = str_length(str2);
+  auto const str1_len = len(str1);
+  auto const str2_len = len(str2);
 
   if (str1_len < number_of_characters_to_compare ||
       str2_len < number_of_characters_to_compare) {
@@ -2105,8 +2105,8 @@ int str_compare_n_i(const char32_t* str1,
                     const char32_t* str2,
                     size_t number_of_characters_to_compare,
                     const locale& loc) {
-  auto const str1_len = str_length(str1);
-  auto const str2_len = str_length(str2);
+  auto const str1_len = len(str1);
+  auto const str2_len = len(str2);
 
   if (str1_len < number_of_characters_to_compare ||
       str2_len < number_of_characters_to_compare) {
@@ -2129,7 +2129,7 @@ size_t str_copy(char* dst,
                 const char* src,
                 const str_copy_behavior copy_options,
                 size_t* required_dst_capacity) {
-  auto const src_len = str_length(src);
+  auto const src_len = len(src);
 
   const auto ret_val{src_len + 1};
 
@@ -2167,7 +2167,7 @@ size_t str_copy(wchar_t* dst,
                 const wchar_t* src,
                 const str_copy_behavior copy_options,
                 size_t* required_dst_capacity) {
-  auto const src_len = str_length(src);
+  auto const src_len = len(src);
 
   const auto ret_val{src_len + 1};
 
@@ -2205,7 +2205,7 @@ size_t str_copy(char16_t* dst,
                 const char16_t* src,
                 const str_copy_behavior copy_options,
                 size_t* required_dst_capacity) {
-  auto const src_len = str_length(src);
+  auto const src_len = len(src);
 
   const auto ret_val{src_len + 1};
 
@@ -2243,7 +2243,7 @@ size_t str_copy(char32_t* dst,
                 const char32_t* src,
                 const str_copy_behavior copy_options,
                 size_t* required_dst_capacity) {
-  auto const src_len = str_length(src);
+  auto const src_len = len(src);
 
   const auto ret_val{src_len + 1};
 
@@ -2282,7 +2282,7 @@ size_t str_copy_n(char* dst,
                   const size_t number_of_characters_to_copy,
                   const str_copy_behavior copy_options,
                   size_t* required_dst_capacity) {
-  auto const src_len = str_length(src);
+  auto const src_len = len(src);
 
   auto const noctc = min(number_of_characters_to_copy, src_len);
 
@@ -2323,7 +2323,7 @@ size_t str_copy_n(wchar_t* dst,
                   const size_t number_of_characters_to_copy,
                   const str_copy_behavior copy_options,
                   size_t* required_dst_capacity) {
-  auto const src_len = str_length(src);
+  auto const src_len = len(src);
 
   auto const noctc = min(number_of_characters_to_copy, src_len);
 
@@ -2364,7 +2364,7 @@ size_t str_copy_n(char16_t* dst,
                   const size_t number_of_characters_to_copy,
                   const str_copy_behavior copy_options,
                   size_t* required_dst_capacity) {
-  auto const src_len = str_length(src);
+  auto const src_len = len(src);
 
   auto const noctc = min(number_of_characters_to_copy, src_len);
 
@@ -2405,7 +2405,7 @@ size_t str_copy_n(char32_t* dst,
                   const size_t number_of_characters_to_copy,
                   const str_copy_behavior copy_options,
                   size_t* required_dst_capacity) {
-  auto const src_len = str_length(src);
+  auto const src_len = len(src);
 
   auto const noctc = min(number_of_characters_to_copy, src_len);
 
@@ -2445,8 +2445,8 @@ size_t str_append(char* dst,
                   const char* src,
                   const str_append_behavior append_options,
                   size_t* required_dst_capacity) {
-  auto const src_len = str_length(src);
-  auto const dst_len = str_length(dst);
+  auto const src_len = len(src);
+  auto const dst_len = len(dst);
 
   const auto ret_val{dst_len + src_len + 1};
 
@@ -2486,8 +2486,8 @@ size_t str_append(wchar_t* dst,
                   const wchar_t* src,
                   const str_append_behavior append_options,
                   size_t* required_dst_capacity) {
-  auto const src_len = str_length(src);
-  auto const dst_len = str_length(dst);
+  auto const src_len = len(src);
+  auto const dst_len = len(dst);
 
   const auto ret_val{dst_len + src_len + 1};
 
@@ -2527,8 +2527,8 @@ size_t str_append(char16_t* dst,
                   const char16_t* src,
                   const str_append_behavior append_options,
                   size_t* required_dst_capacity) {
-  auto const src_len = str_length(src);
-  auto const dst_len = str_length(dst);
+  auto const src_len = len(src);
+  auto const dst_len = len(dst);
 
   const auto ret_val{dst_len + src_len + 1};
 
@@ -2568,8 +2568,8 @@ size_t str_append(char32_t* dst,
                   const char32_t* src,
                   const str_append_behavior append_options,
                   size_t* required_dst_capacity) {
-  auto const src_len = str_length(src);
-  auto const dst_len = str_length(dst);
+  auto const src_len = len(src);
+  auto const dst_len = len(dst);
 
   const auto ret_val{dst_len + src_len + 1};
 
@@ -2610,9 +2610,9 @@ size_t str_append_n(char* dst,
                     const size_t number_of_characters_to_append,
                     const str_append_behavior append_options,
                     size_t* required_dst_capacity) {
-  const auto src_len{str_length(src)};
+  const auto src_len{len(src)};
 
-  const auto dst_len{str_length(dst)};
+  const auto dst_len{len(dst)};
 
   size_t ret_val{};
 
@@ -2659,9 +2659,9 @@ size_t str_append_n(wchar_t* dst,
                     const size_t number_of_characters_to_append,
                     const str_append_behavior append_options,
                     size_t* required_dst_capacity) {
-  const auto src_len{str_length(src)};
+  const auto src_len{len(src)};
 
-  const auto dst_len{str_length(dst)};
+  const auto dst_len{len(dst)};
 
   size_t ret_val{};
 
@@ -2708,9 +2708,9 @@ size_t str_append_n(char16_t* dst,
                     const size_t number_of_characters_to_append,
                     const str_append_behavior append_options,
                     size_t* required_dst_capacity) {
-  const auto src_len{str_length(src)};
+  const auto src_len{len(src)};
 
-  const auto dst_len{str_length(dst)};
+  const auto dst_len{len(dst)};
 
   size_t ret_val{};
 
@@ -2757,9 +2757,9 @@ size_t str_append_n(char32_t* dst,
                     const size_t number_of_characters_to_append,
                     const str_append_behavior append_options,
                     size_t* required_dst_capacity) {
-  const auto src_len{str_length(src)};
+  const auto src_len{len(src)};
 
-  const auto dst_len{str_length(dst)};
+  const auto dst_len{len(dst)};
 
   size_t ret_val{};
 
@@ -2805,8 +2805,8 @@ size_t str_prepend(char* dst,
                    const char* src,
                    const str_prepend_behaviour prepend_options,
                    size_t* required_dst_capacity) {
-  auto const src_len = str_length(src);
-  auto const dst_len = str_length(dst);
+  auto const src_len = len(src);
+  auto const dst_len = len(dst);
 
   size_t ret_val{};
 
@@ -2861,8 +2861,8 @@ size_t str_prepend(wchar_t* dst,
                    const wchar_t* src,
                    const str_prepend_behaviour prepend_options,
                    size_t* required_dst_capacity) {
-  auto const src_len = str_length(src);
-  auto const dst_len = str_length(dst);
+  auto const src_len = len(src);
+  auto const dst_len = len(dst);
 
   size_t ret_val{};
 
@@ -2917,8 +2917,8 @@ size_t str_prepend(char16_t* dst,
                    const char16_t* src,
                    const str_prepend_behaviour prepend_options,
                    size_t* required_dst_capacity) {
-  auto const src_len = str_length(src);
-  auto const dst_len = str_length(dst);
+  auto const src_len = len(src);
+  auto const dst_len = len(dst);
 
   size_t ret_val{};
 
@@ -2973,8 +2973,8 @@ size_t str_prepend(char32_t* dst,
                    const char32_t* src,
                    const str_prepend_behaviour prepend_options,
                    size_t* required_dst_capacity) {
-  auto const src_len = str_length(src);
-  auto const dst_len = str_length(dst);
+  auto const src_len = len(src);
+  auto const dst_len = len(dst);
 
   size_t ret_val{};
 
@@ -3030,8 +3030,8 @@ size_t str_prepend_n(char* dst,
                      const size_t number_of_characters_to_prepend,
                      const str_prepend_behaviour prepend_options,
                      size_t* required_dst_capacity) {
-  auto const src_len = str_length(src);
-  auto const dst_len = str_length(dst);
+  auto const src_len = len(src);
+  auto const dst_len = len(dst);
 
   auto nocp = number_of_characters_to_prepend > src_len
                   ? src_len
@@ -3090,8 +3090,8 @@ size_t str_prepend_n(wchar_t* dst,
                      const size_t number_of_characters_to_prepend,
                      const str_prepend_behaviour prepend_options,
                      size_t* required_dst_capacity) {
-  auto const src_len = str_length(src);
-  auto const dst_len = str_length(dst);
+  auto const src_len = len(src);
+  auto const dst_len = len(dst);
 
   auto nocp = number_of_characters_to_prepend > src_len
                   ? src_len
@@ -3150,8 +3150,8 @@ size_t str_prepend_n(char16_t* dst,
                      const size_t number_of_characters_to_prepend,
                      const str_prepend_behaviour prepend_options,
                      size_t* required_dst_capacity) {
-  auto const src_len = str_length(src);
-  auto const dst_len = str_length(dst);
+  auto const src_len = len(src);
+  auto const dst_len = len(dst);
 
   auto nocp = number_of_characters_to_prepend > src_len
                   ? src_len
@@ -3206,12 +3206,11 @@ size_t str_prepend_n(char16_t* dst,
 
 size_t str_prepend_n(char32_t* dst,
                      const size_t dst_capacity_in_number_of_characters,
-                     const char32_t* src,
-                     const size_t number_of_characters_to_prepend,
+                     const char32_t* src,                     
                      const str_prepend_behaviour prepend_options,
                      size_t* required_dst_capacity) {
-  auto const src_len = str_length(src);
-  auto const dst_len = str_length(dst);
+  auto const src_len = len(src);
+  auto const dst_len = len(dst);
 
   size_t ret_val{};
 
@@ -3267,8 +3266,8 @@ size_t str_insert(char* dst,
                   const char* src,
                   const str_insert_behaviour insert_options,
                   size_t* required_dst_capacity) {
-  auto const src_len = str_length(src);
-  auto const dst_len = str_length(dst);
+  auto const src_len = len(src);
+  auto const dst_len = len(dst);
 
   if (position_index_in_dst > dst_len) {
     if (required_dst_capacity)
@@ -3314,8 +3313,8 @@ size_t str_insert(wchar_t* dst,
                   const wchar_t* src,
                   const str_insert_behaviour insert_options,
                   size_t* required_dst_capacity) {
-  auto const src_len = str_length(src);
-  auto const dst_len = str_length(dst);
+  auto const src_len = len(src);
+  auto const dst_len = len(dst);
 
   if (position_index_in_dst > dst_len) {
     if (required_dst_capacity)
@@ -3361,8 +3360,8 @@ size_t str_insert(char16_t* dst,
                   const char16_t* src,
                   const str_insert_behaviour insert_options,
                   size_t* required_dst_capacity) {
-  auto const src_len = str_length(src);
-  auto const dst_len = str_length(dst);
+  auto const src_len = len(src);
+  auto const dst_len = len(dst);
 
   if (position_index_in_dst > dst_len) {
     if (required_dst_capacity)
@@ -3408,8 +3407,8 @@ size_t str_insert(char32_t* dst,
                   const char32_t* src,
                   const str_insert_behaviour insert_options,
                   size_t* required_dst_capacity) {
-  auto const src_len = str_length(src);
-  auto const dst_len = str_length(dst);
+  auto const src_len = len(src);
+  auto const dst_len = len(dst);
 
   if (position_index_in_dst > dst_len) {
     if (required_dst_capacity)
@@ -3456,8 +3455,8 @@ size_t str_insert_n(char* dst,
                     const size_t number_of_characters_to_insert,
                     const str_insert_behaviour insert_options,
                     size_t* required_dst_capacity) {
-  auto const src_len = str_length(src);
-  auto const dst_len = str_length(dst);
+  auto const src_len = len(src);
+  auto const dst_len = len(dst);
 
   auto nocti = min(number_of_characters_to_insert, src_len);
 
@@ -3506,8 +3505,8 @@ size_t str_insert_n(wchar_t* dst,
                     const size_t number_of_characters_to_insert,
                     const str_insert_behaviour insert_options,
                     size_t* required_dst_capacity) {
-  auto const src_len = str_length(src);
-  auto const dst_len = str_length(dst);
+  auto const src_len = len(src);
+  auto const dst_len = len(dst);
 
   auto nocti = min(number_of_characters_to_insert, src_len);
 
@@ -3556,8 +3555,8 @@ size_t str_insert_n(char16_t* dst,
                     const size_t number_of_characters_to_insert,
                     const str_insert_behaviour insert_options,
                     size_t* required_dst_capacity) {
-  auto const src_len = str_length(src);
-  auto const dst_len = str_length(dst);
+  auto const src_len = len(src);
+  auto const dst_len = len(dst);
 
   auto nocti = min(number_of_characters_to_insert, src_len);
 
@@ -3606,8 +3605,8 @@ size_t str_insert_n(char32_t* dst,
                     const size_t number_of_characters_to_insert,
                     const str_insert_behaviour insert_options,
                     size_t* required_dst_capacity) {
-  auto const src_len = str_length(src);
-  auto const dst_len = str_length(dst);
+  auto const src_len = len(src);
+  auto const dst_len = len(dst);
 
   auto nocti = min(number_of_characters_to_insert, src_len);
 
@@ -3654,9 +3653,9 @@ size_t str_replace_first(char* dst,
                          const char* needle,
                          const char* replace,
                          size_t* required_dst_capacity) {
-  auto const dst_len{str_length(dst)};
-  auto const needle_len{str_length(needle)};
-  auto const replace_len{str_length(replace)};
+  auto const dst_len{len(dst)};
+  auto const needle_len{len(needle)};
+  auto const replace_len{len(replace)};
 
   size_t rdc;
 
@@ -3697,16 +3696,14 @@ size_t str_replace_first(char* dst,
   }
 
   if (needle_len < replace_len) {
-    auto const noctm = replace_len - needle_len;
+	  size_t const noctm{ replace_len - needle_len};
 
     // if needle_len == 2 and replace_len == 10, all the characters in the upper
     // part of dst ( characters with positions >= dst + start_pos + needle_len
     // characters ) have to be moved 'noctm' (8) character positions toward the
     // end of dst.
 
-    copy_backward(dst + start_pos + needle_len, dst + dst_len,
-                  dst + dst_len +
-                      noctm);  // copy characters from range [dst + start_pos +
+    copy_backward<char*, char*>(dst + start_pos + needle_len, dst + dst_len, dst + dst_len + noctm);  // copy characters from range [dst + start_pos +
                                // needle_len, dst + dst_len) to [dst + start_pos
                                // + needle_len + noctm, dst + dst_len + noctm)
     dst[dst_len + noctm] = '\0';
@@ -3726,7 +3723,7 @@ size_t str_replace_first(char* dst,
     // characters ) have to be moved 'noctm' (8) character positions toward dst
     // + start_pos + replace_len.
 
-    for (auto i = 0; i < dst_len - (start_pos + needle_len); i++)
+	for (size_t i{}; i < dst_len - (start_pos + needle_len); i++)
       dst[start_pos + replace_len + i] = dst[start_pos + needle_len + i];
 
     dst[dst_len - noctm] = '\0';
@@ -3745,9 +3742,9 @@ size_t str_replace_first(wchar_t* dst,
                          const wchar_t* needle,
                          const wchar_t* replace,
                          size_t* required_dst_capacity = nullptr) {
-  auto const dst_len{str_length(dst)};
-  auto const needle_len{str_length(needle)};
-  auto const replace_len{str_length(replace)};
+  auto const dst_len{len(dst)};
+  auto const needle_len{len(needle)};
+  auto const replace_len{len(replace)};
 
   size_t rdc;
 
@@ -3788,16 +3785,14 @@ size_t str_replace_first(wchar_t* dst,
   }
 
   if (needle_len < replace_len) {
-    auto const noctm = replace_len - needle_len;
+	  size_t const noctm{ replace_len - needle_len};
 
     // if needle_len == 2 and replace_len == 10, all the characters in the upper
     // part of dst ( characters with positions >= dst + start_pos + needle_len
     // characters ) have to be moved 'noctm' (8) character positions toward the
     // end of dst.
 
-    copy_backward(dst + start_pos + needle_len, dst + dst_len,
-                  dst + dst_len +
-                      noctm);  // copy characters from range [dst + start_pos +
+    copy_backward<wchar_t*, wchar_t*>(dst + start_pos + needle_len, dst + dst_len, dst + dst_len + noctm);  // copy characters from range [dst + start_pos +
                                // needle_len, dst + dst_len) to [dst + start_pos
                                // + needle_len + noctm, dst + dst_len + noctm)
     dst[dst_len + noctm] = L'\0';
@@ -3817,7 +3812,7 @@ size_t str_replace_first(wchar_t* dst,
     // characters ) have to be moved 'noctm' (8) character positions toward dst
     // + start_pos + replace_len.
 
-    for (auto i = 0; i < dst_len - (start_pos + needle_len); i++)
+	for (size_t i{}; i < dst_len - (start_pos + needle_len); i++)
       dst[start_pos + replace_len + i] = dst[start_pos + needle_len + i];
 
     dst[dst_len - noctm] = L'\0';
@@ -3836,9 +3831,9 @@ size_t str_replace_first(char16_t* dst,
                          const char16_t* needle,
                          const char16_t* replace,
                          size_t* required_dst_capacity = nullptr) {
-  auto const dst_len{str_length(dst)};
-  auto const needle_len{str_length(needle)};
-  auto const replace_len{str_length(replace)};
+  auto const dst_len{len(dst)};
+  auto const needle_len{len(needle)};
+  auto const replace_len{len(replace)};
 
   size_t rdc;
 
@@ -3879,14 +3874,14 @@ size_t str_replace_first(char16_t* dst,
   }
 
   if (needle_len < replace_len) {
-    auto const noctm = replace_len - needle_len;
+    size_t const noctm = replace_len - needle_len;
 
     // if needle_len == 2 and replace_len == 10, all the characters in the upper
     // part of dst ( characters with positions >= dst + start_pos + needle_len
     // characters ) have to be moved 'noctm' (8) character positions toward the
     // end of dst.
 
-    copy_backward(dst + start_pos + needle_len, dst + dst_len,
+    copy_backward<char16_t*, char16_t*>(dst + start_pos + needle_len, dst + dst_len,
                   dst + dst_len +
                       noctm);  // copy characters from range [dst + start_pos +
                                // needle_len, dst + dst_len) to [dst + start_pos
@@ -3908,7 +3903,7 @@ size_t str_replace_first(char16_t* dst,
     // characters ) have to be moved 'noctm' (8) character positions toward dst
     // + start_pos + replace_len.
 
-    for (auto i = 0; i < dst_len - (start_pos + needle_len); i++)
+	for (size_t i{}; i < dst_len - (start_pos + needle_len); i++)
       dst[start_pos + replace_len + i] = dst[start_pos + needle_len + i];
 
     dst[dst_len - noctm] = u'\0';
@@ -3927,9 +3922,9 @@ size_t str_replace_first(char32_t* dst,
                          const char32_t* needle,
                          const char32_t* replace,
                          size_t* required_dst_capacity = nullptr) {
-  auto const dst_len{str_length(dst)};
-  auto const needle_len{str_length(needle)};
-  auto const replace_len{str_length(replace)};
+  auto const dst_len{len(dst)};
+  auto const needle_len{len(needle)};
+  auto const replace_len{len(replace)};
 
   size_t rdc;
 
@@ -3970,14 +3965,14 @@ size_t str_replace_first(char32_t* dst,
   }
 
   if (needle_len < replace_len) {
-    auto const noctm = replace_len - needle_len;
+    size_t const noctm = replace_len - needle_len;
 
     // if needle_len == 2 and replace_len == 10, all the characters in the upper
     // part of dst ( characters with positions >= dst + start_pos + needle_len
     // characters ) have to be moved 'noctm' (8) character positions toward the
     // end of dst.
 
-    copy_backward(dst + start_pos + needle_len, dst + dst_len,
+    copy_backward<char32_t*, char32_t*>(dst + start_pos + needle_len, dst + dst_len,
                   dst + dst_len +
                       noctm);  // copy characters from range [dst + start_pos +
                                // needle_len, dst + dst_len) to [dst + start_pos
@@ -3999,7 +3994,7 @@ size_t str_replace_first(char32_t* dst,
     // characters ) have to be moved 'noctm' (8) character positions toward dst
     // + start_pos + replace_len.
 
-    for (auto i = 0; i < dst_len - (start_pos + needle_len); i++)
+	for (size_t i{}; i < dst_len - (start_pos + needle_len); i++)
       dst[start_pos + replace_len + i] = dst[start_pos + needle_len + i];
 
     dst[dst_len - noctm] = U'\0';
