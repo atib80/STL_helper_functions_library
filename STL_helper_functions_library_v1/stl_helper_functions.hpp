@@ -16,6 +16,7 @@
 #include <set>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <thread>
 #include <typeinfo>
 #include <unordered_map>
@@ -270,6 +271,21 @@ namespace cpp
 			return wprintf(L"%s", output_buffer_sp.get());
 		}
 
+		// various useful generic algorithms (function templates)
+
+		template <typename BiDirIter1, typename BiDirIter2>
+		constexpr BiDirIter2 copy_backward(BiDirIter1 src_first, BiDirIter1 src_last, BiDirIter2 dst_last)
+		{
+			if (src_first == src_last) return dst_last;
+
+			while (src_first != src_last)
+			{
+				*(--dst_last) = *(--src_last);
+			}
+
+			return dst_last;
+		}
+
 		static constexpr size_t max_string_length{std::string::npos};
 
 		template <typename CharType,
@@ -341,36 +357,23 @@ namespace cpp
 				return src.size() > max_allowed_string_length
 					       ? max_allowed_string_length
 					       : src.size();
-			} 
-			else return 0u;			
-							
-		}
-
-		template <typename BiDirIter1, typename BiDirIter2>
-		constexpr BiDirIter2 copy_backward(BiDirIter1 src_first, BiDirIter1 src_last, BiDirIter2 dst_last)
-		{
-			if (src_first == src_last) return dst_last;
-
-			while (src_first != src_last) {
-				*(--dst_last) = *(--src_last);
 			}
-			
-			return dst_last;
+			else return 0u;
 		}
 
 		template <typename CharPointerType,
-		          typename ConditionType = std::enable_if_t<std::is_array_v<CharPointerType> ||
-		                                                    is_anyone_of_v<CharPointerType,
-		                                                                   char *,
-		                                                                   wchar_t *,
-		                                                                   char16_t *,
-		                                                                   char32_t *>,
+		          typename ConditionType = std::enable_if_t<(std::is_array_v<CharPointerType> ||
+			                                                    is_anyone_of_v<CharPointerType,
+			                                                                   char *,
+			                                                                   wchar_t *,
+			                                                                   char16_t *,
+			                                                                   char32_t *>) && !std::is_const_v<
+			                                                    CharPointerType>,
 		                                                    void *>>
 
 		bool trim_in_place(CharPointerType src)
 		{
-			using char_type =
-				std::remove_cv_t<std::remove_pointer_t<std::decay_t<CharPointerType>>>;
+			using char_type = std::remove_pointer_t<std::decay_t<CharPointerType>>;
 
 			const auto str_len{len(src)};
 
@@ -413,17 +416,17 @@ namespace cpp
 		}
 
 		template <typename CharPointerType,
-		          typename ConditionType = std::enable_if_t<std::is_array_v<CharPointerType> ||
-		                                                    is_anyone_of_v<CharPointerType,
-		                                                                   char *,
-		                                                                   wchar_t *,
-		                                                                   char16_t *,
-		                                                                   char32_t *>,
+		          typename ConditionType = std::enable_if_t<(std::is_array_v<CharPointerType> ||
+			                                                    is_anyone_of_v<CharPointerType,
+			                                                                   char *,
+			                                                                   wchar_t *,
+			                                                                   char16_t *,
+			                                                                   char32_t *>) && !std::is_const_v<
+			                                                    CharPointerType>,
 		                                                    void *>>
 		bool ltrim_in_place(CharPointerType src)
 		{
-			using char_type =
-				std::remove_cv_t<std::remove_pointer_t<std::decay_t<CharPointerType>>>;
+			using char_type = std::remove_pointer_t<std::decay_t<CharPointerType>>;
 
 			const auto str_len{len(src)};
 
@@ -452,18 +455,18 @@ namespace cpp
 		}
 
 		template <typename CharPointerType,
-		          typename ConditionType = std::enable_if_t<std::is_array_v<CharPointerType> ||
-		                                                    is_anyone_of_v<CharPointerType,
-		                                                                   char *,
-		                                                                   wchar_t *,
-		                                                                   char16_t *,
-		                                                                   char32_t *>,
+		          typename ConditionType = std::enable_if_t<(std::is_array_v<CharPointerType> ||
+			                                                    is_anyone_of_v<CharPointerType,
+			                                                                   char *,
+			                                                                   wchar_t *,
+			                                                                   char16_t *,
+			                                                                   char32_t *>) && !std::is_const_v<
+			                                                    CharPointerType>,
 		                                                    void *>>
 
 		bool rtrim_in_place(CharPointerType src)
 		{
-			using char_type =
-				std::remove_cv_t<std::remove_pointer_t<std::decay_t<CharPointerType>>>;
+			using char_type = std::remove_pointer_t<std::decay_t<CharPointerType>>;
 
 			const auto str_len{len(src)};
 
@@ -674,7 +677,8 @@ namespace cpp
 		template <typename T, typename U,
 		          typename ConditionType = std::enable_if_t<
 			          (std::is_array_v<T> && std::is_same_v<
-				          std::remove_cv_t<std::remove_pointer_t<std::remove_extent_t<T>>>, std::remove_cv_t<U>>) ||
+				          std::remove_cv_t<std::remove_extent_t<T>>, std::remove_cv_t<std::remove_pointer_t<std::
+					          remove_extent_t<U>>>>) ||
 			          (is_anyone_of_v<T,
 			                          const char *,
 			                          const wchar_t *,
@@ -684,7 +688,8 @@ namespace cpp
 			                          wchar_t *,
 			                          char16_t *,
 			                          char32_t *> &&
-				          std::is_same_v<std::remove_cv_t<std::remove_pointer_t<T>>, std::remove_cv_t<U>>),
+				          std::is_same_v<std::remove_cv_t<std::remove_pointer_t<T>>, std::remove_cv_t<std::
+					                         remove_pointer_t<std::remove_extent_t<U>>>>),
 			          void *>>
 		bool str_starts_with(T src,
 		                     const U needle,
@@ -707,28 +712,30 @@ namespace cpp
 			{
 				using char_type = std::remove_cv_t<std::remove_pointer_t<U>>;
 
-				std::basic_string<char_type> src_str{src};
-				std::basic_string<char_type> start_tag_str{needle};
+				const auto src_len{len(src)};
+				const auto needle_len{len(needle)};
 
-				const auto src_len{src_str.length()};
-				const auto start_tag_len{start_tag_str.length()};
+				std::basic_string_view<char_type> src_str_view(src, src_len);
+				std::basic_string_view<char_type> needle_str_view(needle, needle_len);
 
-				if (0 == src_len || 0 == start_tag_len || start_tag_len > src_len)
+				if (0 == src_len || 0 == needle_len || needle_len > src_len)
 					return false;
 
 				if (!ignore_case)
-					return 0 == src_str.find(start_tag_str);
+					return 0 == src_str_view.find(needle_str_view);
+
+				std::basic_string<char_type> src_str{src};
+				std::basic_string<char_type> needle_str{needle};
 
 				const auto& f = std::use_facet<std::ctype<char_type>>(loc);
 
 				std::transform(std::cbegin(src_str), std::cend(src_str), std::begin(src_str),
-				               [&f](const char ch) { return f.tolower(ch); });
+				               [&f](const auto ch) { return f.tolower(ch); });
 
-				std::transform(std::cbegin(start_tag_str),
-				               std::cend(start_tag_str), std::begin(start_tag_str),
-				               [&f](const char ch) { return f.tolower(ch); });
+				std::transform(std::cbegin(needle_str), std::cend(needle_str), std::begin(needle_str),
+				               [&f](const auto ch) { return f.tolower(ch); });
 
-				return 0 == src_str.find(start_tag_str);
+				return 0 == src_str.find(needle_str);
 			}
 		}
 
@@ -769,20 +776,19 @@ namespace cpp
 		                     const bool ignore_case = false,
 		                     const std::locale& loc = std::locale{})
 		{
-			using char_type = typename StringType::value_type;
-
-			const StringType start_tag_str{start_tag};
+			using char_type = typename StringType::value_type;			
 
 			const auto src_len{src.length()};
-			const auto start_tag_len{start_tag_str.length()};
+			const auto start_tag_len{len(start_tag)};
 
 			if (0 == src_len || 0 == start_tag_len || start_tag_len > src_len)
 				return false;
 
 			if (!ignore_case)
-				return 0 == src.find(start_tag_str);
+				return 0 == src.find(start_tag);
 
 			StringType src_lc{src};
+			StringType start_tag_str{start_tag};			
 
 			const auto& f = std::use_facet<std::ctype<char_type>>(loc);
 
@@ -868,7 +874,7 @@ namespace cpp
 				const auto& f = std::use_facet<std::ctype<char_type>>(loc);
 
 				std::transform(std::cbegin(src_str), std::cend(src_str), std::begin(src_str),
-				               [&f](const char ch) { return f.tolower(ch); });
+				               [&f](const auto ch) { return f.tolower(ch); });
 
 				return src_str.find(f.tolower(needle), start_pos);
 			}

@@ -1078,6 +1078,52 @@ src{U"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:plum"};
 }
 */
 
+
+
+TEST_CASE("bool str_starts_with(T src, const U needle, const bool ignore_case = false, const std::locale& loc = std::locale{})",
+		  "Testing global function template bool str_starts_with(T src, const U needle, const bool ignore_case = false, const std::locale& loc = std::locale{})")
+{
+		const char* src_cstr{"Apple is one my favorite, most beloved fruits."};
+
+		REQUIRE(str_starts_with(src_cstr, "Apple"));
+
+		REQUIRE(str_starts_with(src_cstr, "apPLE", true));
+
+		REQUIRE(str_starts_with(src_cstr, 'A'));
+
+		REQUIRE(str_starts_with(src_cstr, 'a', true));
+		
+		const wchar_t* src_wcstr{L"Apple is one my favorite, most beloved fruits."};
+
+		REQUIRE(str_starts_with(src_wcstr, L"Apple"));
+
+		REQUIRE(str_starts_with(src_wcstr, L"apPLE", true));
+
+		REQUIRE(str_starts_with(src_wcstr, L'A'));
+
+		REQUIRE(str_starts_with(src_wcstr, L'a', true));
+
+		const char16_t* src_u16cstr{u"Apple is one my favorite, most beloved fruits."};
+
+		REQUIRE(str_starts_with(src_u16cstr, u"Apple"));
+
+		REQUIRE(str_starts_with(src_u16cstr, u"apPLE", true));
+
+		REQUIRE(str_starts_with(src_u16cstr, u'A'));
+
+		REQUIRE(str_starts_with(src_u16cstr, u'a', true));
+		
+		const char32_t* src_u32cstr{U"Apple is one my favorite, most beloved fruits."};
+
+		REQUIRE(str_starts_with(src_u32cstr, U"Apple"));
+
+		REQUIRE(str_starts_with(src_u32cstr, U"apPLE", true));
+
+		REQUIRE(str_starts_with(src_u32cstr, U'A'));
+
+		REQUIRE(str_starts_with(src_u32cstr, U'a', true));
+}
+
 TEST_CASE("bool str_starts_with(const StringType& src, const typename StringType::value_type start_char,\
 		                     const bool ignore_case = false,\
 		                     const std::locale& loc = std::locale{})",
@@ -1111,23 +1157,34 @@ TEST_CASE("bool str_starts_with(const StringType& src, const typename StringType
 }
 
 
-//TEST_CASE(
-//		"bool str_starts_with(const StringType& src, const typename
-//StringType::const_pointer start_tag, bool ignore_case = false, const
-//std::locale& loc = std::locale{})"
-//		,
-//		"Testing global template function bool starts_with(const StringType&
-//src, const typename StringType::const_pointer start_tag, bool ignore_case =
-//false, const std::locale& loc = std::locale{})"
-//)
-//{
-//		const u16string src{u"Apple is one my favorite, most beloved fruits."};
-//
-//		REQUIRE(str_starts_with(src, u"Apple"));
-//
-//		REQUIRE(str_starts_with(src, u"aPPLE", true));
-//}
-//
+TEST_CASE("bool str_starts_with(const StringType& src, typename StringType::const_pointer start_tag, const bool ignore_case = false, const std::locale& loc = std::locale{})",
+		  "Testing global function template bool str_starts_with(const StringType& src, typename StringType::const_pointer start_tag, const bool ignore_case = false, const std::locale& loc = std::locale{})")
+{
+	    const string src_string{"Apple is one my favorite, most beloved fruits."};
+
+		REQUIRE(str_starts_with(src_string, "Apple"));
+
+		REQUIRE(str_starts_with(src_string, "aPPLE", true));
+	
+	    const wstring src_wstring{L"Apple is one my favorite, most beloved fruits."};
+
+		REQUIRE(str_starts_with(src_wstring, L"Apple"));
+
+		REQUIRE(str_starts_with(src_wstring, L"aPPLE", true));
+		
+	    const u16string src_u16string{u"Apple is one my favorite, most beloved fruits."};
+
+		REQUIRE(str_starts_with(src_u16string, u"Apple"));
+
+		REQUIRE(str_starts_with(src_u16string, u"aPPLE", true));
+
+	    const u32string src_u32string{U"Apple is one my favorite, most beloved fruits."};
+
+		REQUIRE(str_starts_with(src_u32string, U"Apple"));
+
+		REQUIRE(str_starts_with(src_u32string, U"aPPLE", true));
+}
+
 //TEST_CASE(
 //		"bool str_starts_with(const StringType& src, const StringType&
 //start_tag, bool ignore_case = false, const std::locale& loc = std::locale{})"
