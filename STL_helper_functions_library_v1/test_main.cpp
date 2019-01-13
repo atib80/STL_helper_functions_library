@@ -2,13 +2,9 @@
 
 #include <crtdbg.h>
 #include <chrono>
-// #include <map>
 #include <random>
 #include <set>
 #include <string>
-// #include <unordered_map>
-// #include <unordered_set>
-// #include <vector>
 #include "stl_helper_functions.hpp"
 #include "catch.hpp"
 
@@ -16,13 +12,13 @@
 
 using namespace std;
 using namespace std::chrono;
-using namespace string_literals;
+using namespace std::string_literals;
 using namespace cpp::experimental;
 
 static random_device rd{};
 
-long long get_random_number(long long lower_bound,
-							const long long upper_bound)
+long long get_random_number(const long long lower_bound,
+                            const long long upper_bound)
 {
 	static mt19937 rand_engine{rd()};
 
@@ -128,34 +124,33 @@ long long get_random_number(long long lower_bound,
 
 TEST_CASE("size_t len(T src, const size_t max_allowed_string_length = "
           "max_string_length)",
-          "Testing global function len)") {
-			  
-  const char *src1 = "Hello World!\n";
-  REQUIRE(len(src1) == strlen(src1));
+          "Testing global function len)")
+{
+	const char* src1 = "Hello World!\n";
+	REQUIRE(len(src1) == strlen(src1));
 
-  const wchar_t *src2 = L"\tHello there, my friend!\n";
-  REQUIRE(len(src2) == wcslen(src2));
+	const wchar_t* src2 = L"\tHello there, my friend!\n";
+	REQUIRE(len(src2) == wcslen(src2));
 
-  const char16_t *src3 = u"\tHello there, my friend!\n";
+	const char16_t* src3 = u"\tHello there, my friend!\n";
 	u16string src3_str{src3};
-  REQUIRE(len(src3) == src3_str.length());
-	
-	const char32_t *src4 = U"\tHello there, my friend!\n";
+	REQUIRE(len(src3) == src3_str.length());
+
+	const char32_t* src4 = U"\tHello there, my friend!\n";
 	u32string src4_str{src4};
-  REQUIRE(len(src4) == src4_str.length());
+	REQUIRE(len(src4) == src4_str.length());
 
-  string src5{"Hello World!\n"};
-  REQUIRE(len(src5) == src5.length());
+	string src5{"Hello World!\n"};
+	REQUIRE(len(src5) == src5.length());
 
-  wstring src6{L"\tHello there, my friend!\n"};
-  REQUIRE(len(src6) == src6.length());
+	wstring src6{L"\tHello there, my friend!\n"};
+	REQUIRE(len(src6) == src6.length());
 
-  u16string src7{u"Hello World!\n"};
-  REQUIRE(len(src7) == src7.length());
+	u16string src7{u"Hello World!\n"};
+	REQUIRE(len(src7) == src7.length());
 
-  u32string src8{U"\tHello there, my friend!\n"};
-  REQUIRE(len(src8) == src8.length());
-
+	u32string src8{U"\tHello there, my friend!\n"};
+	REQUIRE(len(src8) == src8.length());
 }
 
 TEST_CASE("bool trim_in_place(CharPointerType mutable_char_buffer)",
@@ -164,7 +159,7 @@ TEST_CASE("bool trim_in_place(CharPointerType mutable_char_buffer)",
 {
 	char char_buffer[64] = "\t Hello World!\t \n";
 
-	const char *char_str = "Hello World!";
+	const char* char_str = "Hello World!";
 
 	REQUIRE(trim_in_place(char_buffer));
 
@@ -172,7 +167,7 @@ TEST_CASE("bool trim_in_place(CharPointerType mutable_char_buffer)",
 
 	wchar_t wchar_t_buffer[64] = L" \t Hello World!\t \n";
 
-	const wchar_t *wchar_t_str = L"Hello World!";
+	const wchar_t* wchar_t_str = L"Hello World!";
 
 	REQUIRE(trim_in_place(wchar_t_buffer));
 
@@ -180,7 +175,7 @@ TEST_CASE("bool trim_in_place(CharPointerType mutable_char_buffer)",
 
 	char16_t char16_t_buffer[64] = u" \t Hello World!\t \n";
 
-	const char16_t *char16_t_str = u"Hello World!";
+	const char16_t* char16_t_str = u"Hello World!";
 
 	REQUIRE(trim_in_place(char16_t_buffer));
 
@@ -191,7 +186,7 @@ TEST_CASE("bool trim_in_place(CharPointerType mutable_char_buffer)",
 
 	char32_t char32_t_buffer[64] = U" \t Hello World!\t \n";
 
-	const char32_t *char32_t_str_dst = U"Hello World!";
+	const char32_t* char32_t_str_dst = U"Hello World!";
 
 	REQUIRE(trim_in_place(char32_t_buffer));
 
@@ -207,7 +202,7 @@ TEST_CASE("bool ltrim_in_place(CharPointerType mutable_char_buffer)",
 {
 	char char_buffer[64] = "\t Hello World!";
 
-	const char *char_str = "Hello World!";
+	const char* char_str = "Hello World!";
 
 	REQUIRE(ltrim_in_place(char_buffer));
 
@@ -215,7 +210,7 @@ TEST_CASE("bool ltrim_in_place(CharPointerType mutable_char_buffer)",
 
 	wchar_t wchar_t_buffer[64] = L" \t Hello World!";
 
-	const wchar_t *wchar_t_str = L"Hello World!";
+	const wchar_t* wchar_t_str = L"Hello World!";
 
 	REQUIRE(ltrim_in_place(wchar_t_buffer));
 
@@ -223,7 +218,7 @@ TEST_CASE("bool ltrim_in_place(CharPointerType mutable_char_buffer)",
 
 	char16_t char16_t_buffer[64] = u" \t Hello World!";
 
-	const char16_t *char16_t_str = u"Hello World!";
+	const char16_t* char16_t_str = u"Hello World!";
 
 	REQUIRE(ltrim_in_place(char16_t_buffer));
 
@@ -234,7 +229,7 @@ TEST_CASE("bool ltrim_in_place(CharPointerType mutable_char_buffer)",
 
 	char32_t char32_t_buffer[64] = U" \t Hello World!";
 
-	const char32_t *char32_t_str_dst = U"Hello World!";
+	const char32_t* char32_t_str_dst = U"Hello World!";
 
 	REQUIRE(ltrim_in_place(char32_t_buffer));
 
@@ -248,10 +243,9 @@ TEST_CASE("bool rtrim_in_place(CharPointerType mutable_char_buffer)",
 		  "Testing global function template bool "
 		  "rtrim_in_place(CharPointerType mutable_char_buffer)")
 {
-
 	char char_buffer[64] = "Hello World!\t\n";
 
-	const char *char_str = "Hello World!";
+	const char* char_str = "Hello World!";
 
 	REQUIRE(rtrim_in_place(char_buffer));
 
@@ -259,7 +253,7 @@ TEST_CASE("bool rtrim_in_place(CharPointerType mutable_char_buffer)",
 
 	wchar_t wchar_t_buffer[64] = L"Hello World!\t\n";
 
-	const wchar_t *wchar_t_str = L"Hello World!";
+	const wchar_t* wchar_t_str = L"Hello World!";
 
 	REQUIRE(rtrim_in_place(wchar_t_buffer));
 
@@ -267,7 +261,7 @@ TEST_CASE("bool rtrim_in_place(CharPointerType mutable_char_buffer)",
 
 	char16_t char16_t_buffer[64] = u"Hello World!\t\n";
 
-	const char16_t *char16_t_str = u"Hello World!";
+	const char16_t* char16_t_str = u"Hello World!";
 
 	REQUIRE(rtrim_in_place(char16_t_buffer));
 
@@ -278,7 +272,7 @@ TEST_CASE("bool rtrim_in_place(CharPointerType mutable_char_buffer)",
 
 	char32_t char32_t_buffer[64] = U"Hello World!\t\n";
 
-	const char32_t *char32_t_str_dst = U"Hello World!";
+	const char32_t* char32_t_str_dst = U"Hello World!";
 
 	REQUIRE(rtrim_in_place(char32_t_buffer));
 
@@ -345,7 +339,6 @@ TEST_CASE("auto trim(ConstCharPointerType src)", "Testing global function auto t
 	output_u32string = trim(src_u32string);
 
 	REQUIRE(output_u32string == dst_u32string);
-
 }
 
 TEST_CASE("auto ltrim(ConstCharPointerType src)", "Testing global function auto ltrim(ConstCharPointerType src)")
@@ -405,7 +398,6 @@ TEST_CASE("auto ltrim(ConstCharPointerType src)", "Testing global function auto 
 	output_u32string = ltrim(src_u32string);
 
 	REQUIRE(output_u32string == dst_u32string);
-
 }
 
 TEST_CASE("auto rtrim(ConstCharPointerType src)", "Testing global function auto rtrim(ConstCharPointerType src)")
@@ -1079,130 +1071,217 @@ src{U"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:plum"};
 */
 
 
-
-TEST_CASE("bool str_starts_with(T src, const U needle, const bool ignore_case = false, const std::locale& loc = std::locale{})",
-		  "Testing global function template bool str_starts_with(T src, const U needle, const bool ignore_case = false, const std::locale& loc = std::locale{})")
+TEST_CASE("bool str_starts_with(T, const U, const bool = false, const std::locale& = std::locale{})",
+		  "Testing global function template bool str_starts_with(T src, const U needle, const bool ignore_case = false, const std::locale& loc = std::locale{})"
+)
 {
-		const char* src_cstr{"Apple is one my favorite, most beloved fruits."};
+	const char* src_cstr{"Apple is one my favorite, most beloved fruits."};
 
-		REQUIRE(str_starts_with(src_cstr, "Apple"));
+	REQUIRE(str_starts_with(src_cstr, "Apple"));
 
-		REQUIRE(str_starts_with(src_cstr, "apPLE", true));
+	REQUIRE(str_starts_with(src_cstr, "apPLE", true));
 
-		REQUIRE(str_starts_with(src_cstr, 'A'));
+	REQUIRE(str_starts_with(src_cstr, 'A'));
 
-		REQUIRE(str_starts_with(src_cstr, 'a', true));
-		
-		const wchar_t* src_wcstr{L"Apple is one my favorite, most beloved fruits."};
+	REQUIRE(str_starts_with(src_cstr, 'a', true));
 
-		REQUIRE(str_starts_with(src_wcstr, L"Apple"));
+	const wchar_t* src_wcstr{L"Apple is one my favorite, most beloved fruits."};
 
-		REQUIRE(str_starts_with(src_wcstr, L"apPLE", true));
+	REQUIRE(str_starts_with(src_wcstr, L"Apple"));
 
-		REQUIRE(str_starts_with(src_wcstr, L'A'));
+	REQUIRE(str_starts_with(src_wcstr, L"apPLE", true));
 
-		REQUIRE(str_starts_with(src_wcstr, L'a', true));
+	REQUIRE(str_starts_with(src_wcstr, L'A'));
 
-		const char16_t* src_u16cstr{u"Apple is one my favorite, most beloved fruits."};
+	REQUIRE(str_starts_with(src_wcstr, L'a', true));
 
-		REQUIRE(str_starts_with(src_u16cstr, u"Apple"));
+	const char16_t* src_u16cstr{u"Apple is one my favorite, most beloved fruits."};
 
-		REQUIRE(str_starts_with(src_u16cstr, u"apPLE", true));
+	REQUIRE(str_starts_with(src_u16cstr, u"Apple"));
 
-		REQUIRE(str_starts_with(src_u16cstr, u'A'));
+	REQUIRE(str_starts_with(src_u16cstr, u"apPLE", true));
 
-		REQUIRE(str_starts_with(src_u16cstr, u'a', true));
-		
-		const char32_t* src_u32cstr{U"Apple is one my favorite, most beloved fruits."};
+	REQUIRE(str_starts_with(src_u16cstr, u'A'));
 
-		REQUIRE(str_starts_with(src_u32cstr, U"Apple"));
+	REQUIRE(str_starts_with(src_u16cstr, u'a', true));
 
-		REQUIRE(str_starts_with(src_u32cstr, U"apPLE", true));
+	const char32_t* src_u32cstr{U"Apple is one my favorite, most beloved fruits."};
 
-		REQUIRE(str_starts_with(src_u32cstr, U'A'));
+	REQUIRE(str_starts_with(src_u32cstr, U"Apple"));
 
-		REQUIRE(str_starts_with(src_u32cstr, U'a', true));
+	REQUIRE(str_starts_with(src_u32cstr, U"apPLE", true));
+
+	REQUIRE(str_starts_with(src_u32cstr, U'A'));
+
+	REQUIRE(str_starts_with(src_u32cstr, U'a', true));
 }
 
-TEST_CASE("bool str_starts_with(const StringType& src, const typename StringType::value_type start_char,\
-		                     const bool ignore_case = false,\
-		                     const std::locale& loc = std::locale{})",
+TEST_CASE(
+"bool str_starts_with(const StringType&, const typename StringType::value_type, const bool = false, const std::locale& = std::locale{})"
+,
 		  "Testing global function template bool str_starts_with(const StringType& src, const typename StringType::value_type start_char,\
 		                     const bool ignore_case = false,\
-		                     const std::locale& loc = std::locale{})")
+		                     const std::locale& loc = std::locale{})"
+)
 {
-		const string src_string{"Apple is one my favorite, most beloved fruits."};
+	const string src_string{"Apple is one my favorite, most beloved fruits."};
 
-		REQUIRE(str_starts_with(src_string, 'A'));
+	REQUIRE(str_starts_with(src_string, 'A'));
 
-		REQUIRE(str_starts_with(src_string, 'a', true));
-		
-		const wstring src_wstring{L"Apple is one my favorite, most beloved fruits."};
+	REQUIRE(str_starts_with(src_string, 'a', true));
 
-		REQUIRE(str_starts_with(src_wstring, L'A'));
+	const wstring src_wstring{L"Apple is one my favorite, most beloved fruits."};
 
-		REQUIRE(str_starts_with(src_wstring, L'a', true));
+	REQUIRE(str_starts_with(src_wstring, L'A'));
 
-		const u16string src_u16string{u"Apple is one my favorite, most beloved fruits."};
+	REQUIRE(str_starts_with(src_wstring, L'a', true));
 
-		REQUIRE(str_starts_with(src_u16string, u'A'));
+	const u16string src_u16string{u"Apple is one my favorite, most beloved fruits."};
 
-		REQUIRE(str_starts_with(src_u16string, u'a', true));
-		
-		const u32string src_u32string{U"Apple is one my favorite, most beloved fruits."};
+	REQUIRE(str_starts_with(src_u16string, u'A'));
 
-		REQUIRE(str_starts_with(src_u32string, U'A'));
+	REQUIRE(str_starts_with(src_u16string, u'a', true));
 
-		REQUIRE(str_starts_with(src_u32string, U'a', true));
+	const u32string src_u32string{U"Apple is one my favorite, most beloved fruits."};
+
+	REQUIRE(str_starts_with(src_u32string, U'A'));
+
+	REQUIRE(str_starts_with(src_u32string, U'a', true));
 }
 
 
-TEST_CASE("bool str_starts_with(const StringType& src, typename StringType::const_pointer start_tag, const bool ignore_case = false, const std::locale& loc = std::locale{})",
-		  "Testing global function template bool str_starts_with(const StringType& src, typename StringType::const_pointer start_tag, const bool ignore_case = false, const std::locale& loc = std::locale{})")
+TEST_CASE(
+"bool str_starts_with(const StringType&, typename StringType::const_pointer, const bool = false, const std::locale& = std::locale{})"
+,
+		  "Testing global function template bool str_starts_with(const StringType& src, typename StringType::const_pointer start_tag, const bool ignore_case = false, const std::locale& loc = std::locale{})"
+)
 {
-	    const string src_string{"Apple is one my favorite, most beloved fruits."};
+	const string src_string{"Apple is one my favorite, most beloved fruits."};
 
-		REQUIRE(str_starts_with(src_string, "Apple"));
+	REQUIRE(str_starts_with(src_string, "Apple"));
 
-		REQUIRE(str_starts_with(src_string, "aPPLE", true));
-	
-	    const wstring src_wstring{L"Apple is one my favorite, most beloved fruits."};
+	REQUIRE(str_starts_with(src_string, "aPPLE", true));
 
-		REQUIRE(str_starts_with(src_wstring, L"Apple"));
+	const wstring src_wstring{L"Apple is one my favorite, most beloved fruits."};
 
-		REQUIRE(str_starts_with(src_wstring, L"aPPLE", true));
-		
-	    const u16string src_u16string{u"Apple is one my favorite, most beloved fruits."};
+	REQUIRE(str_starts_with(src_wstring, L"Apple"));
 
-		REQUIRE(str_starts_with(src_u16string, u"Apple"));
+	REQUIRE(str_starts_with(src_wstring, L"aPPLE", true));
 
-		REQUIRE(str_starts_with(src_u16string, u"aPPLE", true));
+	const u16string src_u16string{u"Apple is one my favorite, most beloved fruits."};
 
-	    const u32string src_u32string{U"Apple is one my favorite, most beloved fruits."};
+	REQUIRE(str_starts_with(src_u16string, u"Apple"));
 
-		REQUIRE(str_starts_with(src_u32string, U"Apple"));
+	REQUIRE(str_starts_with(src_u16string, u"aPPLE", true));
 
-		REQUIRE(str_starts_with(src_u32string, U"aPPLE", true));
+	const u32string src_u32string{U"Apple is one my favorite, most beloved fruits."};
+
+	REQUIRE(str_starts_with(src_u32string, U"Apple"));
+
+	REQUIRE(str_starts_with(src_u32string, U"aPPLE", true));
 }
 
-//TEST_CASE(
-//		"bool str_starts_with(const StringType& src, const StringType&
-//start_tag, bool ignore_case = false, const std::locale& loc = std::locale{})"
-//		,
-//		"Testing global template function bool starts_with(const StringType&
-//src, const StringType& start_tag, bool ignore_case = false, const std::locale&
-//loc = std::locale{})"
-//)
-//{
-//		const u32string src{U"Apple is one my favorite, most beloved fruits."};
-//
-//		const u32string needle{U"Apple"};
-//
-//		REQUIRE(str_starts_with(src, needle));
-//
-//		REQUIRE(str_starts_with(src, u32string{ U"aPPLE" }, true));
-//}
-//
+
+TEST_CASE(
+"bool str_starts_with(const StringType&, const StringType&, const bool = false, const std::locale& = std::locale{})",
+		  "bool str_starts_with(const StringType& src, const StringType& start_tag, const bool ignore_case = false, const std::locale& loc = std::locale{})"
+)
+{
+	const string src_string{"Apple is one my favorite, most beloved fruits."};
+
+	const string needle_string{"Apple"};
+
+	REQUIRE(str_starts_with(src_string, needle_string));
+
+	REQUIRE(str_starts_with(src_string, string{"aPPLE"}, true));
+
+	const wstring src_wstring{L"Apple is one my favorite, most beloved fruits."};
+
+	const wstring needle_wstring{L"Apple"};
+
+	REQUIRE(str_starts_with(src_wstring, needle_wstring));
+
+	REQUIRE(str_starts_with(src_wstring, wstring{L"aPPLE"}, true));
+
+	const u16string src_u16string{u"Apple is one my favorite, most beloved fruits."};
+
+	const u16string needle_u16string{u"Apple"};
+
+	REQUIRE(str_starts_with(src_u16string, needle_u16string));
+
+	REQUIRE(str_starts_with(src_u16string, u16string{u"aPPLE"}, true));
+
+	const u32string src_u32string{U"Apple is one my favorite, most beloved fruits."};
+
+	const u32string needle_u32string{U"Apple"};
+
+	REQUIRE(str_starts_with(src_u32string, needle_u32string));
+
+	REQUIRE(str_starts_with(src_u32string, u32string{U"aPPLE"}, true));
+}
+
+TEST_CASE(
+		"auto str_index_of(T, const U, const size_t = 0u, const bool = false, const std::locale& = std::locale{})",
+		"Testing global function template auto str_index_of(T src, const U needle, const size_t start_pos = 0u, const bool ignore_case = false, const std::locale& loc = std::locale{})"
+)
+{
+	const char* src_cstr{"Hello World!"};
+
+	REQUIRE(6u == str_index_of(src_cstr, "World"));
+
+	REQUIRE(6u == str_index_of(src_cstr, "world", 0u, true));
+
+	REQUIRE(6u == str_index_of("Hello World!", "World"));
+
+	REQUIRE(6u == str_index_of("Hello World!", "world", 0u, true));
+
+	REQUIRE(6u == str_index_of(src_cstr, 'W'));
+
+	REQUIRE(6u == str_index_of(src_cstr, 'w', 0u, true));
+
+	const wchar_t* src_wcstr{L"Hello World!"};
+
+	REQUIRE(6u == str_index_of(src_wcstr, L"World"));
+
+	REQUIRE(6u == str_index_of(src_wcstr, L"world", 0u, true));
+
+	REQUIRE(6u == str_index_of(L"Hello World!", L"World"));
+
+	REQUIRE(6u == str_index_of(L"Hello World!", L"world", 0u, true));
+
+	REQUIRE(6u == str_index_of(src_wcstr, L'W'));
+
+	REQUIRE(6u == str_index_of(src_wcstr, L'w', 0u, true));
+
+	const char16_t* src_u16cstr{u"Hello World!"};
+
+	REQUIRE(6u == str_index_of(src_u16cstr, u"World"));
+
+	REQUIRE(6u == str_index_of(src_u16cstr, u"world", 0u, true));
+
+	REQUIRE(6u == str_index_of(u"Hello World!", u"World"));
+
+	REQUIRE(6u == str_index_of(u"Hello World!", u"world", 0u, true));
+
+	REQUIRE(6u == str_index_of(src_u16cstr, u'W'));
+
+	REQUIRE(6u == str_index_of(src_u16cstr, u'w', 0u, true));
+
+	const char32_t* src_u32cstr{U"Hello World!"};
+
+	REQUIRE(6u == str_index_of(src_u32cstr, U"World"));
+
+	REQUIRE(6u == str_index_of(src_u32cstr, U"world", 0u, true));
+
+	REQUIRE(6u == str_index_of(U"Hello World!", U"World"));
+
+	REQUIRE(6u == str_index_of(U"Hello World!", U"world", 0u, true));
+
+	REQUIRE(6u == str_index_of(src_u32cstr, U'W'));
+
+	REQUIRE(6u == str_index_of(src_u32cstr, U'w', 0u, true));
+}
+
 //TEST_CASE(
 //		"typename StringType::size_type index_of(const StringType& text, const
 //typename StringType::value_type needle_char, const size_t start_pos = 0u, bool

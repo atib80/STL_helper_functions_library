@@ -410,7 +410,8 @@ namespace cpp
 				return true;
 			}
 
-			std::copy(first_char_pos, last_char_pos, src);
+			// std::copy(first_char_pos, last_char_pos, src);
+			std::memcpy(src, first_char_pos, (last_char_pos - first_char_pos) * sizeof(char_type));
 			src[static_cast<std::ptrdiff_t>(last_char_pos - first_char_pos)] = static_cast<char_type>('\0');
 			return true;
 		}
@@ -448,7 +449,8 @@ namespace cpp
 				return true;
 			}
 
-			std::copy(first_char_pos, last_char_pos, src);
+			// std::copy(first_char_pos, last_char_pos, src);
+			std::memcpy(src, first_char_pos, (last_char_pos - first_char_pos) * sizeof(char_type));
 			src[static_cast<std::ptrdiff_t>(last_char_pos - first_char_pos)] = static_cast<char_type>('\0');
 
 			return true;
@@ -501,6 +503,9 @@ namespace cpp
 		auto trim(T src)
 		{
 			using char_type = std::remove_cv_t<std::remove_pointer_t<std::decay_t<T>>>;
+
+			if (nullptr == src)
+				return std::basic_string<char_type>{};
 
 			std::basic_string<char_type> source_str{src};
 
@@ -568,6 +573,9 @@ namespace cpp
 		{
 			using char_type = std::remove_cv_t<std::remove_pointer_t<std::decay_t<ConstCharPointerType>>>;
 
+			if (nullptr == src)
+				return std::basic_string<char_type>{};
+
 			if (0 == len(src))
 				return std::basic_string<char_type>{};
 
@@ -633,6 +641,9 @@ namespace cpp
 		{
 			using char_type = std::remove_cv_t<std::remove_pointer_t<std::decay_t<ConstCharPointerType>>>;
 
+			if (nullptr == src)
+				return std::basic_string<char_type>{};
+
 			const auto src_len{len(src)};
 
 			if (0 == src_len)
@@ -696,6 +707,9 @@ namespace cpp
 		                     const bool ignore_case = false,
 		                     const std::locale& loc = std::locale{})
 		{
+			if (nullptr == src)
+				return false;
+
 			if constexpr (is_anyone_of_v<std::remove_cv_t<U>, char, wchar_t, char16_t, char32_t>)
 			{
 				if (0 == len(src))
@@ -713,13 +727,17 @@ namespace cpp
 				using char_type = std::remove_cv_t<std::remove_pointer_t<U>>;
 
 				const auto src_len{len(src)};
+
+				if (0 == src_len)
+					return false;
+
 				const auto needle_len{len(needle)};
+
+				if (0 == needle_len || needle_len > src_len)
+					return false;
 
 				std::basic_string_view<char_type> src_str_view(src, src_len);
 				std::basic_string_view<char_type> needle_str_view(needle, needle_len);
-
-				if (0 == src_len || 0 == needle_len || needle_len > src_len)
-					return false;
 
 				if (!ignore_case)
 					return 0 == src_str_view.find(needle_str_view);
@@ -776,7 +794,7 @@ namespace cpp
 		                     const bool ignore_case = false,
 		                     const std::locale& loc = std::locale{})
 		{
-			using char_type = typename StringType::value_type;			
+			using char_type = typename StringType::value_type;
 
 			const auto src_len{src.length()};
 			const auto start_tag_len{len(start_tag)};
@@ -788,7 +806,7 @@ namespace cpp
 				return 0 == src.find(start_tag);
 
 			StringType src_lc{src};
-			StringType start_tag_str{start_tag};			
+			StringType start_tag_str{start_tag};
 
 			const auto& f = std::use_facet<std::ctype<char_type>>(loc);
 
@@ -841,35 +859,45 @@ namespace cpp
 			return 0 == src_lc.find(start_tag_lc);
 		}
 
-		template <
-			typename T, typename U,
-			typename ConditionType = std::enable_if_t<
-				(std::is_array_v<T> &&
-					std::is_same_v<std::remove_cv_t<std::remove_extent_t<T>>,
-					               std::remove_cv_t<U>>) ||
-				(is_anyone_of_v<T, const char *, const wchar_t *,
-				                const char16_t *, const char32_t *, char *,
-				                wchar_t *, char16_t *, char32_t *> &&
-					std::is_same_v<
-						std::remove_cv_t<std::remove_pointer_t<T>>,
-						std::remove_cv_t<std::remove_pointer_t<U>>>),
-				void *>>
+		template <typename T, typename U,
+		          typename ConditionType = std::enable_if_t<
+			          (std::is_array_v<T> && std::is_same_v<
+				          std::remove_cv_t<std::remove_extent_t<T>>, std::remove_cv_t<std::remove_pointer_t<std::
+					          remove_extent_t<U>>>>) ||
+			          (is_anyone_of_v<T,
+			                          const char *,
+			                          const wchar_t *,
+			                          const char16_t *,
+			                          const char32_t *,
+			                          char *,
+			                          wchar_t *,
+			                          char16_t *,
+			                          char32_t *> &&
+				          std::is_same_v<std::remove_cv_t<std::remove_pointer_t<T>>, std::remove_cv_t<std::
+					                         remove_pointer_t<std::remove_extent_t<U>>>>),
+			          void *>>
 		auto str_index_of(T src, const U needle,
-		                  size_t start_pos = 0u, bool ignore_case = false,
+		                  const size_t start_pos = 0u, const bool ignore_case = false,
 		                  const std::locale& loc = std::locale{})
 		{
-			using char_type = std::remove_cv_t<std::remove_pointer_t<std::decay_t<T>>>;
+			using char_type = std::remove_cv_t<std::remove_pointer_t<std::remove_extent_t<U>>>;
 
-			if constexpr (is_anyone_of_v<std::remove_cv_t<U>, char, wchar_t, char16_t,
-			                             char32_t>)
+			if (nullptr == src) return std::basic_string<char_type>::npos;
+
+			if constexpr (is_anyone_of_v<std::remove_cv_t<U>, char, wchar_t, char16_t, char32_t>)
 			{
-				std::basic_string<char_type> src_str{src};
+				const size_t src_len{len(src)};
 
-				if (0 == src_str.length())
+				if (0 == src_len)
 					return std::basic_string<char_type>::npos;
 
 				if (!ignore_case)
-					return src_str.find(needle, start_pos);
+				{
+					std::basic_string_view<char_type> src_str_view{src, src_len};
+					return src_str_view.find(needle, start_pos);
+				}
+
+				std::basic_string<char_type> src_str{src};
 
 				const auto& f = std::use_facet<std::ctype<char_type>>(loc);
 
@@ -880,6 +908,8 @@ namespace cpp
 			}
 			else
 			{
+				if (nullptr == needle) return std::basic_string<char_type>::npos;
+
 				std::basic_string<char_type> src_str{src};
 				std::basic_string<char_type> needle_str{needle};
 
