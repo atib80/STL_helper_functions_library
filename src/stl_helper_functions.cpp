@@ -7,175 +7,175 @@ namespace experimental {
 /*size_t len(char* str, const size_t max_allowed_string_length)
 {
         if (!str) return 0u;
-
+
         if (!(*str)) return 0u;
-
+
         size_t length{0u};
-
+
         while (*str)
         {
                 ++length;
                 ++str;
-
+
                 if (max_allowed_string_length == length) return
 max_allowed_string_length;
         }
-
+
         return length;
 }
-
+
 size_t len(wchar_t* str, const size_t max_allowed_string_length)
 {
         if (!str) return 0u;
-
+
         if (!(*str)) return 0u;
-
+
         size_t length{0u};
-
+
         while (*str)
         {
                 ++length;
                 ++str;
-
+
                 if (max_allowed_string_length == length) return
 max_allowed_string_length;
         }
-
+
         return length;
 }
-
+
 size_t len(char16_t* str, const size_t max_allowed_string_length)
 {
         if (!str) return 0u;
-
+
         if (!(*str)) return 0u;
-
+
         size_t length{0u};
-
+
         while (*str)
         {
                 ++length;
                 ++str;
-
+
                 if (max_allowed_string_length == length) return
 max_allowed_string_length;
         }
-
+
         return length;
 }
-
+
 size_t len(char32_t* str, const size_t max_allowed_string_length)
 {
         if (!str) return 0u;
-
+
         if (!(*str)) return 0u;
-
+
         size_t length{0u};
-
+
         while (*str)
         {
                 length++;
                 str++;
-
+
                 if (max_allowed_string_length == length) return
 max_allowed_string_length;
         }
-
+
         return length;
 }
-
+
 size_t len(const char* str, const size_t max_allowed_string_length)
 {
         if (!str) return 0u;
-
+
         if (!(*str)) return 0u;
-
+
         size_t length{0u};
-
+
         while (*str)
         {
                 ++length;
                 ++str;
-
+
                 if (max_allowed_string_length == length) return
 max_allowed_string_length;
         }
-
+
         return length;
 }
-
+
 size_t len(const wchar_t* str, const size_t max_allowed_string_length)
 {
         if (!str) return 0u;
-
+
         if (!(*str)) return 0u;
-
+
         size_t length{0u};
-
+
         while (*str)
         {
                 ++length;
                 ++str;
-
+
                 if (max_allowed_string_length == length) return
 max_allowed_string_length;
         }
-
+
         return length;
 }
-
+
 size_t len(const char16_t* str, const size_t max_allowed_string_length)
 {
         if (!str) return 0u;
-
+
         if (!(*str)) return 0u;
-
+
         size_t length{0u};
-
+
         while (*str)
         {
                 ++length;
                 ++str;
-
+
                 if (max_allowed_string_length == length) return
 max_allowed_string_length;
         }
-
+
         return length;
 }
-
+
 size_t len(const char32_t* str, const size_t max_allowed_string_length)
 {
         if (!str) return 0u;
-
+
         if (!(*str)) return 0u;
-
+
         size_t length{0u};
-
+
         while (*str)
         {
                 length++;
                 str++;
-
+
                 if (max_allowed_string_length == length) return
 max_allowed_string_length;
         }
-
+
         return length;
 }
-
+
 bool trim(char* str)
 {
         auto begin = size_t{0u};
-
+
         const auto len{len(str)};
-
+
         const auto original_end{len - 1};
-
+
         auto end{original_end};
-
+
         if (0u == len) return false;
-
+
         for (auto is_ws_char{true}; begin <= end; ++begin)
         {
                 switch (str[begin])
@@ -187,21 +187,21 @@ bool trim(char* str)
                 case '\f':
                 case '\v':
                         break;
-
+
                 default:
                         is_ws_char = false;
                         break;
                 }
-
+
                 if (!is_ws_char) break;
         }
-
+
         if (begin > end)
         {
                 *str = '\0';
                 return true;
         }
-
+
         for (auto is_ws_char{true}; end > begin; --end)
         {
                 switch (str[end])
@@ -213,51 +213,51 @@ bool trim(char* str)
                 case '\f':
                 case '\v':
                         break;
-
+
                 default:
                         is_ws_char = false;
                         break;
                 }
-
+
                 if (!is_ws_char) break;
         }
-
+
         if (0u == begin) {
-
+
                 if (original_end == end) return false;
-
+
                 str[end + 1] = '\0';
-
+
                 return true;
         }
-
+
         size_t j{0u};
-
+
         const size_t last{end + 1};
-
+
         for (auto i = begin; i < last; i++)
         {
                 str[j] = str[i];
                 j++;
         }
-
+
         str[j] = '\0';
-
+
         return true;
 }
-
+
 bool trim(wchar_t* str)
 {
         auto begin = size_t{0u};
-
+
         const auto len{len(str)};
-
+
         const auto original_end{len - 1};
-
+
         auto end{original_end};
-
+
         if (0u == len) return false;
-
+
         for (auto is_ws_char{true}; begin <= end; ++begin)
         {
                 switch (str[begin])
@@ -269,22 +269,22 @@ bool trim(wchar_t* str)
                 case L'\f':
                 case L'\v':
                         break;
-
+
                 default:
                         is_ws_char = false;
                         break;
                 }
-
+
                 if (!is_ws_char) break;
         }
-
+
         if (begin > end)
         {
                 *str = L'\0';
-
+
                 return true;
         }
-
+
         for (auto is_ws_char{true}; end > begin; --end)
         {
                 switch (str[end])
@@ -296,50 +296,50 @@ bool trim(wchar_t* str)
                 case L'\f':
                 case L'\v':
                         break;
-
+
                 default:
                         is_ws_char = false;
                         break;
                 }
-
+
                 if (!is_ws_char) break;
         }
-
+
         if (0u == begin) {
-
+
                 if (original_end == end) return false;
-
+
                 str[end + 1] = L'\0';
-
+
                 return true;
         }
-
+
         size_t j{0u};
         const size_t last{end + 1};
-
+
         for (auto i = begin; i < last; i++)
         {
                 str[j] = str[i];
                 j++;
         }
-
+
         str[j] = L'\0';
-
+
         return true;
 }
-
+
 bool trim(char16_t* str)
 {
         auto begin = size_t{0u};
-
+
         const auto len{len(str)};
-
+
         const auto original_end{len - 1};
-
+
         auto end{original_end};
-
+
         if (0u == len) return false;
-
+
         for (auto is_ws_char{true}; begin <= end; ++begin)
         {
                 switch (str[begin])
@@ -351,22 +351,22 @@ bool trim(char16_t* str)
                 case u'\f':
                 case u'\v':
                         break;
-
+
                 default:
                         is_ws_char = false;
                         break;
                 }
-
+
                 if (!is_ws_char) break;
         }
-
+
         if (begin > end)
         {
                 *str = u'\0';
-
+
                 return true;
         }
-
+
         for (auto is_ws_char{true}; end > begin; --end)
         {
                 switch (str[end])
@@ -378,51 +378,51 @@ bool trim(char16_t* str)
                 case u'\f':
                 case u'\v':
                         break;
-
+
                 default:
                         is_ws_char = false;
                         break;
                 }
-
+
                 if (!is_ws_char) break;
         }
-
+
         if (0u == begin) {
-
+
                 if (original_end == end) return false;
-
+
                 str[end + 1] = u'\0';
-
+
                 return true;
         }
-
+
         size_t j{0u};
-
+
         const size_t last{end + 1};
-
+
         for (auto i = begin; i < last; i++)
         {
                 str[j] = str[i];
                 j++;
         }
-
+
         str[j] = u'\0';
-
+
         return true;
 }
-
+
 bool trim(char32_t* str)
 {
         auto begin = size_t{0u};
-
+
         const auto len{len(str)};
-
+
         const auto original_end{len - 1};
-
+
         auto end{original_end};
-
+
         if (0u == len) return false;
-
+
         for (auto is_ws_char{true}; begin <= end; ++begin)
         {
                 switch (str[begin])
@@ -434,22 +434,22 @@ bool trim(char32_t* str)
                 case U'\f':
                 case U'\v':
                         break;
-
+
                 default:
                         is_ws_char = false;
                         break;
                 }
-
+
                 if (!is_ws_char) break;
         }
-
+
         if (begin > end)
         {
                 *str = U'\0';
-
+
                 return true;
         }
-
+
         for (auto is_ws_char{true}; end > begin; --end)
         {
                 switch (str[end])
@@ -461,49 +461,49 @@ bool trim(char32_t* str)
                 case U'\f':
                 case U'\v':
                         break;
-
+
                 default:
                         is_ws_char = false;
                         break;
                 }
-
+
                 if (!is_ws_char) break;
         }
-
+
         if (0u == begin) {
-
+
                 if (original_end == end) return false;
-
+
                 str[end + 1] = U'\0';
-
+
                 return true;
         }
-
+
         size_t j{0u};
-
+
         const size_t last{end + 1};
-
+
         for (auto i = begin; i < last; i++)
         {
                 str[j] = str[i];
                 j++;
         }
-
+
         str[j] = U'\0';
-
+
         return true;
 }
-
+
 bool ltrim(char* str)
 {
         auto begin = size_t{0u};
-
+
         const auto len{len(str)};
-
+
         const auto end{len - 1};
-
+
         if (0u == len) return false;
-
+
         for (auto is_ws_char{true}; begin <= end; ++begin)
         {
                 switch (str[begin])
@@ -515,49 +515,49 @@ bool ltrim(char* str)
                 case '\f':
                 case '\v':
                         break;
-
+
                 default:
                         is_ws_char = false;
                         break;
                 }
-
+
                 if (!is_ws_char) break;
         }
-
+
         if (begin > end)
         {
                 *str = '\0';
-
+
                 return true;
         }
-
+
         if (0u == begin) return false;
-
+
         size_t j{0u};
-
+
         const size_t last{end + 1};
-
+
         for (auto i = begin; i < last; i++)
         {
                 str[j] = str[i];
                 j++;
         }
-
+
         str[j] = '\0';
-
+
         return true;
 }
-
+
 bool ltrim(wchar_t* str)
 {
         auto begin = size_t{0u};
-
+
         const auto len{len(str)};
-
+
         const auto end{len - 1};
-
+
         if (0u == len) return false;
-
+
         for (auto is_ws_char{true}; begin <= end; ++begin)
         {
                 switch (str[begin])
@@ -569,49 +569,49 @@ bool ltrim(wchar_t* str)
                 case L'\f':
                 case L'\v':
                         break;
-
+
                 default:
                         is_ws_char = false;
                         break;
                 }
-
+
                 if (!is_ws_char) break;
         }
-
+
         if (begin > end)
         {
                 *str = L'\0';
-
+
                 return true;
         }
-
+
         if (0u == begin) return false;
-
+
         size_t j{0u};
-
+
         const size_t last{end + 1};
-
+
         for (auto i = begin; i < last; i++)
         {
                 str[j] = str[i];
                 j++;
         }
-
+
         str[j] = L'\0';
-
+
         return true;
 }
-
+
 bool ltrim(char16_t* str)
 {
         auto begin = size_t{0u};
-
+
         const auto len{len(str)};
-
+
         const auto end{len - 1};
-
+
         if (0u == len) return false;
-
+
         for (auto is_ws_char{true}; begin <= end; ++begin)
         {
                 switch (str[begin])
@@ -623,49 +623,49 @@ bool ltrim(char16_t* str)
                 case u'\f':
                 case u'\v':
                         break;
-
+
                 default:
                         is_ws_char = false;
                         break;
                 }
-
+
                 if (!is_ws_char) break;
         }
-
+
         if (begin > end)
         {
                 *str = u'\0';
-
+
                 return true;
         }
-
+
         if (0u == begin) return false;
-
+
         size_t j{0u};
-
+
         const size_t last{end + 1};
-
+
         for (auto i = begin; i < last; i++)
         {
                 str[j] = str[i];
                 j++;
         }
-
+
         str[j] = u'\0';
-
+
         return true;
 }
-
+
 bool ltrim(char32_t* str)
 {
         auto begin = size_t{0u};
-
+
         const auto len{len(str)};
-
+
         const auto end{len - 1};
-
+
         if (0u == len) return false;
-
+
         for (auto is_ws_char{true}; begin <= end; ++begin)
         {
                 switch (str[begin])
@@ -677,52 +677,52 @@ bool ltrim(char32_t* str)
                 case U'\f':
                 case U'\v':
                         break;
-
+
                 default:
                         is_ws_char = false;
                         break;
                 }
-
+
                 if (!is_ws_char) break;
         }
-
+
         if (begin > end)
         {
                 *str = U'\0';
-
+
                 return true;
         }
-
+
         if (0u == begin) return false;
-
+
         size_t j{0u};
-
+
         const size_t last{end + 1};
-
+
         for (auto i = begin; i < last; i++)
         {
                 str[j] = str[i];
                 j++;
         }
-
+
         str[j] = U'\0';
-
+
         return true;
 }
-
-
+
+
 bool rtrim(char* str)
 {
         const auto begin = size_t{0u};
-
+
         const auto len{len(str)};
-
+
         auto end{len - 1};
-
+
         const auto original_end{end};
-
+
         if (0u == len) return false;
-
+
         for (auto is_ws_char{true}; end > begin; --end)
         {
                 switch (str[end])
@@ -734,34 +734,34 @@ bool rtrim(char* str)
                 case '\f':
                 case '\v':
                         break;
-
+
                 default:
                         is_ws_char = false;
                         break;
                 }
-
+
                 if (!is_ws_char) break;
         }
-
+
         if (original_end == end) return false;
-
+
         str[end + 1] = '\0';
-
+
         return true;
 }
-
+
 bool rtrim(wchar_t* str)
 {
         const auto begin = size_t{0u};
-
+
         const auto len{len(str)};
-
+
         auto end{len - 1};
-
+
         const auto original_end{end};
-
+
         if (0u == len) return false;
-
+
         for (auto is_ws_char{true}; end > begin; --end)
         {
                 switch (str[end])
@@ -773,34 +773,34 @@ bool rtrim(wchar_t* str)
                 case L'\f':
                 case L'\v':
                         break;
-
+
                 default:
                         is_ws_char = false;
                         break;
                 }
-
+
                 if (!is_ws_char) break;
         }
-
+
         if (original_end == end) return false;
-
+
         str[end + 1] = L'\0';
-
+
         return true;
 }
-
+
 bool rtrim(char16_t* str)
 {
         const auto begin = size_t{0u};
-
+
         const auto len{len(str)};
-
+
         auto end{len - 1};
-
+
         const auto original_end{end};
-
+
         if (0u == len) return false;
-
+
         for (auto is_ws_char{true}; end > begin; --end)
         {
                 switch (str[end])
@@ -812,34 +812,34 @@ bool rtrim(char16_t* str)
                 case u'\f':
                 case u'\v':
                         break;
-
+
                 default:
                         is_ws_char = false;
                         break;
                 }
-
+
                 if (!is_ws_char) break;
         }
-
+
         if (original_end == end) return false;
-
+
         str[end + 1] = u'\0';
-
+
         return true;
 }
-
+
 bool rtrim(char32_t* str)
 {
         const auto begin = size_t{0u};
-
+
         const auto len{len(str)};
-
+
         auto end{len - 1};
-
+
         const auto original_end{end};
-
+
         if (0u == len) return false;
-
+
         for (auto is_ws_char{true}; end > begin; --end)
         {
                 switch (str[end])
@@ -851,307 +851,307 @@ bool rtrim(char32_t* str)
                 case U'\f':
                 case U'\v':
                         break;
-
+
                 default:
                         is_ws_char = false;
                         break;
                 }
-
+
                 if (!is_ws_char) break;
         }
-
+
         if (original_end == end) return false;
-
+
         str[end + 1] = U'\0';
-
+
         return true;
 }
-
+
 bool str_starts_with(const char* src,
                      const char start_char,
                      bool ignore_case,
                      const locale& loc) {
   if (0u == len(src))
     return false;
-
+
   if (!ignore_case) {
     return (start_char == src[0]);
   }
-
+
   return (tolower(src[0], loc) == tolower(start_char, loc));
 }
-
+
 bool str_starts_with(const wchar_t* src,
                      const wchar_t start_char,
                      bool ignore_case,
                      const locale& loc) {
   if (0u == len(src))
     return false;
-
+
   if (!ignore_case) {
     return (start_char == src[0]);
   }
-
+
   return (tolower(src[0], loc) == tolower(start_char, loc));
 }
-
+
 bool str_starts_with(const char16_t* src,
                      const char16_t start_char,
                      bool ignore_case,
                      const locale& loc) {
   if (0u == len(src))
     return false;
-
+
   if (!ignore_case) {
     return (start_char == src[0]);
   }
-
+
   return (tolower(src[0], loc) == tolower(start_char, loc));
 }
-
+
 bool str_starts_with(const char32_t* src,
                      const char32_t start_char,
                      bool ignore_case,
                      const locale& loc) {
   if (0u == len(src))
     return false;
-
+
   if (!ignore_case) {
     return (start_char == src[0]);
   }
-
+
   return (tolower(src[0], loc) == tolower(start_char, loc));
 }
-
+
 bool str_starts_with(const char* src,
                      const char* start_tag,
                      bool ignore_case,
                      const locale& loc) {
   const string src_str{src};
   const string start_tag_str{start_tag};
-
+
   const auto src_len{src_str.size()};
   const auto start_tag_len{start_tag_str.size()};
-
+
   if ((0u == src_len) || (0u == start_tag_len) || (start_tag_len > src_len))
     return false;
-
+
   if (!ignore_case) {
     if (0u == src_str.find(start_tag_str))
       return true;
-
+
     return false;
   }
-
+
   string src_lc_str{src};
-
+
   auto start_tag_lc{start_tag_str};
-
+
   transform(cbegin(src_str), cend(src_str), begin(src_lc_str),
             [&loc](const char ch) { return tolower(ch, loc); });
-
+
   transform(cbegin(start_tag_str), cend(start_tag_str), begin(start_tag_lc),
             [&loc](const char ch) { return tolower(ch, loc); });
-
+
   if (0u == src_lc_str.find(start_tag_lc))
     return true;
-
+
   return false;
 }
-
+
 bool str_starts_with(const wchar_t* src,
                      const wchar_t* start_tag,
                      bool ignore_case,
                      const locale& loc) {
   const wstring src_str{src};
   const wstring start_tag_str{start_tag};
-
+
   const auto src_len{src_str.size()};
   const auto start_tag_len{start_tag_str.size()};
-
+
   if ((0u == src_len) || (0u == start_tag_len) || (start_tag_len > src_len))
     return false;
-
+
   if (!ignore_case) {
     if (0u == src_str.find(start_tag_str))
       return true;
-
+
     return false;
   }
-
+
   wstring src_lc_str{src};
-
+
   auto start_tag_lc{start_tag_str};
-
+
   transform(cbegin(src_str), cend(src_str), begin(src_lc_str),
             [&loc](const wchar_t ch) { return tolower(ch, loc); });
-
+
   transform(cbegin(start_tag_str), cend(start_tag_str), begin(start_tag_lc),
             [&loc](const wchar_t ch) { return tolower(ch, loc); });
-
+
   if (0u == src_lc_str.find(start_tag_lc))
     return true;
-
+
   return false;
 }
-
+
 bool str_starts_with(const char16_t* src,
                      const char16_t* start_tag,
                      bool ignore_case,
                      const locale& loc) {
   const u16string src_str{src};
   const u16string start_tag_str{start_tag};
-
+
   const auto src_len{src_str.size()};
   const auto start_tag_len{start_tag_str.size()};
-
+
   if ((0u == src_len) || (0u == start_tag_len) || (start_tag_len > src_len))
     return false;
-
+
   if (!ignore_case) {
     if (0u == src_str.find(start_tag_str))
       return true;
-
+
     return false;
   }
-
+
   u16string src_lc_str{src};
-
+
   auto start_tag_lc{start_tag_str};
-
+
   transform(cbegin(src_str), cend(src_str), begin(src_lc_str),
             [&loc](const char16_t ch) { return tolower(ch, loc); });
-
+
   transform(cbegin(start_tag_str), cend(start_tag_str), begin(start_tag_lc),
             [&loc](const char16_t ch) { return tolower(ch, loc); });
-
+
   if (0u == src_lc_str.find(start_tag_lc))
     return true;
-
+
   return false;
 }
-
+
 bool str_starts_with(const char32_t* src,
                      const char32_t* start_tag,
                      bool ignore_case,
                      const locale& loc) {
   const u32string src_str{src};
   const u32string start_tag_str{start_tag};
-
+
   const auto src_len{src_str.size()};
   const auto start_tag_len{start_tag_str.size()};
-
+
   if ((0u == src_len) || (0u == start_tag_len) || (start_tag_len > src_len))
     return false;
-
+
   if (!ignore_case) {
     if (0u == src_str.find(start_tag_str))
       return true;
-
+
     return false;
   }
-
+
   u32string src_lc_str{src};
-
+
   auto start_tag_lc{start_tag_str};
-
+
   transform(cbegin(src_str), cend(src_str), begin(src_lc_str),
             [&loc](const char32_t ch) { return tolower(ch, loc); });
-
+
   transform(cbegin(start_tag_str), cend(start_tag_str), begin(start_tag_lc),
             [&loc](const char32_t ch) { return tolower(ch, loc); });
-
+
   if (0u == src_lc_str.find(start_tag_lc))
     return true;
-
+
   return false;
 }
-
+
 size_t str_index_of(const char* src,
                     const char needle_char,
                     const size_t start_pos,
                     bool ignore_case,
                     const locale& loc) {
   const string src_str{src};
-
+
   if (0u == src_str.length())
     return string::npos;
-
+
   if (!ignore_case) {
     return src_str.find(needle_char, start_pos);
   }
-
+
   string text_lc{src};
-
+
   transform(cbegin(src_str), cend(src_str), begin(text_lc),
             [&loc](const char ch) { return tolower(ch, loc); });
-
+
   return text_lc.find(tolower(needle_char, loc), start_pos);
 }
-
+
 size_t str_index_of(const wchar_t* src,
                     const wchar_t needle_char,
                     const size_t start_pos,
                     bool ignore_case,
                     const locale& loc) {
   const wstring src_str{src};
-
+
   if (0u == src_str.length())
     return wstring::npos;
-
+
   if (!ignore_case) {
     return src_str.find(needle_char, start_pos);
   }
-
+
   wstring text_lc{src};
-
+
   transform(cbegin(src_str), cend(src_str), begin(text_lc),
             [&loc](const wchar_t ch) { return tolower(ch, loc); });
-
+
   return text_lc.find(tolower(needle_char, loc), start_pos);
 }
-
+
 size_t str_index_of(const char16_t* src,
                     const char16_t needle_char,
                     const size_t start_pos,
                     bool ignore_case,
                     const locale& loc) {
   const u16string src_str{src};
-
+
   if (0u == src_str.length())
     return u16string::npos;
-
+
   if (!ignore_case) {
     return src_str.find(needle_char, start_pos);
   }
-
+
   u16string text_lc{src};
-
+
   transform(cbegin(src_str), cend(src_str), begin(text_lc),
             [&loc](const char16_t ch) { return tolower(ch, loc); });
-
+
   return text_lc.find(tolower(needle_char, loc), start_pos);
 }
-
+
 size_t str_index_of(const char32_t* src,
                     const char32_t needle_char,
                     const size_t start_pos,
                     bool ignore_case,
                     const locale& loc) {
   const u32string src_str{src};
-
+
   if (0u == src_str.length())
     return u32string::npos;
-
+
   if (!ignore_case) {
     return src_str.find(needle_char, start_pos);
   }
-
+
   u32string text_lc{src};
-
+
   transform(cbegin(src_str), cend(src_str), begin(text_lc),
             [&loc](const char32_t ch) { return tolower(ch, loc); });
-
+
   return text_lc.find(tolower(needle_char, loc), start_pos);
 }
 */
@@ -4006,128 +4006,128 @@ size_t str_replace_first(char32_t* dst,
 }
 
 /*
-
+
 char16_t* u16_strcat(char16_t* dst, const size_t
 dst_capacity_in_number_of_characters, const char16_t* src)
 {
         if (!dst || !src || !dst_capacity_in_number_of_characters) return dst;
-
+
         auto const src_len = u16_strlen(src);
-
+
         auto const dst_len = u16_strlen(dst);
-
+
         if (src_len > (dst_capacity_in_number_of_characters - dst_len - 1))
 return dst;
-
+
         while (*dst) dst++;
-
+
         if (*src == u'\0') return dst;
-
+
         copy(src, src + src_len, dst);
-
+
         dst[src_len] = u'\0';
-
+
         return dst;
 }
-
+
 char32_t* u32_strcat(char32_t* dst, const size_t
 dst_capacity_in_number_of_characters, const char32_t* src)
 {
         if (!dst || !src || !dst_capacity_in_number_of_characters) return dst;
-
+
         auto const src_len = u32_strlen(src);
-
+
         auto const dst_len = u32_strlen(dst);
-
+
         if (src_len > (dst_capacity_in_number_of_characters - dst_len - 1))
 return dst;
-
+
         while (*dst) dst++;
-
+
         if (*src == U'\0') return dst;
-
+
         copy(src, src + src_len, dst);
-
+
         dst[src_len] = U'\0';
-
+
         return dst;
 }
-
+
 char16_t* u16_strncat(char16_t* dst, const size_t
 dst_capacity_in_number_of_characters, const char16_t* src, const size_t
 number_of_characters_to_concatenate)
 {
         if (!dst || !src || !dst_capacity_in_number_of_characters ||
 !number_of_characters_to_concatenate) return dst;
-
+
         auto const src_len = u16_strlen(src);
-
+
         auto const dst_len = u16_strlen(dst);
-
+
         auto const noctc = min(number_of_characters_to_concatenate, src_len);
-
+
         if (noctc > (dst_capacity_in_number_of_characters - dst_len - 1)) return
 dst;
-
+
         while (*dst) dst++;
-
+
         if (*src == u'\0') return dst;
-
+
         copy(src, src + noctc, dst);
-
+
         dst[noctc] = u'\0';
-
+
         return dst;
 }
-
+
 char32_t* u32_strncat(char32_t* dst, const size_t
 dst_capacity_in_number_of_characters, const char32_t* src, const size_t
 number_of_characters_to_concatenate)
 {
         if (!dst || !src || !dst_capacity_in_number_of_characters ||
 !number_of_characters_to_concatenate) return dst;
-
+
         auto const src_len = u32_strlen(src);
-
+
         auto const dst_len = u32_strlen(dst);
-
+
         auto const noctc = min(number_of_characters_to_concatenate, src_len);
-
+
         if ((dst_capacity_in_number_of_characters - dst_len - 1) < noctc) return
 dst;
-
+
         while (*dst) dst++;
-
+
         if (*src == U'\0') return dst;
-
+
         copy(src, src + noctc, dst);
-
+
         dst[noctc] = U'\0';
-
+
         return dst;
 }
-
+
 const char16_t* u16_strstr(const char16_t* src, const char16_t* needle)
 {
         if (!src || !needle || ((*src == u'\0') && (*needle != u'\0'))) return
 nullptr;
-
+
         auto si = size_t{0u};
-
+
         auto const src_len = u16_strlen(src);
         auto const needle_len = u16_strlen(needle);
-
+
         if ((src_len == 0) || (needle_len == 0) || (needle_len > src_len))
 return nullptr;
-
+
         bool match_found{false};
-
+
         while (!match_found)
         {
                 if ((si + needle_len) > src_len) break;
-
+
                 match_found = true;
-
+
                 for (size_t i{0u}, mi{0u}; (match_found && (i < needle_len));
 i++ , mi++)
                 {
@@ -4137,39 +4137,39 @@ i++ , mi++)
                                 si -= mi;
                                 break;
                         }
-
+
                         si++;
                 }
-
+
                 si++;
         }
-
+
         if (!match_found) return nullptr;
-
+
         return &src[si - needle_len - 1];
 }
-
+
 const char32_t* u32_strstr(const char32_t* src, const char32_t* needle)
 {
         if (!src || !needle || ((*src == U'\0') && (*needle != U'\0'))) return
 nullptr;
-
+
         size_t si{0u};
-
+
         auto const src_len = u32_strlen(src);
         auto const needle_len = u32_strlen(needle);
-
+
         if ((src_len == 0) || (needle_len == 0) || (needle_len > src_len))
 return nullptr;
-
+
         bool match_found{false};
-
+
         while (!match_found)
         {
                 if ((si + needle_len) > src_len) break;
-
+
                 match_found = true;
-
+
                 for (size_t i{0u}, mi{0u}; (match_found && (i < needle_len));
 i++ , mi++)
                 {
@@ -4179,39 +4179,39 @@ i++ , mi++)
                                 si -= mi;
                                 break;
                         }
-
+
                         si++;
                 }
-
+
                 si++;
         }
-
+
         if (!match_found) return nullptr;
-
+
         return &src[si - needle_len - 1];
 }
-
+
 char16_t* u16_strstr(char16_t* src, const char16_t* needle)
 {
         if (!src || !needle || ((*src == u'\0') && (*needle != u'\0'))) return
 nullptr;
-
+
         size_t si{0u};
-
+
         auto const src_len = u16_strlen(src);
         auto const needle_len = u16_strlen(needle);
-
+
         if ((src_len == 0) || (needle_len == 0) || (needle_len > src_len))
 return nullptr;
-
+
         bool match_found{false};
-
+
         while (!match_found)
         {
                 if ((si + needle_len) > src_len) break;
-
+
                 match_found = true;
-
+
                 for (size_t i{0u}, mi{0u}; (match_found && (i < needle_len));
 i++ , mi++)
                 {
@@ -4221,39 +4221,39 @@ i++ , mi++)
                                 si -= mi;
                                 break;
                         }
-
+
                         si++;
                 }
-
+
                 si++;
         }
-
+
         if (!match_found) return nullptr;
-
+
         return &src[si - needle_len - 1];
 }
-
+
 char32_t* u32_strstr(char32_t* src, const char32_t* needle)
 {
         if (!src || !needle || ((*src == U'\0') && (*needle != U'\0'))) return
 nullptr;
-
+
         size_t si{0u};
-
+
         auto const src_len = u32_strlen(src);
         auto const needle_len = u32_strlen(needle);
-
+
         if ((src_len == 0) || (needle_len == 0) || (needle_len > src_len))
 return nullptr;
-
+
         bool match_found{false};
-
+
         while (!match_found)
         {
                 if ((si + needle_len) > src_len) break;
-
+
                 match_found = true;
-
+
                 for (size_t i{0u}, mi{0u}; (match_found && (i < needle_len));
 i++ , mi++)
                 {
@@ -4263,40 +4263,40 @@ i++ , mi++)
                                 si -= mi;
                                 break;
                         }
-
+
                         si++;
                 }
-
+
                 si++;
         }
-
+
         if (!match_found) return nullptr;
-
+
         return &src[si - needle_len - 1];
 }
-
+
 const char16_t* u16_strstri(const char16_t* src, const char16_t* needle, const
 locale& loc)
 {
         if (!src || !needle || ((*src == u'\0') && (*needle != u'\0'))) return
 nullptr;
-
+
         auto si = size_t{0u};
-
+
         auto const src_len = u16_strlen(src);
         auto const needle_len = u16_strlen(needle);
-
+
         if ((src_len == 0) || (needle_len == 0) || (needle_len > src_len))
 return nullptr;
-
+
         bool match_found{false};
-
+
         while (!match_found)
         {
                 if ((si + needle_len) > src_len) break;
-
+
                 match_found = true;
-
+
                 for (size_t i{0u}, mi{0u}; (match_found && (i < needle_len));
 i++ , mi++)
                 {
@@ -4306,40 +4306,40 @@ i++ , mi++)
                                 si -= mi;
                                 break;
                         }
-
+
                         si++;
                 }
-
+
                 si++;
         }
-
+
         if (!match_found) return nullptr;
-
+
         return &src[si - needle_len - 1];
 }
-
+
 const char32_t* u32_strstri(const char32_t* src, const char32_t* needle, const
 locale& loc)
 {
         if (!src || !needle || ((*src == U'\0') && (*needle != U'\0'))) return
 nullptr;
-
+
         auto si = size_t{0u};
-
+
         auto const src_len = u32_strlen(src);
         auto const needle_len = u32_strlen(needle);
-
+
         if ((src_len == 0) || (needle_len == 0) || (needle_len > src_len))
 return nullptr;
-
+
         bool match_found{false};
-
+
         while (!match_found)
         {
                 if ((si + needle_len) > src_len) break;
-
+
                 match_found = true;
-
+
                 for (size_t i{0u}, mi{0u}; (match_found && (i < needle_len));
 i++ , mi++)
                 {
@@ -4349,39 +4349,39 @@ i++ , mi++)
                                 si -= mi;
                                 break;
                         }
-
+
                         si++;
                 }
-
+
                 si++;
         }
-
+
         if (!match_found) return nullptr;
-
+
         return &src[si - needle_len - 1];
 }
-
+
 char16_t* u16_strstri(char16_t* src, const char16_t* needle, const locale& loc)
 {
         if (!src || !needle || ((*src == u'\0') && (*needle != u'\0'))) return
 nullptr;
-
+
         auto si = size_t{0u};
-
+
         auto const src_len = u16_strlen(src);
         auto const needle_len = u16_strlen(needle);
-
+
         if ((src_len == 0) || (needle_len == 0) || (needle_len > src_len))
 return nullptr;
-
+
         bool match_found{false};
-
+
         while (!match_found)
         {
                 if ((si + needle_len) > src_len) break;
-
+
                 match_found = true;
-
+
                 for (size_t i{0u}, mi{0u}; (match_found && (i < needle_len));
 i++ , mi++)
                 {
@@ -4391,39 +4391,39 @@ i++ , mi++)
                                 si -= mi;
                                 break;
                         }
-
+
                         si++;
                 }
-
+
                 si++;
         }
-
+
         if (!match_found) return nullptr;
-
+
         return &src[si - needle_len - 1];
 }
-
+
 char32_t* u32_strstri(char32_t* src, const char32_t* needle, const locale& loc)
 {
         if (!src || !needle || ((*src == U'\0') && (*needle != U'\0'))) return
 nullptr;
-
+
         auto si = size_t{0u};
-
+
         auto const src_len = u32_strlen(src);
         auto const needle_len = u32_strlen(needle);
-
+
         if ((src_len == 0) || (needle_len == 0) || (needle_len > src_len))
 return nullptr;
-
+
         bool match_found{false};
-
+
         while (!match_found)
         {
                 if ((si + needle_len) > src_len) break;
-
+
                 match_found = true;
-
+
                 for (size_t i{0u}, mi{0u}; (match_found && (i < needle_len));
 i++ , mi++)
                 {
@@ -4433,15 +4433,15 @@ i++ , mi++)
                                 si -= mi;
                                 break;
                         }
-
+
                         si++;
                 }
-
+
                 si++;
         }
-
+
         if (!match_found) return nullptr;
-
+
         return &src[si - needle_len - 1];
 }*/
 

@@ -1295,7 +1295,7 @@ TEST_CASE(
 
 // TEST_CASE(
 //		"typename StringType::size_type index_of(const StringType& text,
-//const typename StringType::value_type needle_char, const size_t start_pos =
+// const typename StringType::value_type needle_char, const size_t start_pos =
 // 0u, bool ignore_case = false,\ const std::locale& loc = std::locale{})"
 //		,
 //		"Testing global template function typename StringType::size_type
@@ -1305,7 +1305,7 @@ TEST_CASE(
 //)
 //{
 //		const wstring
-//src{L"apple,banana,cabbage,lemon,orange,pepper,plum"};
+// src{L"apple,banana,cabbage,lemon,orange,pepper,plum"};
 //
 //		wstring::size_type correct_index = src.find(L'b');
 //
@@ -1318,7 +1318,7 @@ TEST_CASE(
 //
 // TEST_CASE(
 //		"typename StringType::size_type index_of(const StringType& text,
-//const typename StringType::const_pointer needle, const size_t start_pos = 0u,
+// const typename StringType::const_pointer needle, const size_t start_pos = 0u,
 // bool ignore_case = false,\ const std::locale& loc = std::locale{})"
 //		,
 //		"Testing global template function typename StringType::size_type
@@ -1328,7 +1328,7 @@ TEST_CASE(
 //)
 //{
 //		const wstring
-//src{L"apple,banana,cabbage,lemon,orange,pepper,plum"};
+// src{L"apple,banana,cabbage,lemon,orange,pepper,plum"};
 //
 //		wstring::size_type correct_index = src.find(L"banana");
 //
@@ -1341,7 +1341,7 @@ TEST_CASE(
 //
 // TEST_CASE(
 //		"typename StringType::size_type index_of(const StringType& text,
-//const StringType& needle, bool ignore_case = false, const std::locale& loc =
+// const StringType& needle, bool ignore_case = false, const std::locale& loc =
 // std::locale{})"
 //		,
 //		"Testing global template function typename StringType::size_type
@@ -1350,7 +1350,7 @@ TEST_CASE(
 //)
 //{
 //		const wstring
-//src{L"apple,banana,cabbage,lemon,orange,pepper,plum"};
+// src{L"apple,banana,cabbage,lemon,orange,pepper,plum"};
 //
 //		const wstring needle{L"banana"};
 //
@@ -1363,7 +1363,7 @@ TEST_CASE(
 //		REQUIRE(index_of(src, wstring{ L"cabbage" }) == correct_index);
 //
 //		REQUIRE(index_of(src, wstring{ L"CaBbaGe" }, 0, true) ==
-//correct_index);
+// correct_index);
 //}
 //
 // TEST_CASE(
@@ -1371,14 +1371,15 @@ TEST_CASE(
 // StringType::value_type needle_char, const size_t start_pos = 0u, bool
 // ignore_case = false, const std::locale& loc = std::locale{})"
 //		,
-//		"Testing global template function bool contains(const StringType&
-//text, const typename StringType::value_type needle_char, const size_t
+//		"Testing global template function bool contains(const
+// StringType& text, const typename StringType::value_type needle_char, const
+// size_t
 // start_pos = 0u,bool ignore_case = false, const std::locale& loc =
 // std::locale{})"
 //)
 //{
 //		const wstring
-//src{L"apple,banana,cabbage,lemon,orange,pepper,plum"};
+// src{L"apple,banana,cabbage,lemon,orange,pepper,plum"};
 //
 //		REQUIRE(contains(src, L'b'));
 //
@@ -1394,13 +1395,14 @@ TEST_CASE(
 // StringType::const_pointer needle, const size_t start_pos = 0u, bool
 // ignore_case = false, const std::locale& loc = std::locale{})"
 //		,
-//		"Testing global template function bool contains(const StringType&
-//text, typename StringType::const_pointer needle, const size_t start_pos = 0u,
+//		"Testing global template function bool contains(const
+// StringType& text, typename StringType::const_pointer needle, const size_t
+// start_pos = 0u,
 // bool ignore_case = false, const std::locale& loc = std::locale{})"
 //)
 //{
 //		const wstring
-//src{L"apple,banana,cabbage,lemon,orange,pepper,plum"};
+// src{L"apple,banana,cabbage,lemon,orange,pepper,plum"};
 //
 //		REQUIRE(contains(src, L"banana"));
 //
@@ -1413,15 +1415,16 @@ TEST_CASE(
 //
 // TEST_CASE(
 //		"bool contains(const StringType& text, const StringType& needle,
-//bool ignore_case = false, const std::locale& loc = std::locale{})"
+// bool ignore_case = false, const std::locale& loc = std::locale{})"
 //		,
-//		"Testing global template function bool contains(const StringType&
-//text, const StringType& needle, bool ignore_case = false, const std::locale&
+//		"Testing global template function bool contains(const
+// StringType& text, const StringType& needle, bool ignore_case = false, const
+// std::locale&
 // loc = std::locale{})"
 //)
 //{
 //		const wstring
-//src{L"apple,banana,cabbage,lemon,orange,pepper,plum"};
+// src{L"apple,banana,cabbage,lemon,orange,pepper,plum"};
 //
 //		const wstring needle{L"banana"};
 //
@@ -1437,8 +1440,9 @@ TEST_CASE(
 // StringType::value_type end_char, bool ignore_case = false, const std::locale&
 // loc = std::locale{})"
 //		,
-//		"Testing global template function bool ends_with(const StringType&
-//text, const typename StringType::value_type end_char, bool ignore_case =
+//		"Testing global template function bool ends_with(const
+// StringType& text, const typename StringType::value_type end_char, bool
+// ignore_case =
 // false, const std::locale& loc = std::locale{})"
 //)
 //{
@@ -1454,13 +1458,14 @@ TEST_CASE(
 // StringType::const_pointer end_tag, bool ignore_case = false, const
 // std::locale& loc = std::locale{})"
 //		,
-//		"Testing global template function bool ends_with(const StringType&
-//src, const typename StringType::const_pointer end_tag, bool ignore_case =
+//		"Testing global template function bool ends_with(const
+// StringType& src, const typename StringType::const_pointer end_tag, bool
+// ignore_case =
 // false, const std::locale& loc = std::locale{})"
 //)
 //{
 //		const u32string src{U"Apple is one my favorite, most beloved
-//fruits."};
+// fruits."};
 //
 //		REQUIRE(ends_with(src, U"fruits."));
 //
@@ -1468,16 +1473,17 @@ TEST_CASE(
 //}
 //
 // TEST_CASE(
-//		"bool ends_with(const StringType& src, const StringType& end_tag,
-//bool ignore_case = false, const std::locale& loc = std::locale{})"
+//		"bool ends_with(const StringType& src, const StringType&
+// end_tag, bool ignore_case = false, const std::locale& loc = std::locale{})"
 //		,
-//		"Testing global template function bool ends_with(const StringType&
-//src, const StringType& end_tag, bool ignore_case = false, const std::locale&
+//		"Testing global template function bool ends_with(const
+// StringType& src, const StringType& end_tag, bool ignore_case = false, const
+// std::locale&
 // loc = std::locale{})"
 //)
 //{
 //		const u32string src{U"Apple is one my favorite, most beloved
-//fruits."};
+// fruits."};
 //
 //		const u32string needle{U"fruits."};
 //
@@ -1488,22 +1494,22 @@ TEST_CASE(
 //
 // TEST_CASE("void unused_args(Args&&... args)",
 //		"Testing global template function void unused_args(Args&&...
-//args)")
+// args)")
 //{
 //		const int number{42};
 //
 //		const wchar_t* important_message = L"Number 42 is the meaning of
-//life.";
+// life.";
 //
 //		struct NumberInfo
 //		{
-//				NumberInfo() : number{42}, message{L"Number 42 is the
-//meaning of life."}
+//				NumberInfo() : number{42}, message{L"Number 42
+//is the meaning of life."}
 //				{
 //				}
 //
 //				NumberInfo(const int num, const wchar_t* msg) :
-//number{num}, message{msg}
+// number{num}, message{msg}
 //				{
 //				}
 //
@@ -1517,8 +1523,8 @@ TEST_CASE(
 //
 // TEST_CASE("bool has_key(const map<KeyType, ValueType>& container, const
 // typename map<KeyType, ValueType>::key_type& key)", "Testing global template
-// function bool has_key(const map<KeyType, ValueType>& container, const typename
-// map<KeyType, ValueType>::key_type& key)")
+// function bool has_key(const map<KeyType, ValueType>& container, const
+// typename map<KeyType, ValueType>::key_type& key)")
 //{
 //		const wstring
 // src{L"apple:10:banana:20:cabbage:30:lemon:40:orange:50:pepper:60:plum:70"};
@@ -1531,8 +1537,8 @@ TEST_CASE(
 //
 //				for (size_t i = 0; i < parts.size(); i += 2)
 //				{
-//						fruits[parts[i]] = stoul(parts[i +
-//1]);
+//						fruits[parts[i]] = stoul(parts[i
+//+ 1]);
 //				}
 //
 //				return fruits;
@@ -1540,7 +1546,7 @@ TEST_CASE(
 //
 //		const vector<wstring> random_fruits{
 //				L"apple", L"apricot", L"banana", L"orange",
-//L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
+// L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
 //		};
 //
 //		mt19937 rand_engine{rd()};
@@ -1579,12 +1585,12 @@ TEST_CASE(
 //		for (size_t i = 0; i < parts.size(); i += 2)
 //		{
 //				fruit_count[parts[i]] = std::stoul(parts[i +
-//1]);
+// 1]);
 //		}
 //
 //		const vector<wstring> random_fruits{
 //				L"apple", L"apricot", L"banana", L"orange",
-//L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
+// L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
 //		};
 //
 //		mt19937 rand_engine{ rd() };
@@ -1626,7 +1632,7 @@ TEST_CASE(
 //				for (size_t i = 0; i < parts.size(); i += 2)
 //				{
 //						fruits.insert(make_pair(parts[i],
-//stoul(parts[i + 1])));
+// stoul(parts[i + 1])));
 //				}
 //
 //				return fruits;
@@ -1634,7 +1640,7 @@ TEST_CASE(
 //
 //		const vector<wstring> random_fruits{
 //				L"apple", L"apricot", L"banana", L"orange",
-//L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
+// L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
 //		};
 //
 //		mt19937 rand_engine{rd()};
@@ -1673,13 +1679,14 @@ TEST_CASE(
 //
 //		for (size_t i = 0; i < parts.size(); i += 2)
 //		{
-//				fruit_count.insert(make_pair(parts[i], stoul(parts[i +
-//1])));
+//				fruit_count.insert(make_pair(parts[i],
+//stoul(parts[i
+//+ 1])));
 //		}
 //
 //		const vector<wstring> random_fruits{
 //				L"apple", L"apricot", L"banana", L"orange",
-//L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
+// L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
 //		};
 //
 //		mt19937 rand_engine{ rd() };
@@ -1723,8 +1730,8 @@ TEST_CASE(
 //
 //				for (size_t i = 0; i < parts.size(); i += 2)
 //				{
-//						fruits[parts[i]] = stoul(parts[i +
-//1]);
+//						fruits[parts[i]] = stoul(parts[i
+//+ 1]);
 //				}
 //
 //				return fruits;
@@ -1732,7 +1739,7 @@ TEST_CASE(
 //
 //		const vector<wstring> random_fruits{
 //				L"apple", L"apricot", L"banana", L"orange",
-//L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
+// L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
 //		};
 //
 //		mt19937 rand_engine{rd()};
@@ -1771,12 +1778,12 @@ TEST_CASE(
 //		for (size_t i = 0; i < parts.size(); i += 2)
 //		{
 //				fruit_count[parts[i]] = std::stoul(parts[i +
-//1]);
+// 1]);
 //		}
 //
 //		const vector<wstring> random_fruits{
 //				L"apple", L"apricot", L"banana", L"orange",
-//L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
+// L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
 //		};
 //
 //		mt19937 rand_engine{ rd() };
@@ -1821,7 +1828,7 @@ TEST_CASE(
 //				for (size_t i = 0; i < parts.size(); i += 2)
 //				{
 //						fruits.insert(make_pair(parts[i],
-//stoul(parts[i + 1])));
+// stoul(parts[i + 1])));
 //				}
 //
 //				return fruits;
@@ -1829,7 +1836,7 @@ TEST_CASE(
 //
 //		const vector<wstring> random_fruits{
 //				L"apple", L"apricot", L"banana", L"orange",
-//L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
+// L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
 //		};
 //
 //		mt19937 rand_engine{rd()};
@@ -1869,12 +1876,12 @@ TEST_CASE(
 //		for (size_t i = 0; i < parts.size(); i += 2)
 //		{
 //				fruit_count.insert(make_pair(parts[i],
-//std::stoul(parts[i + 1])));
+// std::stoul(parts[i + 1])));
 //		}
 //
 //		const vector<wstring> random_fruits{
 //				L"apple", L"apricot", L"banana", L"orange",
-//L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
+// L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
 //		};
 //
 //		mt19937 rand_engine{rd()};
@@ -1917,7 +1924,7 @@ TEST_CASE(
 //
 //		const vector<wstring> random_fruits{
 //				L"apple", L"apricot", L"banana", L"orange",
-//L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
+// L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
 //		};
 //
 //		mt19937 rand_engine{rd()};
@@ -1928,7 +1935,8 @@ TEST_CASE(
 //		const auto random_fruit{random_fruits[num_distr(rand_engine)]};
 //
 //		if (find(cbegin(parts), cend(parts), random_fruit) !=
-//cend(parts)) 				REQUIRE(has_value(parts, random_fruit));
+// cend(parts)) 				REQUIRE(has_value(parts,
+// random_fruit));
 //
 //		else
 //				REQUIRE(!has_value(parts, random_fruit));
@@ -1953,7 +1961,7 @@ TEST_CASE(
 //
 //		const vector<wstring> random_fruits{
 //				L"apple", L"apricot", L"banana", L"orange",
-//L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
+// L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
 //		};
 //
 //		mt19937 rand_engine{rd()};
@@ -2001,7 +2009,7 @@ TEST_CASE(
 //
 //		const vector<wstring> random_fruits{
 //				L"apple", L"apricot", L"banana", L"orange",
-//L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
+// L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
 //		};
 //
 //		mt19937 rand_engine{rd()};
@@ -2049,7 +2057,7 @@ TEST_CASE(
 //
 //		const vector<wstring> random_fruits{
 //				L"apple", L"apricot", L"banana", L"orange",
-//L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
+// L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
 //		};
 //
 //		mt19937 rand_engine{rd()};
@@ -2097,7 +2105,7 @@ TEST_CASE(
 //
 //		const vector<wstring> random_fruits{
 //				L"apple", L"apricot", L"banana", L"orange",
-//L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
+// L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
 //		};
 //
 //		mt19937 rand_engine{rd()};
@@ -2146,7 +2154,7 @@ TEST_CASE(
 //
 //		const vector<wstring> random_fruits{
 //				L"apple", L"apricot", L"banana", L"orange",
-//L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
+// L"grapefruit", L"lemon", L"pear", L"pineapple", L"plum", L"walnut"
 //		};
 //
 //		mt19937 rand_engine{rd()};
@@ -2164,12 +2172,13 @@ TEST_CASE(
 //}
 //
 // TEST_CASE(
-//		"string get_type_name(T&& arg) | wstring get_type_name_w(T&& arg)
-//| void show_var_info(const T& arg) | void show_var_info_w(const T& arg) ||
+//		"string get_type_name(T&& arg) | wstring get_type_name_w(T&&
+// arg) | void show_var_info(const T& arg) | void show_var_info_w(const T& arg)
+//||
 // bool check_data_types_for_equality(Args&&... args)"
 //		,
 //		"Testing global template functions: get_type_name,
-//get_type_name_w, show_var_info, show_var_info_w and
+// get_type_name_w, show_var_info, show_var_info_w and
 // check_data_types_for_equality"
 //)
 //{
@@ -2205,12 +2214,12 @@ TEST_CASE(
 // short value)")
 //{
 //		auto const result_u16string{
-//to_u16string(static_cast<short>(12345)) };
+// to_u16string(static_cast<short>(12345)) };
 //
 //
 //
 //		string result_string(cbegin(result_u16string),
-//cend(result_u16string));
+// cend(result_u16string));
 //
 //
 //
@@ -2255,8 +2264,8 @@ TEST_CASE(
 //		// add code (function) for rounding to N decimal digits
 //		auto const float_value { stof(u"7.53", &end_pos, 10) };
 //
-//		cout << "\nstof(u\"7.53\") = " << float_value << '\n' << "end_pos
-//= " << end_pos << '\n';
+//		cout << "\nstof(u\"7.53\") = " << float_value << '\n' <<
+//"end_pos = " << end_pos << '\n';
 //
 //		REQUIRE(float_value == 7.53);
 //
