@@ -1154,7 +1154,6 @@ size_t str_index_of(const char32_t* src,
 
   return text_lc.find(tolower(needle_char, loc), start_pos);
 }
-*/
 
 size_t str_index_of(const char* src,
                     const char* needle,
@@ -1527,6 +1526,8 @@ bool str_contains(const char32_t* src,
 
   return false;
 }
+
+ */
 
 // str_ends_with global string handling functions (immutable)
 

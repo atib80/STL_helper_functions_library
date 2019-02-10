@@ -1504,7 +1504,7 @@ TEST_CASE(
 //		struct NumberInfo
 //		{
 //				NumberInfo() : number{42}, message{L"Number 42
-//is the meaning of life."}
+// is the meaning of life."}
 //				{
 //				}
 //
@@ -1680,7 +1680,7 @@ TEST_CASE(
 //		for (size_t i = 0; i < parts.size(); i += 2)
 //		{
 //				fruit_count.insert(make_pair(parts[i],
-//stoul(parts[i
+// stoul(parts[i
 //+ 1])));
 //		}
 //

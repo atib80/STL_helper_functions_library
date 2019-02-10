@@ -1,3 +1,0 @@
-C:/Users/atib1/CLionProjects/STL_helper_functions_library_v1/cmake-build-debug/CMakeFiles/STL_helper_functions_library_v1.dir
-C:/Users/atib1/CLionProjects/STL_helper_functions_library_v1/cmake-build-debug/CMakeFiles/edit_cache.dir
-C:/Users/atib1/CLionProjects/STL_helper_functions_library_v1/cmake-build-debug/CMakeFiles/rebuild_cache.dir
