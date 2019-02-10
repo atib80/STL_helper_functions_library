@@ -1527,10 +1527,6 @@ bool str_contains(const char32_t* src,
   return false;
 }
 
- */
-
-// str_ends_with global string handling functions (immutable)
-
 bool str_ends_with(const char* src,
                    const char end_char,
                    bool ignore_case,
@@ -1750,6 +1746,7 @@ bool str_ends_with(const char32_t* src,
 
   return false;
 }
+*/
 
 int str_compare(const char* str1, const char* str2) {
   if (!str1)

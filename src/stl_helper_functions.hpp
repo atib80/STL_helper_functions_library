@@ -398,10 +398,10 @@ namespace cpp {
         struct add_const_pointer_to_char_type {
             using type = std::add_const_t<std::add_pointer_t<std::add_const_t<get_char_type_t<T>>>>;
             static_assert(is_anyone_of_v<type,
-                    const char * const,
-                    const wchar_t * const,
-                    const char16_t * const,
-                    const char32_t * const>);
+                    const char *const,
+                    const wchar_t *const,
+                    const char16_t *const,
+                    const char32_t *const>);
         };
 
         template<typename T>
@@ -942,7 +942,7 @@ namespace cpp {
             if (0 == src_len)
                 return false;
 
-            if constexpr (is_valid_char_type_v<get_char_type_t<U>>) {
+            if constexpr (is_valid_char_type_v<U>) {
 
                 if (!ignore_case)
                     return needle == src[0];
@@ -958,26 +958,24 @@ namespace cpp {
                 if (0 == needle_len || needle_len > src_len)
                     return false;
 
-                std::basic_string_view<char_type> src_str_view(src, src_len);
-                std::basic_string_view<char_type> needle_str_view(needle, needle_len);
+                if (!ignore_case) {
+                    for (size_t i{}; i < needle_len; i++) {
+                        if (src[i] != needle[i])
+                            return false;
+                    }
 
-                if (!ignore_case)
-                    return 0 == src_str_view.find(needle_str_view);
-
-                std::basic_string<char_type> src_str{src};
-                std::basic_string<char_type> needle_str{needle};
+                    return true;
+                }
 
                 const auto &f = std::use_facet<std::ctype<char_type>>(loc);
 
-                std::transform(std::cbegin(src_str), std::cend(src_str),
-                               std::begin(src_str),
-                               [&f](const auto ch) { return f.tolower(ch); });
+                for (size_t i{}; i < needle_len; i++) {
+                    if (f.tolower(src[i]) != f.tolower(needle[i]))
+                        return false;
+                }
 
-                std::transform(std::cbegin(needle_str), std::cend(needle_str),
-                               std::begin(needle_str),
-                               [&f](const auto ch) { return f.tolower(ch); });
+                return true;
 
-                return 0 == src_str.find(needle_str);
             }
         }
 
@@ -1005,65 +1003,56 @@ namespace cpp {
                 typename ConditionType =
                 std::enable_if_t<is_valid_string_type_v<StringType>, void *>>
         bool str_starts_with(const StringType &src,
-                             typename StringType::const_pointer start_tag,
+                             typename StringType::const_pointer needle,
                              const bool ignore_case = false,
                              const std::locale &loc = std::locale{}) {
             using char_type = typename StringType::value_type;
 
             const auto src_len{src.length()};
-            const auto start_tag_len{len(start_tag)};
+            const auto needle_len{len(needle)};
 
-            if (0 == src_len || 0 == start_tag_len || start_tag_len > src_len)
+            if (0 == src_len || 0 == needle_len || needle_len > src_len)
                 return false;
 
             if (!ignore_case)
-                return 0 == src.find(start_tag);
-
-            StringType src_lc{src};
-            StringType start_tag_str{start_tag};
+                return 0 == src.find(needle);
 
             const auto &f = std::use_facet<std::ctype<char_type>>(loc);
 
-            std::transform(std::cbegin(src), std::cend(src), std::begin(src_lc),
-                           [&f](const auto ch) { return f.tolower(ch); });
+            for (size_t i{}; i < needle_len; i++) {
+                if (f.tolower(src[i]) != f.tolower(needle[i]))
+                    return false;
+            }
 
-            std::transform(std::cbegin(start_tag_str), std::cend(start_tag_str),
-                           std::begin(start_tag_str),
-                           [&f](const auto ch) { return f.tolower(ch); });
-
-            return 0 == src_lc.find(start_tag_str);
+            return true;
         }
 
         template<typename StringType,
                 typename ConditionType =
                 std::enable_if_t<is_valid_string_type_v<StringType>, void *>>
         bool str_starts_with(const StringType &src,
-                             const StringType &start_tag,
+                             const StringType &needle,
                              const bool ignore_case = false,
                              const std::locale &loc = std::locale{}) {
             using char_type = typename StringType::value_type;
 
             const auto src_len{src.length()};
-            const auto start_tag_len{start_tag.length()};
+            const auto needle_len{needle.length()};
 
-            if (0 == src_len || 0 == start_tag_len || start_tag_len > src_len)
+            if (0 == src_len || 0 == needle_len || needle_len > src_len)
                 return false;
 
             if (!ignore_case)
-                return 0 == src.find(start_tag);
-
-            StringType src_lc{src};
-            StringType start_tag_lc{start_tag};
+                return 0 == src.find(needle);
 
             const auto &f = std::use_facet<std::ctype<char_type>>(loc);
 
-            std::transform(cbegin(src), cend(src), begin(src_lc),
-                           [&f](const auto ch) { return f.tolower(ch); });
+            for (size_t i{}; i < needle_len; i++) {
+                if (f.tolower(src[i]) != f.tolower(needle[i]))
+                    return false;
+            }
 
-            std::transform(cbegin(start_tag), cend(start_tag), begin(start_tag_lc),
-                           [&f](const auto ch) { return f.tolower(ch); });
-
-            return 0 == src_lc.find(start_tag_lc);
+            return true;
         }
 
         template<
@@ -1082,10 +1071,10 @@ namespace cpp {
                                 get_char_type_t<U>>),
                         void *>>
         size_t str_index_of(T src,
-                          const U needle,
-                          const size_t start_pos = 0u,
-                          const bool ignore_case = false,
-                          const std::locale &loc = std::locale{}) {
+                            const U needle,
+                            const size_t start_pos = 0u,
+                            const bool ignore_case = false,
+                            const std::locale &loc = std::locale{}) {
             using char_type = get_char_type_t<U>;
 
             if (nullptr == src)
