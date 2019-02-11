@@ -9945,7 +9945,7 @@ std::string getFormattedDuration(const double duration) {
 #ifdef _MSC_VER
   sprintf_s(buffer, "%.3lf", duration);
 #else
-  StringCchPrintfA(buffer, maxDoubleSize - 1, "%.3lf", duration);
+  snprintf(buffer, maxDoubleSize - 1, "%.3lf", duration);
 #endif
   return std::string(buffer);
 }
