@@ -6677,8 +6677,9 @@ inline void reportFatal(std::string const& message) {
 
 }  // namespace Catch
 
-#if defined(CATCH_PLATFORM_WINDOWS)  /////////////////////////////////////////
-                                     // #included from: catch_windows_h_proxy.h
+#if defined( \
+    CATCH_PLATFORM_WINDOWS)  /////////////////////////////////////////
+                             // #included from: catch_windows_h_proxy.h
 
 #define TWOBLUECUBES_CATCH_WINDOWS_H_PROXY_H_INCLUDED
 
@@ -11774,7 +11775,7 @@ inline IndexTracker::~IndexTracker() {}
 
 #if defined(WIN32) && defined(_UNICODE) && !defined(DO_NOT_USE_WMAIN)
 // Standard C/C++ Win32 Unicode wmain entry point
-extern "C" int wmain(int argc, wchar_t* argv[], wchar_t* []) {
+extern "C" int wmain(int argc, wchar_t* argv[], wchar_t*[]) {
 #else
 // Standard C/C++ main entry point
 int main(int argc, char* argv[]) {

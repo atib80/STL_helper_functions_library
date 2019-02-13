@@ -295,7 +295,8 @@ static constexpr const CharType* default_whitespace_chars_v =
 
 template <typename T>
 struct get_char_type_from_char_pointer_or_char_array {
-  using type = std::remove_cv_t<std::remove_pointer_t<std::remove_cv_t<T>>>;
+  using type = std::remove_cv_t<
+      std::remove_pointer_t<std::remove_cv_t<std::decay_t<T>>>>;
 };
 
 template <typename T>
@@ -383,11 +384,6 @@ template <typename T>
 struct add_const_pointer_to_char_type {
   using type = std::add_const_t<
       std::add_pointer_t<std::add_const_t<get_char_type_t<T>>>>;
-  // static_assert(is_anyone_of_v<type,
-  //         const char *const,
-  //         const wchar_t *const,
-  //         const char16_t *const,
-  //         const char32_t *const>);
 };
 
 template <typename T>
@@ -899,6 +895,7 @@ bool str_starts_with(T src,
                      const U needle,
                      const bool ignore_case = false,
                      const std::locale& loc = std::locale{}) {
+  using char_type = get_char_type_t<U>;
 
   if (nullptr == src)
     return false;
@@ -908,21 +905,16 @@ bool str_starts_with(T src,
   if (0 == src_len)
     return false;
 
-  if constexpr (is_valid_char_type_v<U>) {
+  if constexpr (is_valid_char_type_v<std::remove_cv_t<U>>) {
     if (!ignore_case)
       return needle == src[0];
 
-    if (needle == src[0])
-      return true;
-
-    try {
-      if (std::tolower(src[0], loc) == std::tolower(needle, loc))
-        return true;
-
-    } catch (const std::bad_cast&) {
+    if (std::has_facet<std::ctype<char_type>>(loc)) {
+      const auto& f = std::use_facet<std::ctype<char_type>>(loc);
+      return f.tolower(src[0]) == f.tolower(needle);
     }
 
-    return true;
+    return std::tolower(src[0]) == std::tolower(needle);
 
   } else {
     const size_t needle_len{len(needle)};
@@ -939,16 +931,26 @@ bool str_starts_with(T src,
       return true;
     }
 
+    if (std::has_facet<std::ctype<char_type>>(loc)) {
+      const auto& f = std::use_facet<std::ctype<char_type>>(loc);
+
+      for (size_t i{}; i < needle_len; i++) {
+        if (src[i] == needle[i])
+          continue;
+
+        if (f.tolower(src[i]) != f.tolower(needle[i]))
+          return false;
+      }
+
+      return true;
+    }
+
     for (size_t i{}; i < needle_len; i++) {
       if (src[i] == needle[i])
         continue;
 
-      try {
-        if (std::tolower(src[i], loc) != std::tolower(needle[i], loc))
-          return false;
-
-      } catch (const std::bad_cast&) {
-      }
+      if (std::tolower(src[i]) != std::tolower(needle[i]))
+        return false;
     }
 
     return true;
@@ -961,23 +963,20 @@ bool str_starts_with(const StringType& src,
                      const typename StringType::value_type start_char,
                      const bool ignore_case = false,
                      const std::locale& loc = std::locale{}) {
-  if (0 == src.length())
+  using char_type = typename StringType::value_type;
+
+  if (0u == src.length())
     return false;
 
   if (!ignore_case)
     return start_char == src[0];
 
-  if (start_char == src[0])
-    return true;
-
-  try {
-    if (std::tolower(src[0], loc) == std::tolower(start_char, loc))
-      return true;
-
-  } catch (const std::bad_cast&) {
+  if (std::has_facet<std::ctype<char_type>>(loc)) {
+    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
+    return f.tolower(src[0]) == f.tolower(start_char);
   }
 
-  return true;
+  return std::tolower(src[0]) == std::tolower(start_char);
 }
 
 template <typename StringType,
@@ -986,25 +985,37 @@ bool str_starts_with(const StringType& src,
                      typename StringType::const_pointer needle,
                      const bool ignore_case = false,
                      const std::locale& loc = std::locale{}) {
+  using char_type = typename StringType::value_type;
+
   const auto src_len{src.length()};
   const auto needle_len{len(needle)};
 
-  if (0 == src_len || 0 == needle_len || needle_len > src_len)
+  if (0u == src_len || 0u == needle_len || needle_len > src_len)
     return false;
 
   if (!ignore_case)
-    return 0 == src.find(needle);
+    return 0u == src.find(needle);
+
+  if (std::has_facet<std::ctype<char_type>>(loc)) {
+    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
+
+    for (size_t i{}; i < needle_len; i++) {
+      if (src[i] == needle[i])
+        continue;
+
+      if (f.tolower(src[i]) != f.tolower(needle[i]))
+        return false;
+    }
+
+    return true;
+  }
 
   for (size_t i{}; i < needle_len; i++) {
     if (src[i] == needle[i])
       continue;
 
-    try {
-      if (std::tolower(src[i], loc) != std::tolower(needle[i], loc))
-        return false;
-
-    } catch (const std::bad_cast&) {
-    }
+    if (std::tolower(src[i]) != std::tolower(needle[i]))
+      return false;
   }
 
   return true;
@@ -1016,25 +1027,37 @@ bool str_starts_with(const StringType& src,
                      const StringType& needle,
                      const bool ignore_case = false,
                      const std::locale& loc = std::locale{}) {
+  using char_type = typename StringType::value_type;
+
   const auto src_len{src.length()};
   const auto needle_len{needle.length()};
 
-  if (0 == src_len || 0 == needle_len || needle_len > src_len)
+  if (0u == src_len || 0u == needle_len || needle_len > src_len)
     return false;
 
   if (!ignore_case)
-    return 0 == src.find(needle);
+    return 0u == src.find(needle);
+
+  if (std::has_facet<std::ctype<char_type>>(loc)) {
+    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
+
+    for (size_t i{}; i < needle_len; i++) {
+      if (src[i] == needle[i])
+        continue;
+
+      if (f.tolower(src[i]) != f.tolower(needle[i]))
+        return false;
+    }
+
+    return true;
+  }
 
   for (size_t i{}; i < needle_len; i++) {
     if (src[i] == needle[i])
       continue;
 
-    try {
-      if (std::tolower(src[i], loc) != std::tolower(needle[i], loc))
-        return false;
-
-    } catch (const std::bad_cast&) {
-    }
+    if (std::tolower(src[i]) != std::tolower(needle[i]))
+      return false;
   }
 
   return true;
@@ -1076,22 +1099,22 @@ size_t str_index_of(T src,
     }
 
     std::basic_string<char_type> src_str{src};
-
-    for (auto& ch : src_str) {
-      try {
-        ch = std::tolower(ch, loc);
-
-      } catch (const std::bad_cast&) {
-        ch = static_cast<char_type>(std::tolower(ch));
-      }
-    }
-
     auto needle_lc{needle};
 
-    try {
-      needle_lc = std::tolower(needle, loc);
+    if (std::has_facet<std::ctype<char_type>>(loc)) {
+      const auto& f = std::use_facet<std::ctype<char_type>>(loc);
 
-    } catch (const std::bad_cast&) {
+      std::transform(std::cbegin(src_str), std::cend(src_str),
+                     std::begin(src_str),
+                     [&f](const auto ch) { return f.tolower(ch); });
+      needle_lc = f.tolower(needle);
+
+    } else {
+      std::transform(std::cbegin(src_str), std::cend(src_str),
+                     std::begin(src_str), [](const auto ch) {
+                       return static_cast<char_type>(std::tolower(ch));
+                     });
+
       needle_lc = static_cast<char_type>(std::tolower(needle));
     }
 
@@ -1113,22 +1136,24 @@ size_t str_index_of(T src,
     if (!ignore_case)
       return src_str.find(needle_str, start_pos);
 
-    for (auto& ch : src_str) {
-      try {
-        ch = std::tolower(ch, loc);
+    if (std::has_facet<std::ctype<char_type>>(loc)) {
+      const auto& f = std::use_facet<std::ctype<char_type>>(loc);
+      std::transform(std::cbegin(src_str), std::cend(src_str),
+                     std::begin(src_str),
+                     [&f](const auto ch) { return f.tolower(ch); });
+      std::transform(std::cbegin(needle_str), std::cend(needle_str),
+                     std::begin(needle_str),
+                     [&f](const auto ch) { return f.tolower(ch); });
 
-      } catch (const std::bad_cast&) {
-        ch = static_cast<char_type>(std::tolower(ch));
-      }
-    }
-
-    for (auto& ch : needle_str) {
-      try {
-        ch = std::tolower(ch, loc);
-
-      } catch (const std::bad_cast&) {
-        ch = static_cast<char_type>(std::tolower(ch));
-      }
+    } else {
+      std::transform(std::cbegin(src_str), std::cend(src_str),
+                     std::begin(src_str), [](const auto ch) {
+                       return static_cast<char_type>(std::tolower(ch));
+                     });
+      std::transform(std::cbegin(needle_str), std::cend(needle_str),
+                     std::begin(needle_str), [](const auto ch) {
+                       return static_cast<char_type>(std::tolower(ch));
+                     });
     }
 
     return src_str.find(needle_str, start_pos);
@@ -1147,18 +1172,26 @@ auto str_index_of(const StringType& src,
   if (0 == src.length())
     return StringType::npos;
 
-  if (!ignore_case) {
+  if (!ignore_case)
     return src.find(needle_char, start_pos);
-  }
 
   StringType src_lc{src};
+  auto needle_char_lc{needle_char};
 
-  const auto& f = std::use_facet<std::ctype<char_type>>(loc);
+  if (std::has_facet<std::ctype<char_type>>(loc)) {
+    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
+    std::transform(std::cbegin(src), std::cend(src), std::begin(src_lc),
+                   [&f](const auto ch) { return f.tolower(ch); });
+    needle_char_lc = f.tolower(needle_char);
 
-  std::transform(std::cbegin(src), std::cend(src), std::begin(src_lc),
-                 [&f](const auto ch) { return f.tolower(ch); });
+  } else {
+    std::transform(
+        std::cbegin(src), std::cend(src), std::begin(src_lc),
+        [](const auto ch) { return static_cast<char_type>(std::tolower(ch)); });
+    needle_char_lc = static_cast<char_type>(std::tolower(needle_char));
+  }
 
-  return src_lc.find(f.tolower(needle_char), start_pos);
+  return src_lc.find(needle_char_lc, start_pos);
 }
 
 template <typename StringType,
@@ -1179,17 +1212,25 @@ auto str_index_of(const StringType& src,
   if (!ignore_case)
     return src.find(needle, start_pos);
 
-  StringType needle_str{needle};
   StringType src_lc{src};
+  StringType needle_str{needle};
 
-  const auto& f = std::use_facet<std::ctype<char_type>>(loc);
+  if (std::has_facet<std::ctype<char_type>>(loc)) {
+    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
+    std::transform(std::cbegin(src), std::cend(src), std::begin(src_lc),
+                   [&f](const auto ch) { return f.tolower(ch); });
+    std::transform(std::cbegin(needle_str), std::cend(needle_str),
+                   std::begin(needle_str),
+                   [&f](const auto ch) { return f.tolower(ch); });
 
-  std::transform(std::cbegin(src), std::cend(src), std::begin(src_lc),
-                 [&f](const auto ch) { return f.tolower(ch); });
-
-  std::transform(std::cbegin(needle_str), std::cend(needle_str),
-                 std::begin(needle_str),
-                 [&f](const auto ch) { return f.tolower(ch); });
+  } else {
+    std::transform(
+        std::cbegin(src), std::cend(src), std::begin(src_lc),
+        [](const auto ch) { return static_cast<char_type>(std::tolower(ch)); });
+    std::transform(
+        std::cbegin(needle_str), std::cend(needle_str), std::begin(needle_str),
+        [](const auto ch) { return static_cast<char_type>(std::tolower(ch)); });
+  }
 
   return src_lc.find(needle_str, start_pos);
 }
@@ -1212,17 +1253,25 @@ auto str_index_of(const StringType& src,
   if (!ignore_case)
     return src.find(needle, start_pos);
 
-  const auto& f = std::use_facet<std::ctype<char_type>>(loc);
-
   StringType src_lc{src};
-
-  std::transform(std::cbegin(src), std::cend(src), std::begin(src_lc),
-                 [&f](const auto ch) { return f.tolower(ch); });
-
   StringType needle_lc{needle};
 
-  std::transform(std::cbegin(needle), std::cend(needle), std::begin(needle_lc),
-                 [&f](const auto ch) { return f.tolower(ch); });
+  if (std::has_facet<std::ctype<char_type>>(loc)) {
+    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
+    std::transform(std::cbegin(src), std::cend(src), std::begin(src_lc),
+                   [&f](const auto ch) { return f.tolower(ch); });
+    std::transform(std::cbegin(needle), std::cend(needle),
+                   std::begin(needle_lc),
+                   [&f](const auto ch) { return f.tolower(ch); });
+
+  } else {
+    std::transform(
+        std::cbegin(src), std::cend(src), std::begin(src_lc),
+        [](const auto ch) { return static_cast<char_type>(std::tolower(ch)); });
+    std::transform(
+        std::cbegin(needle), std::cend(needle), std::begin(needle_lc),
+        [](const auto ch) { return static_cast<char_type>(std::tolower(ch)); });
+  }
 
   return src_lc.find(needle_lc, start_pos);
 }
@@ -1242,7 +1291,7 @@ template <
                        U>>)&&(std::is_same_v<get_char_type_t<T>,
                                              get_char_type_t<U>>)>>
 bool str_contains(T src,
-                  U needle,
+                  const U needle,
                   size_t start_pos = 0u,
                   bool ignore_case = false,
                   const std::locale& loc = std::locale{}) {
@@ -1256,20 +1305,31 @@ bool str_contains(T src,
   if (0 == src_len)
     return false;
 
-  if constexpr (is_valid_char_type_v<U>) {
+  if constexpr (is_valid_char_type_v<std::remove_cv_t<U>>) {
     if (!ignore_case)
       return src + src_len != std::find(src + start_pos, src + src_len, needle);
 
-    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
-
     std::basic_string<char_type> src_str{src};
+    auto needle_lc{needle};
 
-    std::transform(std::cbegin(src_str), std::cend(src_str),
-                   std::begin(src_str),
-                   [&f](const auto ch) { return f.tolower(ch); });
+    if (std::has_facet<std::ctype<char_type>>(loc)) {
+      const auto& f = std::use_facet<std::ctype<char_type>>(loc);
+
+      std::transform(std::cbegin(src_str), std::cend(src_str),
+                     std::begin(src_str),
+                     [&f](const auto ch) { return f.tolower(ch); });
+      needle_lc = f.tolower(needle);
+    } else {
+      std::transform(std::cbegin(src_str), std::cend(src_str),
+                     std::begin(src_str), [](const auto ch) {
+                       return static_cast<char_type>(std::tolower(ch));
+                     });
+
+      needle_lc = static_cast<char_type>(std::tolower(needle));
+    }
 
     return std::basic_string<char_type>::npos !=
-           src_str.find(f.tolower(needle), start_pos);
+           src_str.find(needle_lc, start_pos);
 
   } else {
     const auto needle_len{len(needle)};
@@ -1287,15 +1347,28 @@ bool str_contains(T src,
     std::basic_string<char_type> src_str{src};
     std::basic_string<char_type> needle_str{needle};
 
-    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
+    if (std::has_facet<std::ctype<char_type>>(loc)) {
+      const auto& f = std::use_facet<std::ctype<char_type>>(loc);
 
-    std::transform(std::cbegin(src_str), std::cend(src_str),
-                   std::begin(src_str),
-                   [&f](const auto ch) { return f.tolower(ch); });
+      std::transform(std::cbegin(src_str), std::cend(src_str),
+                     std::begin(src_str),
+                     [&f](const auto ch) { return f.tolower(ch); });
 
-    std::transform(std::cbegin(needle_str), std::cend(needle_str),
-                   std::begin(needle_str),
-                   [&f](const auto ch) { return f.tolower(ch); });
+      std::transform(std::cbegin(needle_str), std::cend(needle_str),
+                     std::begin(needle_str),
+                     [&f](const auto ch) { return f.tolower(ch); });
+
+    } else {
+      std::transform(std::cbegin(src_str), std::cend(src_str),
+                     std::begin(src_str), [](const auto ch) {
+                       return static_cast<char_type>(std::tolower(ch));
+                     });
+
+      std::transform(std::cbegin(needle_str), std::cend(needle_str),
+                     std::begin(needle_str), [](const auto ch) {
+                       return static_cast<char_type>(std::tolower(ch));
+                     });
+    }
 
     return std::basic_string<char_type>::npos !=
            src_str.find(needle_str, start_pos);
@@ -1316,14 +1389,26 @@ bool str_contains(const StringType& src,
   if (!ignore_case)
     return StringType::npos != src.find(needle_char, start_pos);
 
-  const auto& f = std::use_facet<std::ctype<char_type>>(loc);
-
   StringType src_lc{src};
+  auto needle_char_lc{needle_char};
 
-  transform(cbegin(src), cend(src), begin(src_lc),
-            [&f](const auto ch) { return f.tolower(ch); });
+  if (std::has_facet<std::ctype<char_type>>(loc)) {
+    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
 
-  return StringType::npos != src_lc.find(f.tolower(needle_char), start_pos);
+    std::transform(std::cbegin(src), std::cend(src), std::begin(src_lc),
+                   [&f](const auto ch) { return f.tolower(ch); });
+
+    needle_char_lc = f.tolower(needle_char);
+
+  } else {
+    std::transform(
+        std::cbegin(src), std::cend(src), std::begin(src_lc),
+        [](const auto ch) { return static_cast<char_type>(std::tolower(ch)); });
+
+    needle_char_lc = static_cast<char_type>(std::tolower(needle_char));
+  }
+
+  return StringType::npos != src_lc.find(needle_char_lc, start_pos);
 }
 
 template <typename StringType,
@@ -1344,17 +1429,28 @@ bool str_contains(const StringType& src,
   if (!ignore_case)
     return src.find(needle, start_pos) != StringType::npos;
 
-  const auto& f = std::use_facet<std::ctype<char_type>>(loc);
-
   StringType src_lc{src};
   StringType needle_str{needle};
 
-  std::transform(std::begin(src), std::end(src), std::begin(src_lc),
-                 [&f](const auto ch) { return f.tolower(ch); });
+  if (std::has_facet<std::ctype<char_type>>(loc)) {
+    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
 
-  std::transform(std::cbegin(needle_str), std::cend(needle_str),
-                 std::begin(needle_str),
-                 [&f](const auto ch) { return f.tolower(ch); });
+    std::transform(std::cbegin(src), std::cend(src), std::begin(src_lc),
+                   [&f](const auto ch) { return f.tolower(ch); });
+
+    std::transform(std::cbegin(needle_str), std::cend(needle_str),
+                   std::begin(needle_str),
+                   [&f](const auto ch) { return f.tolower(ch); });
+
+  } else {
+    std::transform(
+        std::cbegin(src), std::cend(src), std::begin(src_lc),
+        [](const auto ch) { return static_cast<char_type>(std::tolower(ch)); });
+
+    std::transform(
+        std::cbegin(needle_str), std::cend(needle_str), std::begin(needle_str),
+        [](const auto ch) { return static_cast<char_type>(std::tolower(ch)); });
+  }
 
   return StringType::npos != src_lc.find(needle_str, start_pos);
 }
@@ -1381,11 +1477,25 @@ bool str_contains(const StringType& src,
   StringType src_lc{src};
   StringType needle_lc{needle};
 
-  transform(cbegin(src), cend(src), begin(src_lc),
-            [&f](const auto ch) { return f.tolower(ch); });
+  if (std::has_facet<std::ctype<char_type>>(loc)) {
+    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
 
-  transform(cbegin(needle), cend(needle), begin(needle_lc),
-            [&f](const auto ch) { return f.tolower(ch); });
+    std::transform(std::cbegin(src), std::cend(src), std::begin(src_lc),
+                   [&f](const auto ch) { return f.tolower(ch); });
+
+    std::transform(std::cbegin(needle), std::cend(needle),
+                   std::begin(needle_lc),
+                   [&f](const auto ch) { return f.tolower(ch); });
+
+  } else {
+    std::transform(
+        std::cbegin(src), std::cend(src), std::begin(src_lc),
+        [](const auto ch) { return static_cast<char_type>(std::tolower(ch)); });
+
+    std::transform(
+        std::cbegin(needle), std::cend(needle), std::begin(needle_lc),
+        [](const auto ch) { return static_cast<char_type>(std::tolower(ch)); });
+  }
 
   return StringType::npos != src_lc.find(needle_lc, start_pos);
 }
@@ -1418,13 +1528,16 @@ bool str_ends_with(T src,
   if (0u == src_len)
     return false;
 
-  if constexpr (is_valid_char_type_v<U>) {
+  if constexpr (is_valid_char_type_v<std::remove_cv_t<U>>) {
     if (!ignore_case)
       return needle == src[src_len - 1];
 
-    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
+    if (std::has_facet<std::ctype<char_type>>(loc)) {
+      const auto& f = std::use_facet<std::ctype<char_type>>(loc);
+      return f.tolower(src[src_len - 1]) == f.tolower(needle);
+    }
 
-    return f.tolower(needle) == f.tolower(src[src_len - 1]);
+    return std::tolower(src[src_len - 1]) == std::tolower(needle);
 
   } else {
     const size_t needle_len{len(needle)};
@@ -1444,10 +1557,26 @@ bool str_ends_with(T src,
       return true;
     }
 
-    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
+    if (std::has_facet<std::ctype<char_type>>(loc)) {
+      const auto& f = std::use_facet<std::ctype<char_type>>(loc);
+
+      for (size_t i{expected_start_pos_of_end_tag}, j{}; i < src_len;
+           i++, j++) {
+        if (src[i] == needle[j])
+          continue;
+
+        if (f.tolower(src[i]) != f.tolower(needle[j]))
+          return false;
+      }
+
+      return true;
+    }
 
     for (size_t i{expected_start_pos_of_end_tag}, j{}; i < src_len; i++, j++) {
-      if (f.tolower(src[i]) != f.tolower(needle[j]))
+      if (src[i] == needle[j])
+        continue;
+
+      if (std::tolower(src[i]) != std::tolower(needle[j]))
         return false;
     }
 
@@ -1457,20 +1586,24 @@ bool str_ends_with(T src,
 
 template <typename StringType,
           typename = std::enable_if_t<is_valid_string_type_v<StringType>>>
-bool str_ends_with(const StringType& text,
+bool str_ends_with(const StringType& src,
                    const typename StringType::value_type end_char,
                    const bool ignore_case = false,
                    const std::locale& loc = std::locale{}) {
-  if (0u == text.length())
+  using char_type = typename StringType::value_type;
+
+  if (0u == src.length())
     return false;
 
   if (!ignore_case)
-    return text.back() == end_char;
+    return src.back() == end_char;
 
-  const auto& f =
-      std::use_facet<std::ctype<typename StringType::value_type>>(loc);
+  if (std::has_facet<std::ctype<char_type>>(loc)) {
+    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
+    return f.tolower(src.back()) == f.tolower(end_char);
+  }
 
-  return f.tolower(end_char) == f.tolower(text.back());
+  return std::tolower(src.back()) == std::tolower(end_char);
 }
 
 template <typename StringType,
@@ -1479,6 +1612,8 @@ bool str_ends_with(const StringType& src,
                    typename StringType::const_pointer needle,
                    const bool ignore_case = false,
                    const std::locale& loc = std::locale{}) {
+  using char_type = typename StringType::value_type;
+
   const auto src_len{src.length()};
   const size_t needle_len{len(needle)};
 
@@ -1496,11 +1631,25 @@ bool str_ends_with(const StringType& src,
     return true;
   }
 
-  const auto& f =
-      std::use_facet<std::ctype<typename StringType::value_type>>(loc);
+  if (std::has_facet<std::ctype<char_type>>(loc)) {
+    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
+
+    for (size_t i{expected_start_pos_of_end_tag}, j{}; i < src_len; i++, j++) {
+      if (src[i] == needle[j])
+        continue;
+
+      if (f.tolower(src[i]) != f.tolower(needle[j]))
+        return false;
+    }
+
+    return true;
+  }
 
   for (size_t i{expected_start_pos_of_end_tag}, j{}; i < src_len; i++, j++) {
-    if (f.tolower(src[i]) != f.tolower(needle[j]))
+    if (src[i] == needle[j])
+      continue;
+
+    if (std::tolower(src[i]) != std::tolower(needle[j]))
       return false;
   }
 
@@ -1513,6 +1662,8 @@ bool str_ends_with(const StringType& src,
                    const StringType& needle,
                    const bool ignore_case = false,
                    const std::locale& loc = std::locale{}) {
+  using char_type = typename StringType::value_type;
+
   const auto src_len{src.length()};
   const size_t needle_len{needle.length()};
 
@@ -1530,11 +1681,25 @@ bool str_ends_with(const StringType& src,
     return true;
   }
 
-  const auto& f =
-      std::use_facet<std::ctype<typename StringType::value_type>>(loc);
+  if (std::has_facet<std::ctype<char_type>>(loc)) {
+    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
+
+    for (size_t i{expected_start_pos_of_end_tag}, j{}; i < src_len; i++, j++) {
+      if (src[i] == needle[j])
+        continue;
+
+      if (f.tolower(src[i]) != f.tolower(needle[j]))
+        return false;
+    }
+
+    return true;
+  }
 
   for (size_t i{expected_start_pos_of_end_tag}, j{}; i < src_len; i++, j++) {
-    if (f.tolower(src[i]) != f.tolower(needle[j]))
+    if (src[i] == needle[j])
+      continue;
+
+    if (std::tolower(src[i]) != std::tolower(needle[j]))
       return false;
   }
 
