@@ -25,7 +25,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/tests/test_main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="841">
+            <state relative-caret-position="25058">
               <caret line="1139" column="21" selection-start-line="1139" selection-start-column="21" selection-end-line="1139" selection-end-column="21" />
               <folding>
                 <element signature="e#27#46#0" expanded="true" />
@@ -37,34 +37,10 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/stl_helper_functions.hpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="75">
-              <caret line="383" column="35" selection-start-line="383" selection-start-column="15" selection-end-line="383" selection-end-column="35" />
+            <state relative-caret-position="603">
+              <caret line="468" column="3" selection-start-line="468" selection-start-column="2" selection-end-line="468" selection-end-column="3" />
               <folding>
                 <element signature="e#132#152#0" expanded="true" />
-                <element signature="e#842#854#0" expanded="true" />
-                <element signature="e#977#989#0" expanded="true" />
-                <element signature="e#1109#1121#0" expanded="true" />
-                <element signature="e#1321#1333#0" expanded="true" />
-                <element signature="e#1539#1551#0" expanded="true" />
-                <element signature="e#1757#1787#0" expanded="true" />
-                <element signature="e#1860#1888#0" expanded="true" />
-                <element signature="e#1979#2025#0" expanded="true" />
-                <element signature="e#2253#2299#0" expanded="true" />
-                <element signature="e#2398#2410#0" expanded="true" />
-                <element signature="e#2520#2562#0" expanded="true" />
-                <element signature="e#2852#2894#0" expanded="true" />
-                <element signature="e#3206#3236#0" expanded="true" />
-                <element signature="e#3313#3341#0" expanded="true" />
-                <element signature="e#3435#3481#0" expanded="true" />
-                <element signature="e#3715#3761#0" expanded="true" />
-                <element signature="e#3866#3878#0" expanded="true" />
-                <element signature="e#4112#4124#0" expanded="true" />
-                <element signature="e#4798#4816#0" expanded="true" />
-                <element signature="e#5797#5815#0" expanded="true" />
-                <element signature="e#6816#6834#0" expanded="true" />
-                <element signature="e#7353#7371#0" expanded="true" />
-                <element signature="e#29647#29787#0" expanded="true" />
-                <element signature="e#43084#43224#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -73,8 +49,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/stl_helper_functions.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-144">
-              <caret line="6758" column="16" lean-forward="true" selection-start-line="6758" selection-start-column="16" selection-end-line="6758" selection-end-column="16" />
+            <state relative-caret-position="148676">
+              <caret line="6758" column="16" selection-start-line="6758" selection-start-column="16" selection-end-line="6758" selection-end-column="16" />
             </state>
           </provider>
         </entry>
@@ -94,8 +70,8 @@
       <list>
         <option value="$PROJECT_DIR$/CMakeLists.txt" />
         <option value="$PROJECT_DIR$/tests/test_main.cpp" />
-        <option value="$PROJECT_DIR$/src/stl_helper_functions.hpp" />
         <option value="$PROJECT_DIR$/src/stl_helper_functions.cpp" />
+        <option value="$PROJECT_DIR$/src/stl_helper_functions.hpp" />
       </list>
     </option>
   </component>
@@ -110,6 +86,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -136,7 +113,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -193,19 +169,19 @@
       <workItem from="1549827836481" duration="3314000" />
       <workItem from="1549832900703" duration="214000" />
       <workItem from="1549840993427" duration="1010000" />
+      <workItem from="1550172353014" duration="206000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="18819000" />
+    <option name="totallyTimeSpent" value="19025000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1066" extended-state="6" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.511254" visible="true" weight="0.10660981" />
-      <window_info id="Structure" order="1" sideWeight="0.488746" side_tool="true" visible="true" weight="0.10660981" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.5101822" visible="true" weight="0.1076759" />
+      <window_info id="Structure" order="1" sideWeight="0.4898178" side_tool="true" visible="true" weight="0.1076759" />
       <window_info id="Favorites" order="2" side_tool="true" />
-      <window_info anchor="bottom" id="Inspection Results" weight="0.3290461" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
       <window_info anchor="bottom" id="Run" order="2" />
@@ -219,6 +195,7 @@
       <window_info anchor="bottom" id="Version Control" order="10" />
       <window_info anchor="bottom" id="CMake" order="11" weight="0.30653805" />
       <window_info anchor="bottom" id="Messages" order="12" weight="0.3290461" />
+      <window_info anchor="bottom" id="Inspection Results" order="13" weight="0.3290461" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
@@ -243,7 +220,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/tests/test_main.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="841">
+        <state relative-caret-position="25058">
           <caret line="1139" column="21" selection-start-line="1139" selection-start-column="21" selection-end-line="1139" selection-end-column="21" />
           <folding>
             <element signature="e#27#46#0" expanded="true" />
@@ -253,41 +230,17 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/stl_helper_functions.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-144">
-          <caret line="6758" column="16" lean-forward="true" selection-start-line="6758" selection-start-column="16" selection-end-line="6758" selection-end-column="16" />
+        <state relative-caret-position="148676">
+          <caret line="6758" column="16" selection-start-line="6758" selection-start-column="16" selection-end-line="6758" selection-end-column="16" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/stl_helper_functions.hpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="75">
-          <caret line="383" column="35" selection-start-line="383" selection-start-column="15" selection-end-line="383" selection-end-column="35" />
+        <state relative-caret-position="603">
+          <caret line="468" column="3" selection-start-line="468" selection-start-column="2" selection-end-line="468" selection-end-column="3" />
           <folding>
             <element signature="e#132#152#0" expanded="true" />
-            <element signature="e#842#854#0" expanded="true" />
-            <element signature="e#977#989#0" expanded="true" />
-            <element signature="e#1109#1121#0" expanded="true" />
-            <element signature="e#1321#1333#0" expanded="true" />
-            <element signature="e#1539#1551#0" expanded="true" />
-            <element signature="e#1757#1787#0" expanded="true" />
-            <element signature="e#1860#1888#0" expanded="true" />
-            <element signature="e#1979#2025#0" expanded="true" />
-            <element signature="e#2253#2299#0" expanded="true" />
-            <element signature="e#2398#2410#0" expanded="true" />
-            <element signature="e#2520#2562#0" expanded="true" />
-            <element signature="e#2852#2894#0" expanded="true" />
-            <element signature="e#3206#3236#0" expanded="true" />
-            <element signature="e#3313#3341#0" expanded="true" />
-            <element signature="e#3435#3481#0" expanded="true" />
-            <element signature="e#3715#3761#0" expanded="true" />
-            <element signature="e#3866#3878#0" expanded="true" />
-            <element signature="e#4112#4124#0" expanded="true" />
-            <element signature="e#4798#4816#0" expanded="true" />
-            <element signature="e#5797#5815#0" expanded="true" />
-            <element signature="e#6816#6834#0" expanded="true" />
-            <element signature="e#7353#7371#0" expanded="true" />
-            <element signature="e#29647#29787#0" expanded="true" />
-            <element signature="e#43084#43224#0" expanded="true" />
           </folding>
         </state>
       </provider>

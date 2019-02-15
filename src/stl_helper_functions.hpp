@@ -11,6 +11,7 @@
 #include <cstdio>
 #include <cwchar>
 #include <iostream>
+#include <iterator>
 #include <locale>
 #include <map>
 #include <memory>
@@ -468,11 +469,9 @@ bool trim_in_place(
     return true;
   }
 
-  // std::copy(first_char_pos, last_char_pos, src);
-  memcpy(src, first_char_pos,
-         (last_char_pos - first_char_pos) * sizeof(char_type));
-  src[static_cast<std::ptrdiff_t>(last_char_pos - first_char_pos)] =
-      static_cast<char_type>('\0');
+  std::copy(first_char_pos, last_char_pos, src);
+  src[static_cast<typename std::iterator_traits<T>::difference_type>(
+      last_char_pos - first_char_pos)] = static_cast<char_type>('\0');
   return true;
 }
 
@@ -559,11 +558,9 @@ bool ltrim_in_place(
     return true;
   }
 
-  // std::copy(first_char_pos, last_char_pos, src);
-  memcpy(src, first_char_pos,
-         (last_char_pos - first_char_pos) * sizeof(char_type));
-  src[static_cast<std::ptrdiff_t>(last_char_pos - first_char_pos)] =
-      static_cast<char_type>('\0');
+  std::copy(first_char_pos, last_char_pos, src);
+  src[static_cast<typename std::iterator_traits<T>::difference_type>(
+      last_char_pos - first_char_pos)] = static_cast<char_type>('\0');
 
   return true;
 }
@@ -1709,118 +1706,32 @@ bool str_ends_with(const StringType& src,
 template <typename... Args>
 void unused_args(Args&&...) {}
 
-template <typename ValueType>
-bool has_key(const std::set<ValueType>& container,
-             const typename std::set<ValueType>::key_type& item) {
-  return (container.find(item) != std::cend(container));
+template <typename ContainerType,
+          typename KeyType = typename ContainerType::key_type,
+          typename ConditionType = std::enable_if_t<
+              std::is_same_v<KeyType, typename ContainerType::key_type> ||
+              std::is_convertible_v<KeyType, typename ContainerType::key_type>>>
+bool has_key(ContainerType&& container, KeyType&& key) {
+  return container.find(key) != std::end(container);
 }
 
-template <typename ValueType>
-bool has_key(std::set<ValueType>& container,
-             const typename std::set<ValueType>::key_type& item) {
-  return (container.find(item) != std::end(container));
-}
+template <
+    typename ContainerType,
+    typename ValueType = typename ContainerType::value_type,
+    typename ConditionType = std::enable_if_t<
+        std::is_same_v<ValueType, typename ContainerType::value_type> ||
+        std::is_convertible_v<ValueType, typename ContainerType::value_type>>>
+bool has_value(ContainerType&& container, ValueType&& value) {
+  using value_type = typename ContainerType::value_type;
 
-template <typename ValueType>
-bool has_key(const std::multiset<ValueType>& container,
-             const typename std::multiset<ValueType>::key_type item) {
-  return (container.find(item) != std::cend(container));
-}
+  if constexpr (std::is_same_v<std::result_of<decltype (&ContainerType::find)(
+                                   ContainerType, value_type)>::type,
+                               bool>)
 
-template <typename ValueType>
-bool has_key(std::multiset<ValueType>& container,
-             const typename std::multiset<ValueType>::key_type item) {
-  return (container.find(item) != std::end(container));
-}
+    return container.find(value) == std::end(container);
 
-template <typename ValueType>
-bool has_key(const std::unordered_set<ValueType>& container,
-             const typename std::unordered_set<ValueType>::key_type item) {
-  return (container.find(item) != std::cend(container));
-}
-
-template <typename ValueType>
-bool has_key(std::unordered_set<ValueType>& container,
-             const typename std::unordered_set<ValueType>::key_type item) {
-  return (container.find(item) != std::end(container));
-}
-
-template <typename ValueType>
-bool has_key(const std::unordered_multiset<ValueType>& container,
-             const typename std::unordered_multiset<ValueType>::key_type item) {
-  return (container.find(item) != std::cend(container));
-}
-
-template <typename ValueType>
-bool has_key(std::unordered_multiset<ValueType>& container,
-             const typename std::unordered_multiset<ValueType>::key_type item) {
-  return (container.find(item) != std::end(container));
-}
-
-template <typename KeyType, typename ValueType>
-bool has_key(const std::map<KeyType, ValueType>& container,
-             const typename std::map<KeyType, ValueType>::key_type& key) {
-  return (container.find(key) != std::cend(container));
-}
-
-template <typename KeyType, typename ValueType>
-bool has_key(std::map<KeyType, ValueType>& container,
-             const typename std::map<KeyType, ValueType>::key_type& key) {
-  return (container.find(key) != std::end(container));
-}
-
-template <typename KeyType, typename ValueType>
-bool has_key(const std::multimap<KeyType, ValueType>& container,
-             const typename std::multimap<KeyType, ValueType>::key_type& key) {
-  return (container.find(key) != std::cend(container));
-}
-
-template <typename KeyType, typename ValueType>
-bool has_key(std::multimap<KeyType, ValueType>& container,
-             const typename std::multimap<KeyType, ValueType>::key_type& key) {
-  return (container.find(key) != std::end(container));
-}
-
-template <typename KeyType, typename ValueType>
-bool has_key(
-    const std::unordered_map<KeyType, ValueType>& container,
-    const typename std::unordered_map<KeyType, ValueType>::key_type& key) {
-  return (container.find(key) != std::cend(container));
-}
-
-template <typename KeyType, typename ValueType>
-bool has_key(
-    std::unordered_map<KeyType, ValueType>& container,
-    const typename std::unordered_map<KeyType, ValueType>::key_type& key) {
-  return (container.find(key) != std::end(container));
-}
-
-template <typename KeyType, typename ValueType>
-bool has_key(
-    const std::unordered_multimap<KeyType, ValueType>& container,
-    const typename std::unordered_multimap<KeyType, ValueType>::key_type& key) {
-  return (container.find(key) != std::cend(container));
-}
-
-template <typename KeyType, typename ValueType>
-bool has_key(
-    std::unordered_multimap<KeyType, ValueType>& container,
-    const typename std::unordered_multimap<KeyType, ValueType>::key_type& key) {
-  return (container.find(key) != std::end(container));
-}
-
-template <typename ContainerType>
-bool has_value(const ContainerType& container,
-               const typename ContainerType::value_type& search_value) {
-  return (find(cbegin(container), cend(container), search_value) !=
-          cend(container));
-}
-
-template <typename ContainerType>
-bool has_value(ContainerType& container,
-               const typename ContainerType::value_type& search_value) {
-  return (find(begin(container), end(container), search_value) !=
-          end(container));
+  return std::find(std::begin(container), std::end(container), value) !=
+         std::end(container);
 }
 
 int str_compare(const char* str1, const char* str2);
