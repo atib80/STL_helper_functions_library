@@ -1895,8 +1895,8 @@ template <
     typename ContainerType,
     typename KeyType,
     typename ConditionType = std::enable_if_t<has_key_type_v<ContainerType>>>
-bool has_key(const ContainerType& container, const KeyType& key) {
-  return container.find(key) != std::cend(container);
+bool has_key(const ContainerType& container, KeyType&& key) {
+  return std::cend(container) != container.find(std::forward<KeyType>(key));
 }
 
 template <typename ContainerType,
@@ -1906,7 +1906,7 @@ template <typename ContainerType,
                                (has_key_type_v<ContainerType> ||
                                 has_value_type_v<ContainerType> ||
                                 has_mapped_type_v<ContainerType>)>>
-bool has_value(const ContainerType& container, const ValueType& value) {
+bool has_value(const ContainerType& container, ValueType&& value) {
   if constexpr (has_mapped_type_v<ContainerType>) {
     for (const auto& p : container) {
       if (p.second == value)
@@ -1918,26 +1918,56 @@ bool has_value(const ContainerType& container, const ValueType& value) {
   }
 
   else if constexpr (has_key_type_v<ContainerType>) {
-    return container.find(value) != std::cend(container);
+    return std::cend(container) !=
+           container.find(std::forward<ValueType>(value));
 
   } else if constexpr (has_value_type_v<ContainerType>) {
     if (std::is_sorted(std::cbegin(container), std::cend(container)))
       return std::binary_search(std::cbegin(container), std::cend(container),
-                                value);
+                                std::forward<ValueType>(value));
 
-    return std::find(std::cbegin(container), std::cend(container), value) !=
-           std::cend(container);
+    return std::find(std::cbegin(container), std::cend(container),
+                     std::forward<ValueType>(value)) != std::cend(container);
   }
 }
 
 template <typename T, size_t N>
-bool has_value(const std::array<T, N>& container, const T& value) {
+bool has_value(const std::array<T, N>& container, T&& value) {
   if (std::is_sorted(std::cbegin(container), std::cend(container)))
     return std::binary_search(std::cbegin(container), std::cend(container),
-                              value);
+                              std::forward<T>(value));
 
-  return std::find(std::cbegin(container), std::cend(container), value) !=
-         std::cend(container);
+  return std::cend(container) != std::find(std::cbegin(container),
+                                           std::cend(container),
+                                           std::forward<T>(value));
+}
+
+template <typename ContainerType,
+          typename KeyValuePairType,
+          typename ConditionType =
+              std::enable_if_t<!is_container_adapter_type_v<ContainerType> &&
+                               (has_key_type_v<ContainerType> &&
+                                has_mapped_type_v<ContainerType>)>>
+bool has_key_value_pair(const ContainerType& container,
+                        const KeyValuePairType& key_value_pair) {
+  auto first_item_iter_pos{container.equal_range(key_value_pair.first)};
+  if (std::cend(container) == first_item_iter_pos.first)
+    return false;
+  for (auto current{first_item_iter_pos.first};
+       current != first_item_iter_pos.second; ++current) {
+    if (key_value_pair.second == current->second)
+      return true;
+  }
+
+  return false;
+}
+
+template <typename ForwardIterType, typename ItemType>
+bool has_item(ForwardIterType first, ForwardIterType last, ItemType&& item) {
+  if (std::is_sorted(first, last))
+    return std::binary_search(first, last, std::forward<ItemType>(item));
+
+  return last != std::find(first, last, std::forward<ItemType>(item));
 }
 
 int str_compare(const char* str1, const char* str2);

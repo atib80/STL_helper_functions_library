@@ -1346,9 +1346,6 @@ TEST_CASE(
   deque<int> d{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
   forward_list<int> fl{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
   list<int> dl{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-  // queue<int> q{{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}};
-  // stack<int> s{{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}};
-  // priority_queue<int> pq{{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}};
 
   REQUIRE(has_value(ar, 5));
   REQUIRE(!has_value(ar, 15));
@@ -1360,12 +1357,6 @@ TEST_CASE(
   REQUIRE(!has_value(fl, 15));
   REQUIRE(has_value(dl, 5));
   REQUIRE(!has_value(dl, 15));
-  // REQUIRE(has_value(q, 5));
-  // REQUIRE(!has_value(q, 15));
-  // REQUIRE(has_value(s, 5));
-  // REQUIRE(!has_value(s, 15));
-  // REQUIRE(has_value(pq, 5));
-  // REQUIRE(!has_value(pq, 15));
 
   set<int> unique_numbers1{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
   unordered_set<int> unique_numbers2{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
@@ -1403,6 +1394,18 @@ TEST_CASE(
   REQUIRE(!has_value(number_labels1, 15));
   REQUIRE(has_value(number_labels2, 5));
   REQUIRE(!has_value(number_labels2, 15));
+}
+
+TEST_CASE(
+    "bool has_item(ForwardIterType first, ForwardIterType last, ValueType&& "
+    "value)",
+    "Testing global function template bool has_value(ForwardIterType first, "
+    "ForwardIterType last, ValueType&& value)") {
+  array<int, 10> ar{{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}};
+  vector<int> v{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  deque<int> d{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  forward_list<int> fl{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  list<int> dl{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 }
 
 // TEST_CASE(
