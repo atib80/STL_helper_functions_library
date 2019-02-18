@@ -2,9 +2,12 @@
 
 #include <crtdbg.h>
 #include <chrono>
+#include <map>
 #include <random>
 #include <set>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 #include "../includes/catch.hpp"
 // #include <windows.h>
 #include "../src/stl_helper_functions.hpp"
@@ -1291,6 +1294,115 @@ TEST_CASE(
   REQUIRE(6u == str_index_of(src_u32cstr, U'W'));
 
   REQUIRE(6u == str_index_of(src_u32cstr, U'w', 0u, true));
+}
+
+TEST_CASE("bool has_key(const ContainerType& container,const KeyType& key)",
+          "Testing global function template bool has_key(const ContainerType& "
+          "container,const KeyType& key)") {
+  set<int> unique_numbers1{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  unordered_set<int> unique_numbers2{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  map<string, int> unique_number_labels1{
+      {"one", 1}, {"two", 2},   {"three", 3}, {"four", 4}, {"five", 5},
+      {"six", 6}, {"seven", 7}, {"eight", 8}, {"nine", 9}, {"ten", 10}};
+  unordered_map<string, int> unique_number_labels2{
+      {"one", 1}, {"two", 2},   {"three", 3}, {"four", 4}, {"five", 5},
+      {"six", 6}, {"seven", 7}, {"eight", 8}, {"nine", 9}, {"ten", 10}};
+  multiset<int> numbers1{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  unordered_multiset<int> numbers2{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  multimap<string, int> number_labels1{
+      {"one", 1},   {"two", 2},   {"three", 3}, {"one", 1},  {"five", 5},
+      {"three", 3}, {"seven", 7}, {"eight", 8}, {"nine", 9}, {"ten", 10}};
+  unordered_multimap<string, int> number_labels2{
+      {"one", 1},   {"two", 2},   {"three", 3}, {"one", 1},  {"five", 5},
+      {"three", 3}, {"seven", 7}, {"eight", 8}, {"nine", 9}, {"ten", 10}};
+
+  REQUIRE(has_key(unique_numbers1, 5));
+  REQUIRE(!has_key(unique_numbers1, 15));
+  REQUIRE(has_key(unique_numbers2, 5));
+  REQUIRE(!has_key(unique_numbers2, 15));
+
+  REQUIRE(has_key(unique_number_labels1, "five"));
+  REQUIRE(!has_key(unique_number_labels1, "fifteen"));
+  REQUIRE(has_key(unique_number_labels2, "five"));
+  REQUIRE(!has_key(unique_number_labels2, "fifteen"));
+
+  REQUIRE(has_key(numbers1, 5));
+  REQUIRE(!has_key(numbers1, 15));
+  REQUIRE(has_key(numbers2, 5));
+  REQUIRE(!has_key(numbers2, 15));
+
+  REQUIRE(has_key(number_labels1, "five"));
+  REQUIRE(!has_key(number_labels1, "fifteen"));
+  REQUIRE(has_key(number_labels2, "five"));
+  REQUIRE(!has_key(number_labels2, "fifteen"));
+}
+
+TEST_CASE(
+    "bool has_value(const ContainerType& container, const ValueType& value)",
+    "Testing global function template bool has_value(const ContainerType& "
+    "container, const ValueType& value)") {
+  array<int, 10> ar{{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}};
+  vector<int> v{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  deque<int> d{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  forward_list<int> fl{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  list<int> dl{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  // queue<int> q{{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}};
+  // stack<int> s{{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}};
+  // priority_queue<int> pq{{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}};
+
+  REQUIRE(has_value(ar, 5));
+  REQUIRE(!has_value(ar, 15));
+  REQUIRE(has_value(v, 5));
+  REQUIRE(!has_value(v, 15));
+  REQUIRE(has_value(d, 5));
+  REQUIRE(!has_value(d, 15));
+  REQUIRE(has_value(fl, 5));
+  REQUIRE(!has_value(fl, 15));
+  REQUIRE(has_value(dl, 5));
+  REQUIRE(!has_value(dl, 15));
+  // REQUIRE(has_value(q, 5));
+  // REQUIRE(!has_value(q, 15));
+  // REQUIRE(has_value(s, 5));
+  // REQUIRE(!has_value(s, 15));
+  // REQUIRE(has_value(pq, 5));
+  // REQUIRE(!has_value(pq, 15));
+
+  set<int> unique_numbers1{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  unordered_set<int> unique_numbers2{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  map<string, int> unique_number_labels1{
+      {"one", 1}, {"two", 2},   {"three", 3}, {"four", 4}, {"five", 5},
+      {"six", 6}, {"seven", 7}, {"eight", 8}, {"nine", 9}, {"ten", 10}};
+  unordered_map<string, int> unique_number_labels2{
+      {"one", 1}, {"two", 2},   {"three", 3}, {"four", 4}, {"five", 5},
+      {"six", 6}, {"seven", 7}, {"eight", 8}, {"nine", 9}, {"ten", 10}};
+  multiset<int> numbers1{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  unordered_multiset<int> numbers2{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  multimap<string, int> number_labels1{
+      {"one", 1},   {"two", 2},   {"three", 3}, {"one", 1},  {"five", 5},
+      {"three", 3}, {"seven", 7}, {"eight", 8}, {"nine", 9}, {"ten", 10}};
+  unordered_multimap<string, int> number_labels2{
+      {"one", 1},   {"two", 2},   {"three", 3}, {"one", 1},  {"five", 5},
+      {"three", 3}, {"seven", 7}, {"eight", 8}, {"nine", 9}, {"ten", 10}};
+
+  REQUIRE(has_value(unique_numbers1, 5));
+  REQUIRE(!has_value(unique_numbers1, 15));
+  REQUIRE(has_value(unique_numbers2, 5));
+  REQUIRE(!has_value(unique_numbers2, 15));
+
+  REQUIRE(has_value(unique_number_labels1, 5));
+  REQUIRE(!has_value(unique_number_labels1, 15));
+  REQUIRE(has_value(unique_number_labels2, 5));
+  REQUIRE(!has_value(unique_number_labels2, 15));
+
+  REQUIRE(has_value(numbers1, 5));
+  REQUIRE(!has_value(numbers1, 15));
+  REQUIRE(has_value(numbers2, 5));
+  REQUIRE(!has_value(numbers2, 15));
+
+  REQUIRE(has_value(number_labels1, 5));
+  REQUIRE(!has_value(number_labels1, 15));
+  REQUIRE(has_value(number_labels2, 5));
+  REQUIRE(!has_value(number_labels2, 15));
 }
 
 // TEST_CASE(

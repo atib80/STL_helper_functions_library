@@ -6,20 +6,27 @@
 
 #include <Strsafe.h>
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <cmath>
 #include <cstdio>
 #include <cwchar>
+#include <deque>
+#include <forward_list>
 #include <iostream>
 #include <iterator>
+#include <list>
 #include <locale>
 #include <map>
 #include <memory>
+#include <queue>
 #include <set>
 #include <sstream>
+#include <stack>
 #include <string>
 #include <string_view>
 #include <thread>
+#include <type_traits>
 #include <typeinfo>
 #include <unordered_map>
 #include <unordered_set>
@@ -291,7 +298,7 @@ struct default_whitespace_chars<char32_t> {
 };
 
 template <typename CharType>
-static constexpr const CharType* default_whitespace_chars_v =
+constexpr const CharType* default_whitespace_chars_v =
     default_whitespace_chars<CharType>::value;
 
 template <typename T>
@@ -311,7 +318,7 @@ struct is_valid_char_type {
 };
 
 template <typename T>
-static constexpr const bool is_valid_char_type_v = is_valid_char_type<T>::value;
+constexpr const bool is_valid_char_type_v = is_valid_char_type<T>::value;
 
 template <typename T>
 struct is_non_const_char_pointer_type {
@@ -327,7 +334,7 @@ struct is_non_const_char_pointer_type {
 };
 
 template <typename T>
-static constexpr const bool is_non_const_char_pointer_type_v =
+constexpr const bool is_non_const_char_pointer_type_v =
     is_non_const_char_pointer_type<T>::value;
 
 template <typename T>
@@ -344,7 +351,7 @@ struct is_const_char_pointer_type {
 };
 
 template <typename T>
-static constexpr const bool is_const_char_pointer_type_v =
+constexpr const bool is_const_char_pointer_type_v =
     is_const_char_pointer_type<T>::value;
 
 template <typename T>
@@ -354,7 +361,7 @@ struct is_non_const_char_array_type {
 };
 
 template <typename T>
-static constexpr const bool is_non_const_char_array_type_v =
+constexpr const bool is_non_const_char_array_type_v =
     is_non_const_char_array_type<T>::value;
 
 template <typename T>
@@ -364,7 +371,7 @@ struct is_const_char_array_type {
 };
 
 template <typename T>
-static constexpr const bool is_const_char_array_type_v =
+constexpr const bool is_const_char_array_type_v =
     is_const_char_array_type<T>::value;
 
 template <typename T>
@@ -378,8 +385,7 @@ struct is_valid_string_type {
 };
 
 template <typename T>
-static constexpr const bool is_valid_string_type_v =
-    is_valid_string_type<T>::value;
+constexpr const bool is_valid_string_type_v = is_valid_string_type<T>::value;
 
 template <typename T>
 struct add_const_pointer_to_char_type {
@@ -1706,32 +1712,232 @@ bool str_ends_with(const StringType& src,
 template <typename... Args>
 void unused_args(Args&&...) {}
 
-template <typename ContainerType,
-          typename KeyType = typename ContainerType::key_type,
-          typename ConditionType = std::enable_if_t<
-              std::is_same_v<KeyType, typename ContainerType::key_type> ||
-              std::is_convertible_v<KeyType, typename ContainerType::key_type>>>
-bool has_key(ContainerType&& container, KeyType&& key) {
-  return container.find(key) != std::end(container);
-}
+template <typename T, typename... Args>
+struct has_key_type {
+  static constexpr const bool value = false;
+};
+
+template <typename T, typename... Args>
+struct has_key_type<std::set<T, Args...>> {
+  static constexpr const bool value = true;
+};
+
+template <typename T, typename... Args>
+struct has_key_type<std::multiset<T, Args...>> {
+  static constexpr const bool value = true;
+};
+
+template <typename T, typename... Args>
+struct has_key_type<std::unordered_set<T, Args...>> {
+  static constexpr const bool value = true;
+};
+
+template <typename T, typename... Args>
+struct has_key_type<std::unordered_multiset<T, Args...>> {
+  static constexpr const bool value = true;
+};
+
+template <typename T, typename... Args>
+struct has_key_type<std::map<T, Args...>> {
+  static constexpr const bool value = true;
+};
+
+template <typename T, typename... Args>
+struct has_key_type<std::multimap<T, Args...>> {
+  static constexpr const bool value = true;
+};
+
+template <typename T, typename... Args>
+struct has_key_type<std::unordered_map<T, Args...>> {
+  static constexpr const bool value = true;
+};
+
+template <typename T, typename... Args>
+struct has_key_type<std::unordered_multimap<T, Args...>> {
+  static constexpr const bool value = true;
+};
+
+template <typename T, typename... Args>
+constexpr const bool has_key_type_v =
+    has_key_type<std::decay_t<T>, Args...>::value;
+
+// template <typename T>
+// struct is_std_array_type {
+//   static constexpr const bool value = std::is_same_v<T, std::array<typename
+//   T::value_type, typename T::size>>;
+// };
+
+// template <typename T>
+// struct is_std_array_type<std::array<T, N>> {
+//   static constexpr const bool value = true;
+// };
+
+// template <typename T, typename... Args>
+// constexpr const bool is_std_array_type_v = is_std_array_type<T, N>::value;
+
+template <typename T, typename... Args>
+struct has_value_type {
+  static constexpr const bool value = false;
+};
+
+template <typename T, typename... Args>
+struct has_value_type<std::vector<T, Args...>> {
+  static constexpr const bool value = true;
+};
+
+template <typename T, typename... Args>
+struct has_value_type<std::deque<T, Args...>> {
+  static constexpr const bool value = true;
+};
+
+template <typename T, typename... Args>
+struct has_value_type<std::forward_list<T, Args...>> {
+  static constexpr const bool value = true;
+};
+
+template <typename T, typename... Args>
+struct has_value_type<std::list<T, Args...>> {
+  static constexpr const bool value = true;
+};
+
+template <typename T, typename... Args>
+struct has_value_type<std::queue<T, Args...>> {
+  static constexpr const bool value = true;
+};
+
+template <typename T, typename... Args>
+struct has_value_type<std::stack<T, Args...>> {
+  static constexpr const bool value = true;
+};
+
+template <typename T, typename... Args>
+struct has_value_type<std::priority_queue<T, Args...>> {
+  static constexpr const bool value = true;
+};
+
+template <typename T, typename... Args>
+struct has_value_type<std::set<T, Args...>> {
+  static constexpr const bool value = true;
+};
+
+template <typename T, typename... Args>
+struct has_value_type<std::multiset<T, Args...>> {
+  static constexpr const bool value = true;
+};
+
+template <typename T, typename... Args>
+struct has_value_type<std::unordered_set<T, Args...>> {
+  static constexpr const bool value = true;
+};
+
+template <typename T, typename... Args>
+struct has_value_type<std::unordered_multiset<T, Args...>> {
+  static constexpr const bool value = true;
+};
+
+template <typename T, typename... Args>
+constexpr const bool has_value_type_v =
+    has_value_type<std::decay_t<T>, Args...>::value || std::is_array_v<T>;
+
+template <typename T, typename... Args>
+struct has_mapped_type {
+  static constexpr const bool value = false;
+};
+
+template <typename T, typename... Args>
+struct has_mapped_type<std::map<T, Args...>> {
+  static constexpr const bool value = true;
+};
+
+template <typename T, typename... Args>
+struct has_mapped_type<std::multimap<T, Args...>> {
+  static constexpr const bool value = true;
+};
+
+template <typename T, typename... Args>
+struct has_mapped_type<std::unordered_map<T, Args...>> {
+  static constexpr const bool value = true;
+};
+
+template <typename T, typename... Args>
+struct has_mapped_type<std::unordered_multimap<T, Args...>> {
+  static constexpr const bool value = true;
+};
+
+template <typename T, typename... Args>
+constexpr const bool has_mapped_type_v = has_mapped_type<T, Args...>::value;
+
+template <typename T, typename... Args>
+struct is_container_adapter_type {
+  static constexpr const bool value = false;
+};
+
+template <typename T, typename... Args>
+struct is_container_adapter_type<std::stack<T, Args...>> {
+  static constexpr const bool value = true;
+};
+
+template <typename T, typename... Args>
+struct is_container_adapter_type<std::queue<T, Args...>> {
+  static constexpr const bool value = true;
+};
+
+template <typename T, typename... Args>
+struct is_container_adapter_type<std::priority_queue<T, Args...>> {
+  static constexpr const bool value = true;
+};
+
+template <typename T, typename... Args>
+constexpr const bool is_container_adapter_type_v =
+    is_container_adapter_type<std::decay_t<T>, Args...>::value;
 
 template <
     typename ContainerType,
-    typename ValueType = typename ContainerType::value_type,
-    typename ConditionType = std::enable_if_t<
-        std::is_same_v<ValueType, typename ContainerType::value_type> ||
-        std::is_convertible_v<ValueType, typename ContainerType::value_type>>>
-bool has_value(ContainerType&& container, ValueType&& value) {
-  using value_type = typename ContainerType::value_type;
+    typename KeyType,
+    typename ConditionType = std::enable_if_t<has_key_type_v<ContainerType>>>
+bool has_key(const ContainerType& container, const KeyType& key) {
+  return container.find(key) != std::cend(container);
+}
 
-  if constexpr (std::is_same_v<std::result_of<decltype (&ContainerType::find)(
-                                   ContainerType, value_type)>::type,
-                               bool>)
+template <typename ContainerType,
+          typename ValueType,
+          typename ConditionType =
+              std::enable_if_t<!is_container_adapter_type_v<ContainerType> &&
+                               (has_key_type_v<ContainerType> ||
+                                has_value_type_v<ContainerType> ||
+                                has_mapped_type_v<ContainerType>)>>
+bool has_value(const ContainerType& container, const ValueType& value) {
+  if constexpr (has_mapped_type_v<ContainerType>) {
+    for (const auto& p : container) {
+      if (p.second == value)
+        return true;
+    }
 
-    return container.find(value) == std::end(container);
+    return false;
 
-  return std::find(std::begin(container), std::end(container), value) !=
-         std::end(container);
+  }
+
+  else if constexpr (has_key_type_v<ContainerType>) {
+    return container.find(value) != std::cend(container);
+
+  } else if constexpr (has_value_type_v<ContainerType>) {
+    if (std::is_sorted(std::cbegin(container), std::cend(container)))
+      return std::binary_search(std::cbegin(container), std::cend(container),
+                                value);
+
+    return std::find(std::cbegin(container), std::cend(container), value) !=
+           std::cend(container);
+  }
+}
+
+template <typename T, size_t N>
+bool has_value(const std::array<T, N>& container, const T& value) {
+  if (std::is_sorted(std::cbegin(container), std::cend(container)))
+    return std::binary_search(std::cbegin(container), std::cend(container),
+                              value);
+
+  return std::find(std::cbegin(container), std::cend(container), value) !=
+         std::cend(container);
 }
 
 int str_compare(const char* str1, const char* str2);
@@ -3819,7 +4025,8 @@ void str_insert_n(StringType& dst,
   dst.insert(position_index_in_dst, src.substr(0, no_of_chars));
 }
 
-// enum class str_replace_behavior { no_partial_replace, allow_partial_place,
+// enum class str_replace_behavior { no_partial_replace,
+// allow_partial_place,
 // do_not_replace_return_required_dst_capacity_only };
 
 template <
@@ -3881,10 +4088,10 @@ size_t str_replace_first(T dst,
   if (needle_len < replace_len) {
     auto const noctm = replace_len - needle_len;
 
-    // if needle_len == 2 and replace_len == 10, all the characters in the upper
-    // part of dst ( characters with positions >= dst + start_pos + needle_len
-    // characters ) have to be moved 'noctm' (8) character positions toward the
-    // end of dst.
+    // if needle_len == 2 and replace_len == 10, all the characters in
+    // the upper part of dst ( characters with positions >= dst +
+    // start_pos + needle_len characters ) have to be moved 'noctm' (8)
+    // character positions toward the end of dst.
 
     copy_backward(dst + start_pos + needle_len, dst + dst_len,
                   dst + dst_len + noctm);
@@ -3900,9 +4107,10 @@ size_t str_replace_first(T dst,
   }  // needle_len > replace_len
   auto const noctm = needle_len - replace_len;
 
-  // if needle_len == 10 and replace_len == 2, all the characters in the upper
-  // part of dst ( characters with positions >= dst + start_pos + needle_len
-  // characters ) have to be moved 'noctm' (8) character positions toward dst
+  // if needle_len == 10 and replace_len == 2, all the characters in
+  // the upper part of dst ( characters with positions >= dst +
+  // start_pos + needle_len characters ) have to be moved 'noctm' (8)
+  // character positions toward dst
   // + start_pos + replace_len.
 
   for (auto i = 0; i < dst_len - (start_pos + needle_len); i++)
@@ -3968,10 +4176,10 @@ size_t str_replace_first(wchar_t (&dst)[ARRAY_SIZE],
   if (needle_len < replace_len) {
     auto const noctm = replace_len - needle_len;
 
-    // if needle_len == 2 and replace_len == 10, all the characters in the upper
-    // part of dst ( characters with positions >= dst + start_pos + needle_len
-    // characters ) have to be moved 'noctm' (8) character positions toward the
-    // end of dst.
+    // if needle_len == 2 and replace_len == 10, all the characters in
+    // the upper part of dst ( characters with positions >= dst +
+    // start_pos + needle_len characters ) have to be moved 'noctm' (8)
+    // character positions toward the end of dst.
 
     copy_backward(dst + start_pos + needle_len, dst + dst_len,
                   dst + dst_len + noctm);
@@ -3987,9 +4195,10 @@ size_t str_replace_first(wchar_t (&dst)[ARRAY_SIZE],
   }  // needle_len > replace_len
   auto const noctm = needle_len - replace_len;
 
-  // if needle_len == 10 and replace_len == 2, all the characters in the upper
-  // part of dst ( characters with positions >= dst + start_pos + needle_len
-  // characters ) have to be moved 'noctm' (8) character positions toward dst
+  // if needle_len == 10 and replace_len == 2, all the characters in
+  // the upper part of dst ( characters with positions >= dst +
+  // start_pos + needle_len characters ) have to be moved 'noctm' (8)
+  // character positions toward dst
   // + start_pos + replace_len.
 
   for (auto i = 0; i < dst_len - (start_pos + needle_len); i++)
@@ -4055,10 +4264,10 @@ size_t str_replace_first(char16_t (&dst)[ARRAY_SIZE],
   if (needle_len < replace_len) {
     auto const noctm = replace_len - needle_len;
 
-    // if needle_len == 2 and replace_len == 10, all the characters in the upper
-    // part of dst ( characters with positions >= dst + start_pos + needle_len
-    // characters ) have to be moved 'noctm' (8) character positions toward the
-    // end of dst.
+    // if needle_len == 2 and replace_len == 10, all the characters in
+    // the upper part of dst ( characters with positions >= dst +
+    // start_pos + needle_len characters ) have to be moved 'noctm' (8)
+    // character positions toward the end of dst.
 
     copy_backward(dst + start_pos + needle_len, dst + dst_len,
                   dst + dst_len + noctm);
@@ -4074,9 +4283,10 @@ size_t str_replace_first(char16_t (&dst)[ARRAY_SIZE],
   }  // needle_len > replace_len
   auto const noctm = needle_len - replace_len;
 
-  // if needle_len == 10 and replace_len == 2, all the characters in the upper
-  // part of dst ( characters with positions >= dst + start_pos + needle_len
-  // characters ) have to be moved 'noctm' (8) character positions toward dst
+  // if needle_len == 10 and replace_len == 2, all the characters in
+  // the upper part of dst ( characters with positions >= dst +
+  // start_pos + needle_len characters ) have to be moved 'noctm' (8)
+  // character positions toward dst
   // + start_pos + replace_len.
 
   for (auto i = 0; i < dst_len - (start_pos + needle_len); i++)
@@ -4142,10 +4352,10 @@ size_t str_replace_first(char32_t (&dst)[ARRAY_SIZE],
   if (needle_len < replace_len) {
     auto const noctm = replace_len - needle_len;
 
-    // if needle_len == 2 and replace_len == 10, all the characters in the upper
-    // part of dst ( characters with positions >= dst + start_pos + needle_len
-    // characters ) have to be moved 'noctm' (8) character positions toward the
-    // end of dst.
+    // if needle_len == 2 and replace_len == 10, all the characters in
+    // the upper part of dst ( characters with positions >= dst +
+    // start_pos + needle_len characters ) have to be moved 'noctm' (8)
+    // character positions toward the end of dst.
 
     copy_backward(dst + start_pos + needle_len, dst + dst_len,
                   dst + dst_len + noctm);
@@ -4161,9 +4371,10 @@ size_t str_replace_first(char32_t (&dst)[ARRAY_SIZE],
   }  // needle_len > replace_len
   auto const noctm = needle_len - replace_len;
 
-  // if needle_len == 10 and replace_len == 2, all the characters in the upper
-  // part of dst ( characters with positions >= dst + start_pos + needle_len
-  // characters ) have to be moved 'noctm' (8) character positions toward dst
+  // if needle_len == 10 and replace_len == 2, all the characters in
+  // the upper part of dst ( characters with positions >= dst +
+  // start_pos + needle_len characters ) have to be moved 'noctm' (8)
+  // character positions toward dst
   // + start_pos + replace_len.
 
   for (auto i = 0; i < dst_len - (start_pos + needle_len); i++)
@@ -4487,9 +4698,8 @@ StringType to_title_case(const StringType& str,
       continue;
     }
 
-    if (is_new_sentence &&
-        !is_ws_char(
-            ch))  // if (is_new_sentence && is_alphanum_char(ch)) { ... }
+    if (is_new_sentence && !is_ws_char(ch))  // if (is_new_sentence &&
+                                             // is_alphanum_char(ch)) { ... }
     {
       ch = toupper(ch, loc);
       is_new_sentence = false;
@@ -4512,9 +4722,8 @@ void to_title_case_in_place(StringType& str,
       continue;
     }
 
-    if (is_new_sentence &&
-        !is_ws_char(
-            ch))  // if (is_new_sentence && is_alphanum_char(ch)) { ... }
+    if (is_new_sentence && !is_ws_char(ch))  // if (is_new_sentence &&
+                                             // is_alphanum_char(ch)) { ... }
     {
       ch = toupper(ch, loc);
       is_new_sentence = false;
@@ -4522,9 +4731,9 @@ void to_title_case_in_place(StringType& str,
   }
 }
 
-// global conversion functions from the appropriate signed/unsigned integral as
-// well as floating point types to std::u16string and std::u32string newer STL
-// C++11 string types
+// global conversion functions from the appropriate signed/unsigned
+// integral as well as floating point types to std::u16string and
+// std::u32string newer STL C++11 string types
 
 enum class number_base { decimal, hexadecimal, octal, binary };
 
@@ -4773,8 +4982,8 @@ std::vector<StringType> split(const StringType& source,
   const size_t source_len{source.length()};
   const size_t needle_len{needle_st.length()};
 
-  // if ((0u == source_len) || (0u == needle_len) || (needle_len >= source_len))
-  // return parts;
+  // if ((0u == source_len) || (0u == needle_len) || (needle_len >=
+  // source_len)) return parts;
   if ((0u == source_len) || (0u == needle_len))
     return parts;
 
@@ -4822,8 +5031,8 @@ std::vector<StringType> split(const StringType& source,
   const size_t source_len{source.length()};
   const size_t needle_len{needle_st.length()};
 
-  // if ((0u == source_len) || (0u == needle_len) || (needle_len >= source_len))
-  // return parts;
+  // if ((0u == source_len) || (0u == needle_len) || (needle_len >=
+  // source_len)) return parts;
   if ((0u == source_len) || (0u == needle_len))
     return parts;
 
@@ -4869,8 +5078,8 @@ std::vector<StringType> split(const StringType& source,
   const size_t source_len{source.length()};
   const size_t needle_len{needle.length()};
 
-  // if ((0u == source_len) || (0u == needle_len) || (needle_len >= source_len))
-  // return parts;
+  // if ((0u == source_len) || (0u == needle_len) || (needle_len >=
+  // source_len)) return parts;
   if ((0u == source_len) || (0u == needle_len))
     return parts;
 
