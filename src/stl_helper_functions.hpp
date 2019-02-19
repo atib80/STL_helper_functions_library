@@ -1947,9 +1947,8 @@ template <typename ContainerType,
               std::enable_if_t<!is_container_adapter_type_v<ContainerType> &&
                                (has_key_type_v<ContainerType> &&
                                 has_mapped_type_v<ContainerType>)>>
-bool has_key_value_pair(
-    const ContainerType& container,
-    const typename ContainerType::value_type& key_value_pair) {
+bool has_kv_pair(const ContainerType& container,
+                 const typename ContainerType::value_type& key_value_pair) {
   auto first_item_iter_pos{container.equal_range(key_value_pair.first)};
   if (std::cend(container) == first_item_iter_pos.first)
     return false;

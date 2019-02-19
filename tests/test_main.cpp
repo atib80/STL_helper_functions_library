@@ -1398,9 +1398,9 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "bool has_key_value_pair(const ContainerType& container, const typename "
+    "bool has_kv_pair(const ContainerType& container, const typename "
     "ContainerType::value_type& key_value_pair)",
-    "Testing global function template bool has_key_value_pair(const "
+    "Testing global function template bool has_kv_pair(const "
     "ContainerType& container, const typename ContainerType::value_type& "
     "key_value_pair)") {
   map<string, int> unique_number_labels1{
@@ -1416,17 +1416,17 @@ TEST_CASE(
       {"one", 1},   {"two", 2},   {"three", 3}, {"one", 1},  {"five", 5},
       {"three", 3}, {"seven", 7}, {"eight", 8}, {"nine", 9}, {"ten", 10}};
 
-  REQUIRE(has_key_value_pair(unique_number_labels1, {"one", 1}));
-  REQUIRE(!has_key_value_pair(unique_number_labels1, {"fifteen", 15}));
+  REQUIRE(has_kv_pair(unique_number_labels1, {"one", 1}));
+  REQUIRE(!has_kv_pair(unique_number_labels1, {"fifteen", 15}));
 
-  REQUIRE(has_key_value_pair(unique_number_labels2, {"one", 1}));
-  REQUIRE(!has_key_value_pair(unique_number_labels2, {"fifteen", 15}));
+  REQUIRE(has_kv_pair(unique_number_labels2, {"one", 1}));
+  REQUIRE(!has_kv_pair(unique_number_labels2, {"fifteen", 15}));
 
-  REQUIRE(has_key_value_pair(number_labels1, {"one", 1}));
-  REQUIRE(!has_key_value_pair(number_labels1, {"fifteen", 15}));
+  REQUIRE(has_kv_pair(number_labels1, {"one", 1}));
+  REQUIRE(!has_kv_pair(number_labels1, {"fifteen", 15}));
 
-  REQUIRE(has_key_value_pair(number_labels2, {"one", 1}));
-  REQUIRE(!has_key_value_pair(number_labels2, {"fifteen", 15}));
+  REQUIRE(has_kv_pair(number_labels2, {"one", 1}));
+  REQUIRE(!has_kv_pair(number_labels2, {"fifteen", 15}));
 }
 
 TEST_CASE(
