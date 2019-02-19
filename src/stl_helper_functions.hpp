@@ -1943,13 +1943,13 @@ bool has_value(const std::array<T, N>& container, T&& value) {
 }
 
 template <typename ContainerType,
-          typename KeyValuePairType,
           typename ConditionType =
               std::enable_if_t<!is_container_adapter_type_v<ContainerType> &&
                                (has_key_type_v<ContainerType> &&
                                 has_mapped_type_v<ContainerType>)>>
-bool has_key_value_pair(const ContainerType& container,
-                        const KeyValuePairType& key_value_pair) {
+bool has_key_value_pair(
+    const ContainerType& container,
+    const typename ContainerType::value_type& key_value_pair) {
   auto first_item_iter_pos{container.equal_range(key_value_pair.first)};
   if (std::cend(container) == first_item_iter_pos.first)
     return false;
@@ -1962,12 +1962,15 @@ bool has_key_value_pair(const ContainerType& container,
   return false;
 }
 
-template <typename ForwardIterType, typename ItemType>
-bool has_item(ForwardIterType first, ForwardIterType last, ItemType&& item) {
+template <typename ForwardIterType>
+bool has_item(
+    ForwardIterType first,
+    ForwardIterType last,
+    const typename std::iterator_traits<ForwardIterType>::value_type& item) {
   if (std::is_sorted(first, last))
-    return std::binary_search(first, last, std::forward<ItemType>(item));
+    return std::binary_search(first, last, item);
 
-  return last != std::find(first, last, std::forward<ItemType>(item));
+  return last != std::find(first, last, item);
 }
 
 int str_compare(const char* str1, const char* str2);

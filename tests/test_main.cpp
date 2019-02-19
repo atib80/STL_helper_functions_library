@@ -2,6 +2,7 @@
 
 #include <crtdbg.h>
 #include <chrono>
+#include <iterator>
 #include <map>
 #include <random>
 #include <set>
@@ -1397,15 +1398,110 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "bool has_item(ForwardIterType first, ForwardIterType last, ValueType&& "
-    "value)",
-    "Testing global function template bool has_value(ForwardIterType first, "
-    "ForwardIterType last, ValueType&& value)") {
+    "bool has_key_value_pair(const ContainerType& container, const typename "
+    "ContainerType::value_type& key_value_pair)",
+    "Testing global function template bool has_key_value_pair(const "
+    "ContainerType& container, const typename ContainerType::value_type& "
+    "key_value_pair)") {
+  map<string, int> unique_number_labels1{
+      {"one", 1}, {"two", 2},   {"three", 3}, {"four", 4}, {"five", 5},
+      {"six", 6}, {"seven", 7}, {"eight", 8}, {"nine", 9}, {"ten", 10}};
+  unordered_map<string, int> unique_number_labels2{
+      {"one", 1}, {"two", 2},   {"three", 3}, {"four", 4}, {"five", 5},
+      {"six", 6}, {"seven", 7}, {"eight", 8}, {"nine", 9}, {"ten", 10}};
+  multimap<string, int> number_labels1{
+      {"one", 1},   {"two", 2},   {"three", 3}, {"one", 1},  {"five", 5},
+      {"three", 3}, {"seven", 7}, {"eight", 8}, {"nine", 9}, {"ten", 10}};
+  unordered_multimap<string, int> number_labels2{
+      {"one", 1},   {"two", 2},   {"three", 3}, {"one", 1},  {"five", 5},
+      {"three", 3}, {"seven", 7}, {"eight", 8}, {"nine", 9}, {"ten", 10}};
+
+  REQUIRE(has_key_value_pair(unique_number_labels1, {"one", 1}));
+  REQUIRE(!has_key_value_pair(unique_number_labels1, {"fifteen", 15}));
+
+  REQUIRE(has_key_value_pair(unique_number_labels2, {"one", 1}));
+  REQUIRE(!has_key_value_pair(unique_number_labels2, {"fifteen", 15}));
+
+  REQUIRE(has_key_value_pair(number_labels1, {"one", 1}));
+  REQUIRE(!has_key_value_pair(number_labels1, {"fifteen", 15}));
+
+  REQUIRE(has_key_value_pair(number_labels2, {"one", 1}));
+  REQUIRE(!has_key_value_pair(number_labels2, {"fifteen", 15}));
+}
+
+TEST_CASE(
+    "bool has_item(ForwardIterType first, ForwardIterType last, ItemType&& "
+    "item)",
+    "Testing global function template bool has_item(ForwardIterType first, "
+    "ForwardIterType last, ItemType&& item)") {
   array<int, 10> ar{{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}};
   vector<int> v{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
   deque<int> d{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
   forward_list<int> fl{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
   list<int> dl{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+
+  REQUIRE(has_item(cbegin(ar), cend(ar), 5));
+  REQUIRE(has_item(cbegin(ar), cbegin(ar) + 5, 5));
+  REQUIRE(!has_item(cbegin(ar), cbegin(ar) + 3, 5));
+
+  REQUIRE(has_item(cbegin(v), cend(v), 5));
+  REQUIRE(has_item(cbegin(v), cbegin(v) + 5, 5));
+  REQUIRE(!has_item(cbegin(v), cbegin(v) + 3, 5));
+
+  REQUIRE(has_item(cbegin(d), cend(d), 5));
+  REQUIRE(has_item(cbegin(d), cbegin(d) + 5, 5));
+  REQUIRE(!has_item(cbegin(d), cbegin(d) + 3, 5));
+
+  auto fl_first{cbegin(fl)};
+  auto fl_last1{fl_first}, fl_last2{fl_first};
+  advance(fl_last1, 5);
+  advance(fl_last2, 3);
+
+  REQUIRE(has_item(fl_first, cend(fl), 5));
+  REQUIRE(has_item(fl_first, fl_last1, 5));
+  REQUIRE(!has_item(fl_first, fl_last2, 5));
+
+  auto dl_first{cbegin(dl)};
+  auto dl_last1{dl_first}, dl_last2{dl_first};
+  advance(dl_last1, 5);
+  advance(dl_last2, 3);
+
+  REQUIRE(has_item(dl_first, cend(dl), 5));
+  REQUIRE(has_item(dl_first, dl_last1, 5));
+  REQUIRE(!has_item(dl_first, dl_last2, 5));
+
+  map<string, int> unique_number_labels1{
+      {"one", 1}, {"two", 2},   {"three", 3}, {"four", 4}, {"five", 5},
+      {"six", 6}, {"seven", 7}, {"eight", 8}, {"nine", 9}, {"ten", 10}};
+  unordered_map<string, int> unique_number_labels2{
+      {"one", 1}, {"two", 2},   {"three", 3}, {"four", 4}, {"five", 5},
+      {"six", 6}, {"seven", 7}, {"eight", 8}, {"nine", 9}, {"ten", 10}};
+  multimap<string, int> number_labels1{
+      {"one", 1},   {"two", 2},   {"three", 3}, {"one", 1},  {"five", 5},
+      {"three", 3}, {"seven", 7}, {"eight", 8}, {"nine", 9}, {"ten", 10}};
+  unordered_multimap<string, int> number_labels2{
+      {"one", 1},   {"two", 2},   {"three", 3}, {"one", 1},  {"five", 5},
+      {"three", 3}, {"seven", 7}, {"eight", 8}, {"nine", 9}, {"ten", 10}};
+
+  REQUIRE(has_item(cbegin(unique_number_labels1), cend(unique_number_labels1),
+                   make_pair("one", 1)));
+  REQUIRE(!has_item(cbegin(unique_number_labels1), cend(unique_number_labels1),
+                    make_pair("fifteen", 15)));
+
+  REQUIRE(has_item(cbegin(unique_number_labels2), cend(unique_number_labels2),
+                   make_pair("one", 1)));
+  REQUIRE(!has_item(cbegin(unique_number_labels2), cend(unique_number_labels2),
+                    make_pair("fifteen", 15)));
+
+  REQUIRE(has_item(cbegin(number_labels1), cend(number_labels1),
+                   make_pair("one", 1)));
+  REQUIRE(!has_item(cbegin(number_labels1), cend(number_labels1),
+                    make_pair("fifteen", 15)));
+
+  REQUIRE(has_item(cbegin(number_labels2), cend(number_labels2),
+                   make_pair("one", 1)));
+  REQUIRE(!has_item(cbegin(number_labels2), cend(number_labels2),
+                    make_pair("fifteen", 15)));
 }
 
 // TEST_CASE(
