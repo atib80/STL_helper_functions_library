@@ -10,7 +10,6 @@
 #include <unordered_map>
 #include <unordered_set>
 #include "../includes/catch.hpp"
-// #include <windows.h>
 #include "../src/stl_helper_functions.hpp"
 
 using namespace std;

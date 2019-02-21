@@ -1837,7 +1837,7 @@ struct has_value_type<std::unordered_multiset<T, Args...>> {
 
 template <typename T, typename... Args>
 constexpr const bool has_value_type_v =
-    has_value_type<std::decay_t<T>, Args...>::value || std::is_array_v<T>;
+    has_value_type<std::decay_t<T>, Args...>::value;
 
 template <typename T, typename... Args>
 struct has_mapped_type {
@@ -1972,127 +1972,286 @@ bool has_item(
   return last != std::find(first, last, item);
 }
 
-int str_compare(const char* str1, const char* str2);
+template <
+    typename T,
+    typename U,
+    typename = std::enable_if_t<
+        (is_non_const_char_array_type_v<T> || is_const_char_array_type_v<T> ||
+         is_non_const_char_pointer_type_v<T> ||
+         is_const_char_pointer_type_v<
+             T>)&&(is_non_const_char_array_type_v<U> ||
+                   is_const_char_array_type_v<U> ||
+                   is_non_const_char_pointer_type_v<U> ||
+                   is_const_char_pointer_type_v<U>)&&std::
+            is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
+int str_compare(T src1, U src2) {
+  if (!src1)
+    return -1;
+  if (!src2)
+    return 1;
 
-int str_compare(const wchar_t* str1, const wchar_t* str2);
+  const size_t str1_len{len(src1)};
+  const size_t str2_len{len(src2)};
 
-int str_compare(const char16_t* str1, const char16_t* str2);
+  size_t const number_of_characters_to_compare{std::min(str1_len, str2_len)};
 
-int str_compare(const char32_t* str1, const char32_t* str2);
+  for (size_t i{}; i < number_of_characters_to_compare; i++, src1++, src2++) {
+    if (*src1 != *src2)
+      return static_cast<int>(*src1 - *src2);
+  }
 
-template <typename StringType>
-int str_compare(const StringType& str1, const StringType& str2) {
+  return static_cast<int>(*src1 - *src2);
+}
+
+template <typename StringType,
+          typename = std::enable_if_t<is_valid_string_type_v<StringType>>>
+int str_compare(const StringType& src1, const StringType& src2) {
   using char_type = typename StringType::value_type;
 
-  auto citr1 = cbegin(str1);
-  auto citr2 = cbegin(str2);
+  auto citr1{std::cbegin(src1)};
+  auto citr2{std::cbegin(src2)};
 
-  for (; ((citr1 != cend(str1)) && (citr2 != cend(str2))); ++citr1, ++citr2) {
+  for (; citr1 != std::cend(src1) && citr2 != std::cend(src2);
+       ++citr1, ++citr2) {
     if (*citr1 != *citr2)
       return static_cast<int>(*citr1 - *citr2);
   }
 
-  auto const final_str1_ch =
-      (citr1 == cend(str1) ? static_cast<char_type>(0) : *citr1);
-  auto const final_str2_ch =
-      (citr2 == cend(str2) ? static_cast<char_type>(0) : *citr2);
+  const auto final_str1_ch{citr1 == std::cend(src1) ? static_cast<char_type>(0)
+                                                    : *citr1};
+  const auto final_str2_ch{citr2 == std::cend(src2) ? static_cast<char_type>(0)
+                                                    : *citr2};
 
   return static_cast<int>(final_str1_ch - final_str2_ch);
 }
 
-int str_compare_n(const char* str1,
-                  const char* str2,
-                  size_t number_of_characters_to_compare);
+template <
+    typename T,
+    typename U,
+    typename = std::enable_if_t<
+        (is_non_const_char_array_type_v<T> || is_const_char_array_type_v<T> ||
+         is_non_const_char_pointer_type_v<T> ||
+         is_const_char_pointer_type_v<
+             T>)&&(is_non_const_char_array_type_v<U> ||
+                   is_const_char_array_type_v<U> ||
+                   is_non_const_char_pointer_type_v<U> ||
+                   is_const_char_pointer_type_v<U>)&&std::
+            is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
+int str_compare_n(T src1, U src2, size_t number_of_characters_to_compare) {
+  if (!src1)
+    return -1;
+  if (!src2)
+    return 1;
 
-int str_compare_n(const wchar_t* str1,
-                  const wchar_t* str2,
-                  size_t number_of_characters_to_compare);
+  const size_t src1_len{len(src1)};
+  const size_t src2_len{len(src2)};
 
-int str_compare_n(const char16_t* str1,
-                  const char16_t* str2,
-                  size_t number_of_characters_to_compare);
-
-int str_compare_n(const char32_t* str1,
-                  const char32_t* str2,
-                  size_t number_of_characters_to_compare);
-
-template <typename StringType>
-int str_compare_n(const StringType& str1,
-                  const StringType& str2,
-                  size_t number_of_characters_to_compare) {
-  auto const str1_len = str1.size();
-  auto const str2_len = str2.size();
-
-  if (str1_len < number_of_characters_to_compare ||
-      str2_len < number_of_characters_to_compare) {
-    number_of_characters_to_compare = min(str1_len, str2_len);
+  if (src1_len < number_of_characters_to_compare ||
+      src2_len < number_of_characters_to_compare) {
+    number_of_characters_to_compare = std::min(src1_len, src2_len);
   }
 
-  for (size_t i{}; i < number_of_characters_to_compare; i++) {
-    if (str1[i] != str2[i])
-      return static_cast<int>(str1[i] - str2[i]);
+  for (size_t i{}; i < number_of_characters_to_compare; src1++, src2++, i++) {
+    if (*src1 != *src2)
+      return static_cast<int>(*src1 - *src2);
   }
 
   return 0;
 }
 
-int str_compare_i(const char* str1,
-                  const char* str2,
-                  const std::locale& loc = std::locale{});
+template <typename StringType,
+          typename = std::enable_if_t<is_valid_string_type_v<StringType>>>
+int str_compare_n(const StringType& src1,
+                  const StringType& src2,
+                  size_t number_of_characters_to_compare) {
+  const auto src1_len{src1.length()};
+  const auto src2_len{src2.length()};
 
-int str_compare_i(const wchar_t* str1,
-                  const wchar_t* str2,
-                  const std::locale& loc = std::locale{});
-
-int str_compare_i(const char16_t* str1,
-                  const char16_t* str2,
-                  const std::locale& loc = std::locale{});
-
-int str_compare_i(const char32_t* str1,
-                  const char32_t* str2,
-                  const std::locale& loc = std::locale{});
-
-template <typename StringType>
-int str_compare_i(const StringType& str1,
-                  const StringType& str2,
-                  const std::locale& loc = std::locale{}) {
-  auto citr1 = cbegin(str1);
-  auto citr2 = cbegin(str2);
-
-  for (; ((citr1 != cend(str1)) && (citr2 != cend(str2))); ++citr1, ++citr2) {
-    auto const ch1 = std::tolower(*citr1, loc);
-
-    auto const ch2 = std::tolower(*citr2, loc);
-
-    if (ch1 != ch2)
-      return static_cast<int>(ch1 - ch2);
+  if (src1_len < number_of_characters_to_compare ||
+      src2_len < number_of_characters_to_compare) {
+    number_of_characters_to_compare = std::min(src1_len, src2_len);
   }
 
-  return static_cast<int>(std::tolower(*citr1, loc) -
-                          std::tolower(*citr2, loc));
+  for (size_t i{}; i < number_of_characters_to_compare; i++) {
+    if (src1[i] != src2[i])
+      return static_cast<int>(src1[i] - src2[i]);
+  }
+
+  return 0;
 }
 
-template <typename StringType>
-int str_compare_n_i(const StringType& str1,
-                    const StringType& str2,
+template <
+    typename T,
+    typename U,
+    typename = std::enable_if_t<
+        (is_non_const_char_array_type_v<T> || is_const_char_array_type_v<T> ||
+         is_non_const_char_pointer_type_v<T> ||
+         is_const_char_pointer_type_v<
+             T>)&&(is_non_const_char_array_type_v<U> ||
+                   is_const_char_array_type_v<U> ||
+                   is_non_const_char_pointer_type_v<U> ||
+                   is_const_char_pointer_type_v<U>)&&std::
+            is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
+int str_compare_i(T src1, U src2, const std::locale& loc = std::locale{}) {
+  if (!src1)
+    return -1;
+  if (!src2)
+    return 1;
+
+  using char_type = get_char_type_t<T>;
+
+  const size_t src1_len{len(src1)};
+  const size_t src2_len{len(src2)};
+
+  const size_t number_of_characters_to_compare{std::min(src1_len, src2_len)};
+
+  if (std::has_facet<std::ctype<char_type>>(loc)) {
+    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
+
+    size_t i{};
+
+    for (; i < number_of_characters_to_compare; i++) {
+      const auto ch1{f.tolower(src1[i])};
+      const auto ch2{f.tolower(src2[i])};
+      if (ch1 != ch2)
+        return static_cast<int>(ch1 - ch2);
+    }
+
+    return static_cast<int>(f.tolower(src1[i]) - f.tolower(src2[i]));
+
+  } else {
+    size_t i{};
+
+    for (; i < number_of_characters_to_compare; i++) {
+      const auto ch1{std::tolower(src1[i])};
+      const auto ch2{std::tolower(src2[i])};
+      if (ch1 != ch2)
+        return static_cast<int>(ch1 - ch2);
+    }
+
+    return static_cast<int>(std::tolower(src1[i]) - std::tolower(src2[i]));
+  }
+}
+
+template <typename StringType,
+          typename = std::enable_if_t<is_valid_string_type_v<StringType>>>
+int str_compare_i(const StringType& src1,
+                  const StringType& src2,
+                  const std::locale& loc = std::locale{}) {
+  using char_type = typename StringType::value_type;
+
+  auto citr1{std::cbegin(src1)};
+  auto citr2{std::cbegin(src2)};
+
+  if (std::has_facet<std::ctype<char_type>>(loc)) {
+    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
+
+    for (; citr1 != std::cend(src1) && citr2 != std::cend(src2);
+         ++citr1, ++citr2) {
+      const auto ch1{f.tolower(*citr1)};
+
+      const auto ch2{f.tolower(*citr2)};
+
+      if (ch1 != ch2)
+        return static_cast<int>(ch1 - ch2);
+    }
+
+    return static_cast<int>(f.tolower(*citr1) - f.tolower(*citr2));
+
+  } else {
+    for (; citr1 != std::cend(src1) && citr2 != std::cend(src2);
+         ++citr1, ++citr2) {
+      const auto ch1{std::tolower(*citr1)};
+
+      const auto ch2{std::tolower(*citr2)};
+
+      if (ch1 != ch2)
+        return static_cast<int>(ch1 - ch2);
+    }
+
+    return static_cast<int>(std::tolower(*citr1) - std::tolower(*citr2));
+  }
+}
+
+template <
+    typename T,
+    typename U,
+    typename = std::enable_if_t<
+        (is_non_const_char_array_type_v<T> || is_const_char_array_type_v<T> ||
+         is_non_const_char_pointer_type_v<T> ||
+         is_const_char_pointer_type_v<
+             T>)&&(is_non_const_char_array_type_v<U> ||
+                   is_const_char_array_type_v<U> ||
+                   is_non_const_char_pointer_type_v<U> ||
+                   is_const_char_pointer_type_v<U>)&&std::
+            is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
+int str_compare_n_i(T src1,
+                    U src2,
                     size_t number_of_characters_to_compare,
                     const std::locale& loc = std::locale{}) {
-  auto const str1_len = str1.size();
-  auto const str2_len = str2.size();
+  using char_type = get_char_type_t<T>;
+
+  const size_t str1_len{len(src1)};
+  const size_t str2_len{len(src2)};
 
   if (str1_len < number_of_characters_to_compare ||
       str2_len < number_of_characters_to_compare) {
-    number_of_characters_to_compare = min(str1_len, str2_len);
+    number_of_characters_to_compare = std::min(str1_len, str2_len);
   }
 
-  for (size_t i = 0u; i < number_of_characters_to_compare;
-       ++str1, ++str2, ++i) {
-    auto const ch1 = std::tolower(str1[i], loc);
+  if (std::has_facet<std::ctype<char_type>>(loc)) {
+    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
 
-    auto const ch2 = std::tolower(str2[i], loc);
+    for (size_t i{}; i < number_of_characters_to_compare; ++i) {
+      const auto ch1{f.tolower(src1[i])};
+      const auto ch2{f.tolower(src2[i])};
+      if (ch1 != ch2)
+        return static_cast<int>(ch1 - ch2);
+    }
+  } else {
+    for (size_t i{}; i < number_of_characters_to_compare; ++i) {
+      const auto ch1{std::tolower(src1[i])};
+      const auto ch2{std::tolower(src2[i])};
+      if (ch1 != ch2)
+        return static_cast<int>(ch1 - ch2);
+    }
+  }
 
-    if (ch1 != ch2)
-      return static_cast<int>(ch1 - ch2);
+  return 0;
+}
+
+template <typename StringType,
+          typename = std::enable_if_t<is_valid_string_type_v<StringType>>>
+int str_compare_n_i(const StringType& src1,
+                    const StringType& src2,
+                    size_t number_of_characters_to_compare,
+                    const std::locale& loc = std::locale{}) {
+  using char_type = typename StringType::value_type;
+
+  const size_t str1_len{src1.length()};
+  const size_t str2_len{src2.length()};
+
+  if (str1_len < number_of_characters_to_compare ||
+      str2_len < number_of_characters_to_compare) {
+    number_of_characters_to_compare = std::min(str1_len, str2_len);
+  }
+
+  if (std::has_facet<std::ctype<char_type>>(loc)) {
+    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
+
+    for (size_t i{}; i < number_of_characters_to_compare; ++i) {
+      const auto ch1{f.tolower(src1[i])};
+      const auto ch2{f.tolower(src2[i])};
+      if (ch1 != ch2)
+        return static_cast<int>(ch1 - ch2);
+    }
+  } else {
+    for (size_t i{}; i < number_of_characters_to_compare; ++i) {
+      const auto ch1{std::tolower(src1[i])};
+      const auto ch2{std::tolower(src2[i])};
+      if (ch1 != ch2)
+        return static_cast<int>(ch1 - ch2);
+    }
   }
 
   return 0;
@@ -2104,14 +2263,24 @@ enum class str_copy_behavior {
   do_not_copy_return_required_dst_buffer_capacity_only
 };
 
-template <size_t ARRAY_SIZE>
-size_t str_copy(char (&dst)[ARRAY_SIZE],
-                const char* src,
+template <
+    typename T,
+    size_t ARRAY_SIZE,
+    typename U,
+    typename = std::enable_if_t<
+        !std::is_const_v<T> &&
+        (is_non_const_char_array_type_v<U> || is_const_char_array_type_v<U> ||
+         is_non_const_char_pointer_type_v<U> ||
+         is_const_char_pointer_type_v<U>)&&std::is_same_v<get_char_type_t<T>,
+                                                          get_char_type_t<U>>>>
+size_t str_copy(T (&dst)[ARRAY_SIZE],
+                U src,
                 const str_copy_behavior copy_options =
                     str_copy_behavior::disallow_partial_copy,
                 size_t* required_dst_capacity = nullptr) {
-  auto const src_len = len(src);
+  using char_type = get_char_type_t<T>;
 
+  const size_t src_len{len(src)};
   const auto ret_val{src_len + 1};
 
   if (required_dst_capacity)
@@ -2121,142 +2290,20 @@ size_t str_copy(char (&dst)[ARRAY_SIZE],
       str_copy_behavior::do_not_copy_return_required_dst_buffer_capacity_only)
     return ret_val;
 
-  if (ARRAY_SIZE < (src_len + 1)) {
+  if (ARRAY_SIZE < src_len + 1) {
     if (copy_options == str_copy_behavior::disallow_partial_copy)
       return 0u;
 
     if (copy_options == str_copy_behavior::allow_partial_copy) {
-      auto const no_of_chars_to_copy = ARRAY_SIZE - 1;
-
-      copy(src, src + no_of_chars_to_copy, dst);
-
-      dst[no_of_chars_to_copy] = '\0';
-
+      const auto no_of_chars_to_copy{ARRAY_SIZE - 1};
+      std::copy(src, src + no_of_chars_to_copy, dst);
+      dst[no_of_chars_to_copy] = static_cast<char_type>('\0');
       return no_of_chars_to_copy;
     }
   }
 
-  copy(src, src + src_len, dst);
-
-  dst[src_len] = '\0';
-
-  return src_len;
-}
-
-template <size_t ARRAY_SIZE>
-size_t str_copy(wchar_t (&dst)[ARRAY_SIZE],
-                const wchar_t* src,
-                const str_copy_behavior copy_options =
-                    str_copy_behavior::disallow_partial_copy,
-                size_t* required_dst_capacity = nullptr) {
-  auto const src_len = len(src);
-
-  const auto ret_val{src_len + 1};
-
-  if (required_dst_capacity)
-    *required_dst_capacity = ret_val;
-
-  if (copy_options ==
-      str_copy_behavior::do_not_copy_return_required_dst_buffer_capacity_only)
-    return ret_val;
-
-  if (ARRAY_SIZE < (src_len + 1)) {
-    if (copy_options == str_copy_behavior::disallow_partial_copy)
-      return 0u;
-
-    if (copy_options == str_copy_behavior::allow_partial_copy) {
-      auto const no_of_chars_to_copy = ARRAY_SIZE - 1;
-
-      copy(src, src + no_of_chars_to_copy, dst);
-
-      dst[no_of_chars_to_copy] = L'\0';
-
-      return no_of_chars_to_copy;
-    }
-  }
-
-  copy(src, src + src_len, dst);
-
-  dst[src_len] = L'\0';
-
-  return src_len;
-}
-
-template <size_t ARRAY_SIZE>
-size_t str_copy(char16_t (&dst)[ARRAY_SIZE],
-                const char16_t* src,
-                const str_copy_behavior copy_options =
-                    str_copy_behavior::disallow_partial_copy,
-                size_t* required_dst_capacity = nullptr) {
-  auto const src_len = len(src);
-
-  const auto ret_val{src_len + 1};
-
-  if (required_dst_capacity)
-    *required_dst_capacity = ret_val;
-
-  if (copy_options ==
-      str_copy_behavior::do_not_copy_return_required_dst_buffer_capacity_only)
-    return ret_val;
-
-  if (ARRAY_SIZE < (src_len + 1)) {
-    if (copy_options == str_copy_behavior::disallow_partial_copy)
-      return 0u;
-
-    if (copy_options == str_copy_behavior::allow_partial_copy) {
-      auto const no_of_chars_to_copy = ARRAY_SIZE - 1;
-
-      copy(src, src + no_of_chars_to_copy, dst);
-
-      dst[no_of_chars_to_copy] = u'\0';
-
-      return no_of_chars_to_copy;
-    }
-  }
-
-  copy(src, src + src_len, dst);
-
-  dst[src_len] = u'\0';
-
-  return src_len;
-}
-
-template <size_t ARRAY_SIZE>
-size_t str_copy(char32_t (&dst)[ARRAY_SIZE],
-                const char32_t* src,
-                const str_copy_behavior copy_options =
-                    str_copy_behavior::disallow_partial_copy,
-                size_t* required_dst_capacity = nullptr) {
-  auto const src_len = len(src);
-
-  const auto ret_val{src_len + 1};
-
-  if (required_dst_capacity)
-    *required_dst_capacity = ret_val;
-
-  if (copy_options ==
-      str_copy_behavior::do_not_copy_return_required_dst_buffer_capacity_only)
-    return ret_val;
-
-  if (ARRAY_SIZE < (src_len + 1)) {
-    if (copy_options == str_copy_behavior::disallow_partial_copy)
-      return 0u;
-
-    if (copy_options == str_copy_behavior::allow_partial_copy) {
-      auto const no_of_chars_to_copy = ARRAY_SIZE - 1;
-
-      copy(src, src + no_of_chars_to_copy, dst);
-
-      dst[no_of_chars_to_copy] = U'\0';
-
-      return no_of_chars_to_copy;
-    }
-  }
-
-  copy(src, src + src_len, dst);
-
-  dst[src_len] = U'\0';
-
+  std::copy(src, src + src_len, dst);
+  dst[src_len] = static_cast<char_type>('\0');
   return src_len;
 }
 

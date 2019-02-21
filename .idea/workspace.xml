@@ -25,8 +25,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/tests/test_main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="25058">
-              <caret line="1139" column="21" selection-start-line="1139" selection-start-column="21" selection-end-line="1139" selection-end-column="21" />
+            <state relative-caret-position="25124">
+              <caret line="1142" column="21" selection-start-line="1142" selection-start-column="21" selection-end-line="1142" selection-end-column="21" />
               <folding>
                 <element signature="e#27#46#0" expanded="true" />
               </folding>
@@ -37,10 +37,18 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/stl_helper_functions.hpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="603">
-              <caret line="468" column="3" selection-start-line="468" selection-start-column="2" selection-end-line="468" selection-end-column="3" />
+            <state relative-caret-position="748">
+              <caret line="2315" column="46" selection-start-line="2315" selection-start-column="46" selection-end-line="2315" selection-end-column="46" />
               <folding>
                 <element signature="e#132#152#0" expanded="true" />
+                <element signature="e#56714#56744#0" expanded="true" />
+                <element signature="e#63226#63747#0" expanded="true" />
+                <element signature="e#64308#64404#0" expanded="true" />
+                <element signature="e#64980#65501#0" expanded="true" />
+                <element signature="e#66794#66890#0" expanded="true" />
+                <element signature="e#68024#68633#0" expanded="true" />
+                <element signature="e#68024#68120#0" expanded="true" />
+                <element signature="e#71251#71662#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -49,8 +57,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/stl_helper_functions.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="148676">
-              <caret line="6758" column="16" selection-start-line="6758" selection-start-column="16" selection-end-line="6758" selection-end-column="16" />
+            <state relative-caret-position="-1870">
+              <caret line="1846" selection-start-line="1846" selection-start-column="2" selection-end-line="1941" selection-end-column="3" />
             </state>
           </provider>
         </entry>
@@ -63,6 +71,7 @@
       <find>str_contain</find>
       <find>str_starts</find>
       <find>str_ends_with</find>
+      <find>str_comparei_i</find>
     </findStrings>
   </component>
   <component name="IdeDocumentHistory">
@@ -86,7 +95,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -113,6 +121,7 @@
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -170,17 +179,18 @@
       <workItem from="1549832900703" duration="214000" />
       <workItem from="1549840993427" duration="1010000" />
       <workItem from="1550172353014" duration="206000" />
+      <workItem from="1550786734270" duration="3621000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="19025000" />
+    <option name="totallyTimeSpent" value="22646000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1066" extended-state="6" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.5101822" visible="true" weight="0.1076759" />
-      <window_info id="Structure" order="1" sideWeight="0.4898178" side_tool="true" visible="true" weight="0.1076759" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.5091104" visible="true" weight="0.108742006" />
+      <window_info id="Structure" order="1" sideWeight="0.4908896" side_tool="true" visible="true" weight="0.108742006" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
@@ -220,8 +230,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/tests/test_main.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="25058">
-          <caret line="1139" column="21" selection-start-line="1139" selection-start-column="21" selection-end-line="1139" selection-end-column="21" />
+        <state relative-caret-position="25124">
+          <caret line="1142" column="21" selection-start-line="1142" selection-start-column="21" selection-end-line="1142" selection-end-column="21" />
           <folding>
             <element signature="e#27#46#0" expanded="true" />
           </folding>
@@ -230,17 +240,25 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/stl_helper_functions.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="148676">
-          <caret line="6758" column="16" selection-start-line="6758" selection-start-column="16" selection-end-line="6758" selection-end-column="16" />
+        <state relative-caret-position="-1870">
+          <caret line="1846" selection-start-line="1846" selection-start-column="2" selection-end-line="1941" selection-end-column="3" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/stl_helper_functions.hpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="603">
-          <caret line="468" column="3" selection-start-line="468" selection-start-column="2" selection-end-line="468" selection-end-column="3" />
+        <state relative-caret-position="748">
+          <caret line="2315" column="46" selection-start-line="2315" selection-start-column="46" selection-end-line="2315" selection-end-column="46" />
           <folding>
             <element signature="e#132#152#0" expanded="true" />
+            <element signature="e#56714#56744#0" expanded="true" />
+            <element signature="e#63226#63747#0" expanded="true" />
+            <element signature="e#64308#64404#0" expanded="true" />
+            <element signature="e#64980#65501#0" expanded="true" />
+            <element signature="e#66794#66890#0" expanded="true" />
+            <element signature="e#68024#68633#0" expanded="true" />
+            <element signature="e#68024#68120#0" expanded="true" />
+            <element signature="e#71251#71662#0" expanded="true" />
           </folding>
         </state>
       </provider>
