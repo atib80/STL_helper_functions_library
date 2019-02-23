@@ -1483,24 +1483,24 @@ TEST_CASE(
       {"three", 3}, {"seven", 7}, {"eight", 8}, {"nine", 9}, {"ten", 10}};
 
   REQUIRE(has_item(cbegin(unique_number_labels1), cend(unique_number_labels1),
-                   make_pair("one", 1)));
+                   pair<const string, int>{"one"s, 1}));
   REQUIRE(!has_item(cbegin(unique_number_labels1), cend(unique_number_labels1),
-                    make_pair("fifteen", 15)));
+                    pair<const string, int>{"fifteen"s, 15}));
 
   REQUIRE(has_item(cbegin(unique_number_labels2), cend(unique_number_labels2),
-                   make_pair("one", 1)));
+                   pair<const string, int>{"one"s, 1}));
   REQUIRE(!has_item(cbegin(unique_number_labels2), cend(unique_number_labels2),
-                    make_pair("fifteen", 15)));
+                    pair<const string, int>{"fifteen"s, 15}));
 
   REQUIRE(has_item(cbegin(number_labels1), cend(number_labels1),
-                   make_pair("one", 1)));
+                   pair<const string, int>{"one"s, 1}));
   REQUIRE(!has_item(cbegin(number_labels1), cend(number_labels1),
-                    make_pair("fifteen", 15)));
+                    pair<const string, int>{"fifteen"s, 15}));
 
   REQUIRE(has_item(cbegin(number_labels2), cend(number_labels2),
-                   make_pair("one", 1)));
+                   pair<const string, int>{"one"s, 1}));
   REQUIRE(!has_item(cbegin(number_labels2), cend(number_labels2),
-                    make_pair("fifteen", 15)));
+                    pair<const string, int>{"fifteen"s, 15}));
 }
 
 // TEST_CASE(

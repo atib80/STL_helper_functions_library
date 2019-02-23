@@ -1891,21 +1891,20 @@ template <typename T, typename... Args>
 constexpr const bool is_container_adapter_type_v =
     is_container_adapter_type<std::decay_t<T>, Args...>::value;
 
-template <
-    typename ContainerType,
-    typename KeyType,
-    typename ConditionType = std::enable_if_t<has_key_type_v<ContainerType>>>
+template <typename ContainerType,
+          typename KeyType,
+          typename = std::enable_if_t<has_key_type_v<ContainerType>>>
 bool has_key(const ContainerType& container, KeyType&& key) {
   return std::cend(container) != container.find(std::forward<KeyType>(key));
 }
 
-template <typename ContainerType,
-          typename ValueType,
-          typename ConditionType =
-              std::enable_if_t<!is_container_adapter_type_v<ContainerType> &&
-                               (has_key_type_v<ContainerType> ||
-                                has_value_type_v<ContainerType> ||
-                                has_mapped_type_v<ContainerType>)>>
+template <
+    typename ContainerType,
+    typename ValueType,
+    typename = std::enable_if_t<!is_container_adapter_type_v<ContainerType> &&
+                                (has_key_type_v<ContainerType> ||
+                                 has_value_type_v<ContainerType> ||
+                                 has_mapped_type_v<ContainerType>)>>
 bool has_value(const ContainerType& container, ValueType&& value) {
   if constexpr (has_mapped_type_v<ContainerType>) {
     for (const auto& p : container) {
@@ -1943,10 +1942,8 @@ bool has_value(const std::array<T, N>& container, T&& value) {
 }
 
 template <typename ContainerType,
-          typename ConditionType =
-              std::enable_if_t<!is_container_adapter_type_v<ContainerType> &&
-                               (has_key_type_v<ContainerType> &&
-                                has_mapped_type_v<ContainerType>)>>
+          typename = std::enable_if_t<has_key_type_v<ContainerType> &&
+                                      has_mapped_type_v<ContainerType>>>
 bool has_kv_pair(const ContainerType& container,
                  const typename ContainerType::value_type& key_value_pair) {
   auto first_item_iter_pos{container.equal_range(key_value_pair.first)};
@@ -1961,15 +1958,12 @@ bool has_kv_pair(const ContainerType& container,
   return false;
 }
 
-template <typename ForwardIterType>
-bool has_item(
-    ForwardIterType first,
-    ForwardIterType last,
-    const typename std::iterator_traits<ForwardIterType>::value_type& item) {
+template <typename ForwardIterType, typename ItemType>
+bool has_item(ForwardIterType first, ForwardIterType last, ItemType&& item) {
   if (std::is_sorted(first, last))
-    return std::binary_search(first, last, item);
+    return std::binary_search(first, last, std::forward<ItemType>(item));
 
-  return last != std::find(first, last, item);
+  return last != std::find(first, last, std::forward<ItemType>(item));
 }
 
 template <
@@ -4110,7 +4104,7 @@ void str_insert_n(StringType& dst,
 
 template <
     typename T,
-    typename ConditionCheckTypeParam = std::enable_if_t<
+    typename = std::enable_if_t<
         std::is_array_v<T> &&
         (std::is_same_v<std::remove_extent_t<std::remove_cv_t<T>>, char> ||
          std::is_same_v<std::remove_extent_t<std::remove_cv_t<T>>, wchar_t> ||
@@ -4494,7 +4488,7 @@ size_t str_replace_first(char32_t* dst,
                          size_t* required_dst_capacity = nullptr);
 
 template <typename CharacterPointerType,
-          typename ConditionCheckTypeParam = std::enable_if_t<
+          typename = std::enable_if_t<
               std::is_array_v<CharacterPointerType> ||
               std::is_same_v<CharacterPointerType, char*> ||
               std::is_same_v<CharacterPointerType, wchar_t*> ||
@@ -4507,7 +4501,7 @@ CharacterPointerType str_replace_nth(CharacterPointerType src,
 }
 
 template <typename CharacterPointerType,
-          typename ConditionCheckTypeParam = std::enable_if_t<
+          typename = std::enable_if_t<
               std::is_array_v<CharacterPointerType> ||
               std::is_same_v<CharacterPointerType, char*> ||
               std::is_same_v<CharacterPointerType, wchar_t*> ||
@@ -4519,7 +4513,7 @@ CharacterPointerType str_replace_last(CharacterPointerType src,
 }
 
 template <typename CharacterPointerType,
-          typename ConditionCheckTypeParam = std::enable_if_t<
+          typename = std::enable_if_t<
               std::is_array_v<CharacterPointerType> ||
               std::is_same_v<CharacterPointerType, char*> ||
               std::is_same_v<CharacterPointerType, wchar_t*> ||
@@ -4531,7 +4525,7 @@ CharacterPointerType str_replace_all(CharacterPointerType src,
 }
 
 template <typename CharacterPointerType,
-          typename ConditionCheckTypeParam = std::enable_if_t<
+          typename = std::enable_if_t<
               std::is_array_v<CharacterPointerType> ||
               std::is_same_v<CharacterPointerType, char*> ||
               std::is_same_v<CharacterPointerType, wchar_t*> ||
@@ -4545,7 +4539,7 @@ CharacterPointerType str_replace_first_n(
 }
 
 template <typename CharacterPointerType,
-          typename ConditionCheckTypeParam = std::enable_if_t<
+          typename = std::enable_if_t<
               std::is_array_v<CharacterPointerType> ||
               std::is_same_v<CharacterPointerType, char*> ||
               std::is_same_v<CharacterPointerType, wchar_t*> ||
@@ -4559,7 +4553,7 @@ CharacterPointerType str_replace_last_n(
 }
 
 template <typename CharacterPointerType,
-          typename ConditionCheckTypeParam = std::enable_if_t<
+          typename = std::enable_if_t<
               std::is_array_v<CharacterPointerType> ||
               std::is_same_v<CharacterPointerType, char*> ||
               std::is_same_v<CharacterPointerType, wchar_t*> ||
@@ -4571,7 +4565,7 @@ CharacterPointerType str_erase_first(CharacterPointerType src,
 }
 
 template <typename CharacterPointerType,
-          typename ConditionCheckTypeParam = std::enable_if_t<
+          typename = std::enable_if_t<
               std::is_array_v<CharacterPointerType> ||
               std::is_same_v<CharacterPointerType, char*> ||
               std::is_same_v<CharacterPointerType, wchar_t*> ||
@@ -4583,7 +4577,7 @@ CharacterPointerType str_erase_nth(CharacterPointerType src,
 }
 
 template <typename CharacterPointerType,
-          typename ConditionCheckTypeParam = std::enable_if_t<
+          typename = std::enable_if_t<
               std::is_array_v<CharacterPointerType> ||
               std::is_same_v<CharacterPointerType, char*> ||
               std::is_same_v<CharacterPointerType, wchar_t*> ||
@@ -4595,7 +4589,7 @@ CharacterPointerType str_erase_last(CharacterPointerType src,
 }
 
 template <typename CharacterPointerType,
-          typename ConditionCheckTypeParam = std::enable_if_t<
+          typename = std::enable_if_t<
               std::is_array_v<CharacterPointerType> ||
               std::is_same_v<CharacterPointerType, char*> ||
               std::is_same_v<CharacterPointerType, wchar_t*> ||
@@ -4607,7 +4601,7 @@ CharacterPointerType str_erase_all(CharacterPointerType src,
 }
 
 template <typename CharacterPointerType,
-          typename ConditionCheckTypeParam = std::enable_if_t<
+          typename = std::enable_if_t<
               std::is_array_v<CharacterPointerType> ||
               std::is_same_v<CharacterPointerType, char*> ||
               std::is_same_v<CharacterPointerType, wchar_t*> ||
@@ -4620,7 +4614,7 @@ CharacterPointerType str_erase_first_n(CharacterPointerType src,
 }
 
 template <typename CharacterPointerType,
-          typename ConditionCheckTypeParam = std::enable_if_t<
+          typename = std::enable_if_t<
               std::is_array_v<CharacterPointerType> ||
               std::is_same_v<CharacterPointerType, char*> ||
               std::is_same_v<CharacterPointerType, wchar_t*> ||
