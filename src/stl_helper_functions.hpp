@@ -2301,42 +2301,83 @@ size_t str_copy(T (&dst)[ARRAY_SIZE],
   return src_len;
 }
 
+template <
+    typename T,
+    typename U,
+    typename = std::enable_if_t<
+        is_non_const_char_pointer_type_v<T> &&
+        (is_non_const_char_array_type_v<U> || is_const_char_array_type_v<U> ||
+         is_non_const_char_pointer_type_v<U> ||
+         is_const_char_pointer_type_v<U>)&&std::is_same_v<get_char_type_t<T>,
+                                                          get_char_type_t<U>>>>
 size_t str_copy(
-    char* dst,
-    size_t dst_capacity_in_number_of_characters,
-    const char* src,
+    T dst,
+    const size_t dst_capacity_in_number_of_characters,
+    const U src,
     str_copy_behavior copy_options = str_copy_behavior::disallow_partial_copy,
-    size_t* required_dst_capacity = nullptr);
+    size_t* required_dst_capacity = nullptr) {
+  using char_type = get_char_type_t<T>;
 
-size_t str_copy(
-    wchar_t* dst,
-    size_t dst_capacity_in_number_of_characters,
-    const wchar_t* src,
-    str_copy_behavior copy_options = str_copy_behavior::disallow_partial_copy,
-    size_t* required_dst_capacity = nullptr);
+  const size_t src_len{len(src)};
+  const auto ret_val{src_len + 1};
 
-size_t str_copy(
-    char16_t* dst,
-    size_t dst_capacity_in_number_of_characters,
-    const char16_t* src,
-    str_copy_behavior copy_options = str_copy_behavior::disallow_partial_copy,
-    size_t* required_dst_capacity = nullptr);
+  if (required_dst_capacity)
+    *required_dst_capacity = ret_val;
 
-size_t str_copy(
-    char32_t* dst,
-    size_t dst_capacity_in_number_of_characters,
-    const char32_t* src,
-    str_copy_behavior copy_options = str_copy_behavior::disallow_partial_copy,
-    size_t* required_dst_capacity = nullptr);
+  if (copy_options ==
+      str_copy_behavior::do_not_copy_return_required_dst_buffer_capacity_only)
+    return ret_val;
 
-template <typename StringType>
-StringType str_copy(const StringType& src) {
-  return StringType{src};
+  if (dst_capacity_in_number_of_characters < src_len + 1) {
+    if (copy_options == str_copy_behavior::disallow_partial_copy)
+      return 0u;
+
+    if (copy_options == str_copy_behavior::allow_partial_copy) {
+      const auto no_of_chars_to_copy{dst_capacity_in_number_of_characters - 1};
+
+      std::copy(src, src + no_of_chars_to_copy, dst);
+
+      dst[no_of_chars_to_copy] = static_cast<char_type>('\0');
+
+      return no_of_chars_to_copy;
+    }
+  }
+
+  std::copy(src, src + src_len, dst);
+
+  dst[src_len] = static_cast<char_type>('\0');
+
+  return src_len;
 }
 
-template <typename StringTypeLeft, typename StringTypeRight = StringTypeLeft>
-void str_copy(StringTypeLeft& dst, const StringTypeRight& src) {
+template <typename T,
+          typename U,
+          typename = std::enable_if_t<
+              is_valid_string_type_v<T> && !std::is_const_v<T> &&
+              ((is_valid_string_type_v<U> && std::is_same_v<T, U>) ||
+               ((is_non_const_char_pointer_type_v<U> ||
+                 is_const_char_pointer_type_v<U>)&&std::
+                    is_same_v<typename T::value_type, get_char_type_t<U>>))>>
+size_t str_copy(T& dst, const U& src) {
+  if constexpr (is_non_const_char_pointer_type_v<U> ||
+                is_const_char_pointer_type_v<U>) {
+    if (nullptr == src)
+      return 0u;
+  }
+
   dst.assign(src);
+  return len(src);
+}
+
+template <typename T,
+          typename U,
+          size_t ARRAY_SIZE,
+          typename = std::enable_if_t<
+              is_valid_string_type_v<T> && !std::is_const_v<T> &&
+              std::is_same_v<typename T::value_type, get_char_type_t<U>>>>
+size_t str_copy(T& dst, U (&src)[ARRAY_SIZE]) {
+  dst.assign(src);
+  return ARRAY_SIZE - 1;
 }
 
 template <size_t ARRAY_SIZE>
