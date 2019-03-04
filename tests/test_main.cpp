@@ -122,6 +122,32 @@ long long get_random_number(const long long lower_bound,
 //	REQUIRE(length == ret_val);
 //}
 
+TEST_CASE("void swap(T& first, T& second)",
+          "Testing global function template void swap(T& first, T& second)") {
+  struct no_move_type {
+    int id;
+    no_move_type(const int id_num = -1) : id{id_num} {}
+    no_move_type(no_move_type const&) = default;
+    no_move_type& operator=(no_move_type const&) = default;
+    no_move_type(no_move_type&&) = delete;
+    no_move_type& operator=(no_move_type&&) = delete;
+  };
+
+  string first{"first"}, second{"second"};
+  REQUIRE(first == "first"s);
+  REQUIRE(second == "second"s);
+  swap(first, second);
+  REQUIRE(first == "second"s);
+  REQUIRE(second == "first"s);
+
+  no_move_type a{1}, b{2};
+  REQUIRE(1 == a.id);
+  REQUIRE(2 == b.id);
+  swap(a, b);
+  REQUIRE(2 == a.id);
+  REQUIRE(1 == b.id);
+}
+
 TEST_CASE(
     "size_t len(T src, const size_t max_allowed_string_length = "
     "max_string_length)",

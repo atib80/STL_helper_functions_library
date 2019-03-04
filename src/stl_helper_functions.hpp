@@ -242,6 +242,32 @@ int say(const wchar_t* format_string, Args... args) {
   return wprintf(L"%ls", output_buffer_sp.get());
 }
 
+template <typename T>
+void swap(T& first, T& second, std::true_type) noexcept {
+  std::cout << "swap by moving the contents of first and second\n";
+
+  T tmp{std::move(first)};
+  first = std::move(second);
+  second = std::move(tmp);
+}
+
+template <typename T>
+void swap(T& first, T& second, std::false_type) {
+  std::cout << "swap by copying the contents of first and second\n";
+
+  T tmp{first};
+  first = second;
+  second = tmp;
+}
+
+template <typename T>
+void swap(T& first, T& second) {
+  swap(first, second,
+       std::conditional_t < std::is_nothrow_move_constructible_v<T> &&
+           std::is_nothrow_move_assignable_v<T>,
+       std::true_type, std::false_type > {});
+}
+
 template <typename BiDirIter1, typename BiDirIter2>
 constexpr inline BiDirIter2 copy_backward(BiDirIter1 src_first,
                                           BiDirIter1 src_last,
