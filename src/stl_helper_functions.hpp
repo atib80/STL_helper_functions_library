@@ -243,25 +243,21 @@ int say(const wchar_t* format_string, Args... args) {
 }
 
 template <typename T>
-void swap(T& first, T& second, std::true_type) noexcept {
-  std::cout << "swap by moving the contents of first and second\n";
-
+constexpr inline void swap(T& first, T& second, std::true_type) noexcept {
   T tmp{std::move(first)};
   first = std::move(second);
   second = std::move(tmp);
 }
 
 template <typename T>
-void swap(T& first, T& second, std::false_type) {
-  std::cout << "swap by copying the contents of first and second\n";
-
+constexpr inline void swap(T& first, T& second, std::false_type) {
   T tmp{first};
   first = second;
   second = tmp;
 }
 
 template <typename T>
-void swap(T& first, T& second) {
+constexpr inline void swap(T& first, T& second) {
   swap(first, second,
        std::conditional_t < std::is_nothrow_move_constructible_v<T> &&
            std::is_nothrow_move_assignable_v<T>,
@@ -276,7 +272,7 @@ constexpr inline BiDirIter2 copy_backward(BiDirIter1 src_first,
     return dst_last;
 
   while (src_first != src_last) {
-    *(--dst_last) = *(--src_last);
+    *--dst_last = *--src_last;
   }
 
   return dst_last;
@@ -380,20 +376,34 @@ template <typename T>
 constexpr const bool is_const_char_pointer_type_v =
     is_const_char_pointer_type<T>::value;
 
+// template <typename T>
+// struct is_non_const_char_array_type {
+//   static constexpr bool value =
+//       std::is_array_v<T> && 1u == std::rank_v<T> && !std::is_const_v<T>;
+// };
+
 template <typename T>
 struct is_non_const_char_array_type {
-  static constexpr bool value =
-      std::is_array_v<T> && 1u == std::rank_v<T> && !std::is_const_v<T>;
+  static constexpr bool value = 1u == std::rank_v<T> &&
+                                is_valid_char_type_v<std::remove_extent_t<T>> &&
+                                !std::is_const_v<std::remove_extent_t<T>>;
 };
 
 template <typename T>
 constexpr const bool is_non_const_char_array_type_v =
     is_non_const_char_array_type<T>::value;
 
+// template <typename T>
+// struct is_const_char_array_type {
+//   static constexpr bool value =
+//       std::is_array_v<T> && 1u == std::rank_v<T> && std::is_const_v<T>;
+// };
+
 template <typename T>
 struct is_const_char_array_type {
-  static constexpr bool value =
-      std::is_array_v<T> && 1u == std::rank_v<T> && std::is_const_v<T>;
+  static constexpr bool value = 1u == std::rank_v<T> &&
+                                is_valid_char_type_v<std::remove_extent_t<T>> &&
+                                std::is_const_v<std::remove_extent_t<T>>;
 };
 
 template <typename T>

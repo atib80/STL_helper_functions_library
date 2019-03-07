@@ -1,6 +1,13 @@
 #define CATCH_CONFIG_MAIN
 
+#if defined(_MSC_VER)
 #include <crtdbg.h>
+#define ASSERT _ASSERTE_
+#else
+#include <cassert>
+#define ASSERT assert
+#endif
+
 #include <chrono>
 #include <iterator>
 #include <map>
@@ -17,10 +24,9 @@ using namespace std::chrono;
 using namespace std::string_literals;
 using namespace cpp::experimental;
 
-static random_device rd{};
-
 long long get_random_number(const long long lower_bound,
                             const long long upper_bound) {
+  static random_device rd{};
   static mt19937 rand_engine{rd()};
 
   uniform_int_distribution<long long> num_distr(lower_bound, upper_bound);
@@ -147,6 +153,30 @@ TEST_CASE("void swap(T& first, T& second)",
   REQUIRE(2 == a.id);
   REQUIRE(1 == b.id);
 }
+
+TEST_CASE("is_non_const_char_array_type<T>",
+          "Testing is_non_const_char_array_type<T> class template") {
+  REQUIRE(is_non_const_char_array_type<char[10]>::value);
+  REQUIRE(is_non_const_char_array_type<wchar_t[10]>::value);
+  REQUIRE(is_non_const_char_array_type<char16_t[10]>::value);
+  REQUIRE(is_non_const_char_array_type<char32_t[10]>::value);
+  REQUIRE(is_non_const_char_array_type_v<char[10]>);
+  REQUIRE(is_non_const_char_array_type_v<wchar_t[10]>);
+  REQUIRE(is_non_const_char_array_type_v<char16_t[10]>);
+  REQUIRE(is_non_const_char_array_type_v<char32_t[10]>);
+
+  REQUIRE(!is_non_const_char_array_type<const char[10]>::value);
+  REQUIRE(!is_non_const_char_array_type<const wchar_t[10]>::value);
+  REQUIRE(!is_non_const_char_array_type<const char16_t[10]>::value);
+  REQUIRE(!is_non_const_char_array_type<const char32_t[10]>::value);
+  REQUIRE(!is_non_const_char_array_type_v<const char[10]>);
+  REQUIRE(!is_non_const_char_array_type_v<const wchar_t[10]>);
+  REQUIRE(!is_non_const_char_array_type_v<const char16_t[10]>);
+  REQUIRE(!is_non_const_char_array_type_v<const char32_t[10]>);
+}
+
+TEST_CASE("is_const_char_array_type<T>",
+          "Testing is_const_char_array_type<T> class template") {}
 
 TEST_CASE(
     "size_t len(T src, const size_t max_allowed_string_length = "
