@@ -89,22 +89,23 @@ template <typename T, typename First, typename... Rest>
 inline constexpr bool is_all_of_v = is_all_of<T, First, Rest...>::value;
 
 template <typename T>
-constexpr bool are_data_types_equal(const T&) {
+constexpr bool are_data_types_equal(T&&) {
   return true;
 }
 
 template <typename T, typename U, typename... Args>
-constexpr bool are_data_types_equal(const T& arg1,
-                                    const U&,
-                                    const Args&... args) {
-  return std::is_same_v<T, U> && are_data_types_equal(arg1, args...);
+constexpr bool are_data_types_equal(T&& arg1, U&&, Args&&... args) {
+  return std::is_same_v<T, U> &&
+         are_data_types_equal(std::forward<T>(arg1),
+                              std::forward<Args>(args)...);
 }
 
 template <typename T, typename U, typename... Args>
-constexpr bool check_data_types_for_equality(const T& arg1,
-                                             const U& arg2,
-                                             const Args&... args) {
-  return check_data_types_for_equality(arg1, arg2, args...);
+constexpr bool check_data_types_for_equality(T&& arg1,
+                                             U&& arg2,
+                                             Args&&... args) {
+  return are_data_types_equal(std::forward<T>(arg1), std::forward<U>(arg2),
+                              std::forward<Args>(args)...);
 }
 
 template <typename T, typename... Rest>
