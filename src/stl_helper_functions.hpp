@@ -15,6 +15,7 @@
 #include <forward_list>
 #include <iostream>
 #include <iterator>
+#include <limits>
 #include <list>
 #include <locale>
 #include <map>
@@ -325,14 +326,33 @@ constexpr const CharType* default_whitespace_chars_v =
     default_whitespace_chars<CharType>::value;
 
 template <typename T>
-struct get_char_type_from_char_pointer_or_char_array {
+struct get_char_type {
   using type = std::remove_cv_t<
       std::remove_pointer_t<std::remove_cv_t<std::decay_t<T>>>>;
 };
 
+template <>
+struct get_char_type<std::string> {
+  using type = char;
+};
+
+template <>
+struct get_char_type<std::wstring> {
+  using type = wchar_t;
+};
+
+template <>
+struct get_char_type<std::u16string> {
+  using type = char16_t;
+};
+
+template <>
+struct get_char_type<std::u32string> {
+  using type = char32_t;
+};
+
 template <typename T>
-using get_char_type_t =
-    typename get_char_type_from_char_pointer_or_char_array<T>::type;
+using get_char_type_t = typename get_char_type<T>::type;
 
 template <typename T>
 struct is_valid_char_type {
@@ -5090,69 +5110,83 @@ long double stold(const std::u32string& str,
                   int base = 10,
                   bool ignore_leading_white_space_characters = true);
 
-std::vector<std::string> split(const char* source,
-                               char needle_char,
-                               int max_count = -1);
+template <
+    typename SourceType,
+    typename NeedleType,
+    typename = std::enable_if_t<
+        (is_valid_string_type_v<SourceType> ||
+         is_const_char_array_type_v<SourceType> ||
+         is_non_const_char_array_type_v<SourceType> ||
+         is_const_char_pointer_type_v<SourceType> ||
+         is_non_const_char_pointer_type_v<
+             SourceType>)&&(is_valid_string_type_v<NeedleType> ||
+                            is_const_char_array_type_v<NeedleType> ||
+                            is_non_const_char_array_type_v<NeedleType> ||
+                            is_const_char_pointer_type_v<NeedleType> ||
+                            is_non_const_char_pointer_type_v<NeedleType> ||
+                            is_valid_char_type_v<
+                                NeedleType>)&&(std::
+                                                   is_same_v<get_char_type_t<
+                                                                 SourceType>,
+                                                             get_char_type_t<
+                                                                 NeedleType>>)>>
+std::vector<get_char_type_t<SourceType>> split(
+    const SourceType& source,
+    const NeedleType& needle,
+    const size_t max_count = std::numeric_limits<size_t>::max()) {
+  using char_type = get_char_type_t<SourceType>;
 
-std::vector<std::wstring> split(const wchar_t* source,
-                                wchar_t needle_char,
-                                int max_count = -1);
+  std::vector<char_type> parts{};
+  std::basic_string_view<char_type> source_str_view{};
 
-std::vector<std::u16string> split(const char16_t* source,
-                                  char16_t needle_char,
-                                  int max_count = -1);
+  if constexpr (is_const_char_array_type_v<SourceType> ||
+                is_non_const_char_array_type_v<SourceType> ||
+                is_const_char_pointer_type_v<SourceType> ||
+                is_non_const_char_pointer_type_v<SourceType>)
+    source_str_view.assign(source, len(source));
+  else
+    source_str_view.assign(source);
 
-std::vector<std::u32string> split(const char32_t* source,
-                                  char32_t needle_char,
-                                  int max_count = -1);
+  std::basic_string_view<char_type> needle_str_view{};
+  std::unique_ptr<char_type[]> needle_ptr{};
 
-std::vector<std::string> split(const char* source,
-                               const char* needle,
-                               int max_count = -1);
+  if constexpr (is_valid_string_type_v<NeedleType>)
+    needle_str_view.assign(needle);
+  else if constexpr (is_const_char_array_type_v<NeedleType> ||
+                     is_non_const_char_array_type_v<NeedleType> ||
+                     is_const_char_pointer_type_v<NeedleType> ||
+                     is_non_const_char_pointer_type_v<NeedleType>)
+    needle_str_view.assign(needle, len(needle));
+  else {
+    needle_ptr = std::make_unique<char_type[]>(2);
+    needle_ptr[0] = needle;
+    needle_ptr[1] = static_cast<char_type>('\0');
+    needle_str_view.assign(needle_ptr.get(), 1);
+  }
 
-std::vector<std::wstring> split(const wchar_t* source,
-                                const wchar_t* needle,
-                                int max_count = -1);
+  const size_t source_len{source_str_view.length()};
+  const size_t needle_len{needle_str_view.length()};
 
-std::vector<std::u16string> split(const char16_t* source,
-                                  const char16_t* needle,
-                                  int max_count = -1);
-
-std::vector<std::u32string> split(const char32_t* source,
-                                  const char32_t* needle,
-                                  int max_count = -1);
-
-template <typename StringType>
-std::vector<StringType> split(const StringType& source,
-                              const typename StringType::value_type needle_char,
-                              size_t const max_count = StringType::npos) {
-  std::vector<StringType> parts{};
-
-  StringType needle_st(1, needle_char);
-
-  const size_t source_len{source.length()};
-  const size_t needle_len{needle_st.length()};
-
-  // if ((0u == source_len) || (0u == needle_len) || (needle_len >=
-  // source_len)) return parts;
-  if ((0u == source_len) || (0u == needle_len))
+  if (0u == source_len || 0u == needle_len)
     return parts;
 
   size_t number_of_parts{}, prev{};
 
   while (true) {
-    const size_t current{source.find(needle_st, prev)};
+    const size_t current{source_str_view.find(needle_str_view, prev)};
 
-    if (StringType::npos == current)
+    if (std::basic_string<char_type>::npos == current)
       break;
 
     number_of_parts++;
 
-    if ((StringType::npos != max_count) && (parts.size() == max_count))
+    if (std::numeric_limits<size_t>::max() != max_count &&
+        parts.size() == max_count)
       break;
 
-    if ((current - prev) > 0)
-      parts.emplace_back(source.substr(prev, current - prev));
+    if (current - prev > 0)
+      parts.emplace_back(std::cbegin(source_str_view) + prev,
+                         std::cbegin(source_str_view) + current);
 
     prev = current + needle_len;
 
@@ -5161,77 +5195,51 @@ std::vector<StringType> split(const StringType& source,
   }
 
   if (prev < source_len) {
-    if (StringType::npos == max_count)
-      parts.emplace_back(source.substr(prev));
+    if (std::numeric_limits<size_t>::max() == max_count)
+      parts.emplace_back(std::cbegin(source_str_view) + prev);
 
-    else if ((StringType::npos != max_count) && (parts.size() < max_count))
-      parts.emplace_back(source.substr(prev));
+    else if (parts.size() < max_count)
+      parts.emplace_back(std::cbegin(source_str_view) + prev);
   }
 
   return parts;
 }
 
-template <typename StringType>
-std::vector<StringType> split(const StringType& source,
-                              typename StringType::const_pointer needle,
-                              size_t const max_count = StringType::npos) {
-  std::vector<StringType> parts{};
+template <typename ForwardIterType,
+          typename NeedleType,
+          typename = std::enable_if_t<is_valid_char_type_v<
+              typename std::iterator_traits<ForwardIterType>::value_type>>>
+std::vector<std::basic_string<
+    typename std::iterator_traits<ForwardIterType>::value_type>>
+split(ForwardIterType first,
+      ForwardIterType last,
+      const NeedleType& needle,
+      const size_t max_count = std::numeric_limits<size_t>::max()) {
+  using char_type = typename std::iterator_traits<ForwardIterType>::value_type;
 
-  StringType needle_st{needle};
+  std::vector<std::basic_string<char_type>> parts{};
 
-  const size_t source_len{source.length()};
-  const size_t needle_len{needle_st.length()};
-
-  // if ((0u == source_len) || (0u == needle_len) || (needle_len >=
-  // source_len)) return parts;
-  if ((0u == source_len) || (0u == needle_len))
+  if (first == last)
     return parts;
 
-  size_t number_of_parts{}, prev{};
-
-  while (true) {
-    const size_t current{source.find(needle_st, prev)};
-
-    if (StringType::npos == current)
-      break;
-
-    number_of_parts++;
-
-    if ((StringType::npos != max_count) && (parts.size() == max_count))
-      break;
-
-    if ((current - prev) > 0)
-      parts.emplace_back(source.substr(prev, current - prev));
-
-    prev = current + needle_len;
-
-    if (prev >= source_len)
-      break;
-  }
-
-  if (prev < source_len) {
-    if (StringType::npos == max_count)
-      parts.emplace_back(source.substr(prev));
-
-    else if ((StringType::npos != max_count) && (parts.size() < max_count))
-      parts.emplace_back(source.substr(prev));
-  }
-
-  return parts;
-}
-
-template <typename StringType>
-std::vector<StringType> split(const StringType& source,
-                              const StringType& needle,
-                              size_t const max_count = StringType::npos) {
-  std::vector<StringType> parts{};
+  std::basic_string<char_type> source{first, last};
 
   const size_t source_len{source.length()};
-  const size_t needle_len{needle.length()};
+  size_t needle_len{};
 
-  // if ((0u == source_len) || (0u == needle_len) || (needle_len >=
-  // source_len)) return parts;
-  if ((0u == source_len) || (0u == needle_len))
+  if constexpr (is_const_char_array_type_v<NeedleType> ||
+                is_non_const_char_array_type_v<NeedleType> ||
+                is_const_char_pointer_type_v<NeedleType> ||
+                is_non_const_char_pointer_type_v<NeedleType>)
+    needle_len = len(needle);
+  else if constexpr (is_valid_string_type_v<NeedleType>)
+    needle_len = needle.length();
+  else if constexpr (is_valid_char_type_v<NeedleType>)
+    needle_len = 1;
+  else
+    return parts;
+
+  if (0u == source_len || 0u == needle_len)
     return parts;
 
   size_t number_of_parts{}, prev{};
@@ -5239,16 +5247,18 @@ std::vector<StringType> split(const StringType& source,
   while (true) {
     const size_t current{source.find(needle, prev)};
 
-    if (StringType::npos == current)
+    if (std::basic_string<char_type>::npos == current)
       break;
 
     number_of_parts++;
 
-    if ((StringType::npos != max_count) && (parts.size() == max_count))
+    if (std::numeric_limits<size_t>::max() != max_count &&
+        parts.size() == max_count)
       break;
 
-    if ((current - prev) > 0)
-      parts.emplace_back(source.substr(prev, current - prev));
+    if (current - prev > 0)
+      parts.emplace_back(std::cbegin(source) + prev,
+                         std::cbegin(source) + current);
 
     prev = current + needle_len;
 
@@ -5257,11 +5267,11 @@ std::vector<StringType> split(const StringType& source,
   }
 
   if (prev < source_len) {
-    if (StringType::npos == max_count)
-      parts.emplace_back(source.substr(prev));
+    if (std::numeric_limits<size_t>::max() == max_count)
+      parts.emplace_back(std::cbegin(source) + prev);
 
-    else if ((StringType::npos != max_count) && (parts.size() < max_count))
-      parts.emplace_back(source.substr(prev));
+    else if (parts.size() < max_count)
+      parts.emplace_back(std::cbegin(source) + prev);
   }
 
   return parts;
