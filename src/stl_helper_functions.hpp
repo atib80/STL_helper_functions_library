@@ -5148,7 +5148,7 @@ std::vector<get_char_type_t<SourceType>> split(
     source_str_view.assign(source);
 
   std::basic_string_view<char_type> needle_str_view{};
-  std::unique_ptr<char_type[]> needle_ptr{};
+  char_type needle_buffer[2]{};
 
   if constexpr (is_valid_string_type_v<NeedleType>)
     needle_str_view.assign(needle);
@@ -5158,10 +5158,8 @@ std::vector<get_char_type_t<SourceType>> split(
                      is_non_const_char_pointer_type_v<NeedleType>)
     needle_str_view.assign(needle, len(needle));
   else {
-    needle_ptr = std::make_unique<char_type[]>(2);
-    needle_ptr[0] = needle;
-    needle_ptr[1] = static_cast<char_type>('\0');
-    needle_str_view.assign(needle_ptr.get(), 1);
+    needle_buffer[0] = needle;
+    needle_str_view.assign(needle_buffer, 1);
   }
 
   const size_t source_len{source_str_view.length()};
