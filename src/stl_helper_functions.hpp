@@ -397,12 +397,6 @@ template <typename T>
 constexpr const bool is_const_char_pointer_type_v =
     is_const_char_pointer_type<T>::value;
 
-// template <typename T>
-// struct is_non_const_char_array_type {
-//   static constexpr bool value =
-//       std::is_array_v<T> && 1u == std::rank_v<T> && !std::is_const_v<T>;
-// };
-
 template <typename T>
 struct is_non_const_char_array_type {
   static constexpr bool value = 1u == std::rank_v<T> &&
@@ -414,12 +408,6 @@ template <typename T>
 constexpr const bool is_non_const_char_array_type_v =
     is_non_const_char_array_type<T>::value;
 
-// template <typename T>
-// struct is_const_char_array_type {
-//   static constexpr bool value =
-//       std::is_array_v<T> && 1u == std::rank_v<T> && std::is_const_v<T>;
-// };
-
 template <typename T>
 struct is_const_char_array_type {
   static constexpr bool value = 1u == std::rank_v<T> &&
@@ -430,6 +418,24 @@ struct is_const_char_array_type {
 template <typename T>
 constexpr const bool is_const_char_array_type_v =
     is_const_char_array_type<T>::value;
+
+template <typename T>
+struct is_char_pointer_type {
+  static constexpr const bool value =
+      is_non_const_char_pointer_type_v<T> || is_const_char_pointer_type_v<T>;
+};
+
+template <typename T>
+constexpr const bool is_char_pointer_type_v = is_char_pointer_type<T>::value;
+
+template <typename T>
+struct is_char_array_type {
+  static constexpr const bool value =
+      is_non_const_char_array_type_v<T> || is_const_char_array_type_v<T>;
+};
+
+template <typename T>
+constexpr const bool is_char_array_type_v = is_char_array_type<T>::value;
 
 template <typename T>
 struct is_valid_string_type {
@@ -5139,25 +5145,25 @@ std::vector<get_char_type_t<SourceType>> split(
   std::vector<char_type> parts{};
   std::basic_string_view<char_type> source_str_view{};
 
-  if constexpr (is_const_char_array_type_v<SourceType> ||
-                is_non_const_char_array_type_v<SourceType> ||
-                is_const_char_pointer_type_v<SourceType> ||
-                is_non_const_char_pointer_type_v<SourceType>)
-    source_str_view.assign(source, len(source));
-  else
+  if constexpr (is_valid_string_type_v<SourceType>)
+    source_str_view.assign(source.c_str());
+  else if constexpr (is_const_char_array_type_v<SourceType> ||
+                     is_non_const_char_array_type_v<SourceType> ||
+                     is_const_char_pointer_type_v<SourceType> ||
+                     is_non_const_char_pointer_type_v<SourceType>)
     source_str_view.assign(source);
 
   std::basic_string_view<char_type> needle_str_view{};
   char_type needle_buffer[2]{};
 
   if constexpr (is_valid_string_type_v<NeedleType>)
-    needle_str_view.assign(needle);
+    needle_str_view.assign(needle.c_str());
   else if constexpr (is_const_char_array_type_v<NeedleType> ||
                      is_non_const_char_array_type_v<NeedleType> ||
                      is_const_char_pointer_type_v<NeedleType> ||
                      is_non_const_char_pointer_type_v<NeedleType>)
-    needle_str_view.assign(needle, len(needle));
-  else {
+    needle_str_view.assign(needle);
+  else if constexpr (is_valid_char_type_v<NeedleType>) {
     needle_buffer[0] = needle;
     needle_str_view.assign(needle_buffer, 1);
   }
@@ -5203,24 +5209,24 @@ std::vector<get_char_type_t<SourceType>> split(
   return parts;
 }
 
-template <typename ForwardIterType,
+template <typename IteratorType,
           typename NeedleType,
           typename = std::enable_if_t<is_valid_char_type_v<
-              typename std::iterator_traits<ForwardIterType>::value_type>>>
-std::vector<std::basic_string<
-    typename std::iterator_traits<ForwardIterType>::value_type>>
-split(ForwardIterType first,
-      ForwardIterType last,
+              typename std::iterator_traits<IteratorType>::value_type>>>
+std::vector<
+    std::basic_string<typename std::iterator_traits<IteratorType>::value_type>>
+split(IteratorType first,
+      IteratorType last,
       const NeedleType& needle,
       const size_t max_count = std::numeric_limits<size_t>::max()) {
-  using char_type = typename std::iterator_traits<ForwardIterType>::value_type;
+  using char_type = typename std::iterator_traits<IteratorType>::value_type;
 
   std::vector<std::basic_string<char_type>> parts{};
 
   if (first == last)
     return parts;
 
-  std::basic_string<char_type> source{first, last};
+  std::basic_string_view<char_type> source{first, std::distance(first, last)};
 
   const size_t source_len{source.length()};
   size_t needle_len{};
