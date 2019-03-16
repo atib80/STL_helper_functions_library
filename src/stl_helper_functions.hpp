@@ -462,12 +462,10 @@ using add_const_pointer_to_char_type_t =
 
 static constexpr size_t max_string_length{std::string::npos};
 
-template <
-    typename T,
-    typename = std::enable_if_t<
-        is_const_char_array_type_v<T> || is_non_const_char_array_type_v<T> ||
-        is_const_char_pointer_type_v<T> ||
-        is_non_const_char_pointer_type_v<T> || is_valid_string_type_v<T>>>
+template <typename T,
+          typename = std::enable_if_t<is_char_array_type_v<T> ||
+                                      is_char_pointer_type_v<T> ||
+                                      is_valid_string_type_v<T>>>
 size_t len(T src, size_t max_allowed_string_length = max_string_length) {
   if constexpr (is_valid_string_type_v<T>) {
     return src.length() > max_allowed_string_length ? max_allowed_string_length
@@ -734,11 +732,9 @@ bool rtrim_in_place(
   return true;
 }
 
-template <
-    typename T,
-    typename = std::enable_if_t<
-        is_const_char_array_type_v<T> || is_non_const_char_array_type_v<T> ||
-        is_const_char_pointer_type_v<T> || is_non_const_char_pointer_type_v<T>>>
+template <typename T,
+          typename = std::enable_if_t<is_char_array_type_v<T> ||
+                                      is_char_pointer_type_v<T>>>
 
 auto trim(T src,
           add_const_pointer_to_char_type_t<get_char_type_t<T>> chars_to_trim =
@@ -808,11 +804,9 @@ auto trim(const StringType& src,
   return StringType(first, last);
 }
 
-template <
-    typename T,
-    typename = std::enable_if_t<
-        is_const_char_array_type_v<T> || is_non_const_char_array_type_v<T> ||
-        is_const_char_pointer_type_v<T> || is_non_const_char_pointer_type_v<T>>>
+template <typename T,
+          typename = std::enable_if_t<is_char_array_type_v<T> ||
+                                      is_char_pointer_type_v<T>>>
 
 auto ltrim(T src,
            add_const_pointer_to_char_type_t<get_char_type_t<T>> chars_to_trim =
@@ -878,11 +872,9 @@ auto ltrim(const StringType& src,
   return StringType(first, last);
 }
 
-template <
-    typename T,
-    typename = std::enable_if_t<
-        is_const_char_array_type_v<T> || is_non_const_char_array_type_v<T> ||
-        is_const_char_pointer_type_v<T> || is_non_const_char_pointer_type_v<T>>>
+template <typename T,
+          typename = std::enable_if_t<is_char_array_type_v<T> ||
+                                      is_char_pointer_type_v<T>>>
 
 auto rtrim(T src,
            add_const_pointer_to_char_type_t<get_char_type_t<T>> chars_to_trim =
@@ -943,20 +935,13 @@ auto rtrim(const StringType& src,
   return source_str;
 }
 
-template <
-    typename T,
-    typename U,
-    typename = std::enable_if_t<
-        (is_non_const_char_array_type_v<T> || is_const_char_array_type_v<T> ||
-         is_non_const_char_pointer_type_v<T> ||
-         is_const_char_pointer_type_v<
-             T>)&&(is_non_const_char_array_type_v<U> ||
-                   is_const_char_array_type_v<U> ||
-                   is_non_const_char_pointer_type_v<U> ||
-                   is_const_char_pointer_type_v<U> ||
-                   is_valid_char_type_v<get_char_type_t<
-                       U>>)&&(std::is_same_v<get_char_type_t<T>,
-                                             get_char_type_t<U>>)>>
+template <typename T,
+          typename U,
+          typename = std::enable_if_t<
+              (is_char_array_type_v<T> || is_char_pointer_type_v<T>)&&(
+                  is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
+                  is_valid_char_type_v<get_char_type_t<U>>)&&std::
+                  is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
 bool str_starts_with(T src,
                      const U needle,
                      const bool ignore_case = false,
@@ -1129,20 +1114,13 @@ bool str_starts_with(const StringType& src,
   return true;
 }
 
-template <
-    typename T,
-    typename U,
-    typename = std::enable_if_t<
-        (is_non_const_char_array_type_v<T> || is_const_char_array_type_v<T> ||
-         is_non_const_char_pointer_type_v<T> ||
-         is_const_char_pointer_type_v<
-             T>)&&(is_non_const_char_array_type_v<U> ||
-                   is_const_char_array_type_v<U> ||
-                   is_non_const_char_pointer_type_v<U> ||
-                   is_const_char_pointer_type_v<U> ||
-                   is_valid_char_type_v<get_char_type_t<
-                       U>>)&&(std::is_same_v<get_char_type_t<T>,
-                                             get_char_type_t<U>>)>>
+template <typename T,
+          typename U,
+          typename = std::enable_if_t<
+              (is_char_array_type_v<T> || is_char_pointer_type_v<T>)&&(
+                  is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
+                  is_valid_char_type_v<get_char_type_t<U>>)&&std::
+                  is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
 size_t str_index_of(T src,
                     const U needle,
                     const size_t start_pos = 0u,
@@ -1346,16 +1324,10 @@ template <
     typename T,
     typename U,
     typename = std::enable_if_t<
-        (is_non_const_char_array_type_v<T> || is_const_char_array_type_v<T> ||
-         is_non_const_char_pointer_type_v<T> ||
-         is_const_char_pointer_type_v<
-             T>)&&(is_non_const_char_array_type_v<U> ||
-                   is_const_char_array_type_v<U> ||
-                   is_non_const_char_pointer_type_v<U> ||
-                   is_const_char_pointer_type_v<U> ||
-                   is_valid_char_type_v<get_char_type_t<
-                       U>>)&&(std::is_same_v<get_char_type_t<T>,
-                                             get_char_type_t<U>>)>>
+        (is_char_array_type_v<T> || is_char_pointer_type_v<T>)&&(
+            is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
+            is_valid_char_type_v<get_char_type_t<
+                U>>)&&(std::is_same_v<get_char_type_t<T>, get_char_type_t<U>>)>>
 bool str_contains(T src,
                   const U needle,
                   size_t start_pos = 0u,
@@ -1570,16 +1542,10 @@ template <
     typename T,
     typename U,
     typename = std::enable_if_t<
-        (is_non_const_char_array_type_v<T> || is_const_char_array_type_v<T> ||
-         is_non_const_char_pointer_type_v<T> ||
-         is_const_char_pointer_type_v<
-             T>)&&(is_non_const_char_array_type_v<U> ||
-                   is_const_char_array_type_v<U> ||
-                   is_non_const_char_pointer_type_v<U> ||
-                   is_const_char_pointer_type_v<U> ||
-                   is_valid_char_type_v<get_char_type_t<
-                       U>>)&&(std::is_same_v<get_char_type_t<T>,
-                                             get_char_type_t<U>>)>>
+        (is_char_array_type_v<T> || is_char_pointer_type_v<T>)&&(
+            is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
+            is_valid_char_type_v<get_char_type_t<
+                U>>)&&(std::is_same_v<get_char_type_t<T>, get_char_type_t<U>>)>>
 bool str_ends_with(T src,
                    const U needle,
                    bool ignore_case = false,
@@ -2029,18 +1995,12 @@ bool has_item(ForwardIterType first, ForwardIterType last, ItemType&& item) {
   return last != std::find(first, last, std::forward<ItemType>(item));
 }
 
-template <
-    typename T,
-    typename U,
-    typename = std::enable_if_t<
-        (is_non_const_char_array_type_v<T> || is_const_char_array_type_v<T> ||
-         is_non_const_char_pointer_type_v<T> ||
-         is_const_char_pointer_type_v<
-             T>)&&(is_non_const_char_array_type_v<U> ||
-                   is_const_char_array_type_v<U> ||
-                   is_non_const_char_pointer_type_v<U> ||
-                   is_const_char_pointer_type_v<U>)&&std::
-            is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
+template <typename T,
+          typename U,
+          typename = std::enable_if_t<
+              (is_char_array_type_v<T> || is_char_pointer_type_v<T>)&&(
+                  is_char_array_type_v<U> || is_char_pointer_type_v<U>)&&std::
+                  is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
 int str_compare(T src1, U src2) {
   if (!src1)
     return -1;
@@ -2082,18 +2042,12 @@ int str_compare(const StringType& src1, const StringType& src2) {
   return static_cast<int>(final_str1_ch - final_str2_ch);
 }
 
-template <
-    typename T,
-    typename U,
-    typename = std::enable_if_t<
-        (is_non_const_char_array_type_v<T> || is_const_char_array_type_v<T> ||
-         is_non_const_char_pointer_type_v<T> ||
-         is_const_char_pointer_type_v<
-             T>)&&(is_non_const_char_array_type_v<U> ||
-                   is_const_char_array_type_v<U> ||
-                   is_non_const_char_pointer_type_v<U> ||
-                   is_const_char_pointer_type_v<U>)&&std::
-            is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
+template <typename T,
+          typename U,
+          typename = std::enable_if_t<
+              (is_char_array_type_v<T> || is_char_pointer_type_v<T>)&&(
+                  is_char_array_type_v<U> || is_char_pointer_type_v<U>)&&std::
+                  is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
 int str_compare_n(T src1, U src2, size_t number_of_characters_to_compare) {
   if (!src1)
     return -1;
@@ -2137,18 +2091,12 @@ int str_compare_n(const StringType& src1,
   return 0;
 }
 
-template <
-    typename T,
-    typename U,
-    typename = std::enable_if_t<
-        (is_non_const_char_array_type_v<T> || is_const_char_array_type_v<T> ||
-         is_non_const_char_pointer_type_v<T> ||
-         is_const_char_pointer_type_v<
-             T>)&&(is_non_const_char_array_type_v<U> ||
-                   is_const_char_array_type_v<U> ||
-                   is_non_const_char_pointer_type_v<U> ||
-                   is_const_char_pointer_type_v<U>)&&std::
-            is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
+template <typename T,
+          typename U,
+          typename = std::enable_if_t<
+              (is_char_array_type_v<T> || is_char_pointer_type_v<T>)&&(
+                  is_char_array_type_v<U> || is_char_pointer_type_v<U>)&&std::
+                  is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
 int str_compare_i(T src1, U src2, const std::locale& loc = std::locale{}) {
   if (!src1)
     return -1;
@@ -2230,18 +2178,12 @@ int str_compare_i(const StringType& src1,
   }
 }
 
-template <
-    typename T,
-    typename U,
-    typename = std::enable_if_t<
-        (is_non_const_char_array_type_v<T> || is_const_char_array_type_v<T> ||
-         is_non_const_char_pointer_type_v<T> ||
-         is_const_char_pointer_type_v<
-             T>)&&(is_non_const_char_array_type_v<U> ||
-                   is_const_char_array_type_v<U> ||
-                   is_non_const_char_pointer_type_v<U> ||
-                   is_const_char_pointer_type_v<U>)&&std::
-            is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
+template <typename T,
+          typename U,
+          typename = std::enable_if_t<
+              (is_char_array_type_v<T> || is_char_pointer_type_v<T>)&&(
+                  is_char_array_type_v<U> || is_char_pointer_type_v<U>)&&std::
+                  is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
 int str_compare_n_i(T src1,
                     U src2,
                     size_t number_of_characters_to_compare,
@@ -2320,16 +2262,13 @@ enum class str_copy_behavior {
   do_not_copy_return_required_dst_buffer_capacity_only
 };
 
-template <
-    typename T,
-    size_t ARRAY_SIZE,
-    typename U,
-    typename = std::enable_if_t<
-        !std::is_const_v<T> &&
-        (is_non_const_char_array_type_v<U> || is_const_char_array_type_v<U> ||
-         is_non_const_char_pointer_type_v<U> ||
-         is_const_char_pointer_type_v<U>)&&std::is_same_v<get_char_type_t<T>,
-                                                          get_char_type_t<U>>>>
+template <typename T,
+          size_t ARRAY_SIZE,
+          typename U,
+          typename = std::enable_if_t<
+              !std::is_const_v<T> &&
+              (is_char_array_type_v<U> || is_char_pointer_type_v<U>)&&std::
+                  is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
 size_t str_copy(T (&dst)[ARRAY_SIZE],
                 U src,
                 const str_copy_behavior copy_options =
@@ -2364,15 +2303,12 @@ size_t str_copy(T (&dst)[ARRAY_SIZE],
   return src_len;
 }
 
-template <
-    typename T,
-    typename U,
-    typename = std::enable_if_t<
-        is_non_const_char_pointer_type_v<T> &&
-        (is_non_const_char_array_type_v<U> || is_const_char_array_type_v<U> ||
-         is_non_const_char_pointer_type_v<U> ||
-         is_const_char_pointer_type_v<U>)&&std::is_same_v<get_char_type_t<T>,
-                                                          get_char_type_t<U>>>>
+template <typename T,
+          typename U,
+          typename = std::enable_if_t<
+              is_non_const_char_pointer_type_v<T> &&
+              (is_char_array_type_v<U> || is_char_pointer_type_v<U>)&&std::
+                  is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
 size_t str_copy(
     T dst,
     const size_t dst_capacity_in_number_of_characters,
@@ -2418,12 +2354,10 @@ template <typename T,
           typename = std::enable_if_t<
               is_valid_string_type_v<T> && !std::is_const_v<T> &&
               ((is_valid_string_type_v<U> && std::is_same_v<T, U>) ||
-               ((is_non_const_char_pointer_type_v<U> ||
-                 is_const_char_pointer_type_v<U>)&&std::
-                    is_same_v<typename T::value_type, get_char_type_t<U>>))>>
+               (is_char_pointer_type_v<U> &&
+                std::is_same_v<typename T::value_type, get_char_type_t<U>>))>>
 size_t str_copy(T& dst, const U& src) {
-  if constexpr (is_non_const_char_pointer_type_v<U> ||
-                is_const_char_pointer_type_v<U>) {
+  if constexpr (is_char_pointer_type_v<U>) {
     if (nullptr == src)
       return 0u;
   }
@@ -5121,15 +5055,11 @@ template <
     typename NeedleType,
     typename = std::enable_if_t<
         (is_valid_string_type_v<SourceType> ||
-         is_const_char_array_type_v<SourceType> ||
-         is_non_const_char_array_type_v<SourceType> ||
-         is_const_char_pointer_type_v<SourceType> ||
-         is_non_const_char_pointer_type_v<
+         is_char_array_type_v<SourceType> ||
+         is_char_pointer_type_v<
              SourceType>)&&(is_valid_string_type_v<NeedleType> ||
-                            is_const_char_array_type_v<NeedleType> ||
-                            is_non_const_char_array_type_v<NeedleType> ||
-                            is_const_char_pointer_type_v<NeedleType> ||
-                            is_non_const_char_pointer_type_v<NeedleType> ||
+                            is_char_array_type_v<NeedleType> ||
+                            is_char_pointer_type_v<NeedleType> ||
                             is_valid_char_type_v<
                                 NeedleType>)&&(std::
                                                    is_same_v<get_char_type_t<
@@ -5147,10 +5077,8 @@ std::vector<get_char_type_t<SourceType>> split(
 
   if constexpr (is_valid_string_type_v<SourceType>)
     source_str_view.assign(source.c_str());
-  else if constexpr (is_const_char_array_type_v<SourceType> ||
-                     is_non_const_char_array_type_v<SourceType> ||
-                     is_const_char_pointer_type_v<SourceType> ||
-                     is_non_const_char_pointer_type_v<SourceType>)
+  else if constexpr (is_char_array_type_v<SourceType> ||
+                     is_char_pointer_type_v<SourceType>)
     source_str_view.assign(source);
 
   std::basic_string_view<char_type> needle_str_view{};
@@ -5158,10 +5086,8 @@ std::vector<get_char_type_t<SourceType>> split(
 
   if constexpr (is_valid_string_type_v<NeedleType>)
     needle_str_view.assign(needle.c_str());
-  else if constexpr (is_const_char_array_type_v<NeedleType> ||
-                     is_non_const_char_array_type_v<NeedleType> ||
-                     is_const_char_pointer_type_v<NeedleType> ||
-                     is_non_const_char_pointer_type_v<NeedleType>)
+  else if constexpr (is_char_array_type_v<NeedleType> ||
+                     is_char_pointer_type_v<NeedleType>)
     needle_str_view.assign(needle);
   else if constexpr (is_valid_char_type_v<NeedleType>) {
     needle_buffer[0] = needle;
@@ -5231,10 +5157,8 @@ split(IteratorType first,
   const size_t source_len{source.length()};
   size_t needle_len{};
 
-  if constexpr (is_const_char_array_type_v<NeedleType> ||
-                is_non_const_char_array_type_v<NeedleType> ||
-                is_const_char_pointer_type_v<NeedleType> ||
-                is_non_const_char_pointer_type_v<NeedleType>)
+  if constexpr (is_char_array_type_v<NeedleType> ||
+                is_char_pointer_type_v<NeedleType>)
     needle_len = len(needle);
   else if constexpr (is_valid_string_type_v<NeedleType>)
     needle_len = needle.length();
