@@ -124,6 +124,53 @@ struct is_anyone_of<T, First, Rest...>
 template <typename T, typename First, typename... Rest>
 inline constexpr bool is_anyone_of_v = is_anyone_of<T, First, Rest...>::value;
 
+template <typename T, typename = void>
+struct has_key_type : std::false_type {};
+
+template <typename T>
+struct has_key_type<T, std::void_t<typename T::key_type>> : std::true_type {};
+
+template <typename T>
+constexpr const bool has_key_type_v = has_key_type<T>::value;
+
+template <typename T, typename = void>
+struct has_value_type : std::false_type {};
+
+template <typename T>
+struct has_value_type<T, std::void_t<typename T::value_type>> : std::true_type {
+
+};
+
+template <typename T>
+constexpr const bool has_value_type_v = has_value_type<T>::value;
+
+template <typename T, typename = void>
+struct has_mapped_type : std::false_type {};
+
+template <typename T>
+struct has_mapped_type<T, std::void_t<typename T::mapped_type>>
+    : std::true_type {};
+
+template <typename T>
+constexpr const bool has_mapped_type_v = has_mapped_type<T>::value;
+
+template <typename T, typename U>
+using has_find_member_function_t =
+    decltype(std::declval<T&>().find(std::declval<U>()));
+
+template <typename T, typename U, typename = void>
+struct has_find_member_function : std::false_type {};
+
+template <typename T, typename U>
+struct has_find_member_function<T,
+                                U,
+                                std::void_t<has_find_member_function_t<T, U>>>
+    : std::true_type {};
+
+template <typename T, typename U>
+constexpr const bool has_find_member_function_v =
+    has_find_member_function<T, U>::value;
+
 template <typename T>
 void show_var_info(const T& arg, std::ostream& os) {
   os << "\nName: ";
@@ -298,6 +345,67 @@ bool is_ws_char(CharType ch) {
   }
 }
 
+template <typename T>
+struct is_valid_char_type {
+  static constexpr const bool value =
+      is_anyone_of_v<std::remove_cv_t<T>, char, wchar_t, char16_t, char32_t>;
+};
+
+template <typename T>
+constexpr const bool is_valid_char_type_v = is_valid_char_type<T>::value;
+
+template <typename T>
+struct get_char_type {
+  using type = std::enable_if_t<
+      is_valid_char_type_v<std::remove_cv_t<
+          std::remove_pointer_t<std::decay_t<std::remove_reference_t<T>>>>>,
+      std::remove_cv_t<
+          std::remove_pointer_t<std::decay_t<std::remove_reference_t<T>>>>>;
+};
+
+template <>
+struct get_char_type<std::string> {
+  using type = char;
+};
+
+template <>
+struct get_char_type<std::wstring> {
+  using type = wchar_t;
+};
+
+template <>
+struct get_char_type<std::u16string> {
+  using type = char16_t;
+};
+
+template <>
+struct get_char_type<std::u32string> {
+  using type = char32_t;
+};
+
+template <>
+struct get_char_type<std::string_view> {
+  using type = char;
+};
+
+template <>
+struct get_char_type<std::wstring_view> {
+  using type = wchar_t;
+};
+
+template <>
+struct get_char_type<std::u16string_view> {
+  using type = char16_t;
+};
+
+template <>
+struct get_char_type<std::u32string_view> {
+  using type = char32_t;
+};
+
+template <typename T>
+using get_char_type_t = typename get_char_type<T>::type;
+
 template <typename CharType>
 struct default_whitespace_chars {};
 
@@ -326,44 +434,6 @@ constexpr const CharType* default_whitespace_chars_v =
     default_whitespace_chars<CharType>::value;
 
 template <typename T>
-struct get_char_type {
-  using type = std::remove_cv_t<
-      std::remove_pointer_t<std::remove_cv_t<std::decay_t<T>>>>;
-};
-
-template <>
-struct get_char_type<std::string> {
-  using type = char;
-};
-
-template <>
-struct get_char_type<std::wstring> {
-  using type = wchar_t;
-};
-
-template <>
-struct get_char_type<std::u16string> {
-  using type = char16_t;
-};
-
-template <>
-struct get_char_type<std::u32string> {
-  using type = char32_t;
-};
-
-template <typename T>
-using get_char_type_t = typename get_char_type<T>::type;
-
-template <typename T>
-struct is_valid_char_type {
-  static constexpr const bool value =
-      is_anyone_of_v<std::remove_cv_t<T>, char, wchar_t, char16_t, char32_t>;
-};
-
-template <typename T>
-constexpr const bool is_valid_char_type_v = is_valid_char_type<T>::value;
-
-template <typename T>
 struct is_non_const_char_pointer_type {
   static constexpr const bool value = is_anyone_of_v<T,
                                                      char*,
@@ -378,7 +448,7 @@ struct is_non_const_char_pointer_type {
 
 template <typename T>
 constexpr const bool is_non_const_char_pointer_type_v =
-    is_non_const_char_pointer_type<T>::value;
+    is_non_const_char_pointer_type<std::remove_reference_t<T>>::value;
 
 template <typename T>
 struct is_const_char_pointer_type {
@@ -395,7 +465,7 @@ struct is_const_char_pointer_type {
 
 template <typename T>
 constexpr const bool is_const_char_pointer_type_v =
-    is_const_char_pointer_type<T>::value;
+    is_const_char_pointer_type<std::remove_reference_t<T>>::value;
 
 template <typename T>
 struct is_non_const_char_array_type {
@@ -426,7 +496,8 @@ struct is_char_pointer_type {
 };
 
 template <typename T>
-constexpr const bool is_char_pointer_type_v = is_char_pointer_type<T>::value;
+constexpr const bool is_char_pointer_type_v =
+    is_char_pointer_type<std::remove_reference_t<T>>::value;
 
 template <typename T>
 struct is_char_array_type {
@@ -451,6 +522,20 @@ template <typename T>
 constexpr const bool is_valid_string_type_v = is_valid_string_type<T>::value;
 
 template <typename T>
+struct is_valid_string_view_type {
+  static constexpr const bool value = is_anyone_of_v<
+      std::remove_cv_t<std::remove_pointer_t<std::remove_reference_t<T>>>,
+      std::string_view,
+      std::wstring_view,
+      std::u16string_view,
+      std::u32string_view>;
+};
+
+template <typename T>
+constexpr const bool is_valid_string_view_type_v =
+    is_valid_string_view_type<T>::value;
+
+template <typename T>
 struct add_const_pointer_to_char_type {
   using type = std::add_const_t<
       std::add_pointer_t<std::add_const_t<get_char_type_t<T>>>>;
@@ -463,9 +548,9 @@ using add_const_pointer_to_char_type_t =
 static constexpr size_t max_string_length{std::string::npos};
 
 template <typename T,
-          typename = std::enable_if_t<is_char_array_type_v<T> ||
-                                      is_char_pointer_type_v<T> ||
-                                      is_valid_string_type_v<T>>>
+          typename = std::enable_if_t<
+              is_char_array_type_v<T> || is_char_pointer_type_v<T> ||
+              is_valid_string_type_v<T> || is_valid_string_view_type_v<T>>>
 size_t len(T src, size_t max_allowed_string_length = max_string_length) {
   if constexpr (is_valid_string_type_v<T>) {
     return src.length() > max_allowed_string_length ? max_allowed_string_length
@@ -771,17 +856,18 @@ auto trim(T src,
   return std::basic_string<char_type>(first, last);
 }
 
-template <typename StringType,
-          typename = std::enable_if_t<is_valid_string_type_v<StringType>>>
+template <typename T,
+          typename = std::enable_if_t<is_valid_string_type_v<T> ||
+                                      is_valid_string_view_type_v<T>>>
 
-auto trim(const StringType& src,
-          add_const_pointer_to_char_type_t<typename StringType::value_type>
-              chars_to_trim =
-                  default_whitespace_chars_v<typename StringType::value_type>) {
-  using char_type = typename StringType::value_type;
+auto trim(
+    const T& src,
+    add_const_pointer_to_char_type_t<typename T::value_type> chars_to_trim =
+        default_whitespace_chars_v<typename T::value_type>) {
+  using char_type = typename T::value_type;
 
   if (0 == src.length())
-    return StringType{};
+    return std::basic_string<char_type>{};
 
   const std::unordered_set<char_type> trimmed_chars(
       chars_to_trim, chars_to_trim + len(chars_to_trim));
@@ -792,7 +878,7 @@ auto trim(const StringType& src,
       })};
 
   if (first == std::cend(src))
-    return StringType{};
+    return std::basic_string<char_type>{};
 
   const auto last{std::find_if(std::crbegin(src), std::crend(src),
                                [&trimmed_chars](const auto ch) {
@@ -801,7 +887,7 @@ auto trim(const StringType& src,
                                })
                       .base()};
 
-  return StringType(first, last);
+  return std::basic_string<char_type>(first, last);
 }
 
 template <typename T,
@@ -841,17 +927,18 @@ auto ltrim(T src,
   return std::basic_string<char_type>(first, last);
 }
 
-template <typename StringType,
-          typename = std::enable_if_t<is_valid_string_type_v<StringType>>>
+template <typename T,
+          typename = std::enable_if_t<is_valid_string_type_v<T> ||
+                                      is_valid_string_view_type_v<T>>>
 
-auto ltrim(const StringType& src,
-           add_const_pointer_to_char_type_t<
-               typename StringType::value_type> chars_to_trim =
-               default_whitespace_chars_v<typename StringType::value_type>) {
-  using char_type = typename StringType::value_type;
+auto ltrim(
+    const T& src,
+    add_const_pointer_to_char_type_t<typename T::value_type> chars_to_trim =
+        default_whitespace_chars_v<typename T::value_type>) {
+  using char_type = typename T::value_type;
 
   if (0 == src.length())
-    return StringType{};
+    return std::basic_string<char_type>{};
 
   const std::unordered_set<char_type> trimmed_chars(
       chars_to_trim, chars_to_trim + len(chars_to_trim));
@@ -867,9 +954,9 @@ auto ltrim(const StringType& src,
   const auto last{std::cend(src)};
 
   if (first == last)
-    return StringType{};
+    return std::basic_string<char_type>{};
 
-  return StringType(first, last);
+  return std::basic_string<char_type>(first, last);
 }
 
 template <typename T,
@@ -906,19 +993,20 @@ auto rtrim(T src,
   return source_str;
 }
 
-template <typename StringType,
-          typename = std::enable_if_t<is_valid_string_type_v<StringType>>>
+template <typename T,
+          typename = std::enable_if_t<is_valid_string_type_v<T> ||
+                                      is_valid_string_view_type_v<T>>>
 
-auto rtrim(const StringType& src,
-           add_const_pointer_to_char_type_t<
-               typename StringType::value_type> chars_to_trim =
-               default_whitespace_chars_v<typename StringType::value_type>) {
-  using char_type = typename StringType::value_type;
+auto rtrim(
+    const T& src,
+    add_const_pointer_to_char_type_t<typename T::value_type> chars_to_trim =
+        default_whitespace_chars_v<typename T::value_type>) {
+  using char_type = typename T::value_type;
 
-  StringType source_str{src};
+  std::basic_string<char_type> source_str{src};
 
   if (0 == source_str.length())
-    return StringType{};
+    return std::basic_string<char_type>{};
 
   const std::unordered_set<char_type> trimmed_chars(
       chars_to_trim, chars_to_trim + len(chars_to_trim));
@@ -1741,54 +1829,54 @@ bool str_ends_with(const StringType& src,
 template <typename... Args>
 void unused_args(Args&&...) {}
 
-template <typename T, typename... Args>
-struct has_key_type {
-  static constexpr const bool value = false;
-};
+// template <typename T, typename... Args>
+// struct has_key_type {
+//   static constexpr const bool value = false;
+// };
 
-template <typename T, typename... Args>
-struct has_key_type<std::set<T, Args...>> {
-  static constexpr const bool value = true;
-};
+// template <typename T, typename... Args>
+// struct has_key_type<std::set<T, Args...>> {
+//   static constexpr const bool value = true;
+// };
 
-template <typename T, typename... Args>
-struct has_key_type<std::multiset<T, Args...>> {
-  static constexpr const bool value = true;
-};
+// template <typename T, typename... Args>
+// struct has_key_type<std::multiset<T, Args...>> {
+//   static constexpr const bool value = true;
+// };
 
-template <typename T, typename... Args>
-struct has_key_type<std::unordered_set<T, Args...>> {
-  static constexpr const bool value = true;
-};
+// template <typename T, typename... Args>
+// struct has_key_type<std::unordered_set<T, Args...>> {
+//   static constexpr const bool value = true;
+// };
 
-template <typename T, typename... Args>
-struct has_key_type<std::unordered_multiset<T, Args...>> {
-  static constexpr const bool value = true;
-};
+// template <typename T, typename... Args>
+// struct has_key_type<std::unordered_multiset<T, Args...>> {
+//   static constexpr const bool value = true;
+// };
 
-template <typename T, typename... Args>
-struct has_key_type<std::map<T, Args...>> {
-  static constexpr const bool value = true;
-};
+// template <typename T, typename... Args>
+// struct has_key_type<std::map<T, Args...>> {
+//   static constexpr const bool value = true;
+// };
 
-template <typename T, typename... Args>
-struct has_key_type<std::multimap<T, Args...>> {
-  static constexpr const bool value = true;
-};
+// template <typename T, typename... Args>
+// struct has_key_type<std::multimap<T, Args...>> {
+//   static constexpr const bool value = true;
+// };
 
-template <typename T, typename... Args>
-struct has_key_type<std::unordered_map<T, Args...>> {
-  static constexpr const bool value = true;
-};
+// template <typename T, typename... Args>
+// struct has_key_type<std::unordered_map<T, Args...>> {
+//   static constexpr const bool value = true;
+// };
 
-template <typename T, typename... Args>
-struct has_key_type<std::unordered_multimap<T, Args...>> {
-  static constexpr const bool value = true;
-};
+// template <typename T, typename... Args>
+// struct has_key_type<std::unordered_multimap<T, Args...>> {
+//   static constexpr const bool value = true;
+// };
 
-template <typename T, typename... Args>
-constexpr const bool has_key_type_v =
-    has_key_type<std::decay_t<T>, Args...>::value;
+// template <typename T, typename... Args>
+// constexpr const bool has_key_type_v =
+//     has_key_type<std::decay_t<T>, Args...>::value;
 
 // template <typename T>
 // struct is_std_array_type {
@@ -1804,97 +1892,97 @@ constexpr const bool has_key_type_v =
 // template <typename T, typename... Args>
 // constexpr const bool is_std_array_type_v = is_std_array_type<T, N>::value;
 
-template <typename T, typename... Args>
-struct has_value_type {
-  static constexpr const bool value = false;
-};
+// template <typename T, typename... Args>
+// struct has_value_type {
+//   static constexpr const bool value = false;
+// };
 
-template <typename T, typename... Args>
-struct has_value_type<std::vector<T, Args...>> {
-  static constexpr const bool value = true;
-};
+// template <typename T, typename... Args>
+// struct has_value_type<std::vector<T, Args...>> {
+//   static constexpr const bool value = true;
+// };
 
-template <typename T, typename... Args>
-struct has_value_type<std::deque<T, Args...>> {
-  static constexpr const bool value = true;
-};
+// template <typename T, typename... Args>
+// struct has_value_type<std::deque<T, Args...>> {
+//   static constexpr const bool value = true;
+// };
 
-template <typename T, typename... Args>
-struct has_value_type<std::forward_list<T, Args...>> {
-  static constexpr const bool value = true;
-};
+// template <typename T, typename... Args>
+// struct has_value_type<std::forward_list<T, Args...>> {
+//   static constexpr const bool value = true;
+// };
 
-template <typename T, typename... Args>
-struct has_value_type<std::list<T, Args...>> {
-  static constexpr const bool value = true;
-};
+// template <typename T, typename... Args>
+// struct has_value_type<std::list<T, Args...>> {
+//   static constexpr const bool value = true;
+// };
 
-template <typename T, typename... Args>
-struct has_value_type<std::queue<T, Args...>> {
-  static constexpr const bool value = true;
-};
+// template <typename T, typename... Args>
+// struct has_value_type<std::queue<T, Args...>> {
+//   static constexpr const bool value = true;
+// };
 
-template <typename T, typename... Args>
-struct has_value_type<std::stack<T, Args...>> {
-  static constexpr const bool value = true;
-};
+// template <typename T, typename... Args>
+// struct has_value_type<std::stack<T, Args...>> {
+//   static constexpr const bool value = true;
+// };
 
-template <typename T, typename... Args>
-struct has_value_type<std::priority_queue<T, Args...>> {
-  static constexpr const bool value = true;
-};
+// template <typename T, typename... Args>
+// struct has_value_type<std::priority_queue<T, Args...>> {
+//   static constexpr const bool value = true;
+// };
 
-template <typename T, typename... Args>
-struct has_value_type<std::set<T, Args...>> {
-  static constexpr const bool value = true;
-};
+// template <typename T, typename... Args>
+// struct has_value_type<std::set<T, Args...>> {
+//   static constexpr const bool value = true;
+// };
 
-template <typename T, typename... Args>
-struct has_value_type<std::multiset<T, Args...>> {
-  static constexpr const bool value = true;
-};
+// template <typename T, typename... Args>
+// struct has_value_type<std::multiset<T, Args...>> {
+//   static constexpr const bool value = true;
+// };
 
-template <typename T, typename... Args>
-struct has_value_type<std::unordered_set<T, Args...>> {
-  static constexpr const bool value = true;
-};
+// template <typename T, typename... Args>
+// struct has_value_type<std::unordered_set<T, Args...>> {
+//   static constexpr const bool value = true;
+// };
 
-template <typename T, typename... Args>
-struct has_value_type<std::unordered_multiset<T, Args...>> {
-  static constexpr const bool value = true;
-};
+// template <typename T, typename... Args>
+// struct has_value_type<std::unordered_multiset<T, Args...>> {
+//   static constexpr const bool value = true;
+// };
 
-template <typename T, typename... Args>
-constexpr const bool has_value_type_v =
-    has_value_type<std::decay_t<T>, Args...>::value;
+// template <typename T, typename... Args>
+// constexpr const bool has_value_type_v =
+//     has_value_type<std::decay_t<T>, Args...>::value;
 
-template <typename T, typename... Args>
-struct has_mapped_type {
-  static constexpr const bool value = false;
-};
+// template <typename T, typename... Args>
+// struct has_mapped_type {
+//   static constexpr const bool value = false;
+// };
 
-template <typename T, typename... Args>
-struct has_mapped_type<std::map<T, Args...>> {
-  static constexpr const bool value = true;
-};
+// template <typename T, typename... Args>
+// struct has_mapped_type<std::map<T, Args...>> {
+//   static constexpr const bool value = true;
+// };
 
-template <typename T, typename... Args>
-struct has_mapped_type<std::multimap<T, Args...>> {
-  static constexpr const bool value = true;
-};
+// template <typename T, typename... Args>
+// struct has_mapped_type<std::multimap<T, Args...>> {
+//   static constexpr const bool value = true;
+// };
 
-template <typename T, typename... Args>
-struct has_mapped_type<std::unordered_map<T, Args...>> {
-  static constexpr const bool value = true;
-};
+// template <typename T, typename... Args>
+// struct has_mapped_type<std::unordered_map<T, Args...>> {
+//   static constexpr const bool value = true;
+// };
 
-template <typename T, typename... Args>
-struct has_mapped_type<std::unordered_multimap<T, Args...>> {
-  static constexpr const bool value = true;
-};
+// template <typename T, typename... Args>
+// struct has_mapped_type<std::unordered_multimap<T, Args...>> {
+//   static constexpr const bool value = true;
+// };
 
-template <typename T, typename... Args>
-constexpr const bool has_mapped_type_v = has_mapped_type<T, Args...>::value;
+// template <typename T, typename... Args>
+// constexpr const bool has_mapped_type_v = has_mapped_type<T, Args...>::value;
 
 template <typename T, typename... Args>
 struct is_container_adapter_type {
@@ -1922,7 +2010,8 @@ constexpr const bool is_container_adapter_type_v =
 
 template <typename ContainerType,
           typename KeyType,
-          typename = std::enable_if_t<has_key_type_v<ContainerType>>>
+          typename = std::enable_if_t<
+              has_find_member_function_v<ContainerType, KeyType>>>
 bool has_key(const ContainerType& container, KeyType&& key) {
   return std::cend(container) != container.find(std::forward<KeyType>(key));
 }
