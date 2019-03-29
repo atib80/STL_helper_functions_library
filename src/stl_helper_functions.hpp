@@ -354,7 +354,7 @@ struct is_valid_char_type {
 template <typename T>
 constexpr const bool is_valid_char_type_v = is_valid_char_type<T>::value;
 
-template <typename T>
+template <typename T, typename = void>
 struct get_char_type {
   using type = std::enable_if_t<
       is_valid_char_type_v<std::remove_cv_t<
@@ -363,44 +363,28 @@ struct get_char_type {
           std::remove_pointer_t<std::decay_t<std::remove_reference_t<T>>>>>;
 };
 
-template <>
-struct get_char_type<std::string> {
-  using type = char;
+template <typename T>
+struct get_char_type<T,
+                     std::void_t<typename std::remove_cv_t<
+                         std::remove_reference_t<T>>::value_type>> {
+  using type = std::enable_if_t<
+      is_valid_char_type_v<
+          typename std::remove_cv_t<std::remove_reference_t<T>>::value_type>,
+      typename std::remove_cv_t<std::remove_reference_t<T>>::value_type>;
 };
 
-template <>
-struct get_char_type<std::wstring> {
-  using type = wchar_t;
+template <typename T, size_t N>
+struct get_char_type<T[N]> {
+  using type = std::enable_if_t<is_valid_char_type_v<std::remove_cv_t<T>>,
+                                std::remove_cv_t<T>>;
 };
 
-template <>
-struct get_char_type<std::u16string> {
-  using type = char16_t;
-};
-
-template <>
-struct get_char_type<std::u32string> {
-  using type = char32_t;
-};
-
-template <>
-struct get_char_type<std::string_view> {
-  using type = char;
-};
-
-template <>
-struct get_char_type<std::wstring_view> {
-  using type = wchar_t;
-};
-
-template <>
-struct get_char_type<std::u16string_view> {
-  using type = char16_t;
-};
-
-template <>
-struct get_char_type<std::u32string_view> {
-  using type = char32_t;
+template <typename T>
+struct get_char_type<
+    T[],
+    std::void_t<std::enable_if_t<is_valid_char_type_v<std::remove_cv_t<T>>,
+                                 std::remove_cv_t<T>>>> {
+  using type = std::remove_cv_t<T>;
 };
 
 template <typename T>
@@ -1829,161 +1813,6 @@ bool str_ends_with(const StringType& src,
 template <typename... Args>
 void unused_args(Args&&...) {}
 
-// template <typename T, typename... Args>
-// struct has_key_type {
-//   static constexpr const bool value = false;
-// };
-
-// template <typename T, typename... Args>
-// struct has_key_type<std::set<T, Args...>> {
-//   static constexpr const bool value = true;
-// };
-
-// template <typename T, typename... Args>
-// struct has_key_type<std::multiset<T, Args...>> {
-//   static constexpr const bool value = true;
-// };
-
-// template <typename T, typename... Args>
-// struct has_key_type<std::unordered_set<T, Args...>> {
-//   static constexpr const bool value = true;
-// };
-
-// template <typename T, typename... Args>
-// struct has_key_type<std::unordered_multiset<T, Args...>> {
-//   static constexpr const bool value = true;
-// };
-
-// template <typename T, typename... Args>
-// struct has_key_type<std::map<T, Args...>> {
-//   static constexpr const bool value = true;
-// };
-
-// template <typename T, typename... Args>
-// struct has_key_type<std::multimap<T, Args...>> {
-//   static constexpr const bool value = true;
-// };
-
-// template <typename T, typename... Args>
-// struct has_key_type<std::unordered_map<T, Args...>> {
-//   static constexpr const bool value = true;
-// };
-
-// template <typename T, typename... Args>
-// struct has_key_type<std::unordered_multimap<T, Args...>> {
-//   static constexpr const bool value = true;
-// };
-
-// template <typename T, typename... Args>
-// constexpr const bool has_key_type_v =
-//     has_key_type<std::decay_t<T>, Args...>::value;
-
-// template <typename T>
-// struct is_std_array_type {
-//   static constexpr const bool value = std::is_same_v<T, std::array<typename
-//   T::value_type, typename T::size>>;
-// };
-
-// template <typename T>
-// struct is_std_array_type<std::array<T, N>> {
-//   static constexpr const bool value = true;
-// };
-
-// template <typename T, typename... Args>
-// constexpr const bool is_std_array_type_v = is_std_array_type<T, N>::value;
-
-// template <typename T, typename... Args>
-// struct has_value_type {
-//   static constexpr const bool value = false;
-// };
-
-// template <typename T, typename... Args>
-// struct has_value_type<std::vector<T, Args...>> {
-//   static constexpr const bool value = true;
-// };
-
-// template <typename T, typename... Args>
-// struct has_value_type<std::deque<T, Args...>> {
-//   static constexpr const bool value = true;
-// };
-
-// template <typename T, typename... Args>
-// struct has_value_type<std::forward_list<T, Args...>> {
-//   static constexpr const bool value = true;
-// };
-
-// template <typename T, typename... Args>
-// struct has_value_type<std::list<T, Args...>> {
-//   static constexpr const bool value = true;
-// };
-
-// template <typename T, typename... Args>
-// struct has_value_type<std::queue<T, Args...>> {
-//   static constexpr const bool value = true;
-// };
-
-// template <typename T, typename... Args>
-// struct has_value_type<std::stack<T, Args...>> {
-//   static constexpr const bool value = true;
-// };
-
-// template <typename T, typename... Args>
-// struct has_value_type<std::priority_queue<T, Args...>> {
-//   static constexpr const bool value = true;
-// };
-
-// template <typename T, typename... Args>
-// struct has_value_type<std::set<T, Args...>> {
-//   static constexpr const bool value = true;
-// };
-
-// template <typename T, typename... Args>
-// struct has_value_type<std::multiset<T, Args...>> {
-//   static constexpr const bool value = true;
-// };
-
-// template <typename T, typename... Args>
-// struct has_value_type<std::unordered_set<T, Args...>> {
-//   static constexpr const bool value = true;
-// };
-
-// template <typename T, typename... Args>
-// struct has_value_type<std::unordered_multiset<T, Args...>> {
-//   static constexpr const bool value = true;
-// };
-
-// template <typename T, typename... Args>
-// constexpr const bool has_value_type_v =
-//     has_value_type<std::decay_t<T>, Args...>::value;
-
-// template <typename T, typename... Args>
-// struct has_mapped_type {
-//   static constexpr const bool value = false;
-// };
-
-// template <typename T, typename... Args>
-// struct has_mapped_type<std::map<T, Args...>> {
-//   static constexpr const bool value = true;
-// };
-
-// template <typename T, typename... Args>
-// struct has_mapped_type<std::multimap<T, Args...>> {
-//   static constexpr const bool value = true;
-// };
-
-// template <typename T, typename... Args>
-// struct has_mapped_type<std::unordered_map<T, Args...>> {
-//   static constexpr const bool value = true;
-// };
-
-// template <typename T, typename... Args>
-// struct has_mapped_type<std::unordered_multimap<T, Args...>> {
-//   static constexpr const bool value = true;
-// };
-
-// template <typename T, typename... Args>
-// constexpr const bool has_mapped_type_v = has_mapped_type<T, Args...>::value;
-
 template <typename T, typename... Args>
 struct is_container_adapter_type {
   static constexpr const bool value = false;
@@ -2048,15 +1877,23 @@ bool has_value(const ContainerType& container, ValueType&& value) {
   }
 }
 
-template <typename T, size_t N>
-bool has_value(const std::array<T, N>& container, T&& value) {
+template <typename T, size_t N, typename U>
+bool has_value(const std::array<T, N>& container, U&& value) {
   if (std::is_sorted(std::cbegin(container), std::cend(container)))
     return std::binary_search(std::cbegin(container), std::cend(container),
-                              std::forward<T>(value));
+                              std::forward<U>(value));
 
   return std::cend(container) != std::find(std::cbegin(container),
                                            std::cend(container),
-                                           std::forward<T>(value));
+                                           std::forward<U>(value));
+}
+
+template <typename T, size_t N, typename U>
+bool has_value(const T (&arr)[N], U&& value) {
+  if (std::is_sorted(arr, arr + N))
+    return std::binary_search(arr, arr + N, std::forward<U>(value));
+
+  return arr + N != std::find(arr, arr + N, std::forward<U>(value));
 }
 
 template <typename ContainerType,
