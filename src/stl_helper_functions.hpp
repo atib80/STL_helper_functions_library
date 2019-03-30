@@ -1877,7 +1877,11 @@ bool has_value(const ContainerType& container, ValueType&& value) {
   }
 }
 
-template <typename T, size_t N, typename U>
+template <typename T,
+          size_t N,
+          typename U,
+          typename = std::enable_if_t<
+              std::is_convertible_v<std::remove_reference_t<U>, T>>>
 bool has_value(const std::array<T, N>& container, U&& value) {
   if (std::is_sorted(std::cbegin(container), std::cend(container)))
     return std::binary_search(std::cbegin(container), std::cend(container),
@@ -1888,7 +1892,11 @@ bool has_value(const std::array<T, N>& container, U&& value) {
                                            std::forward<U>(value));
 }
 
-template <typename T, size_t N, typename U>
+template <typename T,
+          size_t N,
+          typename U,
+          typename = std::enable_if_t<
+              std::is_convertible_v<std::remove_reference_t<U>, T>>>
 bool has_value(const T (&arr)[N], U&& value) {
   if (std::is_sorted(arr, arr + N))
     return std::binary_search(arr, arr + N, std::forward<U>(value));
@@ -1913,7 +1921,11 @@ bool has_kv_pair(const ContainerType& container,
   return false;
 }
 
-template <typename ForwardIterType, typename ItemType>
+template <typename ForwardIterType,
+          typename ItemType,
+          typename = std::enable_if_t<std::is_convertible_v<
+              std::remove_reference_t<ItemType>,
+              typename std::iterator_traits<ForwardIterType>::value_type>>>
 bool has_item(ForwardIterType first, ForwardIterType last, ItemType&& item) {
   if (std::is_sorted(first, last))
     return std::binary_search(first, last, std::forward<ItemType>(item));
