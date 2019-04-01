@@ -44,32 +44,32 @@ namespace experimental {
 enum class string_type { cstr, wstr, u16_str, u32_str };
 
 template <typename T>
-constexpr const std::type_info& get_type_id(const T&) {
-  return typeid(T);
+constexpr const std::type_info& get_type_id(T&& t) {
+  return typeid(std::forward<T>(t));
 }
 
 template <typename T>
-std::string get_type_name(T&&) {
-  return std::string{typeid(T).name()};
+std::string get_type_name(T&& t) {
+  return std::string{get_type_id(std::forward<T>(t)).name()};
 }
 
 template <typename T>
-std::wstring get_type_name_wstr(T&&) {
-  const std::string cstr{typeid(T).name()};
+std::wstring get_type_name_wstr(T&& t) {
+  const std::string cstr{get_type_id(std::forward<T>(t)).name()};
 
   return std::wstring{std::cbegin(cstr), std::cend(cstr)};
 }
 
 template <typename T>
-std::u16string get_type_name_u16str(T&&) {
-  const std::string cstr{typeid(T).name()};
+std::u16string get_type_name_u16str(T&& t) {
+  const std::string cstr{get_type_id(std::forward<T>(t)).name()};
 
   return std::u16string{std::cbegin(cstr), std::cend(cstr)};
 }
 
 template <typename T>
-std::u32string get_type_name_u32str(T&&) {
-  const std::string cstr{typeid(T).name()};
+std::u32string get_type_name_u32str(T&& t) {
+  const std::string cstr{get_type_id(std::forward<T>(t)).name()};
 
   return std::u32string{std::cbegin(cstr), std::cend(cstr)};
 }
@@ -82,9 +82,8 @@ struct is_all_of<T, First> : std::is_same<T, First> {};
 
 template <typename T, typename First, typename... Rest>
 struct is_all_of<T, First, Rest...>
-    : std::integral_constant<bool,
-                             std::is_same_v<T, First> &&
-                                 is_all_of<T, Rest...>::value> {};
+    : std::bool_constant<std::is_same_v<T, First> &&
+                         is_all_of<T, Rest...>::value> {};
 
 template <typename T, typename First, typename... Rest>
 inline constexpr bool is_all_of_v = is_all_of<T, First, Rest...>::value;
@@ -117,9 +116,8 @@ struct is_anyone_of<T, First> : std::is_same<T, First> {};
 
 template <typename T, typename First, typename... Rest>
 struct is_anyone_of<T, First, Rest...>
-    : std::integral_constant<bool,
-                             std::is_same_v<T, First> ||
-                                 is_anyone_of<T, Rest...>::value> {};
+    : std::bool_constant<std::is_same_v<T, First> ||
+                         is_anyone_of<T, Rest...>::value> {};
 
 template <typename T, typename First, typename... Rest>
 inline constexpr bool is_anyone_of_v = is_anyone_of<T, First, Rest...>::value;
