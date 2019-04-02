@@ -74,16 +74,17 @@ std::u32string get_type_name_u32str(T&& t) {
   return std::u32string{std::cbegin(cstr), std::cend(cstr)};
 }
 
-template <typename T, typename... Rest>
-struct is_all_of : std::true_type {};
+template <typename T, typename... T0_TN>
+struct is_all_of;
 
-template <typename T, typename First>
-struct is_all_of<T, First> : std::is_same<T, First> {};
+template <typename T>
+struct is_all_of<T> : std::true_type {};
 
-template <typename T, typename First, typename... Rest>
-struct is_all_of<T, First, Rest...>
-    : std::bool_constant<std::is_same_v<T, First> &&
-                         is_all_of<T, Rest...>::value> {};
+template <typename T, typename... T1_TN>
+struct is_all_of<T, T, T1_TN...> : is_all_of<T, T1_TN...> {};
+
+template <typename T, typename T0, typename... T1_TN>
+struct is_all_of<T, T0, T1_TN...> : std::false_type {};
 
 template <typename T, typename First, typename... Rest>
 inline constexpr bool is_all_of_v = is_all_of<T, First, Rest...>::value;
@@ -108,16 +109,17 @@ constexpr bool check_data_types_for_equality(T&& arg1,
                               std::forward<Args>(args)...);
 }
 
-template <typename T, typename... Rest>
-struct is_anyone_of : std::false_type {};
+template <typename T, typename... T0_TN>
+struct is_anyone_of;
 
-template <typename T, typename First>
-struct is_anyone_of<T, First> : std::is_same<T, First> {};
+template <typename T>
+struct is_anyone_of<T> : std::false_type {};
 
-template <typename T, typename First, typename... Rest>
-struct is_anyone_of<T, First, Rest...>
-    : std::bool_constant<std::is_same_v<T, First> ||
-                         is_anyone_of<T, Rest...>::value> {};
+template <typename T, typename... T1_TN>
+struct is_anyone_of<T, T, T1_TN...> : std::true_type {};
+
+template <typename T, typename T0, typename... T1_TN>
+struct is_anyone_of<T, T0, T1_TN...> : is_anyone_of<T, T1_TN...> {};
 
 template <typename T, typename First, typename... Rest>
 inline constexpr bool is_anyone_of_v = is_anyone_of<T, First, Rest...>::value;
