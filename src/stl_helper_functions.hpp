@@ -96,6 +96,8 @@ constexpr bool are_data_types_equal(T&&) {
 
 template <typename T, typename U, typename... Args>
 constexpr bool are_data_types_equal(T&& arg1, U&&, Args&&... args) {
+  if constexpr (0 == sizeof...(Args))
+    return std::is_same_v<T, U>;
   return std::is_same_v<T, U> &&
          are_data_types_equal(std::forward<T>(arg1),
                               std::forward<Args>(args)...);
@@ -105,6 +107,9 @@ template <typename T, typename U, typename... Args>
 constexpr bool check_data_types_for_equality(T&& arg1,
                                              U&& arg2,
                                              Args&&... args) {
+  if constexpr (0 == sizeof...(Args))
+    return std::is_same_v<T, U>;
+
   return are_data_types_equal(std::forward<T>(arg1), std::forward<U>(arg2),
                               std::forward<Args>(args)...);
 }
@@ -123,6 +128,30 @@ struct is_anyone_of<T, T0, T1_TN...> : is_anyone_of<T, T1_TN...> {};
 
 template <typename T, typename First, typename... Rest>
 inline constexpr bool is_anyone_of_v = is_anyone_of<T, First, Rest...>::value;
+
+template <typename T>
+constexpr bool is_any_of(T&&) {
+  return false;
+}
+
+template <typename T, typename U, typename... Args>
+constexpr bool is_any_of(T&& arg1, U&&, Args&&... args) {
+  if constexpr (0 == sizeof...(Args))
+    return std::is_same_v<T, U>;
+  return std::is_same_v<T, U> ||
+         is_any_of(std::forward<T>(arg1), std::forward<Args>(args)...);
+}
+
+template <typename T, typename U, typename... Args>
+constexpr bool check_if_type_is_identical_to(T&& arg1,
+                                             U&& arg2,
+                                             Args&&... args) {
+  if constexpr (0 == sizeof...(Args))
+    return std::is_same_v<T, U>;
+
+  return is_any_of(std::forward<T>(arg1), std::forward<U>(arg2),
+                   std::forward<Args>(args)...);
+}
 
 template <typename T, typename = void>
 struct has_key_type : std::false_type {};
