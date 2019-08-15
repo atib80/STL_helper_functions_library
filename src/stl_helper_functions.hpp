@@ -251,6 +251,19 @@ template <typename T>
 constexpr const bool is_operator_equals_defined_v =
     is_operator_equals_defined<T>::value;
 
+template <typename T, typename U = T>
+using check_equality_t = decltype(std::declval<T>() == std::declval<U>());
+
+template <typename T, typename U, typename = void>
+struct check_equality : std::false_type {};
+
+template <typename T, typename U>
+struct check_equality<T, U, std::void_t<check_equality_t<T, U>>>
+    : std::true_type {};
+
+template <typename T, typename U>
+constexpr const bool check_equality_v = check_equality<T, U>::value;
+
 template <typename T>
 using has_begin_member_function_t = decltype(std::declval<T&>().begin());
 
@@ -4781,92 +4794,109 @@ CharacterPointerType str_erase_last_n(CharacterPointerType src,
   return nullptr;
 }
 
-const char* strstr(const char* src, const char* needle);
+template <
+    typename T,
+    typename U,
+    std::enable_if_t<(is_char_array_type_v<T> || is_char_pointer_type_v<T>)&&(
+        is_char_array_type_v<U> ||
+        is_char_pointer_type_v<U>)&&(std::is_same_v<get_char_type_t<T>,
+                                                    get_char_type_t<U>>)>>
+const get_char_type_t<T>* strstr(const T& src, const U& needle) {
+  using char_type = get_char_type_t<T>;
+  using return_type = const char_type*;
+  const std::basic_string_view<char_type> sv{src, len(src)},
+      nv{needle, len(needle)};
 
-const wchar_t* strstr(const wchar_t* src, const wchar_t* needle);
+  const size_t pos{sv.find(nv)};
+  return std::basic_string_view<char_type>::npos != pos
+             ? static_cast<return_type>(&src[0] + pos)
+             : nullptr;
+}
 
-const char16_t* strstr(const char16_t* src, const char16_t* needle);
-
-const char32_t* strstr(const char32_t* src, const char32_t* needle);
-
-template <typename StringType>
-size_t strstr(const StringType& src, const StringType& needle) {
+template <
+    typename T,
+    typename U,
+    std::enable_if_t<
+        (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)&&(
+            is_valid_string_type_v<U> ||
+            is_valid_string_view_type_v<
+                U>)&&(std::is_same_v<get_char_type_t<T>, get_char_type_t<U>>)>>
+decltype(std::declval<T&>().find(std::declval<T>())) strstr(const T& src,
+                                                            const U& needle) {
   return src.find(needle);
 }
 
-char* strstr(char* src, const char* needle);
+template <
+    typename T,
+    typename U,
+    std::enable_if_t<(is_char_array_type_v<T> || is_char_pointer_type_v<T>)&&(
+        is_char_array_type_v<U> ||
+        is_char_pointer_type_v<U>)&&(std::is_same_v<get_char_type_t<T>,
+                                                    get_char_type_t<U>>)>>
+const get_char_type_t<T>* strstri(const T& src,
+                                  const U& needle,
+                                  const std::locale& loc = std::locale{}) {
+  using char_type = get_char_type_t<T>;
+  using return_type = const char_type*;
+  const std::basic_string<char_type> src_lc{src}, needle_lc{needle};
 
-wchar_t* strstr(wchar_t* src, const wchar_t* needle);
+  if (std::has_facet<std::ctype<char_type>>(loc)) {
+    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
 
-char16_t* strstr(char16_t* src, const char16_t* needle);
+    std::transform(std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
+                   [&f](const auto ch) { return f.tolower(ch); });
 
-char32_t* strstr(char32_t* src, const char32_t* needle);
+    std::transform(std::cbegin(needle_lc), std::cend(needle_lc),
+                   std::begin(needle_lc),
+                   [&f](const auto ch) { return f.tolower(ch); });
 
-template <typename StringType>
-size_t strstr(StringType& src, const StringType& needle) {
-  return src.find(needle);
+  } else {
+    std::transform(std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
+                   [](const auto ch) { return std::tolower(ch); });
+
+    std::transform(std::cbegin(needle_lc), std::cend(needle_lc),
+                   std::begin(needle_lc),
+                   [](const auto ch) { return std::tolower(ch); });
+  }
+
+  const size_t pos{src_lc.find(needle_lc)};
+  return std::basic_string<char_type>::npos != pos
+             ? static_cast<return_type>(&src[0] + pos)
+             : nullptr;
 }
 
-const char* strstri(const char* src,
-                    const char* needle,
-                    const std::locale& loc = std::locale{});
+template <
+    typename T,
+    typename U,
+    std::enable_if_t<
+        (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)&&(
+            is_valid_string_type_v<U> ||
+            is_valid_string_view_type_v<
+                U>)&&(std::is_same_v<get_char_type_t<T>, get_char_type_t<U>>)>>
+decltype(std::declval<T&>().find(std::declval<T>()))
+strstri(const T& src, const U& needle, const std::locale& loc = std::locale{}) {
+  using char_type = typename T::value_type;
+  std::basic_string<char_type> src_lc{src};
+  std::basic_string<char_type> needle_lc{needle};
 
-const wchar_t* strstri(const wchar_t* src,
-                       const wchar_t* needle,
-                       const std::locale& loc = std::locale{});
+  if (std::has_facet<std::ctype<char_type>>(loc)) {
+    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
 
-const char16_t* strstri(const char16_t* src,
-                        const char16_t* needle,
-                        const std::locale& loc = std::locale{});
+    std::transform(std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
+                   [&f](const auto ch) { return f.tolower(ch); });
 
-const char32_t* strstri(const char32_t* src,
-                        const char32_t* needle,
-                        const std::locale& loc = std::locale{});
+    std::transform(std::cbegin(needle_lc), std::cend(needle_lc),
+                   std::begin(needle_lc),
+                   [&f](const auto ch) { return f.tolower(ch); });
 
-template <typename StringType>
-size_t strstri(const StringType& src,
-               const StringType& needle,
-               const std::locale& loc = std::locale{}) {
-  StringType src_lc{src};
-  StringType needle_lc{needle};
+  } else {
+    std::transform(std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
+                   [](const auto ch) { return std::tolower(ch); });
 
-  transform(begin(src), end(src), begin(src_lc),
-            [&](const char ch) { return tolower(ch, loc); });
-
-  transform(begin(needle), end(needle), begin(needle_lc),
-            [&](const char ch) { return tolower(ch, loc); });
-
-  return src_lc.find(needle_lc);
-}
-
-char* strstri(char* src,
-              const char* needle,
-              const std::locale& loc = std::locale{});
-
-wchar_t* strstri(wchar_t* src,
-                 const wchar_t* needle,
-                 const std::locale& loc = std::locale{});
-
-char16_t* strstri(char16_t* src,
-                  const char16_t* needle,
-                  const std::locale& loc = std::locale{});
-
-char32_t* strstri(char32_t* src,
-                  const char32_t* needle,
-                  const std::locale& loc = std::locale{});
-
-template <typename StringType>
-size_t strstri(StringType& src,
-               const StringType& needle,
-               const std::locale& loc = std::locale{}) {
-  StringType src_lc{src};
-  StringType needle_lc{needle};
-
-  transform(begin(src), end(src), begin(src_lc),
-            [&](const char ch) { return tolower(ch, loc); });
-
-  transform(begin(needle), end(needle), begin(needle_lc),
-            [&](const char ch) { return tolower(ch, loc); });
+    std::transform(std::cbegin(needle_lc), std::cend(needle_lc),
+                   std::begin(needle_lc),
+                   [](const auto ch) { return std::tolower(ch); });
+  }
 
   return src_lc.find(needle_lc);
 }
@@ -4878,8 +4908,8 @@ StringType to_lower_case(const StringType& str,
 
   StringType final_str{str};
 
-  transform(begin(str), end(str), begin(final_str),
-            [&loc](const char_type ch) { return tolower(ch, loc); });
+  transform(std::begin(str), std::end(str), std::begin(final_str),
+            [&loc](const char_type ch) { return std::tolower(ch, loc); });
 
   return final_str;
 }
@@ -4898,8 +4928,8 @@ StringType to_upper_case(const StringType& str,
 
   StringType final_str{str};
 
-  transform(begin(str), end(str), begin(final_str),
-            [&loc](const char_type ch) { return toupper(ch, loc); });
+  transform(std::begin(str), std::end(str), std::begin(final_str),
+            [&loc](const char_type ch) { return std::toupper(ch, loc); });
 
   return final_str;
 }
@@ -5278,13 +5308,12 @@ std::vector<std::basic_string<get_char_type_t<T>>> split(
     if (std::basic_string<char_type>::npos == current)
       break;
 
-    if (std::basic_string<char_type>::npos != max_count &&
-        parts.size() == max_count)
+    if (parts.size() == max_count)
       break;
 
     if (current - prev > 0 || !ignore_empty_string) {
       if (current - prev > 0)
-        parts.emplace_back(cbegin(sv) + prev, cbegin(sv) + current);
+        parts.emplace_back(std::cbegin(sv) + prev, std::cbegin(sv) + current);
       else if (!ignore_empty_string)
         parts.emplace_back();
 
@@ -5297,13 +5326,12 @@ std::vector<std::basic_string<get_char_type_t<T>>> split(
       break;
   }
 
-  if (prev < source_len && (std::basic_string<char_type>::npos == max_count ||
-                            parts.size() < max_count))
-    parts.emplace_back(cbegin(sv) + prev, cend(sv));
-  else if (!ignore_empty_string &&
-           (std::basic_string<char_type>::npos == max_count ||
-            parts.size() < max_count))
-    parts.emplace_back();
+  if (parts.size() < max_count) {
+    if (prev < source_len)
+      parts.emplace_back(std::cbegin(sv) + prev, std::cend(sv));
+    else if (!ignore_empty_string)
+      parts.emplace_back();
+  }
 
   return parts;
 }
@@ -5377,13 +5405,12 @@ split(IteratorType first,
     if (std::basic_string<char_type>::npos == current)
       break;
 
-    if (std::basic_string<char_type>::npos != max_count &&
-        parts.size() == max_count)
+    if (parts.size() == max_count)
       break;
 
     if (current - prev > 0 || !ignore_empty_string) {
       if (current - prev > 0)
-        parts.emplace_back(cbegin(sv) + prev, cbegin(sv) + current);
+        parts.emplace_back(std::cbegin(sv) + prev, std::cbegin(sv) + current);
       else if (!ignore_empty_string)
         parts.emplace_back();
 
@@ -5396,13 +5423,84 @@ split(IteratorType first,
       break;
   }
 
-  if (prev < source_len && (std::basic_string<char_type>::npos == max_count ||
-                            parts.size() < max_count))
-    parts.emplace_back(cbegin(sv) + prev, cend(sv));
-  else if (!ignore_empty_string &&
-           (std::basic_string<char_type>::npos == max_count ||
-            parts.size() < max_count))
-    parts.emplace_back();
+  if (parts.size() < max_count) {
+    if (prev < source_len)
+      parts.emplace_back(std::cbegin(sv) + prev, std::cend(sv));
+    else if (!ignore_empty_string)
+      parts.emplace_back();
+  }
+
+  return parts;
+}
+
+template <typename SrcIterType,
+          typename DstIterType,
+          std::enable_if_t<check_equality_v<
+              typename std::iterator_traits<SrcIterType>::value_type,
+              typename std::iterator_traits<DstIterType>::value_type>>>
+std::vector<std::pair<SrcIterType, SrcIterType>> split(
+    const SrcIterType src_first,
+    const SrcIterType src_last,
+    const DstIterType needle_first,
+    const DstIterType needle_last,
+    const bool split_on_whole_sequence = true,
+    const bool ignore_empty_sequence = true,
+    const size_t max_count = std::numeric_limits<size_t>::max()) {
+  if (src_first == src_last)
+    return {};
+
+  std::vector<std::pair<SrcIterType, SrcIterType>> parts{};
+  SrcIterType prev{src_first};
+  size_t number_of_parts{};
+
+  if (needle_first == needle_last) {
+    const size_t source_len{
+        static_cast<size_t>(std::distance(src_first, src_last))};
+    const size_t upper_limit{max_count < source_len ? max_count : source_len};
+    parts.reserve(upper_limit);
+    SrcIterType last_element{prev};
+    std::advance(last_element, upper_limit);
+
+    while (prev != last_element) {
+      const SrcIterType first{prev};
+      ++prev;
+      parts.emplace_back(first, prev);
+    }
+
+    return parts;
+  }
+
+  const size_t needle_sequence_len{
+      split_on_whole_sequence
+          ? static_cast<size_t>(std::distance(needle_first, needle_last))
+          : 1U};
+
+  SrcIterType next;
+
+  while (prev != src_last) {
+    if (split_on_whole_sequence)
+      next = std::search(prev, src_last, needle_first, needle_last);
+    else
+      next = std::find_first_of(prev, src_last, needle_first, needle_last);
+
+    if (src_last == next)
+      break;
+
+    if ((std::distance(prev, next) > 0 || !ignore_empty_sequence) &&
+        (number_of_parts < max_count)) {
+      parts.emplace_back(prev, next);
+      number_of_parts++;
+    }
+
+    prev = next;
+    std::advance(prev, needle_sequence_len);
+  }
+
+  if ((std::distance(prev, src_last) > 0 || !ignore_empty_sequence) &&
+      (number_of_parts < max_count)) {
+    parts.emplace_back(prev, src_last);
+    number_of_parts++;
+  }
 
   return parts;
 }
