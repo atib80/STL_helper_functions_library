@@ -1,15 +1,14 @@
-#ifndef _STL_HELPER_FUNCTIONS_H_
-#define _STL_HELPER_FUNCTIONS_H_
+#pragma once
 
 #define _CRT_SECURE_NO_WARNINGS
 #define _SCL_SECURE_NO_WARNINGS
 
-#include <Strsafe.h>
 #include <algorithm>
 #include <array>
 #include <chrono>
 #include <cmath>
 #include <cstdio>
+#include <cstring>
 #include <cwchar>
 #include <deque>
 #include <forward_list>
@@ -153,22 +152,26 @@ constexpr bool check_if_type_is_identical_to(T&& arg1,
                    std::forward<Args>(args)...);
 }
 
+template <typename T>
+using has_key_type_t = decltype(std::declval<typename T::key_type>());
+
 template <typename T, typename = void>
 struct has_key_type : std::false_type {};
 
 template <typename T>
-struct has_key_type<T, std::void_t<typename T::key_type>> : std::true_type {};
+struct has_key_type<T, std::void_t<has_key_type_t<T>>> : std::true_type {};
 
 template <typename T>
 constexpr const bool has_key_type_v = has_key_type<T>::value;
+
+template <typename T>
+using has_value_type_t = decltype(std::declval<typename T::value_type>());
 
 template <typename T, typename = void>
 struct has_value_type : std::false_type {};
 
 template <typename T>
-struct has_value_type<T, std::void_t<typename T::value_type>> : std::true_type {
-
-};
+struct has_value_type<T, std::void_t<has_value_type_t<T>>> : std::true_type {};
 
 template <typename T>
 constexpr const bool has_value_type_v = has_value_type<T>::value;
@@ -242,7 +245,7 @@ int say_slow(const size_t time_delay_in_ms,
   if (!output_buffer_sp)
     return -1;
 
-  StringCchPrintfA(output_buffer_sp.get(), buffer_size, format_string, args...);
+  snprintf(output_buffer_sp.get(), buffer_size, format_string, args...);
 
   int final_ret_val{};
 
@@ -272,7 +275,7 @@ int say_slow(const size_t time_delay_in_ms,
   if (!output_buffer_sp)
     return -1;
 
-  StringCchPrintfW(output_buffer_sp.get(), buffer_size, format_string, args...);
+  swprintf(output_buffer_sp.get(), buffer_size, format_string, args...);
 
   int final_ret_val{};
 
@@ -300,7 +303,7 @@ int say(const char* format_string, Args... args) {
   if (!output_buffer_sp)
     return -1;
 
-  StringCchPrintfA(output_buffer_sp.get(), buffer_size, format_string, args...);
+  snprintf(output_buffer_sp.get(), buffer_size, format_string, args...);
 
   return printf("%s", output_buffer_sp.get());
 }
@@ -315,7 +318,7 @@ int say(const wchar_t* format_string, Args... args) {
   if (!output_buffer_sp)
     return -1;
 
-  StringCchPrintfW(output_buffer_sp.get(), buffer_size, format_string, args...);
+  swprintf(output_buffer_sp.get(), buffer_size, format_string, args...);
 
   return wprintf(L"%ls", output_buffer_sp.get());
 }
@@ -374,51 +377,6 @@ bool is_ws_char(CharType ch) {
   }
 }
 
-template <typename T>
-struct is_valid_char_type {
-  static constexpr const bool value =
-      is_anyone_of_v<std::remove_cv_t<T>, char, wchar_t, char16_t, char32_t>;
-};
-
-template <typename T>
-constexpr const bool is_valid_char_type_v = is_valid_char_type<T>::value;
-
-template <typename T, typename = void>
-struct get_char_type {
-  using type = std::enable_if_t<
-      is_valid_char_type_v<std::remove_cv_t<
-          std::remove_pointer_t<std::decay_t<std::remove_reference_t<T>>>>>,
-      std::remove_cv_t<
-          std::remove_pointer_t<std::decay_t<std::remove_reference_t<T>>>>>;
-};
-
-template <typename T>
-struct get_char_type<T,
-                     std::void_t<typename std::remove_cv_t<
-                         std::remove_reference_t<T>>::value_type>> {
-  using type = std::enable_if_t<
-      is_valid_char_type_v<
-          typename std::remove_cv_t<std::remove_reference_t<T>>::value_type>,
-      typename std::remove_cv_t<std::remove_reference_t<T>>::value_type>;
-};
-
-template <typename T, size_t N>
-struct get_char_type<T[N]> {
-  using type = std::enable_if_t<is_valid_char_type_v<std::remove_cv_t<T>>,
-                                std::remove_cv_t<T>>;
-};
-
-template <typename T>
-struct get_char_type<
-    T[],
-    std::void_t<std::enable_if_t<is_valid_char_type_v<std::remove_cv_t<T>>,
-                                 std::remove_cv_t<T>>>> {
-  using type = std::remove_cv_t<T>;
-};
-
-template <typename T>
-using get_char_type_t = typename get_char_type<T>::type;
-
 template <typename CharType>
 struct default_whitespace_chars {};
 
@@ -447,6 +405,15 @@ constexpr const CharType* default_whitespace_chars_v =
     default_whitespace_chars<CharType>::value;
 
 template <typename T>
+struct is_valid_char_type {
+  static constexpr const bool value =
+      is_anyone_of_v<std::remove_cv_t<T>, char, wchar_t, char16_t, char32_t>;
+};
+
+template <typename T>
+constexpr const bool is_valid_char_type_v = is_valid_char_type<T>::value;
+
+template <typename T>
 struct is_non_const_char_pointer_type {
   static constexpr const bool value = is_anyone_of_v<T,
                                                      char*,
@@ -461,7 +428,7 @@ struct is_non_const_char_pointer_type {
 
 template <typename T>
 constexpr const bool is_non_const_char_pointer_type_v =
-    is_non_const_char_pointer_type<std::remove_reference_t<T>>::value;
+    is_non_const_char_pointer_type<T>::value;
 
 template <typename T>
 struct is_const_char_pointer_type {
@@ -478,7 +445,7 @@ struct is_const_char_pointer_type {
 
 template <typename T>
 constexpr const bool is_const_char_pointer_type_v =
-    is_const_char_pointer_type<std::remove_reference_t<T>>::value;
+    is_const_char_pointer_type<T>::value;
 
 template <typename T>
 struct is_non_const_char_array_type {
@@ -509,8 +476,7 @@ struct is_char_pointer_type {
 };
 
 template <typename T>
-constexpr const bool is_char_pointer_type_v =
-    is_char_pointer_type<std::remove_reference_t<T>>::value;
+constexpr const bool is_char_pointer_type_v = is_char_pointer_type<T>::value;
 
 template <typename T>
 struct is_char_array_type {
@@ -522,13 +488,36 @@ template <typename T>
 constexpr const bool is_char_array_type_v = is_char_array_type<T>::value;
 
 template <typename T>
+struct remove_all_decorations {
+  using dt = std::decay_t<T>;
+
+  using mt1 = std::conditional_t<std::is_const_v<dt> || std::is_volatile_v<dt>,
+                                 std::remove_cv_t<dt>,
+                                 dt>;
+  using mt2 = std::
+      conditional_t<std::is_array_v<mt1>, std::remove_all_extents_t<mt1>, mt1>;
+  using mt3 = std::
+      conditional_t<std::is_pointer_v<mt2>, std::remove_pointer_t<mt2>, mt2>;
+  using mt4 = std::conditional_t<std::is_reference_v<mt3>,
+                                 std::remove_reference_t<mt3>,
+                                 mt3>;
+  using type =
+      std::conditional_t<std::is_const_v<mt4> || std::is_volatile_v<mt4>,
+                         std::remove_cv_t<mt4>,
+                         mt4>;
+};
+
+template <typename T>
+using remove_all_decorations_t = typename remove_all_decorations<T>::type;
+
+template <typename T>
 struct is_valid_string_type {
-  static constexpr const bool value = is_anyone_of_v<
-      std::remove_cv_t<std::remove_pointer_t<std::remove_reference_t<T>>>,
-      std::string,
-      std::wstring,
-      std::u16string,
-      std::u32string>;
+  static constexpr const bool value =
+      is_anyone_of_v<remove_all_decorations_t<T>,
+                     std::string,
+                     std::wstring,
+                     std::u16string,
+                     std::u32string>;
 };
 
 template <typename T>
@@ -536,17 +525,36 @@ constexpr const bool is_valid_string_type_v = is_valid_string_type<T>::value;
 
 template <typename T>
 struct is_valid_string_view_type {
-  static constexpr const bool value = is_anyone_of_v<
-      std::remove_cv_t<std::remove_pointer_t<std::remove_reference_t<T>>>,
-      std::string_view,
-      std::wstring_view,
-      std::u16string_view,
-      std::u32string_view>;
+  static constexpr const bool value =
+      is_anyone_of_v<remove_all_decorations_t<T>,
+                     std::string_view,
+                     std::wstring_view,
+                     std::u16string_view,
+                     std::u32string_view>;
 };
 
 template <typename T>
 constexpr const bool is_valid_string_view_type_v =
     is_valid_string_view_type<T>::value;
+
+template <typename T, typename = void>
+struct get_char_type {
+  using type = remove_all_decorations_t<T>;
+  static_assert(is_valid_char_type_v<type>,
+                "Underlying type is not an intrinsic character type!");
+};
+
+template <typename T>
+struct get_char_type<
+    T,
+    std::void_t<has_value_type_t<remove_all_decorations_t<T>>>> {
+  using type = typename remove_all_decorations_t<T>::value_type;
+  static_assert(is_valid_char_type_v<type>,
+                "Underlying type is not an intrinsic character type!");
+};
+
+template <typename T>
+using get_char_type_t = typename get_char_type<T>::type;
 
 template <typename T>
 struct add_const_pointer_to_char_type {
@@ -564,19 +572,20 @@ template <typename T,
           typename = std::enable_if_t<
               is_char_array_type_v<T> || is_char_pointer_type_v<T> ||
               is_valid_string_type_v<T> || is_valid_string_view_type_v<T>>>
-size_t len(T src, size_t max_allowed_string_length = max_string_length) {
-  if constexpr (is_valid_string_type_v<T>) {
+size_t len(T src, const size_t max_allowed_string_length = max_string_length) {
+  if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>) {
     return src.length() > max_allowed_string_length ? max_allowed_string_length
                                                     : src.length();
   } else {
-    if (nullptr == src)
-      return 0u;
+    if constexpr (is_char_pointer_type_v<T>) {
+      if (nullptr == src)
+        return 0U;
+    }
 
     size_t length{};
 
-    while (*src++) {
+    while (src[length]) {
       ++length;
-
       if (max_allowed_string_length == length)
         return max_allowed_string_length;
     }
@@ -618,12 +627,9 @@ bool trim_in_place(
   const auto rstart{std::make_reverse_iterator(src + str_len)};
   const auto rlast{std::make_reverse_iterator(first_char_pos)};
 
-  last_char_pos =
-      std::find_if(rstart, rlast,
-                   [&trimmed_chars](const auto ch) {
-                     return trimmed_chars.find(ch) == std::cend(trimmed_chars);
-                   })
-          .base();
+  last_char_pos = std::find_if(rstart, rlast, [&trimmed_chars](const auto ch) {
+                    return trimmed_chars.find(ch) == std::cend(trimmed_chars);
+                  }).base();
 
   if (src == first_char_pos) {
     if (src + str_len == last_char_pos)
@@ -785,11 +791,9 @@ bool rtrim_in_place(
       chars_to_trim, chars_to_trim + len(chars_to_trim));
 
   const T last_char_pos =
-      std::find_if(rstart, rlast,
-                   [&trimmed_chars](const auto ch) {
-                     return trimmed_chars.find(ch) == std::cend(trimmed_chars);
-                   })
-          .base();
+      std::find_if(rstart, rlast, [&trimmed_chars](const auto ch) {
+        return trimmed_chars.find(ch) == std::cend(trimmed_chars);
+      }).base();
 
   if (src + str_len == last_char_pos)
     return false;
@@ -1969,26 +1973,37 @@ template <typename T,
                   is_char_array_type_v<U> || is_char_pointer_type_v<U>)&&std::
                   is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
 int str_compare(T src1, U src2) {
-  if (!src1)
-    return -1;
-  if (!src2)
-    return 1;
+  using char_type = get_char_type_t<T>;
+
+  if constexpr (is_char_pointer_type_v<T>) {
+    if (nullptr == src1)
+      return -1;
+  }
+
+  if constexpr (is_char_pointer_type_v<U>) {
+    if (nullptr == src2)
+      return 1;
+  }
 
   const size_t str1_len{len(src1)};
   const size_t str2_len{len(src2)};
 
   size_t const number_of_characters_to_compare{std::min(str1_len, str2_len)};
 
-  for (size_t i{}; i < number_of_characters_to_compare; i++, src1++, src2++) {
-    if (*src1 != *src2)
-      return static_cast<int>(*src1 - *src2);
+  const char_type* s1{&src1[0]};
+  const char_type* s2{&src2[0]};
+
+  for (size_t i{}; i < number_of_characters_to_compare; ++i, ++s1, ++s2) {
+    if (*s1 != *s2)
+      return static_cast<int>(*s1 - *s2);
   }
 
-  return static_cast<int>(*src1 - *src2);
+  return static_cast<int>(*s1 - *s2);
 }
 
 template <typename StringType,
-          typename = std::enable_if_t<is_valid_string_type_v<StringType>>>
+          typename = std::enable_if_t<is_valid_string_type_v<StringType> ||
+                                      is_valid_string_view_type_v<StringType>>>
 int str_compare(const StringType& src1, const StringType& src2) {
   using char_type = typename StringType::value_type;
 
@@ -2016,29 +2031,40 @@ template <typename T,
                   is_char_array_type_v<U> || is_char_pointer_type_v<U>)&&std::
                   is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
 int str_compare_n(T src1, U src2, size_t number_of_characters_to_compare) {
-  if (!src1)
-    return -1;
-  if (!src2)
-    return 1;
+  using char_type = get_char_type_t<T>;
+
+  if constexpr (is_char_pointer_type_v<T>) {
+    if (nullptr == src1)
+      return -1;
+  }
+
+  if constexpr (is_char_pointer_type_v<U>) {
+    if (nullptr == src2)
+      return 1;
+  }
 
   const size_t src1_len{len(src1)};
   const size_t src2_len{len(src2)};
+
+  const char_type* s1{&src1[0]};
+  const char_type* s2{&src2[0]};
 
   if (src1_len < number_of_characters_to_compare ||
       src2_len < number_of_characters_to_compare) {
     number_of_characters_to_compare = std::min(src1_len, src2_len);
   }
 
-  for (size_t i{}; i < number_of_characters_to_compare; src1++, src2++, i++) {
-    if (*src1 != *src2)
-      return static_cast<int>(*src1 - *src2);
+  for (size_t i{}; i < number_of_characters_to_compare; ++s1, ++s2, ++i) {
+    if (*s1 != *s2)
+      return static_cast<int>(*s1 - *s2);
   }
 
   return 0;
 }
 
 template <typename StringType,
-          typename = std::enable_if_t<is_valid_string_type_v<StringType>>>
+          typename = std::enable_if_t<is_valid_string_type_v<StringType> ||
+                                      is_valid_string_view_type_v<StringType>>>
 int str_compare_n(const StringType& src1,
                   const StringType& src2,
                   size_t number_of_characters_to_compare) {
@@ -2050,7 +2076,7 @@ int str_compare_n(const StringType& src1,
     number_of_characters_to_compare = std::min(src1_len, src2_len);
   }
 
-  for (size_t i{}; i < number_of_characters_to_compare; i++) {
+  for (size_t i{}; i < number_of_characters_to_compare; ++i) {
     if (src1[i] != src2[i])
       return static_cast<int>(src1[i] - src2[i]);
   }
@@ -2065,10 +2091,15 @@ template <typename T,
                   is_char_array_type_v<U> || is_char_pointer_type_v<U>)&&std::
                   is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
 int str_compare_i(T src1, U src2, const std::locale& loc = std::locale{}) {
-  if (!src1)
-    return -1;
-  if (!src2)
-    return 1;
+  if constexpr (is_char_pointer_type_v<T>) {
+    if (nullptr == src1)
+      return -1;
+  }
+
+  if constexpr (is_char_pointer_type_v<U>) {
+    if (nullptr == src2)
+      return 1;
+  }
 
   using char_type = get_char_type_t<T>;
 
@@ -2082,7 +2113,7 @@ int str_compare_i(T src1, U src2, const std::locale& loc = std::locale{}) {
 
     size_t i{};
 
-    for (; i < number_of_characters_to_compare; i++) {
+    for (; i < number_of_characters_to_compare; ++i) {
       const auto ch1{f.tolower(src1[i])};
       const auto ch2{f.tolower(src2[i])};
       if (ch1 != ch2)
@@ -2094,7 +2125,7 @@ int str_compare_i(T src1, U src2, const std::locale& loc = std::locale{}) {
   } else {
     size_t i{};
 
-    for (; i < number_of_characters_to_compare; i++) {
+    for (; i < number_of_characters_to_compare; ++i) {
       const auto ch1{std::tolower(src1[i])};
       const auto ch2{std::tolower(src2[i])};
       if (ch1 != ch2)
@@ -2106,7 +2137,8 @@ int str_compare_i(T src1, U src2, const std::locale& loc = std::locale{}) {
 }
 
 template <typename StringType,
-          typename = std::enable_if_t<is_valid_string_type_v<StringType>>>
+          typename = std::enable_if_t<is_valid_string_type_v<StringType> ||
+                                      is_valid_string_view_type_v<StringType>>>
 int str_compare_i(const StringType& src1,
                   const StringType& src2,
                   const std::locale& loc = std::locale{}) {
@@ -2128,20 +2160,29 @@ int str_compare_i(const StringType& src1,
         return static_cast<int>(ch1 - ch2);
     }
 
-    return static_cast<int>(f.tolower(*citr1) - f.tolower(*citr2));
+    const char_type src1_final_char{citr1 != std::cend(src1) ? f.tolower(*citr1)
+                                                             : 0};
+    const char_type src2_final_char{citr2 != std::cend(src2) ? f.tolower(*citr2)
+                                                             : 0};
+
+    return static_cast<int>(src1_final_char - src2_final_char);
 
   } else {
     for (; citr1 != std::cend(src1) && citr2 != std::cend(src2);
          ++citr1, ++citr2) {
       const auto ch1{std::tolower(*citr1)};
-
       const auto ch2{std::tolower(*citr2)};
 
       if (ch1 != ch2)
         return static_cast<int>(ch1 - ch2);
     }
 
-    return static_cast<int>(std::tolower(*citr1) - std::tolower(*citr2));
+    const char_type src1_final_char{
+        citr1 != std::cend(src1) ? std::tolower(*citr1) : 0};
+    const char_type src2_final_char{
+        citr2 != std::cend(src2) ? std::tolower(*citr2) : 0};
+
+    return static_cast<int>(src1_final_char - src2_final_char);
   }
 }
 
@@ -2544,18 +2585,18 @@ size_t str_copy_n(
     str_copy_behavior copy_options = str_copy_behavior::disallow_partial_copy,
     size_t* required_dst_capacity = nullptr);
 
-template <typename StringType>
-StringType str_copy_n(const StringType& dst,
-                      const StringType& src,
-                      const size_t number_of_characters_to_copy) {
-  return src.substr(0, number_of_characters_to_copy);
-}
-
-template <typename StringType>
-void str_copy_n(StringType& dst,
-                const StringType& src,
-                const size_t number_of_characters_to_copy) {
-  dst.assign(src.substr(0, number_of_characters_to_copy));
+template <typename StringType,
+          typename = std::enable_if_t<is_valid_string_type_v<StringType> ||
+                                      is_valid_string_view_type_v<StringType>>>
+size_t str_copy_n(StringType& dst,
+                  const StringType& src,
+                  const size_t number_of_characters_to_copy) {
+  const size_t number_of_characters_copied{number_of_characters_to_copy >
+                                                   src.length()
+                                               ? src.length()
+                                               : number_of_characters_to_copy};
+  dst.assign(src.cbegin(src), src.cbegin() + number_of_characters_copied);
+  return number_of_characters_copied;
 }
 
 enum class str_append_behavior {
@@ -4492,16 +4533,20 @@ size_t str_replace_first(char32_t* dst,
                          const char* replace,
                          size_t* required_dst_capacity = nullptr);
 
-template <typename CharacterPointerType,
+template <typename T,
+          typename U,
           typename = std::enable_if_t<
-              std::is_array_v<CharacterPointerType> ||
-              std::is_same_v<CharacterPointerType, char*> ||
-              std::is_same_v<CharacterPointerType, wchar_t*> ||
-              std::is_same_v<CharacterPointerType, char16_t*> ||
-              std::is_same_v<CharacterPointerType, char32_t*>>>
-CharacterPointerType str_replace_nth(CharacterPointerType src,
-                                     const CharacterPointerType needle,
-                                     const size_t nth_index = 1) {
+              (is_non_const_char_array_type_v<T> ||
+               is_non_const_char_pointer_type_v<
+                   T>)&&(is_char_array_type_v<U> ||
+                         is_char_pointer_type_v<
+                             U>)&&(std::is_same_v<get_char_type_t<T>,
+                                                  get_char_type_t<U>>)>>
+get_char_type_t<T>* str_replace_nth(T src,
+                                    U needle,
+                                    const size_t nth_index = 1) {
+  using char_type = get_char_type_t<T>;
+
   return nullptr;
 }
 
