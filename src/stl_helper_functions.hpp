@@ -203,6 +203,111 @@ template <typename T, typename U>
 constexpr const bool has_find_member_function_v =
     has_find_member_function<T, U>::value;
 
+template <typename StreamType, typename T>
+using has_output_stream_operator_type_t =
+    decltype(std::declval<StreamType&>() << std::declval<const T&>());
+
+template <typename StreamType, typename T, typename = void>
+struct has_output_stream_operator : std::false_type {};
+
+template <typename StreamType, typename T>
+struct has_output_stream_operator<
+    StreamType,
+    T,
+    std::void_t<has_output_stream_operator_type_t<StreamType, T>>>
+    : std::true_type {};
+
+template <typename StreamType, typename T>
+constexpr const bool has_output_stream_operator_v =
+    has_output_stream_operator<StreamType, T>::value;
+
+template <typename T>
+using has_operator_dereference_t = decltype(std::declval<T&>().operator*());
+
+template <typename T, typename = void>
+struct has_operator_dereference : std::false_type {};
+
+template <typename T>
+struct has_operator_dereference<T, std::void_t<has_operator_dereference_t<T>>>
+    : std::true_type {};
+
+template <typename T>
+constexpr const bool has_operator_dereference_v =
+    has_operator_dereference<T>::value;
+
+template <typename T>
+using is_operator_equals_defined_t =
+    decltype(std::declval<T&>().operator!=(std::declval<T>()));
+
+template <typename T, typename = void>
+struct is_operator_equals_defined : std::false_type {};
+
+template <typename T>
+struct is_operator_equals_defined<T,
+                                  std::void_t<is_operator_equals_defined_t<T>>>
+    : std::true_type {};
+
+template <typename T>
+constexpr const bool is_operator_equals_defined_v =
+    is_operator_equals_defined<T>::value;
+
+template <typename T>
+using has_begin_member_function_t = decltype(std::declval<T&>().begin());
+
+template <typename T, typename = void>
+struct has_begin_member_function : std::false_type {};
+
+template <typename T>
+struct has_begin_member_function<T, std::void_t<has_begin_member_function_t<T>>>
+    : std::true_type {};
+
+template <typename T>
+constexpr const bool has_begin_member_function_v =
+    has_begin_member_function<T>::value;
+
+template <typename T>
+using has_end_member_function_t = decltype(std::declval<T&>().end());
+
+template <typename T, typename = void>
+struct has_end_member_function : std::false_type {};
+
+template <typename T>
+struct has_end_member_function<T, std::void_t<has_end_member_function_t<T>>>
+    : std::true_type {};
+
+template <typename T>
+constexpr const bool has_end_member_function_v =
+    has_end_member_function<T>::value;
+
+template <typename T>
+using has_cbegin_member_function_t = decltype(std::declval<T&>().cbegin());
+
+template <typename T, typename = void>
+struct has_cbegin_member_function : std::false_type {};
+
+template <typename T>
+struct has_cbegin_member_function<T,
+                                  std::void_t<has_cbegin_member_function_t<T>>>
+    : std::true_type {};
+
+template <typename T>
+constexpr const bool has_cbegin_member_function_v =
+    has_cbegin_member_function<T>::value;
+
+template <typename T>
+using has_cend_member_function_t = decltype(std::declval<T&>().cend());
+
+template <typename T, typename = void>
+struct has_cend_member_function : std::false_type {};
+
+template <typename T>
+struct has_cend_member_function<T, std::void_t<has_cend_member_function_t<T>>>
+    : std::true_type {};
+
+template <typename T>
+constexpr const bool has_cend_member_function_v =
+    has_cend_member_function<T>::value;
+
 template <typename T>
 void show_var_info(const T& arg, std::ostream& os) {
   os << "\nName: ";
@@ -4868,6 +4973,67 @@ enum class add_number_base_sign {
   append_in_upper_case_format
 };
 
+template <
+    typename T,
+    typename FormatStringType = const char*,
+    typename = std::enable_if_t<
+        is_valid_char_type_v<remove_all_decorations_t<FormatStringType>> &&
+        is_anyone_of_v<remove_all_decorations_t<FormatStringType>,
+                       char,
+                       wchar_t>>>
+std::basic_string<remove_all_decorations_t<FormatStringType>> num_to_str(
+    T&& number,
+    FormatStringType format_string = nullptr) {
+  using char_type = remove_all_decorations_t<FormatStringType>;
+  using data_type = remove_all_decorations_t<T>;
+
+  static char_type buffer[32]{};
+
+  if (nullptr != format_string) {
+    if constexpr (std::is_same_v<char_type, char>)
+      snprintf(buffer, 32, format_string, std::forward<T>(number));
+    else
+      snwprintf(buffer, 32, format_string, std::forward<T>(number));
+  }
+
+  if constexpr (std::is_integral_v<data_type>) {
+    if constexpr (std::is_signed_v<data_type>) {
+      const long long value = std::forward<T>(number);
+      if constexpr (std::is_same_v<char_type, char>)
+        snprintf(buffer, 32, "%lld", value);
+      else
+        snwprintf(buffer, 32, L"%lld", value);
+    } else {
+      const unsigned long long value = std::forward<T>(number);
+      if constexpr (std::is_same_v<char_type, char>)
+        snprintf(buffer, 32, "%llu", value);
+      else
+        snwprintf(buffer, 32, L"%llu", value);
+    }
+  } else if constexpr (std::is_floating_point_v<data_type>) {
+    if constexpr (std::is_same_v<float, data_type>) {
+      if constexpr (std::is_same_v<char_type, char>)
+        snprintf(buffer, 32, "%f", std::forward<T>(number));
+      else
+        snwprintf(buffer, 32, L"%f", std::forward<T>(number));
+    } else {
+      if constexpr (std::is_same_v<char_type, char>)
+        snprintf(buffer, 32, "%lf", std::forward<T>(number));
+      else
+        snwprintf(buffer, 32, L"%lf", std::forward<T>(number));
+    }
+  } else {
+    static char buffer[128]{};
+    snprintf(buffer, 128,
+             "Provided data type [%s] is not a valid primitive integral or "
+             "floating point number type!",
+             typeid(data_type).name());
+    throw std::invalid_argument{buffer};
+  }
+
+  return buffer;
+}
+
 std::u16string to_u16string(
     short number,
     number_base convert_to_number_base = number_base::decimal,
@@ -5063,72 +5229,67 @@ long double stold(const std::u32string& str,
                   bool ignore_leading_white_space_characters = true);
 
 template <
-    typename SourceType,
-    typename NeedleType,
+    typename T,
+    typename U,
     typename = std::enable_if_t<
-        (is_valid_string_type_v<SourceType> ||
-         is_char_array_type_v<SourceType> ||
+        (is_valid_string_type_v<T> || is_valid_string_view_type_v<T> ||
+         is_char_array_type_v<T> ||
          is_char_pointer_type_v<
-             SourceType>)&&(is_valid_string_type_v<NeedleType> ||
-                            is_char_array_type_v<NeedleType> ||
-                            is_char_pointer_type_v<NeedleType> ||
-                            is_valid_char_type_v<
-                                NeedleType>)&&(std::
-                                                   is_same_v<get_char_type_t<
-                                                                 SourceType>,
-                                                             get_char_type_t<
-                                                                 NeedleType>>)>>
-std::vector<get_char_type_t<SourceType>> split(
-    const SourceType& source,
-    const NeedleType& needle,
-    const size_t max_count = std::numeric_limits<size_t>::max()) {
-  using char_type = get_char_type_t<SourceType>;
+             T>)&&(is_valid_string_type_v<U> ||
+                   is_valid_string_view_type_v<U> || is_char_array_type_v<U> ||
+                   is_char_pointer_type_v<
+                       U>)&&(std::is_same_v<get_char_type_t<T>,
+                                            get_char_type_t<U>>)>>
+std::vector<std::basic_string<get_char_type_t<T>>> split(
+    const T& source,
+    const U& needle,
+    const bool split_on_whole_needle = true,
+    const bool ignore_empty_string = true,
+    size_t const max_count = std::basic_string<get_char_type_t<T>>::npos) {
+  using char_type = get_char_type_t<T>;
+  if constexpr (is_char_pointer_type_v<T>) {
+    if (nullptr == source)
+      return {};
+  }
+  const std::basic_string_view<char_type> sv{source};
+  const size_t source_len{sv.length()};
+  if (0U == source_len)
+    return {};
 
-  std::vector<char_type> parts{};
-  std::basic_string_view<char_type> source_str_view{};
+  const std::basic_string_view<char_type> nv{needle};
+  const size_t needle_len{split_on_whole_needle ? nv.length() : 1U};
 
-  if constexpr (is_valid_string_type_v<SourceType>)
-    source_str_view.assign(source.c_str());
-  else if constexpr (is_char_array_type_v<SourceType> ||
-                     is_char_pointer_type_v<SourceType>)
-    source_str_view.assign(source);
-
-  std::basic_string_view<char_type> needle_str_view{};
-  char_type needle_buffer[2]{};
-
-  if constexpr (is_valid_string_type_v<NeedleType>)
-    needle_str_view.assign(needle.c_str());
-  else if constexpr (is_char_array_type_v<NeedleType> ||
-                     is_char_pointer_type_v<NeedleType>)
-    needle_str_view.assign(needle);
-  else if constexpr (is_valid_char_type_v<NeedleType>) {
-    needle_buffer[0] = needle;
-    needle_str_view.assign(needle_buffer, 1);
+  if (0U == needle_len) {
+    const size_t upper_limit{max_count < source_len ? max_count : source_len};
+    std::vector<std::basic_string<char_type>> parts(upper_limit);
+    for (size_t i{}; i < upper_limit; i++)
+      parts[i].assign({1, sv[i]});
+    return parts;
   }
 
-  const size_t source_len{source_str_view.length()};
-  const size_t needle_len{needle_str_view.length()};
-
-  if (0u == source_len || 0u == needle_len)
-    return parts;
-
+  std::vector<std::basic_string<char_type>> parts{};
   size_t number_of_parts{}, prev{};
 
   while (true) {
-    const size_t current{source_str_view.find(needle_str_view, prev)};
+    const size_t current = split_on_whole_needle
+                               ? sv.find(nv.data(), prev)
+                               : sv.find_first_of(nv.data(), prev);
 
     if (std::basic_string<char_type>::npos == current)
       break;
 
-    number_of_parts++;
-
-    if (std::numeric_limits<size_t>::max() != max_count &&
+    if (std::basic_string<char_type>::npos != max_count &&
         parts.size() == max_count)
       break;
 
-    if (current - prev > 0)
-      parts.emplace_back(std::cbegin(source_str_view) + prev,
-                         std::cbegin(source_str_view) + current);
+    if (current - prev > 0 || !ignore_empty_string) {
+      if (current - prev > 0)
+        parts.emplace_back(cbegin(sv) + prev, cbegin(sv) + current);
+      else if (!ignore_empty_string)
+        parts.emplace_back();
+
+      number_of_parts++;
+    }
 
     prev = current + needle_len;
 
@@ -5136,69 +5297,98 @@ std::vector<get_char_type_t<SourceType>> split(
       break;
   }
 
-  if (prev < source_len) {
-    if (std::numeric_limits<size_t>::max() == max_count)
-      parts.emplace_back(std::cbegin(source_str_view) + prev);
-
-    else if (parts.size() < max_count)
-      parts.emplace_back(std::cbegin(source_str_view) + prev);
-  }
+  if (prev < source_len && (std::basic_string<char_type>::npos == max_count ||
+                            parts.size() < max_count))
+    parts.emplace_back(cbegin(sv) + prev, cend(sv));
+  else if (!ignore_empty_string &&
+           (std::basic_string<char_type>::npos == max_count ||
+            parts.size() < max_count))
+    parts.emplace_back();
 
   return parts;
 }
 
-template <typename IteratorType,
-          typename NeedleType,
-          typename = std::enable_if_t<is_valid_char_type_v<
-              typename std::iterator_traits<IteratorType>::value_type>>>
+template <
+    typename IteratorType,
+    typename NeedleType,
+    typename = std::enable_if_t<
+        is_valid_char_type_v<
+            typename std::iterator_traits<IteratorType>::value_type> &&
+        std::is_same_v<typename std::iterator_traits<IteratorType>::value_type,
+                       get_char_type_t<NeedleType>>>>
 std::vector<
     std::basic_string<typename std::iterator_traits<IteratorType>::value_type>>
 split(IteratorType first,
       IteratorType last,
       const NeedleType& needle,
+      const bool split_on_whole_needle = true,
+      const bool ignore_empty_string = true,
       const size_t max_count = std::numeric_limits<size_t>::max()) {
   using char_type = typename std::iterator_traits<IteratorType>::value_type;
-
   std::vector<std::basic_string<char_type>> parts{};
 
   if (first == last)
     return parts;
 
-  std::basic_string_view<char_type> source{first, std::distance(first, last)};
+  std::basic_string_view<char_type> sv{first, std::distance(first, last)};
 
-  const size_t source_len{source.length()};
+  const size_t source_len{sv.length()};
+
+  if (0u == source_len)
+    return parts;
+
+  std::basic_string<char_type> needle_str{};
+  std::basic_string_view<char_type> nv{};
   size_t needle_len{};
 
   if constexpr (is_char_array_type_v<NeedleType> ||
-                is_char_pointer_type_v<NeedleType>)
+                is_char_pointer_type_v<NeedleType>) {
     needle_len = len(needle);
-  else if constexpr (is_valid_string_type_v<NeedleType>)
+    nv.assign(needle, needle_len);
+  } else if constexpr (is_valid_string_type_v<NeedleType> ||
+                       is_valid_string_view_type_v<NeedleType>) {
+    nv.assign(needle);
     needle_len = needle.length();
-  else if constexpr (is_valid_char_type_v<NeedleType>)
-    needle_len = 1;
-  else
-    return parts;
 
-  if (0u == source_len || 0u == needle_len)
+  } else if constexpr (is_valid_char_type_v<NeedleType>) {
+    needle_str.assign(1, needle);
+    nv.assign(needle_str);
+    needle_len = 1;
+  }
+
+  if (0U == needle_len) {
+    const size_t upper_limit{max_count < source_len ? max_count : source_len};
+    std::vector<std::basic_string<char_type>> parts(upper_limit);
+    for (size_t i{}; i < upper_limit; i++)
+      parts[i].assign({1, sv[i]});
     return parts;
+  }
+
+  if (!split_on_whole_needle)
+    needle_len = 1U;
 
   size_t number_of_parts{}, prev{};
 
   while (true) {
-    const size_t current{source.find(needle, prev)};
+    const size_t current = split_on_whole_needle
+                               ? sv.find(nv.data(), prev)
+                               : sv.find_first_of(nv.data(), prev);
 
     if (std::basic_string<char_type>::npos == current)
       break;
 
-    number_of_parts++;
-
-    if (std::numeric_limits<size_t>::max() != max_count &&
+    if (std::basic_string<char_type>::npos != max_count &&
         parts.size() == max_count)
       break;
 
-    if (current - prev > 0)
-      parts.emplace_back(std::cbegin(source) + prev,
-                         std::cbegin(source) + current);
+    if (current - prev > 0 || !ignore_empty_string) {
+      if (current - prev > 0)
+        parts.emplace_back(cbegin(sv) + prev, cbegin(sv) + current);
+      else if (!ignore_empty_string)
+        parts.emplace_back();
+
+      number_of_parts++;
+    }
 
     prev = current + needle_len;
 
@@ -5206,222 +5396,86 @@ split(IteratorType first,
       break;
   }
 
-  if (prev < source_len) {
-    if (std::numeric_limits<size_t>::max() == max_count)
-      parts.emplace_back(std::cbegin(source) + prev);
-
-    else if (parts.size() < max_count)
-      parts.emplace_back(std::cbegin(source) + prev);
-  }
+  if (prev < source_len && (std::basic_string<char_type>::npos == max_count ||
+                            parts.size() < max_count))
+    parts.emplace_back(cbegin(sv) + prev, cend(sv));
+  else if (!ignore_empty_string &&
+           (std::basic_string<char_type>::npos == max_count ||
+            parts.size() < max_count))
+    parts.emplace_back();
 
   return parts;
 }
 
-template <typename T>
-std::string join_helper(const std::string&, T&& arg) {
-  std::ostringstream oss{};
-
-  oss << arg;
-
+template <typename T,
+          typename U,
+          typename = std::enable_if_t<
+              is_char_array_type_v<T> || is_char_pointer_type_v<T> ||
+              is_valid_string_type_v<T> || is_valid_string_view_type_v<T>>>
+std::basic_string<get_char_type_t<T>> join_helper(const T&, U&& arg) {
+  using char_type = get_char_type_t<T>;
+  std::basic_ostringstream<char_type> oss{};
+  oss << std::forward<U>(arg);
   return oss.str();
 }
 
-template <typename T, typename... Args>
-std::string join_helper(const std::string& needle, T&& arg, Args&&... args) {
-  std::ostringstream oss{};
-
-  oss << arg << needle << join_helper(needle, args...);
-
+template <typename T,
+          typename U,
+          typename... Args,
+          typename = std::enable_if_t<
+              is_char_array_type_v<T> || is_char_pointer_type_v<T> ||
+              is_valid_string_type_v<T> || is_valid_string_view_type_v<T>>>
+std::basic_string<get_char_type_t<T>> join_helper(const T& needle,
+                                                  U&& arg,
+                                                  Args&&... args) {
+  using char_type = get_char_type_t<T>;
+  std::basic_ostringstream<char_type> oss{};
+  oss << std::forward<U>(arg) << needle
+      << join_helper(needle, std::forward<Args>(args)...);
   return oss.str();
 }
 
-template <typename... Args>
-std::string join(const std::string& needle, Args&&... args) {
-  std::string result{join_helper(needle, std::forward<Args>(args)...)};
-
+template <typename T,
+          typename... Args,
+          typename = std::enable_if_t<
+              is_char_array_type_v<T> || is_char_pointer_type_v<T> ||
+              is_valid_string_type_v<T> || is_valid_string_view_type_v<T>>>
+std::basic_string<get_char_type_t<T>> join(const T& needle, Args&&... args) {
+  using char_type = get_char_type_t<T>;
+  std::basic_string<char_type> result{
+      join_helper(needle, std::forward<Args>(args)...)};
   return result;
 }
 
-template <typename T>
-std::wstring join_helper(const std::wstring&, T&& arg) {
-  std::wostringstream woss{};
-
-  woss << arg;
-
-  return woss.str();
-}
-
-template <typename T, typename... _Args>
-std::wstring join_helper(const std::wstring& needle, T&& arg, _Args&&... args) {
-  std::wostringstream woss{};
-
-  woss << arg << needle << join_helper(needle, args...);
-
-  return woss.str();
-}
-
-template <typename... _Args>
-std::wstring join(const std::wstring& needle, _Args&&... args) {
-  std::wstring result{join_helper(needle, std::forward<_Args>(args)...)};
-
-  return result;
-}
-
-using u16ostringstream = std::basic_ostringstream<char16_t>;
-using u32ostringstream = std::basic_ostringstream<char32_t>;
-
-template <typename T>
-std::u16string join_helper(const std::u16string&, T&& arg) {
-  u16ostringstream u16oss{};
-
-  u16oss << arg;
-
-  return u16oss.str();
-}
-
-template <typename T, typename... _Args>
-std::u16string join_helper(const std::u16string& needle,
-                           T&& arg,
-                           _Args&&... args) {
-  std::basic_ostringstream<char16_t> u16oss{};
-
-  u16oss << arg << needle << join_helper(needle, args...);
-
-  return u16oss.str();
-}
-
-template <typename... _Args>
-std::u16string join(const std::u16string& needle, _Args&&... args) {
-  std::u16string result{join_helper(needle, std::forward<_Args>(args)...)};
-
-  return result;
-}
-
-template <typename T>
-std::u32string join_helper(const std::u32string&, T&& arg) {
-  u32ostringstream u32oss{};
-
-  u32oss << arg;
-
-  return u32oss.str();
-}
-
-template <typename T, typename... _Args>
-std::u32string join_helper(const std::u32string& needle,
-                           T&& arg,
-                           _Args&&... args) {
-  std::basic_ostringstream<char32_t> u32oss{};
-
-  u32oss << arg << needle << join_helper(needle, args...);
-
-  return u32oss.str();
-}
-
-template <typename... _Args>
-std::u32string join(const std::u32string& needle, _Args&&... args) {
-  std::u32string result{join_helper(needle, std::forward<_Args>(args)...)};
-
-  return result;
-}
-
-template <typename StringType,
+template <typename T,
           typename ContainerType,
-          std::enable_if_t<std::is_same_v<StringType, std::string> ||
-                           std::is_same_v<StringType, std::wstring> ||
-                           std::is_same_v<StringType, std::u16string> ||
-                           std::is_same_v<StringType, std::u32string>>>
-std::string str_join(const StringType& needle, const ContainerType& items) {
-  using char_type = typename StringType::value_type;
+          typename = std::enable_if_t<
+              (is_char_pointer_type_v<T> || is_char_array_type_v<T> ||
+               is_valid_string_type_v<T> ||
+               is_valid_string_view_type_v<
+                   T>)&&has_cbegin_member_function_v<ContainerType> &&
+              has_cend_member_function_v<ContainerType> &&
+              has_output_stream_operator_v<std::basic_ostream<char>,
+                                           typename ContainerType::value_type>>>
+std::basic_string<get_char_type_t<T>> str_join(const T& needle,
+                                               const ContainerType& items) {
+  using char_type = get_char_type_t<T>;
   std::basic_ostringstream<char_type> oss{};
 
-  auto start = std::cbegin(items);
-
-  const auto last = std::cend(items);
+  auto start = items.cbegin(items);
+  const auto last = items.cend(items);
 
   while (start != last) {
     oss << *start << needle;
-
     ++start;
   }
 
-  StringType result{oss.str()};
-
+  std::basic_string<char_type> result{oss.str()};
   const size_t needle_len{needle.length()};
-
   result.erase(result.length() - needle_len, needle_len);
 
   return result;
 }
 
-template <typename _Container>
-std::wstring str_join(const std::wstring& needle, const _Container& items) {
-  std::wostringstream woss{};
-
-  auto start = std::cbegin(items);
-
-  const auto last = std::cend(items);
-
-  while (start != last) {
-    woss << *start << needle;
-
-    ++start;
-  }
-
-  std::wstring result{woss.str()};
-
-  const size_t needle_len{needle.length()};
-
-  result.erase(result.length() - needle_len, needle_len);
-
-  return result;
-}
-
-template <typename _Container>
-std::u16string str_join(const std::u16string& needle, const _Container& items) {
-  std::basic_ostringstream<char16_t> u16oss{};
-
-  auto start = std::cbegin(items);
-
-  const auto last = std::cend(items);
-
-  while (start != last) {
-    u16oss << *start << needle;
-
-    ++start;
-  }
-
-  std::u16string result{u16oss.str()};
-
-  const size_t needle_len{needle.length()};
-
-  result.erase(result.length() - needle_len, needle_len);
-
-  return result;
-}
-
-template <typename _Container>
-std::u32string str_join(const std::u32string& needle, const _Container& items) {
-  std::basic_ostringstream<char32_t> u32oss{};
-
-  auto start = std::cbegin(items);
-
-  const auto last = std::cend(items);
-
-  while (start != last) {
-    u32oss << *start << needle;
-
-    ++start;
-  }
-
-  std::u32string result{u32oss.str()};
-
-  const size_t needle_len{needle.length()};
-
-  result.erase(result.length() - needle_len, needle_len);
-
-  return result;
-}
 }  // namespace experimental
 }  // namespace cpp
-
-#endif /* _STL_HELPER_FUNCTIONS_H_ */
