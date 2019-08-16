@@ -19,6 +19,7 @@
 #include <locale>
 #include <map>
 #include <memory>
+#include <optional>
 #include <queue>
 #include <set>
 #include <sstream>
@@ -477,23 +478,14 @@ constexpr inline BiDirIter2 copy_backward(BiDirIter1 src_first,
   return dst_last;
 }
 
-template <typename CharType,
-          typename = std::enable_if_t<
-              is_anyone_of_v<CharType, char, wchar_t, char16_t, char32_t>>>
-bool is_ws_char(CharType ch) {
-  switch (ch) {
-    case static_cast<CharType>(' '):
-    case static_cast<CharType>('\n'):
-    case static_cast<CharType>('\r'):
-    case static_cast<CharType>('\t'):
-    case static_cast<CharType>('\v'):
-    case static_cast<CharType>('\f'):
-      return true;
+template <typename T>
+struct is_valid_char_type {
+  static constexpr const bool value =
+      is_anyone_of_v<std::remove_cv_t<T>, char, wchar_t, char16_t, char32_t>;
+};
 
-    default:
-      return false;
-  }
-}
+template <typename T>
+constexpr const bool is_valid_char_type_v = is_valid_char_type<T>::value;
 
 template <typename CharType>
 struct default_whitespace_chars {};
@@ -522,14 +514,22 @@ template <typename CharType>
 constexpr const CharType* default_whitespace_chars_v =
     default_whitespace_chars<CharType>::value;
 
-template <typename T>
-struct is_valid_char_type {
-  static constexpr const bool value =
-      is_anyone_of_v<std::remove_cv_t<T>, char, wchar_t, char16_t, char32_t>;
-};
+template <typename CharType,
+          typename = std::enable_if_t<is_valid_char_type_v<CharType>>>
+bool is_ws_char(const CharType ch) {
+  switch (ch) {
+    case static_cast<CharType>(' '):
+    case static_cast<CharType>('\n'):
+    case static_cast<CharType>('\r'):
+    case static_cast<CharType>('\t'):
+    case static_cast<CharType>('\v'):
+    case static_cast<CharType>('\f'):
+      return true;
 
-template <typename T>
-constexpr const bool is_valid_char_type_v = is_valid_char_type<T>::value;
+    default:
+      return false;
+  }
+}
 
 template <typename T>
 struct is_non_const_char_pointer_type {
@@ -4912,65 +4912,138 @@ strstri(const T& src, const U& needle, const std::locale& loc = std::locale{}) {
   return src_lc.find(needle_lc);
 }
 
-template <typename StringType>
-StringType to_lower_case(const StringType& str,
-                         const std::locale& loc = std::locale{}) {
-  using char_type = typename StringType::value_type;
+template <typename T,
+          typename = std::enable_if_t<
+              is_char_array_type_v<T> || is_char_pointer_type_v<T> ||
+              is_valid_string_type_v<T> || is_valid_string_view_type_v<T>>>
+std::basic_string<get_char_type_t<T>> to_lower_case(
+    const T& str,
+    const std::locale& loc = std::locale{}) {
+  using char_type = get_char_type_t<T>;
 
-  StringType final_str{str};
+  if constexpr (is_char_pointer_type_v<T>) {
+    if (nullptr == str)
+      return {};
+  }
 
-  transform(std::begin(str), std::end(str), std::begin(final_str),
-            [&loc](const char_type ch) { return std::tolower(ch, loc); });
+  std::basic_string<char_type> str_lc{str};
 
-  return final_str;
+  if (std::has_facet<std::ctype<char_type>>(loc)) {
+    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
+    std::transform(std::cbegin(str_lc), std::cend(str_lc), std::begin(str_lc),
+                   [&f](const auto ch) { return f.tolower(ch); });
+
+  } else {
+    std::transform(std::cbegin(str_lc), std::cend(str_lc), std::begin(str_lc),
+                   [](const auto ch) { return std::tolower(ch); });
+  }
+
+  return str_lc;
 }
 
-template <typename StringType>
-void to_lower_case_in_place(StringType& str,
-                            const std::locale& loc = std::locale{}) {
-  for (auto& ch : str)
-    ch = tolower(ch, loc);
+template <typename T,
+          typename = std::enable_if_t<is_non_const_char_array_type_v<T> ||
+                                      is_non_const_char_pointer_type_v<T> ||
+                                      is_valid_string_type_v<T>>>
+void to_lower_case_in_place(T& str, const std::locale& loc = std::locale{}) {
+  using char_type = get_char_type_t<T>;
+
+  size_t str_len{len(str)};
+  char_type* first{&str[0]};
+
+  if (std::has_facet<std::ctype<char_type>>(loc)) {
+    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
+    std::transform(first, first + str_len, first,
+                   [&f](const auto ch) { return f.tolower(ch); });
+
+  } else {
+    std::transform(first, first + str_len, first,
+                   [](const auto ch) { return std::tolower(ch); });
+  }
 }
 
-template <typename StringType>
-StringType to_upper_case(const StringType& str,
-                         const std::locale& loc = std::locale{}) {
-  using char_type = typename StringType::value_type;
+template <typename T,
+          typename = std::enable_if_t<
+              is_char_array_type_v<T> || is_char_pointer_type_v<T> ||
+              is_valid_string_type_v<T> || is_valid_string_view_type_v<T>>>
+std::basic_string<get_char_type_t<T>> to_upper_case(
+    const T& str,
+    const std::locale& loc = std::locale{}) {
+  using char_type = get_char_type_t<T>;
 
-  StringType final_str{str};
+  if constexpr (is_char_pointer_type_v<T>) {
+    if (nullptr == str)
+      return {};
+  }
 
-  transform(std::begin(str), std::end(str), std::begin(final_str),
-            [&loc](const char_type ch) { return std::toupper(ch, loc); });
+  std::basic_string<char_type> str_lc{str};
 
-  return final_str;
+  if (std::has_facet<std::ctype<char_type>>(loc)) {
+    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
+    std::transform(std::cbegin(str_lc), std::cend(str_lc), std::begin(str_lc),
+                   [&f](const auto ch) { return f.toupper(ch); });
+
+  } else {
+    std::transform(std::cbegin(str_lc), std::cend(str_lc), std::begin(str_lc),
+                   [](const auto ch) { return std::toupper(ch); });
+  }
+
+  return str_lc;
 }
 
-template <typename StringType>
-void to_upper_case_in_place(StringType& str,
-                            const std::locale& loc = std::locale{}) {
-  for (auto& ch : str)
-    ch = toupper(ch, loc);
+template <typename T,
+          typename = std::enable_if_t<is_non_const_char_array_type_v<T> ||
+                                      is_non_const_char_pointer_type_v<T> ||
+                                      is_valid_string_type_v<T>>>
+void to_upper_case_in_place(T& str, const std::locale& loc = std::locale{}) {
+  using char_type = get_char_type_t<T>;
+
+  size_t str_len{len(str)};
+  char_type* first{&str[0]};
+
+  if (std::has_facet<std::ctype<char_type>>(loc)) {
+    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
+    std::transform(first, first + str_len, first,
+                   [&f](const auto ch) { return f.toupper(ch); });
+
+  } else {
+    std::transform(first, first + str_len, first,
+                   [](const auto ch) { return std::toupper(ch); });
+  }
 }
 
-template <typename StringType>
-StringType to_title_case(const StringType& str,
-                         const std::locale& loc = std::locale{}) {
-  using char_type = typename StringType::value_type;
+template <typename T,
+          typename = std::enable_if_t<
+              is_char_array_type_v<T> || is_char_pointer_type_v<T> ||
+              is_valid_string_type_v<T> || is_valid_string_view_type_v<T>>>
+std::basic_string<get_char_type_t<T>> to_title_case(
+    const T& str,
+    const std::locale& loc = std::locale{}) {
+  using char_type = get_char_type_t<T>;
 
-  StringType final_str{str};
+  std::basic_string<char_type> final_str{str};
 
-  auto is_new_sentence{true};
+  bool is_new_sentence{true};
+
+  std::optional<decltype(
+      std::use_facet<std::ctype<char_type>>(std::declval<std::locale>()))>
+      f{};
+
+  if (std::has_facet<std::ctype<char_type>>(loc))
+    f = std::use_facet<std::ctype<char_type>>(loc);
 
   for (auto& ch : final_str) {
-    if (static_cast<char_type>('\n') == ch) {
+    if (static_cast<char_type>('.') == ch) {
       is_new_sentence = true;
       continue;
     }
 
-    if (is_new_sentence && !is_ws_char(ch))  // if (is_new_sentence &&
-                                             // is_alphanum_char(ch)) { ... }
-    {
-      ch = toupper(ch, loc);
+    if (is_new_sentence && !is_ws_char(ch)) {
+      if (f.has_value())
+        ch = f.toupper(ch);
+      else
+        ch = std::toupper(ch);
+
       is_new_sentence = false;
     }
   }
@@ -4978,23 +5051,36 @@ StringType to_title_case(const StringType& str,
   return final_str;
 }
 
-template <typename StringType>
-void to_title_case_in_place(StringType& str,
-                            const std::locale& loc = std::locale{}) {
-  using char_type = typename StringType::value_type;
+template <typename T,
+          typename = std::enable_if_t<is_char_array_type_v<T> ||
+                                      is_char_pointer_type_v<T> ||
+                                      is_valid_string_type_v<T>>>
+void to_title_case_in_place(T& str, const std::locale& loc = std::locale{}) {
+  using char_type = get_char_type_t<T>;
+  std::optional<decltype(
+      std::use_facet<std::ctype<char_type>>(std::declval<std::locale>()))>
+      f{};
 
-  auto is_new_sentence{true};
+  if (std::has_facet<std::ctype<char_type>>(loc))
+    f = std::use_facet<std::ctype<char_type>>(loc);
 
-  for (auto& ch : str) {
-    if (static_cast<char_type>('\n') == ch) {
+  size_t str_len{len(str)};
+  char_type* first{&str[0]};
+  bool is_new_sentence{true};
+
+  for (char_type *first{&str[0]}, last{&str[0] + str_len}; first != last;
+       ++first) {
+    if (static_cast<char_type>('.') == *first) {
       is_new_sentence = true;
       continue;
     }
 
-    if (is_new_sentence && !is_ws_char(ch))  // if (is_new_sentence &&
-                                             // is_alphanum_char(ch)) { ... }
-    {
-      ch = toupper(ch, loc);
+    if (is_new_sentence && !is_ws_char(*first)) {
+      if (f.has_value())
+        *first = f.toupper(*first);
+      else
+        *first = std::toupper(*first);
+
       is_new_sentence = false;
     }
   }
