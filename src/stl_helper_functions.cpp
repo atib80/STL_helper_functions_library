@@ -3496,51 +3496,48 @@ u16string to_u16string(unsigned long long number,
       }
 
       return number_str;
-
-    default:
-
-      return number_str;
   }
 }
 
-u16string to_u16string(float number, const int number_of_decimal_digits) {
-  char buffer[128];
+u16string to_u16string(float number, const unsigned number_of_decimal_digits) {
+  wchar_t format_str_buffer[32], buffer[32];
+  snwprintf(format_str_buffer, 32, L"%%.%uf", number_of_decimal_digits);
 
-  auto const count =
-      StringCchPrintfA(buffer, 128, "%.*f", number_of_decimal_digits, number);
+  auto const count = snwprintf(buffer, 32, format_str_buffer, number);
 
   u16string number_str{};
 
   transform(buffer, buffer + count, back_inserter(number_str),
-            [&](const auto ch) { return static_cast<char16_t>(ch); });
+            [](const auto ch) { return static_cast<char16_t>(ch); });
 
   return number_str;
 }
 
-u16string to_u16string(double number, const int number_of_decimal_digits) {
-  char buffer[128];
+u16string to_u16string(double number, const unsigned number_of_decimal_digits) {
+  wchar_t format_str_buffer[32], buffer[32];
+  snwprintf(format_str_buffer, 32, L"%%.%ulf", number_of_decimal_digits);
 
-  auto const count =
-      StringCchPrintfA(buffer, 128, "%.*lf", number_of_decimal_digits, number);
+  auto const count = snwprintf(buffer, 32, format_str_buffer, number);
 
   u16string number_str{};
 
   transform(buffer, buffer + count, back_inserter(number_str),
-            [&](const auto ch) { return static_cast<char16_t>(ch); });
+            [](const auto ch) { return static_cast<char16_t>(ch); });
 
   return number_str;
 }
 
-u16string to_u16string(long double number, const int number_of_decimal_digits) {
-  char buffer[128];
+u16string to_u16string(long double number,
+                       const unsigned number_of_decimal_digits) {
+  wchar_t format_str_buffer[32], buffer[32];
+  snwprintf(format_str_buffer, 32, L"%%.%uLf", number_of_decimal_digits);
 
-  auto const count =
-      StringCchPrintfA(buffer, 128, "%.*Lf", number_of_decimal_digits, number);
+  auto const count = snwprintf(buffer, 32, format_str_buffer, number);
 
   u16string number_str{};
 
   transform(buffer, buffer + count, back_inserter(number_str),
-            [&](const auto ch) { return static_cast<char16_t>(ch); });
+            [](const auto ch) { return static_cast<char16_t>(ch); });
 
   return number_str;
 }
@@ -4560,10 +4557,6 @@ u32string to_u32string(long long number,
       }
 
       return number_str;
-
-    default:
-
-      return number_str;
   }
 }
 
@@ -4585,9 +4578,6 @@ u32string to_u32string(unsigned long long number,
 
       case number_base::hexadecimal:
         return 16;
-
-      default:
-        return 10;
     }
   }());
 
@@ -4706,51 +4696,48 @@ u32string to_u32string(unsigned long long number,
       }
 
       return number_str;
-
-    default:
-
-      return number_str;
   }
 }
 
-u32string to_u32string(float number, const int number_of_decimal_digits) {
-  char buffer[128];
+u32string to_u32string(float number, const unsigned number_of_decimal_digits) {
+  wchar_t format_str_buffer[32], buffer[32];
+  snwprintf(format_str_buffer, 32, L"%%.%uf", number_of_decimal_digits);
 
-  auto const count =
-      StringCchPrintfA(buffer, 128, "%.*f", number_of_decimal_digits, number);
+  auto const count = snwprintf(buffer, 32, format_str_buffer, number);
 
   u32string number_str{};
 
   transform(buffer, buffer + count, back_inserter(number_str),
-            [&](const auto ch) { return static_cast<char32_t>(ch); });
+            [](const auto ch) { return static_cast<char32_t>(ch); });
 
   return number_str;
 }
 
-u32string to_u32string(double number, const int number_of_decimal_digits) {
-  char buffer[128];
+u32string to_u32string(double number, const unsigned number_of_decimal_digits) {
+  wchar_t format_str_buffer[32], buffer[32];
+  snwprintf(format_str_buffer, 32, L"%%.%ulf", number_of_decimal_digits);
 
-  auto const count =
-      StringCchPrintfA(buffer, 128, "%.*lf", number_of_decimal_digits, number);
+  auto const count = snwprintf(buffer, 32, format_str_buffer, number);
 
   u32string number_str{};
 
   transform(buffer, buffer + count, back_inserter(number_str),
-            [&](const auto ch) { return static_cast<char32_t>(ch); });
+            [](const auto ch) { return static_cast<char32_t>(ch); });
 
   return number_str;
 }
 
-u32string to_u32string(long double number, const int number_of_decimal_digits) {
-  char buffer[128];
+u32string to_u32string(long double number,
+                       const unsigned number_of_decimal_digits) {
+  wchar_t format_str_buffer[32], buffer[32];
+  snwprintf(format_str_buffer, 32, L"%%.%uLf", number_of_decimal_digits);
 
-  auto const count =
-      StringCchPrintfA(buffer, 128, "%.*Lf", number_of_decimal_digits, number);
+  auto const count = snwprintf(buffer, 32, format_str_buffer, number);
 
   u32string number_str{};
 
   transform(buffer, buffer + count, back_inserter(number_str),
-            [&](const auto ch) { return static_cast<char32_t>(ch); });
+            [](const auto ch) { return static_cast<char32_t>(ch); });
 
   return number_str;
 }

@@ -205,7 +205,7 @@ constexpr const bool has_find_member_function_v =
 
 template <typename StreamType, typename T>
 using has_output_stream_operator_type_t =
-    decltype(std::declval<StreamType&>() << std::declval<const T&>());
+    decltype(std::declval<StreamType&>() << std::declval<T>());
 
 template <typename StreamType, typename T, typename = void>
 struct has_output_stream_operator : std::false_type {};
@@ -4663,7 +4663,8 @@ template <typename T,
 get_char_type_t<T>* str_replace_nth(T src,
                                     U needle,
                                     const size_t nth_index = 1) {
-  using char_type = get_char_type_t<T>;
+  // using char_type = get_char_type_t<T>;
+  unused_args(src, needle, nth_index);
 
   return nullptr;
 }
@@ -4677,6 +4678,7 @@ template <typename CharacterPointerType,
               std::is_same_v<CharacterPointerType, char32_t*>>>
 CharacterPointerType str_replace_last(CharacterPointerType src,
                                       const CharacterPointerType needle) {
+  unused_args(src, needle);
   return nullptr;
 }
 
@@ -4689,6 +4691,7 @@ template <typename CharacterPointerType,
               std::is_same_v<CharacterPointerType, char32_t*>>>
 CharacterPointerType str_replace_all(CharacterPointerType src,
                                      const CharacterPointerType needle) {
+  unused_args(src, needle);
   return nullptr;
 }
 
@@ -4703,6 +4706,7 @@ CharacterPointerType str_replace_first_n(
     CharacterPointerType src,
     const CharacterPointerType needle,
     const size_t number_of_copies_to_replace = 1) {
+  unused_args(src, needle, number_of_copies_to_replace);
   return nullptr;
 }
 
@@ -4717,6 +4721,7 @@ CharacterPointerType str_replace_last_n(
     CharacterPointerType src,
     const CharacterPointerType needle,
     const size_t number_of_copies_to_replace = 1) {
+  unused_args(src, needle, number_of_copies_to_replace);
   return nullptr;
 }
 
@@ -4729,6 +4734,7 @@ template <typename CharacterPointerType,
               std::is_same_v<CharacterPointerType, char32_t*>>>
 CharacterPointerType str_erase_first(CharacterPointerType src,
                                      const CharacterPointerType needle) {
+  unused_args(src, needle);
   return nullptr;
 }
 
@@ -4741,6 +4747,7 @@ template <typename CharacterPointerType,
               std::is_same_v<CharacterPointerType, char32_t*>>>
 CharacterPointerType str_erase_nth(CharacterPointerType src,
                                    const CharacterPointerType needle) {
+  unused_args(src, needle);
   return nullptr;
 }
 
@@ -4753,6 +4760,7 @@ template <typename CharacterPointerType,
               std::is_same_v<CharacterPointerType, char32_t*>>>
 CharacterPointerType str_erase_last(CharacterPointerType src,
                                     const CharacterPointerType needle) {
+  unused_args(src, needle);
   return nullptr;
 }
 
@@ -4765,6 +4773,7 @@ template <typename CharacterPointerType,
               std::is_same_v<CharacterPointerType, char32_t*>>>
 CharacterPointerType str_erase_all(CharacterPointerType src,
                                    const CharacterPointerType needle) {
+  unused_args(src, needle);
   return nullptr;
 }
 
@@ -4778,6 +4787,7 @@ template <typename CharacterPointerType,
 CharacterPointerType str_erase_first_n(CharacterPointerType src,
                                        const CharacterPointerType needle,
                                        const size_t number_of_copies_to_erase) {
+  unused_args(src, needle, number_of_copies_to_erase);
   return nullptr;
 }
 
@@ -4791,6 +4801,7 @@ template <typename CharacterPointerType,
 CharacterPointerType str_erase_last_n(CharacterPointerType src,
                                       const CharacterPointerType needle,
                                       const size_t number_of_copies_to_erase) {
+  unused_args(src, needle, number_of_copies_to_erase);
   return nullptr;
 }
 
@@ -5545,27 +5556,63 @@ std::basic_string<get_char_type_t<T>> join(const T& needle, Args&&... args) {
   return result;
 }
 
-template <typename T,
-          typename ContainerType,
+template <typename ContainerType,
+          typename NeedleType,
           typename = std::enable_if_t<
-              (is_char_pointer_type_v<T> || is_char_array_type_v<T> ||
-               is_valid_string_type_v<T> ||
+              (is_char_pointer_type_v<NeedleType> ||
+               is_char_array_type_v<NeedleType> ||
+               is_valid_string_type_v<NeedleType> ||
                is_valid_string_view_type_v<
-                   T>)&&has_cbegin_member_function_v<ContainerType> &&
+                   NeedleType>)&&has_cbegin_member_function_v<ContainerType> &&
               has_cend_member_function_v<ContainerType> &&
-              has_output_stream_operator_v<std::basic_ostream<char>,
-                                           typename ContainerType::value_type>>>
-std::basic_string<get_char_type_t<T>> str_join(const T& needle,
-                                               const ContainerType& items) {
-  using char_type = get_char_type_t<T>;
+              has_output_stream_operator_v<
+                  std::basic_ostream<get_char_type_t<NeedleType>>,
+                  typename ContainerType::value_type>>>
+std::basic_string<get_char_type_t<NeedleType>> str_join(
+    const ContainerType& items,
+    const NeedleType& needle) {
+  using char_type = get_char_type_t<NeedleType>;
   std::basic_ostringstream<char_type> oss{};
 
-  auto start = items.cbegin(items);
+  auto first = items.cbegin(items);
   const auto last = items.cend(items);
 
-  while (start != last) {
-    oss << *start << needle;
-    ++start;
+  while (first != last) {
+    oss << *first << needle;
+    ++first;
+  }
+
+  std::basic_string<char_type> result{oss.str()};
+  const size_t needle_len{needle.length()};
+  result.erase(result.length() - needle_len, needle_len);
+
+  return result;
+}
+
+template <
+    typename FwIterType,
+    typename NeedleType,
+    typename = std::enable_if_t<(
+        is_char_pointer_type_v<NeedleType> ||
+        is_char_array_type_v<NeedleType> ||
+        is_valid_string_type_v<NeedleType> ||
+        is_valid_string_view_type_v<
+            NeedleType>)&&has_output_stream_operator_v<std::
+                                                           basic_ostream<
+                                                               get_char_type_t<
+                                                                   NeedleType>>,
+                                                       typename std::
+                                                           iterator_traits<
+                                                               FwIterType>::
+                                                               value_type>>>
+std::basic_string<get_char_type_t<NeedleType>>
+str_join(FwIterType first, const FwIterType last, const NeedleType& needle) {
+  using char_type = get_char_type_t<NeedleType>;
+  std::basic_ostringstream<char_type> oss{};
+
+  while (first != last) {
+    oss << *first << needle;
+    ++first;
   }
 
   std::basic_string<char_type> result{oss.str()};
