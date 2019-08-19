@@ -443,14 +443,18 @@ int say(const wchar_t* format_string, Args... args) {
 }
 
 template <typename T>
-constexpr inline void swap(T& first, T& second, std::true_type) noexcept {
+constexpr inline void swap(T& first, T& second, std::true_type) noexcept(
+    std::is_nothrow_move_constructible_v<T>&&
+        std::is_nothrow_move_assignable_v<T>) {
   T tmp{std::move(first)};
   first = std::move(second);
   second = std::move(tmp);
 }
 
 template <typename T>
-constexpr inline void swap(T& first, T& second, std::false_type) {
+constexpr inline void swap(T& first, T& second, std::false_type) noexcept(
+    std::is_nothrow_copy_constructible_v<T>&&
+        std::is_nothrow_copy_assignable_v<T>) {
   T tmp{first};
   first = second;
   second = tmp;
@@ -685,6 +689,7 @@ using add_const_pointer_to_char_type_t =
     typename add_const_pointer_to_char_type<T>::type;
 
 static constexpr size_t max_string_length{std::string::npos};
+static constexpr size_t not_found_index{std::string::npos};
 
 template <typename T,
           typename = std::enable_if_t<
@@ -702,11 +707,11 @@ size_t len(T src, const size_t max_allowed_string_length = max_string_length) {
 
     size_t length{};
 
-    while (src[length]) {
+    while (src[length])
       ++length;
-      if (max_allowed_string_length == length)
-        return max_allowed_string_length;
-    }
+
+    if (max_allowed_string_length == length)
+      return max_allowed_string_length;
 
     return length;
   }
@@ -721,6 +726,11 @@ bool trim_in_place(
     const add_const_pointer_to_char_type_t<get_char_type_t<T>> chars_to_trim =
         default_whitespace_chars_v<get_char_type_t<T>>) {
   using char_type = get_char_type_t<T>;
+
+  if constexpr (is_non_const_char_pointer_type_v<T>) {
+    if (nullptr == src)
+      return false;
+  }
 
   const auto str_len{len(src)};
 
@@ -824,6 +834,11 @@ bool ltrim_in_place(
         default_whitespace_chars_v<get_char_type_t<T>>) {
   using char_type = get_char_type_t<T>;
 
+  if constexpr (is_non_const_char_pointer_type_v<T>) {
+    if (nullptr == src)
+      return false;
+  }
+
   const auto str_len{len(src)};
 
   if (!str_len)
@@ -897,9 +912,14 @@ bool rtrim_in_place(
         default_whitespace_chars_v<get_char_type_t<T>>) {
   using char_type = get_char_type_t<T>;
 
+  if constexpr (is_non_const_char_pointer_type_v<T>) {
+    if (nullptr == src)
+      return false;
+  }
+
   const auto str_len{len(src)};
 
-  if (0 == str_len)
+  if (0U == str_len)
     return false;
 
   const auto rstart{std::make_reverse_iterator(src + str_len)};
@@ -956,17 +976,20 @@ template <typename T,
           typename = std::enable_if_t<is_char_array_type_v<T> ||
                                       is_char_pointer_type_v<T>>>
 
-auto trim(T src,
-          add_const_pointer_to_char_type_t<get_char_type_t<T>> chars_to_trim =
-              default_whitespace_chars_v<get_char_type_t<T>>) {
+std::basic_string<get_char_type_t<T>> trim(
+    const T src,
+    add_const_pointer_to_char_type_t<get_char_type_t<T>> chars_to_trim =
+        default_whitespace_chars_v<get_char_type_t<T>>) {
   using char_type = get_char_type_t<T>;
 
-  if (nullptr == src)
-    return std::basic_string<char_type>{};
+  if constexpr (is_char_pointer_type_v<T>) {
+    if (nullptr == src)
+      return std::basic_string<char_type>{};
+  }
 
   std::basic_string<char_type> source_str{src};
 
-  if (0 == source_str.length())
+  if (0U == source_str.length())
     return std::basic_string<char_type>{};
 
   const std::unordered_set<char_type> trimmed_chars(
@@ -995,13 +1018,13 @@ template <typename T,
           typename = std::enable_if_t<is_valid_string_type_v<T> ||
                                       is_valid_string_view_type_v<T>>>
 
-auto trim(
+std::basic_string<get_char_type_t<T>> trim(
     const T& src,
-    add_const_pointer_to_char_type_t<typename T::value_type> chars_to_trim =
-        default_whitespace_chars_v<typename T::value_type>) {
-  using char_type = typename T::value_type;
+    add_const_pointer_to_char_type_t<get_char_type_t<T>> chars_to_trim =
+        default_whitespace_chars_v<get_char_type_t<T>>) {
+  using char_type = get_char_type_t<T>;
 
-  if (0 == src.length())
+  if (0U == src.length())
     return std::basic_string<char_type>{};
 
   const std::unordered_set<char_type> trimmed_chars(
@@ -1022,22 +1045,25 @@ auto trim(
                                })
                       .base()};
 
-  return std::basic_string<char_type>(first, last);
+  return std::basic_string<char_type>{first, last};
 }
 
 template <typename T,
           typename = std::enable_if_t<is_char_array_type_v<T> ||
                                       is_char_pointer_type_v<T>>>
 
-auto ltrim(T src,
-           add_const_pointer_to_char_type_t<get_char_type_t<T>> chars_to_trim =
-               default_whitespace_chars_v<get_char_type_t<T>>) {
+std::basic_string<get_char_type_t<T>> ltrim(
+    const T src,
+    add_const_pointer_to_char_type_t<get_char_type_t<T>> chars_to_trim =
+        default_whitespace_chars_v<get_char_type_t<T>>) {
   using char_type = get_char_type_t<T>;
 
-  if (nullptr == src)
-    return std::basic_string<char_type>{};
+  if constexpr (is_char_pointer_type_v<T>) {
+    if (nullptr == src)
+      return std::basic_string<char_type>{};
+  }
 
-  if (0 == len(src))
+  if (0U == len(src))
     return std::basic_string<char_type>{};
 
   std::basic_string<char_type> source_str{src};
@@ -1066,13 +1092,13 @@ template <typename T,
           typename = std::enable_if_t<is_valid_string_type_v<T> ||
                                       is_valid_string_view_type_v<T>>>
 
-auto ltrim(
+std::basic_string<get_char_type_t<T>> ltrim(
     const T& src,
-    add_const_pointer_to_char_type_t<typename T::value_type> chars_to_trim =
-        default_whitespace_chars_v<typename T::value_type>) {
-  using char_type = typename T::value_type;
+    add_const_pointer_to_char_type_t<get_char_type_t<T>> chars_to_trim =
+        default_whitespace_chars_v<get_char_type_t<T>>) {
+  using char_type = get_char_type_t<T>;
 
-  if (0 == src.length())
+  if (0U == src.length())
     return std::basic_string<char_type>{};
 
   const std::unordered_set<char_type> trimmed_chars(
@@ -1083,24 +1109,22 @@ auto ltrim(
         return trimmed_chars.find(ch) == std::cend(trimmed_chars);
       })};
 
-  if (first == std::cbegin(src))
-    return src;
-
   const auto last{std::cend(src)};
 
   if (first == last)
     return std::basic_string<char_type>{};
 
-  return std::basic_string<char_type>(first, last);
+  return std::basic_string<char_type>{first, last};
 }
 
 template <typename T,
           typename = std::enable_if_t<is_char_array_type_v<T> ||
                                       is_char_pointer_type_v<T>>>
 
-auto rtrim(T src,
-           add_const_pointer_to_char_type_t<get_char_type_t<T>> chars_to_trim =
-               default_whitespace_chars_v<get_char_type_t<T>>) {
+std::basic_string<get_char_type_t<T>> rtrim(
+    const T src,
+    add_const_pointer_to_char_type_t<get_char_type_t<T>> chars_to_trim =
+        default_whitespace_chars_v<get_char_type_t<T>>) {
   using char_type = get_char_type_t<T>;
 
   if (nullptr == src)
@@ -1108,7 +1132,7 @@ auto rtrim(T src,
 
   const auto src_len{len(src)};
 
-  if (0 == src_len)
+  if (0U == src_len)
     return std::basic_string<char_type>{};
 
   std::basic_string<char_type> source_str{src};
@@ -1132,16 +1156,16 @@ template <typename T,
           typename = std::enable_if_t<is_valid_string_type_v<T> ||
                                       is_valid_string_view_type_v<T>>>
 
-auto rtrim(
+std::basic_string<get_char_type_t<T>> rtrim(
     const T& src,
     add_const_pointer_to_char_type_t<typename T::value_type> chars_to_trim =
         default_whitespace_chars_v<typename T::value_type>) {
   using char_type = typename T::value_type;
 
-  std::basic_string<char_type> source_str{src};
-
-  if (0 == source_str.length())
+  if (0U == src.length())
     return std::basic_string<char_type>{};
+
+  std::basic_string<char_type> source_str{src};
 
   const std::unordered_set<char_type> trimmed_chars(
       chars_to_trim, chars_to_trim + len(chars_to_trim));
@@ -1158,6 +1182,26 @@ auto rtrim(
   return source_str;
 }
 
+template <typename SrcIterType,
+          typename DstIterType,
+          typename = std::enable_if_t<is_operator_equals_defined_v<
+              typename std::iterator_traits<SrcIterType>::value_type,
+              typename std::iterator_traits<DstIterType>::value_type>>>
+constexpr bool starts_with(const SrcIterType src_first,
+                           const SrcIterType src_last,
+                           const DstIterType dst_first,
+                           const DstIterType dst_last,
+                           const bool is_find_whole_dst_range = true) {
+  if (src_first == src_last || dst_first == dst_last)
+    return false;
+
+  const SrcIterType found_iter{
+      is_find_whole_dst_range
+          ? std::search(src_first, src_last, dst_first, dst_last)
+          : std::find_first_of(src_first, src_last, dst_first, dst_last)};
+  return src_first == found_iter;
+}
+
 template <typename T,
           typename U,
           typename = std::enable_if_t<
@@ -1171,12 +1215,19 @@ bool str_starts_with(T src,
                      const std::locale& loc = std::locale{}) {
   using char_type = get_char_type_t<U>;
 
-  if (nullptr == src)
-    return false;
+  if constexpr (is_char_pointer_type_v<T>) {
+    if (nullptr == src)
+      return false;
+  }
+
+  if constexpr (is_char_pointer_type_v<U>) {
+    if (nullptr == needle)
+      return false;
+  }
 
   const size_t src_len{len(src)};
 
-  if (0 == src_len)
+  if (0U == src_len)
     return false;
 
   if constexpr (is_valid_char_type_v<std::remove_cv_t<U>>) {
@@ -1193,7 +1244,7 @@ bool str_starts_with(T src,
   } else {
     const size_t needle_len{len(needle)};
 
-    if (0 == needle_len || needle_len > src_len)
+    if (0U == needle_len || needle_len > src_len)
       return false;
 
     if (!ignore_case) {
@@ -1231,13 +1282,14 @@ bool str_starts_with(T src,
   }
 }
 
-template <typename StringType,
-          typename = std::enable_if_t<is_valid_string_type_v<StringType>>>
-bool str_starts_with(const StringType& src,
-                     const typename StringType::value_type start_char,
+template <typename T,
+          typename = std::enable_if_t<is_valid_string_type_v<T> ||
+                                      is_valid_string_view_type_v<T>>>
+bool str_starts_with(const T& src,
+                     const get_char_type_t<T> start_char,
                      const bool ignore_case = false,
                      const std::locale& loc = std::locale{}) {
-  using char_type = typename StringType::value_type;
+  using char_type = get_char_type_t<T>;
 
   if (0u == src.length())
     return false;
@@ -1253,13 +1305,17 @@ bool str_starts_with(const StringType& src,
   return std::tolower(src[0]) == std::tolower(start_char);
 }
 
-template <typename StringType,
-          typename = std::enable_if_t<is_valid_string_type_v<StringType>>>
-bool str_starts_with(const StringType& src,
-                     typename StringType::const_pointer needle,
+template <typename T,
+          typename = std::enable_if_t<is_valid_string_type_v<T> ||
+                                      is_valid_string_view_type_v<T>>>
+bool str_starts_with(const T& src,
+                     const get_char_type_t<T>* needle,
                      const bool ignore_case = false,
                      const std::locale& loc = std::locale{}) {
-  using char_type = typename StringType::value_type;
+  using char_type = get_char_type_t<T>;
+
+  if (nullptr == needle)
+    return false;
 
   const auto src_len{src.length()};
   const auto needle_len{len(needle)};
@@ -1274,9 +1330,6 @@ bool str_starts_with(const StringType& src,
     const auto& f = std::use_facet<std::ctype<char_type>>(loc);
 
     for (size_t i{}; i < needle_len; i++) {
-      if (src[i] == needle[i])
-        continue;
-
       if (f.tolower(src[i]) != f.tolower(needle[i]))
         return false;
     }
@@ -1285,9 +1338,6 @@ bool str_starts_with(const StringType& src,
   }
 
   for (size_t i{}; i < needle_len; i++) {
-    if (src[i] == needle[i])
-      continue;
-
     if (std::tolower(src[i]) != std::tolower(needle[i]))
       return false;
   }
@@ -1295,13 +1345,14 @@ bool str_starts_with(const StringType& src,
   return true;
 }
 
-template <typename StringType,
-          typename = std::enable_if_t<is_valid_string_type_v<StringType>>>
-bool str_starts_with(const StringType& src,
-                     const StringType& needle,
+template <typename T,
+          typename = std::enable_if_t<is_valid_string_type_v<T> ||
+                                      is_valid_string_view_type_v<T>>>
+bool str_starts_with(const T& src,
+                     const T& needle,
                      const bool ignore_case = false,
                      const std::locale& loc = std::locale{}) {
-  using char_type = typename StringType::value_type;
+  using char_type = get_char_type_t<T>;
 
   const auto src_len{src.length()};
   const auto needle_len{needle.length()};
@@ -1316,9 +1367,6 @@ bool str_starts_with(const StringType& src,
     const auto& f = std::use_facet<std::ctype<char_type>>(loc);
 
     for (size_t i{}; i < needle_len; i++) {
-      if (src[i] == needle[i])
-        continue;
-
       if (f.tolower(src[i]) != f.tolower(needle[i]))
         return false;
     }
@@ -1327,14 +1375,34 @@ bool str_starts_with(const StringType& src,
   }
 
   for (size_t i{}; i < needle_len; i++) {
-    if (src[i] == needle[i])
-      continue;
-
     if (std::tolower(src[i]) != std::tolower(needle[i]))
       return false;
   }
 
   return true;
+}
+
+template <typename SrcIterType,
+          typename DstIterType,
+          typename = std::enable_if_t<is_operator_equals_defined_v<
+              typename std::iterator_traits<SrcIterType>::value_type,
+              typename std::iterator_traits<DstIterType>::value_type>>>
+constexpr size_t index_of(const SrcIterType src_first,
+                          const SrcIterType src_last,
+                          const DstIterType dst_first,
+                          const DstIterType dst_last,
+                          const bool is_find_whole_dst_range = true) {
+  if (src_first == src_last || dst_first == dst_last)
+    return not_found_index;
+
+  const SrcIterType found_iter{
+      is_find_whole_dst_range
+          ? std::search(src_first, src_last, dst_first, dst_last)
+          : std::find_first_of(src_first, src_last, dst_first, dst_last)};
+
+  if (src_last == found_iter)
+    return not_found_index;
+  return static_cast<size_t>(std::distance(src_first, found_iter));
 }
 
 template <typename T,
@@ -1344,20 +1412,28 @@ template <typename T,
                   is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
                   is_valid_char_type_v<get_char_type_t<U>>)&&std::
                   is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
-size_t str_index_of(T src,
-                    const U needle,
-                    const size_t start_pos = 0u,
-                    const bool ignore_case = false,
-                    const std::locale& loc = std::locale{}) {
+typename std::basic_string<get_char_type_t<T>>::size_type str_index_of(
+    const T src,
+    const U needle,
+    const size_t start_pos = 0u,
+    const bool ignore_case = false,
+    const std::locale& loc = std::locale{}) {
   using char_type = get_char_type_t<U>;
 
-  if (nullptr == src)
-    return std::basic_string<char_type>::npos;
+  if constexpr (is_char_pointer_type_v<T>) {
+    if (nullptr == src)
+      return std::basic_string<char_type>::npos;
+  }
+
+  if constexpr (is_char_pointer_type_v<U>) {
+    if (nullptr == needle)
+      return std::basic_string<char_type>::npos;
+  }
 
   if constexpr (is_valid_char_type_v<std::remove_cv_t<U>>) {
     const size_t src_len{len(src)};
 
-    if (0 == src_len)
+    if (0U == src_len)
       return std::basic_string<char_type>::npos;
 
     if (!ignore_case) {
@@ -1366,7 +1442,7 @@ size_t str_index_of(T src,
     }
 
     std::basic_string<char_type> src_str{src};
-    auto needle_lc{needle};
+    char_type needle_lc{needle};
 
     if (std::has_facet<std::ctype<char_type>>(loc)) {
       const auto& f = std::use_facet<std::ctype<char_type>>(loc);
@@ -1388,20 +1464,20 @@ size_t str_index_of(T src,
     return src_str.find(needle_lc, start_pos);
 
   } else {
-    if (nullptr == needle)
+    const auto src_len{len(src)};
+    const auto needle_len{len(needle)};
+
+    if (0U == src_len || 0U == needle_len || needle_len > src_len)
       return std::basic_string<char_type>::npos;
+
+    std::basic_string_view<char_type> src_sv{src, src_len};
+    std::basic_string_view<char_type> needle_sv{needle, needle_len};
+
+    if (!ignore_case)
+      return src_sv.find(needle_sv, start_pos);
 
     std::basic_string<char_type> src_str{src};
     std::basic_string<char_type> needle_str{needle};
-
-    const auto src_len{src_str.length()};
-    const auto needle_len{needle_str.length()};
-
-    if (0 == src_len || 0 == needle_len || needle_len > src_len)
-      return std::basic_string<char_type>::npos;
-
-    if (!ignore_case)
-      return src_str.find(needle_str, start_pos);
 
     if (std::has_facet<std::ctype<char_type>>(loc)) {
       const auto& f = std::use_facet<std::ctype<char_type>>(loc);
@@ -1427,23 +1503,25 @@ size_t str_index_of(T src,
   }
 }
 
-template <typename StringType,
-          typename = std::enable_if_t<is_valid_string_type_v<StringType>>>
-auto str_index_of(const StringType& src,
-                  const typename StringType::value_type needle_char,
-                  const size_t start_pos = 0u,
-                  const bool ignore_case = false,
-                  const std::locale& loc = std::locale{}) {
-  using char_type = typename StringType::value_type;
+template <typename T,
+          typename = std::enable_if_t<is_valid_string_type_v<T> ||
+                                      is_valid_string_view_type_v<T>>>
+typename std::basic_string<get_char_type_t<T>>::size_type str_index_of(
+    const T& src,
+    const get_char_type_t<T> needle_char,
+    const size_t start_pos = 0u,
+    const bool ignore_case = false,
+    const std::locale& loc = std::locale{}) {
+  using char_type = get_char_type_t<T>;
 
-  if (0 == src.length())
-    return StringType::npos;
+  if (0U == src.length())
+    return std::basic_string<char_type>::npos;
 
   if (!ignore_case)
     return src.find(needle_char, start_pos);
 
-  StringType src_lc{src};
-  auto needle_char_lc{needle_char};
+  std::basic_string<char_type> src_lc{src};
+  char_type needle_char_lc{needle_char};
 
   if (std::has_facet<std::ctype<char_type>>(loc)) {
     const auto& f = std::use_facet<std::ctype<char_type>>(loc);
@@ -1461,26 +1539,31 @@ auto str_index_of(const StringType& src,
   return src_lc.find(needle_char_lc, start_pos);
 }
 
-template <typename StringType,
-          typename = std::enable_if_t<is_valid_string_type_v<StringType>>>
-auto str_index_of(const StringType& src,
-                  typename StringType::const_pointer needle,
-                  const size_t start_pos = 0u,
-                  const bool ignore_case = false,
-                  const std::locale& loc = std::locale{}) {
-  using char_type = typename StringType::value_type;
+template <typename T,
+          typename = std::enable_if_t<is_valid_string_type_v<T> ||
+                                      is_valid_string_view_type_v<T>>>
+typename std::basic_string<get_char_type_t<T>>::size_type str_index_of(
+    const T& src,
+    const get_char_type_t<T>* needle,
+    const size_t start_pos = 0u,
+    const bool ignore_case = false,
+    const std::locale& loc = std::locale{}) {
+  using char_type = get_char_type_t<T>;
+
+  if (nullptr == needle)
+    return false;
 
   const auto text_len{src.length()};
   const auto needle_len{len(needle)};
 
-  if (0 == text_len || 0 == needle_len || needle_len > text_len)
-    return StringType::npos;
+  if (0U == text_len || 0U == needle_len || needle_len > text_len)
+    return std::basic_string<char_type>::npos;
 
   if (!ignore_case)
     return src.find(needle, start_pos);
 
-  StringType src_lc{src};
-  StringType needle_str{needle};
+  std::basic_string<char_type> src_lc{src};
+  std::basic_string<char_type> needle_str{needle};
 
   if (std::has_facet<std::ctype<char_type>>(loc)) {
     const auto& f = std::use_facet<std::ctype<char_type>>(loc);
@@ -1502,45 +1585,68 @@ auto str_index_of(const StringType& src,
   return src_lc.find(needle_str, start_pos);
 }
 
-template <typename StringType,
-          typename = std::enable_if_t<is_valid_string_type_v<StringType>>>
-auto str_index_of(const StringType& src,
-                  const StringType& needle,
-                  const size_t start_pos = 0u,
-                  const bool ignore_case = false,
-                  const std::locale& loc = std::locale{}) {
-  using char_type = typename StringType::value_type;
+template <typename T,
+          typename = std::enable_if_t<is_valid_string_type_v<T> ||
+                                      is_valid_string_view_type_v<T>>>
+typename std::basic_string<get_char_type_t<T>>::size_type str_index_of(
+    const T& src,
+    const T& needle,
+    const size_t start_pos = 0u,
+    const bool ignore_case = false,
+    const std::locale& loc = std::locale{}) {
+  using char_type = get_char_type_t<T>;
 
   const auto src_len{src.length()};
   const auto needle_len{needle.length()};
 
-  if (0 == src_len || 0 == needle_len || needle_len > src_len)
-    return StringType::npos;
+  if (0U == src_len || 0U == needle_len || needle_len > src_len)
+    return std::basic_string<char_type>::npos;
 
   if (!ignore_case)
     return src.find(needle, start_pos);
 
-  StringType src_lc{src};
-  StringType needle_lc{needle};
+  std::basic_string<char_type> src_lc{src};
+  std::basic_string<char_type> needle_lc{needle};
 
   if (std::has_facet<std::ctype<char_type>>(loc)) {
     const auto& f = std::use_facet<std::ctype<char_type>>(loc);
-    std::transform(std::cbegin(src), std::cend(src), std::begin(src_lc),
+    std::transform(std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
                    [&f](const auto ch) { return f.tolower(ch); });
-    std::transform(std::cbegin(needle), std::cend(needle),
+    std::transform(std::cbegin(needle_lc), std::cend(needle_lc),
                    std::begin(needle_lc),
                    [&f](const auto ch) { return f.tolower(ch); });
 
   } else {
     std::transform(
-        std::cbegin(src), std::cend(src), std::begin(src_lc),
+        std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
         [](const auto ch) { return static_cast<char_type>(std::tolower(ch)); });
     std::transform(
-        std::cbegin(needle), std::cend(needle), std::begin(needle_lc),
+        std::cbegin(needle_lc), std::cend(needle_lc), std::begin(needle_lc),
         [](const auto ch) { return static_cast<char_type>(std::tolower(ch)); });
   }
 
   return src_lc.find(needle_lc, start_pos);
+}
+
+template <typename SrcIterType,
+          typename DstIterType,
+          typename = std::enable_if_t<is_operator_equals_defined_v<
+              typename std::iterator_traits<SrcIterType>::value_type,
+              typename std::iterator_traits<DstIterType>::value_type>>>
+constexpr bool contains(const SrcIterType src_first,
+                        const SrcIterType src_last,
+                        const DstIterType dst_first,
+                        const DstIterType dst_last,
+                        const bool is_find_whole_dst_range = true) {
+  if (src_first == src_last || dst_first == dst_last)
+    return false;
+
+  const SrcIterType found_iter{
+      is_find_whole_dst_range
+          ? std::search(src_first, src_last, dst_first, dst_last)
+          : std::find_first_of(src_first, src_last, dst_first, dst_last)};
+
+  return src_last != found_iter;
 }
 
 template <
@@ -1551,19 +1657,26 @@ template <
             is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
             is_valid_char_type_v<get_char_type_t<
                 U>>)&&(std::is_same_v<get_char_type_t<T>, get_char_type_t<U>>)>>
-bool str_contains(T src,
+bool str_contains(const T src,
                   const U needle,
                   size_t start_pos = 0u,
                   bool ignore_case = false,
                   const std::locale& loc = std::locale{}) {
-  using char_type = get_char_type_t<U>;
+  using char_type = get_char_type_t<T>;
 
-  if (nullptr == src)
-    return false;
+  if constexpr (is_char_pointer_type_v<T>) {
+    if (nullptr == src)
+      return false;
+  }
+
+  if constexpr (is_char_pointer_type_v<U>) {
+    if (nullptr == needle)
+      return false;
+  }
 
   const auto src_len{len(src)};
 
-  if (0 == src_len)
+  if (0U == src_len)
     return false;
 
   if constexpr (is_valid_char_type_v<std::remove_cv_t<U>>) {
@@ -1571,7 +1684,7 @@ bool str_contains(T src,
       return src + src_len != std::find(src + start_pos, src + src_len, needle);
 
     std::basic_string<char_type> src_str{src};
-    auto needle_lc{needle};
+    char_type needle_lc{needle};
 
     if (std::has_facet<std::ctype<char_type>>(loc)) {
       const auto& f = std::use_facet<std::ctype<char_type>>(loc);
@@ -1595,7 +1708,7 @@ bool str_contains(T src,
   } else {
     const auto needle_len{len(needle)};
 
-    if (0 == needle_len || needle_len > src_len)
+    if (0U == needle_len || needle_len > src_len)
       return false;
 
     std::basic_string_view<char_type> src_str_view(src, src_len);
@@ -1636,22 +1749,24 @@ bool str_contains(T src,
   }
 }
 
-template <typename StringType,
-          typename = std::enable_if_t<is_valid_string_type_v<StringType>>>
-bool str_contains(const StringType& src,
-                  const typename StringType::value_type needle_char,
+template <typename T,
+          typename = std::enable_if_t<is_valid_string_type_v<T> ||
+                                      is_valid_string_view_type_v<T>>>
+bool str_contains(const T& src,
+                  const get_char_type_t<T> needle_char,
                   const size_t start_pos = 0u,
                   const bool ignore_case = false,
                   const std::locale& loc = std::locale{}) {
-  using char_type = typename StringType::value_type;
+  using char_type = get_char_type_t<T>;
   if (0u == src.length())
     return false;
 
   if (!ignore_case)
-    return StringType::npos != src.find(needle_char, start_pos);
+    return std::basic_string<char_type>::npos !=
+           src.find(needle_char, start_pos);
 
-  StringType src_lc{src};
-  auto needle_char_lc{needle_char};
+  std::basic_string<char_type> src_lc{src};
+  char_type needle_char_lc{needle_char};
 
   if (std::has_facet<std::ctype<char_type>>(loc)) {
     const auto& f = std::use_facet<std::ctype<char_type>>(loc);
@@ -1669,17 +1784,22 @@ bool str_contains(const StringType& src,
     needle_char_lc = static_cast<char_type>(std::tolower(needle_char));
   }
 
-  return StringType::npos != src_lc.find(needle_char_lc, start_pos);
+  return std::basic_string<char_type>::npos !=
+         src_lc.find(needle_char_lc, start_pos);
 }
 
-template <typename StringType,
-          typename = std::enable_if_t<is_valid_string_type_v<StringType>>>
-bool str_contains(const StringType& src,
-                  typename StringType::const_pointer needle,
+template <typename T,
+          typename = std::enable_if_t<is_valid_string_type_v<T> ||
+                                      is_valid_string_view_type_v<T>>>
+bool str_contains(const T& src,
+                  const get_char_type_t<T>* needle,
                   const size_t start_pos = 0u,
                   const bool ignore_case = false,
                   const std::locale& loc = std::locale{}) {
-  using char_type = typename StringType::value_type;
+  using char_type = get_char_type_t<T>;
+
+  if (nullptr == needle)
+    return false;
 
   const auto src_len{src.length()};
   const auto needle_len{len(needle)};
@@ -1688,10 +1808,10 @@ bool str_contains(const StringType& src,
     return false;
 
   if (!ignore_case)
-    return src.find(needle, start_pos) != StringType::npos;
+    return src.find(needle, start_pos) != T::npos;
 
-  StringType src_lc{src};
-  StringType needle_str{needle};
+  std::basic_string<char_type> src_lc{src};
+  std::basic_string<char_type> needle_str{needle};
 
   if (std::has_facet<std::ctype<char_type>>(loc)) {
     const auto& f = std::use_facet<std::ctype<char_type>>(loc);
@@ -1713,16 +1833,18 @@ bool str_contains(const StringType& src,
         [](const auto ch) { return static_cast<char_type>(std::tolower(ch)); });
   }
 
-  return StringType::npos != src_lc.find(needle_str, start_pos);
+  return T::npos != src_lc.find(needle_str, start_pos);
 }
 
-template <typename StringType>
-bool str_contains(const StringType& src,
-                  const StringType& needle,
+template <typename T,
+          typename = std::enable_if_t<is_valid_string_type_v<T> ||
+                                      is_valid_string_view_type_v<T>>>
+bool str_contains(const T& src,
+                  const T& needle,
                   const size_t start_pos = 0u,
                   const bool ignore_case = false,
                   const std::locale& loc = std::locale{}) {
-  using char_type = typename StringType::value_type;
+  using char_type = get_char_type_t<T>;
 
   const auto src_len{src.length()};
   const auto needle_len{needle.length()};
@@ -1731,12 +1853,12 @@ bool str_contains(const StringType& src,
     return false;
 
   if (!ignore_case)
-    return StringType::npos != src.find(needle, start_pos);
+    return std::basic_string<char_type>::npos != src.find(needle, start_pos);
 
   const auto& f = std::use_facet<std::ctype<char_type>>(loc);
 
-  StringType src_lc{src};
-  StringType needle_lc{needle};
+  std::basic_string<char_type> src_lc{src};
+  std::basic_string<char_type> needle_lc{needle};
 
   if (std::has_facet<std::ctype<char_type>>(loc)) {
     const auto& f = std::use_facet<std::ctype<char_type>>(loc);
@@ -1758,7 +1880,38 @@ bool str_contains(const StringType& src,
         [](const auto ch) { return static_cast<char_type>(std::tolower(ch)); });
   }
 
-  return StringType::npos != src_lc.find(needle_lc, start_pos);
+  return std::basic_string<char_type>::npos !=
+         src_lc.find(needle_lc, start_pos);
+}
+
+template <typename SrcIterType,
+          typename DstIterType,
+          typename = std::enable_if_t<is_operator_equals_defined_v<
+              typename std::iterator_traits<SrcIterType>::value_type,
+              typename std::iterator_traits<DstIterType>::value_type>>>
+constexpr bool ends_with(const SrcIterType src_first,
+                         const SrcIterType src_last,
+                         DstIterType dst_first,
+                         const DstIterType dst_last,
+                         const bool is_find_whole_dst_range = true) {
+  if (src_first == src_last || dst_first == dst_last)
+    return false;
+
+  SrcIterType target_iter{src_last};
+  if (is_find_whole_dst_range) {
+    std::advance(target_iter, -std::distance(dst_first, dst_last));
+    return target_iter == std::search(src_first, src_last, dst_first, dst_last);
+  }
+
+  --target_iter;
+  while (dst_first != dst_last) {
+    if (*dst_first == *target_iter)
+      return true;
+
+    ++dst_first;
+  }
+
+  return false;
 }
 
 template <
@@ -1769,16 +1922,23 @@ template <
             is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
             is_valid_char_type_v<get_char_type_t<
                 U>>)&&(std::is_same_v<get_char_type_t<T>, get_char_type_t<U>>)>>
-bool str_ends_with(T src,
+bool str_ends_with(const T src,
                    const U needle,
                    bool ignore_case = false,
                    const std::locale& loc = std::locale{}) {
-  using char_type = get_char_type_t<U>;
+  using char_type = get_char_type_t<T>;
 
-  if (nullptr == src)
-    return false;
+  if constexpr (is_char_pointer_type_v<T>) {
+    if (nullptr == src)
+      return false;
+  }
 
-  const size_t src_len{len(src)};
+  if constexpr (is_char_pointer_type_v<U>) {
+    if (nullptr == needle)
+      return false;
+  }
+
+  const auto src_len{len(src)};
 
   if (0u == src_len)
     return false;
@@ -1817,9 +1977,6 @@ bool str_ends_with(T src,
 
       for (size_t i{expected_start_pos_of_end_tag}, j{}; i < src_len;
            i++, j++) {
-        if (src[i] == needle[j])
-          continue;
-
         if (f.tolower(src[i]) != f.tolower(needle[j]))
           return false;
       }
@@ -1828,9 +1985,6 @@ bool str_ends_with(T src,
     }
 
     for (size_t i{expected_start_pos_of_end_tag}, j{}; i < src_len; i++, j++) {
-      if (src[i] == needle[j])
-        continue;
-
       if (std::tolower(src[i]) != std::tolower(needle[j]))
         return false;
     }
@@ -1839,13 +1993,14 @@ bool str_ends_with(T src,
   }
 }
 
-template <typename StringType,
-          typename = std::enable_if_t<is_valid_string_type_v<StringType>>>
-bool str_ends_with(const StringType& src,
-                   const typename StringType::value_type end_char,
+template <typename T,
+          typename = std::enable_if_t<is_valid_string_type_v<T> ||
+                                      is_valid_string_view_type_v<T>>>
+bool str_ends_with(const T& src,
+                   const get_char_type_t<T> end_char,
                    const bool ignore_case = false,
                    const std::locale& loc = std::locale{}) {
-  using char_type = typename StringType::value_type;
+  using char_type = get_char_type_t<T>;
 
   if (0u == src.length())
     return false;
@@ -1861,13 +2016,17 @@ bool str_ends_with(const StringType& src,
   return std::tolower(src.back()) == std::tolower(end_char);
 }
 
-template <typename StringType,
-          typename = std::enable_if_t<is_valid_string_type_v<StringType>>>
-bool str_ends_with(const StringType& src,
-                   typename StringType::const_pointer needle,
+template <typename T,
+          typename = std::enable_if_t<is_valid_string_type_v<T> ||
+                                      is_valid_string_view_type_v<T>>>
+bool str_ends_with(const T& src,
+                   const get_char_type_t<T>* needle,
                    const bool ignore_case = false,
                    const std::locale& loc = std::locale{}) {
-  using char_type = typename StringType::value_type;
+  using char_type = get_char_type_t<T>;
+
+  if (nullptr == needle)
+    return false;
 
   const auto src_len{src.length()};
   const size_t needle_len{len(needle)};
@@ -1890,9 +2049,6 @@ bool str_ends_with(const StringType& src,
     const auto& f = std::use_facet<std::ctype<char_type>>(loc);
 
     for (size_t i{expected_start_pos_of_end_tag}, j{}; i < src_len; i++, j++) {
-      if (src[i] == needle[j])
-        continue;
-
       if (f.tolower(src[i]) != f.tolower(needle[j]))
         return false;
     }
@@ -1901,9 +2057,6 @@ bool str_ends_with(const StringType& src,
   }
 
   for (size_t i{expected_start_pos_of_end_tag}, j{}; i < src_len; i++, j++) {
-    if (src[i] == needle[j])
-      continue;
-
     if (std::tolower(src[i]) != std::tolower(needle[j]))
       return false;
   }
@@ -1911,13 +2064,14 @@ bool str_ends_with(const StringType& src,
   return true;
 }
 
-template <typename StringType,
-          typename = std::enable_if_t<is_valid_string_type_v<StringType>>>
-bool str_ends_with(const StringType& src,
-                   const StringType& needle,
+template <typename T,
+          typename = std::enable_if_t<is_valid_string_type_v<T> ||
+                                      is_valid_string_view_type_v<T>>>
+bool str_ends_with(const T& src,
+                   const T& needle,
                    const bool ignore_case = false,
                    const std::locale& loc = std::locale{}) {
-  using char_type = typename StringType::value_type;
+  using char_type = get_char_type_t<T>;
 
   const auto src_len{src.length()};
   const size_t needle_len{needle.length()};
@@ -1940,9 +2094,6 @@ bool str_ends_with(const StringType& src,
     const auto& f = std::use_facet<std::ctype<char_type>>(loc);
 
     for (size_t i{expected_start_pos_of_end_tag}, j{}; i < src_len; i++, j++) {
-      if (src[i] == needle[j])
-        continue;
-
       if (f.tolower(src[i]) != f.tolower(needle[j]))
         return false;
     }
@@ -1951,9 +2102,6 @@ bool str_ends_with(const StringType& src,
   }
 
   for (size_t i{expected_start_pos_of_end_tag}, j{}; i < src_len; i++, j++) {
-    if (src[i] == needle[j])
-      continue;
-
     if (std::tolower(src[i]) != std::tolower(needle[j]))
       return false;
   }
