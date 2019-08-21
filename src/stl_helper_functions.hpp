@@ -2582,7 +2582,7 @@ template <
          is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)&&std::
             is_same_v<std::remove_cv_t<T>, get_char_type_t<U>>>>
 size_t str_copy(T (&dst)[ARRAY_SIZE],
-                const U src,
+                const U& src,
                 const str_copy_behavior copy_options =
                     str_copy_behavior::disallow_partial_copy,
                 size_t* required_dst_capacity = nullptr) {
@@ -2644,7 +2644,7 @@ template <
 size_t str_copy(
     T dst,
     const size_t dst_capacity_in_number_of_characters,
-    const U src,
+    const U& src,
     str_copy_behavior copy_options = str_copy_behavior::disallow_partial_copy,
     size_t* required_dst_capacity = nullptr) {
   using char_type = get_char_type_t<T>;
@@ -2743,7 +2743,7 @@ template <
          is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)&&std::
             is_same_v<std::remove_cv_t<T>, get_char_type_t<U>>>>
 size_t str_copy_n(T (&dst)[ARRAY_SIZE],
-                  const U src,
+                  const U& src,
                   const size_t number_of_characters_to_copy,
                   const str_copy_behavior copy_options =
                       str_copy_behavior::disallow_partial_copy,
@@ -2788,7 +2788,7 @@ size_t str_copy_n(T (&dst)[ARRAY_SIZE],
     if (copy_options == str_copy_behavior::allow_partial_copy) {
       auto const no_chars_to_copy = ARRAY_SIZE - 1;
 
-      copy(std::cbegin(sv), std::cbegin(sv) + no_chars_to_copy, dst);
+      std::copy(std::cbegin(sv), std::cbegin(sv) + no_chars_to_copy, dst);
 
       dst[no_chars_to_copy] = static_cast<char_type>('\0');
 
@@ -2796,7 +2796,7 @@ size_t str_copy_n(T (&dst)[ARRAY_SIZE],
     }
   }
 
-  copy(std::cbegin(sv), std::cbegin(sv) + noctc, dst);
+  std::copy(std::cbegin(sv), std::cbegin(sv) + noctc, dst);
 
   dst[noctc] = static_cast<char_type>('\0');
 
@@ -2814,7 +2814,7 @@ template <
 size_t str_copy_n(
     T dst,
     size_t dst_capacity_in_number_of_characters,
-    const U src,
+    const U& src,
     size_t number_of_characters_to_copy,
     str_copy_behavior copy_options = str_copy_behavior::disallow_partial_copy,
     size_t* required_dst_capacity = nullptr) {
@@ -2864,7 +2864,7 @@ size_t str_copy_n(
     if (copy_options == str_copy_behavior::allow_partial_copy) {
       auto const no_chars_to_copy = dst_capacity_in_number_of_characters - 1;
 
-      copy(std::cbegin(sv), std::cbegin(sv) + no_chars_to_copy, dst);
+      std::copy(std::cbegin(sv), std::cbegin(sv) + no_chars_to_copy, dst);
 
       dst[no_chars_to_copy] = static_cast<char_type>('\0');
 
@@ -2872,7 +2872,7 @@ size_t str_copy_n(
     }
   }
 
-  copy(std::cbegin(sv), std::cbegin(sv) + noctc, dst);
+  std::copy(std::cbegin(sv), std::cbegin(sv) + noctc, dst);
 
   dst[noctc] = static_cast<char_type>('\0');
 
@@ -2948,7 +2948,7 @@ template <
          is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)&&std::
             is_same_v<std::remove_cv_t<T>, get_char_type_t<U>>>>
 size_t str_append(T (&dst)[ARRAY_SIZE],
-                  const U src,
+                  const U& src,
                   const str_append_behavior append_options =
                       str_append_behavior::disallow_partial_append,
                   size_t* required_dst_capacity = nullptr) {
@@ -2991,8 +2991,8 @@ size_t str_append(T (&dst)[ARRAY_SIZE],
     if (append_options == str_append_behavior::allow_partial_append) {
       const auto no_of_chars_to_copy{ARRAY_SIZE - dst_len - 1};
 
-      copy(std::cbegin(sv), std::cbegin(sv) + no_of_chars_to_copy,
-           dst + dst_len);
+      std::copy(std::cbegin(sv), std::cbegin(sv) + no_of_chars_to_copy,
+                dst + dst_len);
 
       dst[ARRAY_SIZE - 1] = static_cast<char_type>('\0');
 
@@ -3000,7 +3000,7 @@ size_t str_append(T (&dst)[ARRAY_SIZE],
     }
   }
 
-  copy(std::cbegin(sv), std::cend(sv), dst + dst_len);
+  std::copy(std::cbegin(sv), std::cend(sv), dst + dst_len);
 
   dst[dst_len + src_len] = static_cast<char_type>('\0');
 
@@ -3017,7 +3017,7 @@ template <
             is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
 size_t str_append(T dst,
                   size_t dst_capacity_in_number_of_characters,
-                  const U src,
+                  const U& src,
                   str_append_behavior append_behavior =
                       str_append_behavior::disallow_partial_append,
                   size_t* required_dst_capacity = nullptr) {
@@ -3153,7 +3153,7 @@ size_t str_append_n(char (&dst)[ARRAY_SIZE],
     if (append_options == str_append_behavior::allow_partial_append) {
       no_of_chars_to_append = ARRAY_SIZE - dst_len - 1;
 
-      copy(src, src + no_of_chars_to_append, dst + dst_len);
+      std::copy(src, src + no_of_chars_to_append, dst + dst_len);
 
       dst[ARRAY_SIZE - 1] = '\0';
 
@@ -3161,7 +3161,7 @@ size_t str_append_n(char (&dst)[ARRAY_SIZE],
     }
   }
 
-  copy(src, src + no_of_chars_to_append, dst + dst_len);
+  std::copy(src, src + no_of_chars_to_append, dst + dst_len);
 
   dst[dst_len + no_of_chars_to_append] = '\0';
 
@@ -3199,7 +3199,7 @@ size_t str_append_n(wchar_t (&dst)[ARRAY_SIZE],
     if (append_options == str_append_behavior::allow_partial_append) {
       no_of_chars_to_append = ARRAY_SIZE - dst_len - 1;
 
-      copy(src, src + no_of_chars_to_append, dst + dst_len);
+      std::copy(src, src + no_of_chars_to_append, dst + dst_len);
 
       dst[ARRAY_SIZE - 1] = L'\0';
 
@@ -3207,7 +3207,7 @@ size_t str_append_n(wchar_t (&dst)[ARRAY_SIZE],
     }
   }
 
-  copy(src, src + no_of_chars_to_append, dst + dst_len);
+  std::copy(src, src + no_of_chars_to_append, dst + dst_len);
 
   dst[dst_len + no_of_chars_to_append] = L'\0';
 
@@ -3245,7 +3245,7 @@ size_t str_append_n(char16_t (&dst)[ARRAY_SIZE],
     if (append_options == str_append_behavior::allow_partial_append) {
       no_of_chars_to_append = ARRAY_SIZE - dst_len - 1;
 
-      copy(src, src + no_of_chars_to_append, dst + dst_len);
+      std::copy(src, src + no_of_chars_to_append, dst + dst_len);
 
       dst[ARRAY_SIZE - 1] = u'\0';
 
@@ -3253,7 +3253,7 @@ size_t str_append_n(char16_t (&dst)[ARRAY_SIZE],
     }
   }
 
-  copy(src, src + no_of_chars_to_append, dst + dst_len);
+  std::copy(src, src + no_of_chars_to_append, dst + dst_len);
 
   dst[dst_len + no_of_chars_to_append] = u'\0';
 
@@ -3290,7 +3290,7 @@ size_t str_append_n(char32_t (&dst)[ARRAY_SIZE],
     if (append_options == str_append_behavior::allow_partial_append) {
       no_of_chars_to_append = ARRAY_SIZE - dst_len - 1;
 
-      copy(src, src + no_of_chars_to_append, dst + dst_len);
+      std::copy(src, src + no_of_chars_to_append, dst + dst_len);
 
       dst[ARRAY_SIZE - 1] = U'\0';
 
@@ -3298,7 +3298,7 @@ size_t str_append_n(char32_t (&dst)[ARRAY_SIZE],
     }
   }
 
-  copy(src, src + no_of_chars_to_append, dst + dst_len);
+  std::copy(src, src + no_of_chars_to_append, dst + dst_len);
 
   dst[dst_len + no_of_chars_to_append] = U'\0';
 
@@ -3397,7 +3397,7 @@ src_len - 1 - start] = dst[dst + dst_len - 1 - start];
 
       copy_backward(dst, dst + dst_len, dst + dst_len + src_len);
 
-      copy(src, src + src_len, dst);
+      std::copy(src, src + src_len, dst);
 
       dst[dst_len + src_len] = '\0';
 
@@ -3409,7 +3409,7 @@ src_len - 1 - start] = dst[dst + dst_len - 1 - start];
 
       copy_backward(dst, dst + dst_len, dst + dst_len + no_of_chars_to_copy);
 
-      copy(src, src + no_of_chars_to_copy, dst);
+      std::copy(src, src + no_of_chars_to_copy, dst);
 
       dst[ARRAY_SIZE - 1] = '\0';
 
@@ -3417,7 +3417,7 @@ src_len - 1 - start] = dst[dst + dst_len - 1 - start];
     } else {
       copy_backward(dst, dst + dst_len, dst + dst_len + src_len);
 
-      copy(src, src + src_len, dst);
+      std::copy(src, src + src_len, dst);
 
       dst[dst_len + src_len] = '\0';
 
@@ -3453,7 +3453,7 @@ size_t str_prepend(wchar_t (&dst)[ARRAY_SIZE],
     } else {
       copy_backward(dst, dst + dst_len, dst + dst_len + src_len);
 
-      copy(src, src + src_len, dst);
+      std::copy(src, src + src_len, dst);
 
       dst[dst_len + src_len] = '\0';
 
@@ -3465,7 +3465,7 @@ size_t str_prepend(wchar_t (&dst)[ARRAY_SIZE],
 
       copy_backward(dst, dst + dst_len, dst + dst_len + no_of_chars_to_copy);
 
-      copy(src, src + no_of_chars_to_copy, dst);
+      std::copy(src, src + no_of_chars_to_copy, dst);
 
       dst[ARRAY_SIZE - 1] = '\0';
 
@@ -3473,7 +3473,7 @@ size_t str_prepend(wchar_t (&dst)[ARRAY_SIZE],
     } else {
       copy_backward(dst, dst + dst_len, dst + dst_len + src_len);
 
-      copy(src, src + src_len, dst);
+      std::copy(src, src + src_len, dst);
 
       dst[dst_len + src_len] = '\0';
 
@@ -3509,7 +3509,7 @@ size_t str_prepend(char16_t (&dst)[ARRAY_SIZE],
     } else {
       copy_backward(dst, dst + dst_len, dst + dst_len + src_len);
 
-      copy(src, src + src_len, dst);
+      std::copy(src, src + src_len, dst);
 
       dst[dst_len + src_len] = '\0';
 
@@ -3521,7 +3521,7 @@ size_t str_prepend(char16_t (&dst)[ARRAY_SIZE],
 
       copy_backward(dst, dst + dst_len, dst + dst_len + no_of_chars_to_copy);
 
-      copy(src, src + no_of_chars_to_copy, dst);
+      std::copy(src, src + no_of_chars_to_copy, dst);
 
       dst[ARRAY_SIZE - 1] = '\0';
 
@@ -3529,7 +3529,7 @@ size_t str_prepend(char16_t (&dst)[ARRAY_SIZE],
     } else {
       copy_backward(dst, dst + dst_len, dst + dst_len + src_len);
 
-      copy(src, src + src_len, dst);
+      std::copy(src, src + src_len, dst);
 
       dst[dst_len + src_len] = '\0';
 
@@ -3565,7 +3565,7 @@ size_t str_prepend(char32_t (&dst)[ARRAY_SIZE],
     } else {
       copy_backward(dst, dst + dst_len, dst + dst_len + src_len);
 
-      copy(src, src + src_len, dst);
+      std::copy(src, src + src_len, dst);
 
       dst[dst_len + src_len] = U'\0';
 
@@ -3577,7 +3577,7 @@ size_t str_prepend(char32_t (&dst)[ARRAY_SIZE],
 
       copy_backward(dst, dst + dst_len, dst + dst_len + no_of_chars_to_copy);
 
-      copy(src, src + no_of_chars_to_copy, dst);
+      std::copy(src, src + no_of_chars_to_copy, dst);
 
       dst[ARRAY_SIZE - 1] = U'\0';
 
@@ -3585,7 +3585,7 @@ size_t str_prepend(char32_t (&dst)[ARRAY_SIZE],
     } else {
       copy_backward(dst, dst + dst_len, dst + dst_len + src_len);
 
-      copy(src, src + src_len, dst);
+      std::copy(src, src + src_len, dst);
 
       dst[dst_len + src_len] = U'\0';
 
@@ -3664,7 +3664,7 @@ size_t str_prepend_n(char (&dst)[ARRAY_SIZE],
     } else {
       copy_backward(dst, dst + dst_len, dst + dst_len + nocp);
 
-      copy(src, src + nocp, dst);
+      std::copy(src, src + nocp, dst);
 
       dst[dst_len + nocp] = '\0';
 
@@ -3676,7 +3676,7 @@ size_t str_prepend_n(char (&dst)[ARRAY_SIZE],
 
       copy_backward(dst, dst + dst_len, dst + dst_len + nocp);
 
-      copy(src, src + nocp, dst);
+      std::copy(src, src + nocp, dst);
 
       dst[dst_len + nocp] = '\0';
 
@@ -3684,7 +3684,7 @@ size_t str_prepend_n(char (&dst)[ARRAY_SIZE],
     } else {
       copy_backward(dst, dst + dst_len, dst + dst_len + nocp);
 
-      copy(src, src + nocp, dst);
+      std::copy(src, src + nocp, dst);
 
       dst[dst_len + nocp] = '\0';
 
@@ -3725,7 +3725,7 @@ size_t str_prepend_n(wchar_t (&dst)[ARRAY_SIZE],
     } else {
       copy_backward(dst, dst + dst_len, dst + dst_len + nocp);
 
-      copy(src, src + nocp, dst);
+      std::copy(src, src + nocp, dst);
 
       dst[dst_len + nocp] = L'\0';
 
@@ -3737,7 +3737,7 @@ size_t str_prepend_n(wchar_t (&dst)[ARRAY_SIZE],
 
       copy_backward(dst, dst + dst_len, dst + dst_len + nocp);
 
-      copy(src, src + nocp, dst);
+      std::copy(src, src + nocp, dst);
 
       dst[dst_len + nocp] = L'\0';
 
@@ -3745,7 +3745,7 @@ size_t str_prepend_n(wchar_t (&dst)[ARRAY_SIZE],
     } else {
       copy_backward(dst, dst + dst_len, dst + dst_len + nocp);
 
-      copy(src, src + nocp, dst);
+      std::copy(src, src + nocp, dst);
 
       dst[dst_len + nocp] = L'\0';
 
@@ -3786,7 +3786,7 @@ size_t str_prepend_n(char16_t (&dst)[ARRAY_SIZE],
     } else {
       copy_backward(dst, dst + dst_len, dst + dst_len + nocp);
 
-      copy(src, src + nocp, dst);
+      std::copy(src, src + nocp, dst);
 
       dst[dst_len + nocp] = u'\0';
 
@@ -3798,7 +3798,7 @@ size_t str_prepend_n(char16_t (&dst)[ARRAY_SIZE],
 
       copy_backward(dst, dst + dst_len, dst + dst_len + nocp);
 
-      copy(src, src + nocp, dst);
+      std::copy(src, src + nocp, dst);
 
       dst[dst_len + nocp] = u'\0';
 
@@ -3806,7 +3806,7 @@ size_t str_prepend_n(char16_t (&dst)[ARRAY_SIZE],
     } else {
       copy_backward(dst, dst + dst_len, dst + dst_len + nocp);
 
-      copy(src, src + nocp, dst);
+      std::copy(src, src + nocp, dst);
 
       dst[dst_len + nocp] = u'\0';
 
@@ -3847,7 +3847,7 @@ size_t str_prepend_n(char32_t (&dst)[ARRAY_SIZE],
     } else {
       copy_backward(dst, dst + dst_len, dst + dst_len + nocp);
 
-      copy(src, src + nocp, dst);
+      std::copy(src, src + nocp, dst);
 
       dst[dst_len + nocp] = U'\0';
 
@@ -3859,7 +3859,7 @@ size_t str_prepend_n(char32_t (&dst)[ARRAY_SIZE],
 
       copy_backward(dst, dst + dst_len, dst + dst_len + nocp);
 
-      copy(src, src + nocp, dst);
+      std::copy(src, src + nocp, dst);
 
       dst[dst_len + nocp] = U'\0';
 
@@ -3867,7 +3867,7 @@ size_t str_prepend_n(char32_t (&dst)[ARRAY_SIZE],
     } else {
       copy_backward(dst, dst + dst_len, dst + dst_len + nocp);
 
-      copy(src, src + nocp, dst);
+      std::copy(src, src + nocp, dst);
 
       dst[dst_len + nocp] = U'\0';
 
@@ -3978,7 +3978,7 @@ size_t str_insert(char (&dst)[ARRAY_SIZE],
     copy_backward(dst + position_index_in_dst, dst + dst_len,
                   dst + dst_len + nocti);
 
-    copy(src, src + nocti, dst + position_index_in_dst);
+    std::copy(src, src + nocti, dst + position_index_in_dst);
 
     dst[dst_len + nocti] = '\0';
 
@@ -4024,7 +4024,7 @@ size_t str_insert(wchar_t (&dst)[ARRAY_SIZE],
     copy_backward(dst + position_index_in_dst, dst + dst_len,
                   dst + dst_len + nocti);
 
-    copy(src, src + nocti, dst + position_index_in_dst);
+    std::copy(src, src + nocti, dst + position_index_in_dst);
 
     dst[dst_len + nocti] = L'\0';
 
@@ -4070,7 +4070,7 @@ size_t str_insert(char16_t (&dst)[ARRAY_SIZE],
     copy_backward(dst + position_index_in_dst, dst + dst_len,
                   dst + dst_len + nocti);
 
-    copy(src, src + nocti, dst + position_index_in_dst);
+    std::copy(src, src + nocti, dst + position_index_in_dst);
 
     dst[dst_len + nocti] = u'\0';
 
@@ -4116,7 +4116,7 @@ size_t str_insert(char32_t (&dst)[ARRAY_SIZE],
     copy_backward(dst + position_index_in_dst, dst + dst_len,
                   dst + dst_len + nocti);
 
-    copy(src, src + nocti, dst + position_index_in_dst);
+    std::copy(src, src + nocti, dst + position_index_in_dst);
 
     dst[dst_len + nocti] = U'\0';
 
@@ -4225,7 +4225,7 @@ size_t str_insert_n(char (&dst)[ARRAY_SIZE],
     copy_backward(dst + position_index_in_dst, dst + dst_len,
                   dst + dst_len + nocti);
 
-    copy(src, src + nocti, dst + position_index_in_dst);
+    std::copy(src, src + nocti, dst + position_index_in_dst);
 
     dst[dst_len + nocti] = '\0';
 
@@ -4274,7 +4274,7 @@ size_t str_insert_n(wchar_t (&dst)[ARRAY_SIZE],
     copy_backward(dst + position_index_in_dst, dst + dst_len,
                   dst + dst_len + nocti);
 
-    copy(src, src + nocti, dst + position_index_in_dst);
+    std::copy(src, src + nocti, dst + position_index_in_dst);
 
     dst[dst_len + nocti] = L'\0';
 
@@ -4323,7 +4323,7 @@ size_t str_insert_n(char16_t (&dst)[ARRAY_SIZE],
     copy_backward(dst + position_index_in_dst, dst + dst_len,
                   dst + dst_len + nocti);
 
-    copy(src, src + nocti, dst + position_index_in_dst);
+    std::copy(src, src + nocti, dst + position_index_in_dst);
 
     dst[dst_len + nocti] = u'\0';
 
@@ -4372,7 +4372,7 @@ size_t str_insert_n(char32_t (&dst)[ARRAY_SIZE],
     copy_backward(dst + position_index_in_dst, dst + dst_len,
                   dst + dst_len + nocti);
 
-    copy(src, src + nocti, dst + position_index_in_dst);
+    std::copy(src, src + nocti, dst + position_index_in_dst);
 
     dst[dst_len + nocti] = U'\0';
 
@@ -4612,7 +4612,7 @@ size_t str_replace_first(wchar_t (&dst)[ARRAY_SIZE],
   }
 
   if (needle_len == replace_len) {
-    copy(replace, replace + replace_len, dst + start_pos);
+    std::copy(replace, replace + replace_len, dst + start_pos);
 
     if (required_dst_capacity)
       *required_dst_capacity = rdc;
@@ -4633,7 +4633,7 @@ size_t str_replace_first(wchar_t (&dst)[ARRAY_SIZE],
 
     dst[dst_len + noctm] = L'\0';
 
-    copy(replace, replace + replace_len, dst + start_pos);
+    std::copy(replace, replace + replace_len, dst + start_pos);
 
     if (required_dst_capacity)
       *required_dst_capacity = rdc;
@@ -4653,7 +4653,7 @@ size_t str_replace_first(wchar_t (&dst)[ARRAY_SIZE],
 
   dst[dst_len - noctm] = L'\0';
 
-  copy(replace, replace + replace_len, dst + start_pos);
+  std::copy(replace, replace + replace_len, dst + start_pos);
 
   if (required_dst_capacity)
     *required_dst_capacity = rdc;
@@ -4700,7 +4700,7 @@ size_t str_replace_first(char16_t (&dst)[ARRAY_SIZE],
   }
 
   if (needle_len == replace_len) {
-    copy(replace, replace + replace_len, dst + start_pos);
+    std::copy(replace, replace + replace_len, dst + start_pos);
 
     if (required_dst_capacity)
       *required_dst_capacity = rdc;
@@ -4721,7 +4721,7 @@ size_t str_replace_first(char16_t (&dst)[ARRAY_SIZE],
 
     dst[dst_len + noctm] = u'\0';
 
-    copy(replace, replace + replace_len, dst + start_pos);
+    std::copy(replace, replace + replace_len, dst + start_pos);
 
     if (required_dst_capacity)
       *required_dst_capacity = rdc;
@@ -4741,7 +4741,7 @@ size_t str_replace_first(char16_t (&dst)[ARRAY_SIZE],
 
   dst[dst_len - noctm] = u'\0';
 
-  copy(replace, replace + replace_len, dst + start_pos);
+  std::copy(replace, replace + replace_len, dst + start_pos);
 
   if (required_dst_capacity)
     *required_dst_capacity = rdc;
@@ -4788,7 +4788,7 @@ size_t str_replace_first(char32_t (&dst)[ARRAY_SIZE],
   }
 
   if (needle_len == replace_len) {
-    copy(replace, replace + replace_len, dst + start_pos);
+    std::copy(replace, replace + replace_len, dst + start_pos);
 
     if (required_dst_capacity)
       *required_dst_capacity = rdc;
@@ -4809,7 +4809,7 @@ size_t str_replace_first(char32_t (&dst)[ARRAY_SIZE],
 
     dst[dst_len + noctm] = U'\0';
 
-    copy(replace, replace + replace_len, dst + start_pos);
+    std::copy(replace, replace + replace_len, dst + start_pos);
 
     if (required_dst_capacity)
       *required_dst_capacity = rdc;
@@ -4829,7 +4829,7 @@ size_t str_replace_first(char32_t (&dst)[ARRAY_SIZE],
 
   dst[dst_len - noctm] = U'\0';
 
-  copy(replace, replace + replace_len, dst + start_pos);
+  std::copy(replace, replace + replace_len, dst + start_pos);
 
   if (required_dst_capacity)
     *required_dst_capacity = rdc;
