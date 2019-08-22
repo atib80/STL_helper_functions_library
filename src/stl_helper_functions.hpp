@@ -33,19 +33,24 @@
 #include <unordered_set>
 #include <vector>
 
-static_assert(__cplusplus >= 201703L,
-              "You need a modern C++17 or C++2a standard compliant compiler in "
-              "order to be able to use this library (pass the following flag "
-              "to your compiler: -std=c++17 (g++/clang++) or -std:c++17)");
-
-#define STL_HELPER_UTILITY_MAJOR_VERSION 1
-#define STL_HELPER_UTILITY_MINOR_VERSION 1
+#ifdef _MSC_VER
+#include <Strsafe.h>
+#define SNPRINTF StringCchPrintfA
+#define SNWPRINTF StringCchPrintfW
+#else
+#define SNPRINTF snprintf
+#define SNWPRINTF snwprintf
+#endif
 
 #define PRINT_VAR_NAME(arg) std::cout << #arg << ' '
 #define PRINT_VAR_NAMEW(arg) std::wcout << #arg << L' '
 
 namespace cpp {
 namespace experimental {
+
+constexpr const char* __stl_helper_utility_major_version__{"1"};
+constexpr const char* __stl_helper_utility_minor_version__{"01"};
+
 enum class string_type { cstr, wstr, u16_str, u32_str };
 
 template <typename T>
@@ -351,6 +356,27 @@ void show_var_info(const T& arg, std::ostream& os) {
   os << "\nType: " << get_type_name(arg) << "\nValue: " << arg << '\n';
 }
 
+template <typename CallableType>
+class RunAtScopeExit {
+  CallableType& callable_obj;
+
+ public:
+  RunAtScopeExit(CallableType& callable) : callable_obj{callable} {}
+  ~RunAtScopeExit() { callable_obj(); }
+};
+
+#define TOKEN_PASTEx(x, y) x##y
+#define TOKEN_PASTE(x, y) TOKEN_PASTEx(x, y)
+#define Auto_INTERNAL1(lambda_name, instance_name, ...) \
+  auto lambda_name = [&]() { __VA_ARGS__; };            \
+  RunAtScopeExit<decltype(lambda_name)> instance_name{lambda_name};
+
+#define Auto_INTERNAL2(next_counter_value, ...)               \
+  Auto_INTERNAL1(TOKEN_PASTE(auto_func_, next_counter_value), \
+                 TOKEN_PASTE(auto_instance_, next_counter_value), __VA_ARGS__)
+
+#define Auto(...) Auto_INTERNAL2(__COUNTER__, __VA_ARGS__)
+
 template <typename T>
 void show_var_info_w(const T& arg, std::wostream& wos) {
   wos << L"\nName: ";
@@ -386,7 +412,7 @@ int say_slow(const size_t time_delay_in_ms,
   if (!output_buffer_sp)
     return -1;
 
-  snprintf(output_buffer_sp.get(), buffer_size, format_string, args...);
+  SNPRINTF(output_buffer_sp.get(), buffer_size, format_string, args...);
 
   int final_ret_val{};
 
@@ -416,7 +442,7 @@ int say_slow(const size_t time_delay_in_ms,
   if (!output_buffer_sp)
     return -1;
 
-  swprintf(output_buffer_sp.get(), buffer_size, format_string, args...);
+  SNWPRINTF(output_buffer_sp.get(), buffer_size, format_string, args...);
 
   int final_ret_val{};
 
@@ -444,7 +470,7 @@ int say(const char* format_string, Args... args) {
   if (!output_buffer_sp)
     return -1;
 
-  snprintf(output_buffer_sp.get(), buffer_size, format_string, args...);
+  SNPRINTF(output_buffer_sp.get(), buffer_size, format_string, args...);
 
   return printf("%s", output_buffer_sp.get());
 }
@@ -459,7 +485,7 @@ int say(const wchar_t* format_string, Args... args) {
   if (!output_buffer_sp)
     return -1;
 
-  swprintf(output_buffer_sp.get(), buffer_size, format_string, args...);
+  SNWPRINTF(output_buffer_sp.get(), buffer_size, format_string, args...);
 
   return wprintf(L"%ls", output_buffer_sp.get());
 }
@@ -5335,45 +5361,45 @@ std::basic_string<get_char_type_t<FormatStringType>> num_to_str(
       oss << std::forward<T>(data);
       return oss.str();
     } else if constexpr (std::is_same_v<char_type, char>)
-      snprintf(buffer, buf_size, format_string, std::forward<T>(data));
+      SNPRINTF(buffer, buf_size, format_string, std::forward<T>(data));
     else
-      snwprintf(buffer, buf_size, format_string, std::forward<T>(data));
+      SNWPRINTF(buffer, buf_size, format_string, std::forward<T>(data));
   }
 
   if constexpr (std::is_integral_v<data_type>) {
     if constexpr (std::is_signed_v<data_type>) {
       const long long value{std::forward<T>(data)};
       if constexpr (std::is_same_v<char_type, char>)
-        snprintf(buffer, buf_size, "%lld", value);
+        SNPRINTF(buffer, buf_size, "%lld", value);
       else
-        snwprintf(buffer, buf_size, L"%lld", value);
+        SNWPRINTF(buffer, buf_size, L"%lld", value);
     } else {
       const unsigned long long value{std::forward<T>(data)};
       if constexpr (std::is_same_v<char_type, char>)
-        snprintf(buffer, buf_size, "%llu", value);
+        SNPRINTF(buffer, buf_size, "%llu", value);
       else
-        snwprintf(buffer, buf_size, L"%llu", value);
+        SNWPRINTF(buffer, buf_size, L"%llu", value);
     }
   } else if constexpr (std::is_floating_point_v<data_type>) {
     if constexpr (std::is_same_v<float, data_type>) {
       if constexpr (std::is_same_v<char_type, char>)
-        snprintf(buffer, buf_size, "%f", std::forward<T>(data));
+        SNPRINTF(buffer, buf_size, "%f", std::forward<T>(data));
       else
-        snwprintf(buffer, buf_size, L"%f", std::forward<T>(data));
+        SNWPRINTF(buffer, buf_size, L"%f", std::forward<T>(data));
     } else if constexpr (std::is_same_v<double, data_type>) {
       if constexpr (std::is_same_v<char_type, char>)
-        snprintf(buffer, buf_size, "%lf", std::forward<T>(data));
+        SNPRINTF(buffer, buf_size, "%lf", std::forward<T>(data));
       else
-        snwprintf(buffer, buf_size, L"%lf", std::forward<T>(data));
+        SNWPRINTF(buffer, buf_size, L"%lf", std::forward<T>(data));
     } else {
       if constexpr (std::is_same_v<char_type, char>)
-        snprintf(buffer, buf_size, "%Lf", std::forward<T>(data));
+        SNPRINTF(buffer, buf_size, "%Lf", std::forward<T>(data));
       else
-        snwprintf(buffer, buf_size, L"%Lf", std::forward<T>(data));
+        SNWPRINTF(buffer, buf_size, L"%Lf", std::forward<T>(data));
     }
   } else {
     static char buffer[128]{};
-    snprintf(buffer, 128,
+    SNPRINTF(buffer, 128,
              "Provided data type [%s] is not a valid primitive integral or "
              "floating point number type!",
              typeid(data_type).name());
