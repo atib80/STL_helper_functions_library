@@ -356,26 +356,44 @@ void show_var_info(const T& arg, std::ostream& os) {
   os << "\nType: " << get_type_name(arg) << "\nValue: " << arg << '\n';
 }
 
-template <typename CallableType>
-class RunAtScopeExit {
-  CallableType& callable_obj;
+template <typename Runnable>
+class run_at_scope_exit {
+  Runnable& callable;
 
  public:
-  RunAtScopeExit(CallableType& callable) : callable_obj{callable} {}
-  ~RunAtScopeExit() { callable_obj(); }
+  run_at_scope_exit(Runnable& callable_object) : callable{callable_object} {}
+  ~run_at_scope_exit() { callable(); }
 };
 
-#define TOKEN_PASTEx(x, y) x##y
-#define TOKEN_PASTE(x, y) TOKEN_PASTEx(x, y)
-#define Auto_INTERNAL1(lambda_name, instance_name, ...) \
-  auto lambda_name = [&]() { __VA_ARGS__; };            \
-  RunAtScopeExit<decltype(lambda_name)> instance_name{lambda_name};
+#define TOKEN_PASTE(x, y) x##y
+#define SetUpRunAtScopeExitObject(lambda_name, instance_name, ...) \
+  auto lambda_name = [&]() { __VA_ARGS__; };                       \
+  run_at_scope_exit<decltype(lambda_name)> instance_name{lambda_name};
 
-#define Auto_INTERNAL2(next_counter_value, ...)               \
-  Auto_INTERNAL1(TOKEN_PASTE(auto_func_, next_counter_value), \
-                 TOKEN_PASTE(auto_instance_, next_counter_value), __VA_ARGS__)
+#define SetUpTaskToRunAtScopeExit(next_counter_value, ...)   \
+  SetUpRunAtScopeExitObject(                                 \
+      TOKEN_PASTE(auto_generated_func_, next_counter_value), \
+      TOKEN_PASTE(auto_generated_instance_, next_counter_value), __VA_ARGS__)
 
-#define Auto(...) Auto_INTERNAL2(__COUNTER__, __VA_ARGS__)
+#define Auto(...) SetUpTaskToRunAtScopeExit(__COUNTER__, __VA_ARGS__)
+
+template <typename... Runnable>
+class run_task_at_scope_exit {
+  std::initializer_list<Runnable...> callable_tasks;
+
+ public:
+  run_task_at_scope_exit(Runnable&&... callable_objects)
+      : callable_tasks{std::forward<Runnable>(callable_objects)...} {}
+  ~run_task_at_scope_exit() {
+    for (auto& task : callable_tasks)
+      task();
+  }
+};
+
+template <typename... Runnable>
+auto create_tasks_to_run_at_scope_exit(Runnable&&... tasks) {
+  return run_task_at_scope_exit<Runnable...>{std::forward<Runnable>(tasks)...};
+}
 
 template <typename T>
 void show_var_info_w(const T& arg, std::wostream& wos) {
@@ -3003,7 +3021,7 @@ size_t str_append(T (&dst)[ARRAY_SIZE],
   if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
     sv.assign(src);
   else
-    sv.assign(src, len(src));
+    sv.assign(src, src_len);
 
   if (append_options ==
       str_append_behavior::
@@ -3148,30 +3166,53 @@ size_t str_append(T& dst,
   return len(src);
 }
 
-template <size_t ARRAY_SIZE>
-size_t str_append_n(char (&dst)[ARRAY_SIZE],
-                    const char* src,
+template <
+    typename T,
+    size_t ARRAY_SIZE,
+    typename U,
+    typename = std::enable_if_t<
+        !std::is_const_v<T> &&
+        (is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
+         is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)&&std::
+            is_same_v<std::remove_cv_t<T>, get_char_type_t<U>>>>
+size_t str_append_n(T (&dst)[ARRAY_SIZE],
+                    const U& src,
                     const size_t number_of_characters_to_append,
                     const str_append_behavior append_options =
                         str_append_behavior::disallow_partial_append,
                     size_t* required_dst_capacity = nullptr) {
-  const auto str_len{len(src)};
+  using char_type = std::remove_cv_t<T>;
 
+  const auto src_len{len(src)};
   const auto dst_len{len(dst)};
 
-  auto no_of_chars_to_append{std::min(str_len, number_of_characters_to_append)};
-
+  auto no_of_chars_to_append{std::min(src_len, number_of_characters_to_append)};
   const size_t ret_val{dst_len + no_of_chars_to_append + 1};
 
   if (required_dst_capacity)
     *required_dst_capacity = ret_val;
+
+  if constexpr (is_char_pointer_type_v<U>) {
+    if (nullptr == src)
+      return 0U;
+  }
+
+  if (0U == src_len)
+    return 0U;
+
+  std::basic_string_view<char_type> sv{};
+
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    sv.assign(src);
+  else
+    sv.assign(src, src_len);
 
   if (append_options ==
       str_append_behavior::
           do_not_append_return_required_dst_buffer_capacity_only)
     return ret_val;
 
-  if ((dst_len + no_of_chars_to_append) > (ARRAY_SIZE - 1)) {
+  if (ret_val > ARRAY_SIZE) {
     if (append_options == str_append_behavior::disallow_partial_append) {
       return 0u;
     }
@@ -3179,9 +3220,10 @@ size_t str_append_n(char (&dst)[ARRAY_SIZE],
     if (append_options == str_append_behavior::allow_partial_append) {
       no_of_chars_to_append = ARRAY_SIZE - dst_len - 1;
 
-      std::copy(src, src + no_of_chars_to_append, dst + dst_len);
+      std::copy(std::cbegin(src), std::cbegin(src) + no_of_chars_to_append,
+                dst + dst_len);
 
-      dst[ARRAY_SIZE - 1] = '\0';
+      dst[ARRAY_SIZE - 1] = static_cast<char_type>('\0');
 
       return no_of_chars_to_append;
     }
