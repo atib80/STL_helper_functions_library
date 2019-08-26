@@ -186,12 +186,15 @@ struct has_value_type<T, std::void_t<has_value_type_t<T>>> : std::true_type {};
 template <typename T>
 constexpr const bool has_value_type_v = has_value_type<T>::value;
 
+template <typename T>
+using has_mapped_type_t = decltype(std::declval<typename T::mapped_type>());
+
 template <typename T, typename = void>
 struct has_mapped_type : std::false_type {};
 
 template <typename T>
-struct has_mapped_type<T, std::void_t<typename T::mapped_type>>
-    : std::true_type {};
+struct has_mapped_type<T, std::void_t<has_mapped_type_t<T>>> : std::true_type {
+};
 
 template <typename T>
 constexpr const bool has_mapped_type_v = has_mapped_type<T>::value;
@@ -357,17 +360,20 @@ void show_var_info(const T& arg, std::ostream& os) {
 
 template <typename Runnable>
 class run_at_scope_exit {
-  Runnable& callable;
+  Runnable callable;
 
  public:
-  run_at_scope_exit(Runnable& callable_object) : callable{callable_object} {}
+  template <typename RunnableObject>
+  run_at_scope_exit(RunnableObject&& callable_object)
+      : callable{std::forward<RunnableObject>(callable_object)} {}
   ~run_at_scope_exit() { callable(); }
 };
 
 #define TOKEN_PASTE(x, y) x##y
 #define SetUpRunAtScopeExitObject(lambda_name, instance_name, ...) \
   auto lambda_name = [&]() { __VA_ARGS__; };                       \
-  run_at_scope_exit<decltype(lambda_name)> instance_name{lambda_name};
+  run_at_scope_exit<decltype(lambda_name)> instance_name{          \
+      std::forward<decltype(lambda_name)>(lambda_name)};
 
 #define SetUpTaskToRunAtScopeExit(next_counter_value, ...)   \
   SetUpRunAtScopeExitObject(                                 \
@@ -381,8 +387,9 @@ class run_task_at_scope_exit {
   std::initializer_list<Runnable...> callable_tasks;
 
  public:
-  run_task_at_scope_exit(Runnable&&... callable_objects)
-      : callable_tasks{std::forward<Runnable>(callable_objects)...} {}
+  template <typename... RunnableObjects>
+  run_task_at_scope_exit(RunnableObjects&&... callable_objects)
+      : callable_tasks{std::forward<RunnableObjects>(callable_objects)...} {}
   ~run_task_at_scope_exit() {
     for (auto& task : callable_tasks)
       task();
@@ -2275,16 +2282,12 @@ bool has_value(const T (&arr)[N], U&& value) {
   return arr + N != std::find(arr, arr + N, std::forward<U>(value));
 }
 
-template <
-    typename ContainerType,
-    typename KeyType,
-    typename MappedType,
-    typename = std::enable_if_t<
-        has_key_type_v<ContainerType> && has_mapped_type_v<ContainerType> &&
-        std::is_convertible_v<KeyType, typename ContainerType::key_type> &&
-        std::is_convertible_v<MappedType, typename ContainerType::mapped_type>>>
+template <typename ContainerType,
+          typename = std::enable_if_t<has_key_type_v<ContainerType> &&
+                                      has_value_type_v<ContainerType> &&
+                                      has_mapped_type_v<ContainerType>>>
 bool has_kv_pair(const ContainerType& container,
-                 const std::pair<KeyType, MappedType>& key_value_pair) {
+                 const typename ContainerType::value_type& key_value_pair) {
   auto first_item_iter_pos{container.equal_range(key_value_pair.first)};
   if (std::cend(container) == first_item_iter_pos.first)
     return false;
