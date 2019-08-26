@@ -2,8 +2,7 @@
 
 using namespace std;
 
-namespace cpp {
-namespace experimental {
+namespace stl::helper {
 
 size_t str_insert(char* dst,
                   const size_t dst_capacity_in_number_of_characters,
@@ -1209,9 +1208,6 @@ u16string to_u16string(short number,
 
       case number_base::hexadecimal:
         return 16;
-
-      default:
-        return 10;
     }
   }());
 
@@ -1329,10 +1325,6 @@ u16string to_u16string(short number,
         default:
           break;
       }
-
-      return number_str;
-
-    default:
 
       return number_str;
   }
@@ -1356,9 +1348,6 @@ u16string to_u16string(unsigned short number,
 
       case number_base::hexadecimal:
         return 16;
-
-      default:
-        return 10;
     }
   }());
 
@@ -1478,10 +1467,6 @@ u16string to_u16string(unsigned short number,
       }
 
       return number_str;
-
-    default:
-
-      return number_str;
   }
 }
 
@@ -1503,9 +1488,6 @@ u16string to_u16string(int number,
 
       case number_base::hexadecimal:
         return 16;
-
-      default:
-        return 10;
     }
   }();
 
@@ -1625,10 +1607,6 @@ u16string to_u16string(int number,
       }
 
       return number_str;
-
-    default:
-
-      return number_str;
   }
 }
 
@@ -1650,9 +1628,6 @@ u16string to_u16string(unsigned int number,
 
       case number_base::hexadecimal:
         return 16;
-
-      default:
-        return 10;
     }
   }());
 
@@ -1770,10 +1745,6 @@ u16string to_u16string(unsigned int number,
         default:
           break;
       }
-
-      return number_str;
-
-    default:
 
       return number_str;
   }
@@ -1797,9 +1768,6 @@ u16string to_u16string(long number,
 
       case number_base::hexadecimal:
         return 16;
-
-      default:
-        return 10;
     }
   }());
 
@@ -1917,10 +1885,6 @@ u16string to_u16string(long number,
         default:
           break;
       }
-
-      return number_str;
-
-    default:
 
       return number_str;
   }
@@ -1944,9 +1908,6 @@ u16string to_u16string(unsigned long number,
 
       case number_base::hexadecimal:
         return 16;
-
-      default:
-        return 10;
     }
   }());
 
@@ -2064,10 +2025,6 @@ u16string to_u16string(unsigned long number,
         default:
           break;
       }
-
-      return number_str;
-
-    default:
 
       return number_str;
   }
@@ -2091,9 +2048,6 @@ u16string to_u16string(long long number,
 
       case number_base::hexadecimal:
         return 16;
-
-      default:
-        return 10;
     }
   }());
 
@@ -2213,10 +2167,6 @@ u16string to_u16string(long long number,
       }
 
       return number_str;
-
-    default:
-
-      return number_str;
   }
 }
 
@@ -2238,9 +2188,6 @@ u16string to_u16string(unsigned long long number,
 
       case number_base::hexadecimal:
         return 16;
-
-      default:
-        return 10;
     }
   }());
 
@@ -2365,13 +2312,13 @@ u16string to_u16string(unsigned long long number,
 
 u16string to_u16string(float number, const unsigned number_of_decimal_digits) {
   wchar_t format_str_buffer[32], buffer[32];
-  snwprintf(format_str_buffer, 32, L"%%.%uf", number_of_decimal_digits);
+  SNWPRINTF(format_str_buffer, 32, L"%%.%ulf", number_of_decimal_digits);
 
-  auto const count = snwprintf(buffer, 32, format_str_buffer, number);
+  SNWPRINTF(buffer, 32, format_str_buffer, static_cast<double>(number));
 
   u16string number_str{};
 
-  transform(buffer, buffer + count, back_inserter(number_str),
+  transform(buffer, buffer + len(buffer), back_inserter(number_str),
             [](const auto ch) { return static_cast<char16_t>(ch); });
 
   return number_str;
@@ -2379,13 +2326,13 @@ u16string to_u16string(float number, const unsigned number_of_decimal_digits) {
 
 u16string to_u16string(double number, const unsigned number_of_decimal_digits) {
   wchar_t format_str_buffer[32], buffer[32];
-  snwprintf(format_str_buffer, 32, L"%%.%ulf", number_of_decimal_digits);
+  SNWPRINTF(format_str_buffer, 32, L"%%.%ulf", number_of_decimal_digits);
 
-  auto const count = snwprintf(buffer, 32, format_str_buffer, number);
+  SNWPRINTF(buffer, 32, format_str_buffer, number);
 
   u16string number_str{};
 
-  transform(buffer, buffer + count, back_inserter(number_str),
+  transform(buffer, buffer + len(buffer), back_inserter(number_str),
             [](const auto ch) { return static_cast<char16_t>(ch); });
 
   return number_str;
@@ -2394,13 +2341,13 @@ u16string to_u16string(double number, const unsigned number_of_decimal_digits) {
 u16string to_u16string(long double number,
                        const unsigned number_of_decimal_digits) {
   wchar_t format_str_buffer[32], buffer[32];
-  snwprintf(format_str_buffer, 32, L"%%.%uLf", number_of_decimal_digits);
+  SNWPRINTF(format_str_buffer, 32, L"%%.%uLf", number_of_decimal_digits);
 
-  auto const count = snwprintf(buffer, 32, format_str_buffer, number);
+  SNWPRINTF(buffer, 32, format_str_buffer, number);
 
   u16string number_str{};
 
-  transform(buffer, buffer + count, back_inserter(number_str),
+  transform(buffer, buffer + len(buffer), back_inserter(number_str),
             [](const auto ch) { return static_cast<char16_t>(ch); });
 
   return number_str;
@@ -2424,9 +2371,6 @@ u32string to_u32string(short number,
 
       case number_base::hexadecimal:
         return 16;
-
-      default:
-        return 10;
     }
   }());
 
@@ -2545,10 +2489,6 @@ u32string to_u32string(short number,
       }
 
       return number_str;
-
-    default:
-
-      return number_str;
   }
 }
 
@@ -2570,9 +2510,6 @@ u32string to_u32string(unsigned short number,
 
       case number_base::hexadecimal:
         return 16;
-
-      default:
-        return 10;
     }
   }());
 
@@ -2691,10 +2628,6 @@ u32string to_u32string(unsigned short number,
       }
 
       return number_str;
-
-    default:
-
-      return number_str;
   }
 }
 
@@ -2716,9 +2649,6 @@ u32string to_u32string(int number,
 
       case number_base::hexadecimal:
         return 16;
-
-      default:
-        return 10;
     }
   }();
 
@@ -2837,10 +2767,6 @@ u32string to_u32string(int number,
       }
 
       return number_str;
-
-    default:
-
-      return number_str;
   }
 }
 
@@ -2862,9 +2788,6 @@ u32string to_u32string(unsigned int number,
 
       case number_base::hexadecimal:
         return 16;
-
-      default:
-        return 10;
     }
   }());
 
@@ -2981,10 +2904,6 @@ u32string to_u32string(unsigned int number,
         default:
           break;
       }
-
-      return number_str;
-
-    default:
 
       return number_str;
   }
@@ -3008,9 +2927,6 @@ u32string to_u32string(long number,
 
       case number_base::hexadecimal:
         return 16;
-
-      default:
-        return 10;
     }
   }());
 
@@ -3127,10 +3043,6 @@ u32string to_u32string(long number,
         default:
           break;
       }
-
-      return number_str;
-
-    default:
 
       return number_str;
   }
@@ -3154,9 +3066,6 @@ u32string to_u32string(unsigned long number,
 
       case number_base::hexadecimal:
         return 16;
-
-      default:
-        return 10;
     }
   }());
 
@@ -3275,10 +3184,6 @@ u32string to_u32string(unsigned long number,
       }
 
       return number_str;
-
-    default:
-
-      return number_str;
   }
 }
 
@@ -3300,9 +3205,6 @@ u32string to_u32string(long long number,
 
       case number_base::hexadecimal:
         return 16;
-
-      default:
-        return 10;
     }
   }());
 
@@ -3565,9 +3467,10 @@ u32string to_u32string(unsigned long long number,
 
 u32string to_u32string(float number, const unsigned number_of_decimal_digits) {
   wchar_t format_str_buffer[32], buffer[32];
-  snwprintf(format_str_buffer, 32, L"%%.%uf", number_of_decimal_digits);
+  SNWPRINTF(format_str_buffer, 32, L"%%.%ulf", number_of_decimal_digits);
 
-  auto const count = snwprintf(buffer, 32, format_str_buffer, number);
+  auto const count =
+      SNWPRINTF(buffer, 32, format_str_buffer, static_cast<double>(number));
 
   u32string number_str{};
 
@@ -4341,7 +4244,7 @@ float stof(const u16string& str,
               exponential_part_value = -exponential_part_value;
 
             if (abs(exponential_part_value) != 0)
-              number_value *= pow(2.f, exponential_part_value);
+              number_value *= powf(2.f, exponential_part_value);
           }
         }
 
@@ -4417,7 +4320,7 @@ float stof(const u16string& str,
               exponential_part_value = -exponential_part_value;
 
             if (abs(exponential_part_value) != 0)
-              number_value *= std::pow(8.f, exponential_part_value);
+              number_value *= powf(8.f, exponential_part_value);
           }
         }
 
@@ -4492,7 +4395,7 @@ float stof(const u16string& str,
               exponential_part_value = -exponential_part_value;
 
             if (abs(exponential_part_value) != 0)
-              number_value *= std::pow(10.f, exponential_part_value);
+              number_value *= powf(10.f, exponential_part_value);
           }
         }
 
@@ -4636,7 +4539,7 @@ float stof(const u16string& str,
               exponential_part_value = -exponential_part_value;
 
             if (abs(exponential_part_value) != 0)
-              number_value *= pow(10.f, exponential_part_value);
+              number_value *= powf(10.f, exponential_part_value);
           }
         }
 
@@ -4655,7 +4558,7 @@ float stof(const u16string& str,
         exponential_part_value = -exponential_part_value;
 
       if (abs(exponential_part_value) != 0)
-        number_value *= pow(2.f, exponential_part_value);
+        number_value *= powf(2.f, exponential_part_value);
     }
   }
 
@@ -4752,7 +4655,7 @@ double stod(const u16string& str,
         if (temp_str[i] == u'.') {
           if (!fractional_part_found) {
             fractional_part_found = true;
-            fractional_part_value = 0.f;
+            fractional_part_value = 0;
             fractional_part_position_index = -1;
           } else {
             found_invalid_character = true;
@@ -4828,7 +4731,7 @@ double stod(const u16string& str,
         if (temp_str[i] == u'.') {
           if (!fractional_part_found) {
             fractional_part_found = true;
-            fractional_part_value = 0.f;
+            fractional_part_value = 0;
             fractional_part_position_index = -1;
           } else {
             found_invalid_character = true;
@@ -4903,7 +4806,7 @@ double stod(const u16string& str,
         if (temp_str[i] == u'.') {
           if (!fractional_part_found) {
             fractional_part_found = true;
-            fractional_part_value = 0.f;
+            fractional_part_value = 0;
             fractional_part_position_index = -1;
           } else {
             found_invalid_character = true;
@@ -4978,7 +4881,7 @@ double stod(const u16string& str,
         if (temp_str[i] == u'.') {
           if (!fractional_part_found) {
             fractional_part_found = true;
-            fractional_part_value = 0.f;
+            fractional_part_value = 0;
             fractional_part_position_index = -1;
           } else {
             found_invalid_character = true;
@@ -5047,7 +4950,7 @@ double stod(const u16string& str,
         if (temp_str[i] == u'.') {
           if (!fractional_part_found) {
             fractional_part_found = true;
-            fractional_part_value = 0.f;
+            fractional_part_value = 0;
             fractional_part_position_index = -1;
           } else {
             found_invalid_character = true;
@@ -5228,7 +5131,7 @@ long double stold(const u16string& str,
         if (temp_str[i] == u'.') {
           if (!fractional_part_found) {
             fractional_part_found = true;
-            fractional_part_value = 0.f;
+            fractional_part_value = 0;
             fractional_part_position_index = -1;
           } else {
             found_invalid_character = true;
@@ -5293,7 +5196,7 @@ long double stold(const u16string& str,
               exponential_part_value = -exponential_part_value;
 
             if (abs(exponential_part_value) != 0)
-              number_value *= pow(2, exponential_part_value);
+              number_value *= powl(2, exponential_part_value);
           }
         }
 
@@ -5304,7 +5207,7 @@ long double stold(const u16string& str,
         if (temp_str[i] == u'.') {
           if (!fractional_part_found) {
             fractional_part_found = true;
-            fractional_part_value = 0.f;
+            fractional_part_value = 0;
             fractional_part_position_index = -1;
           } else {
             found_invalid_character = true;
@@ -5369,7 +5272,7 @@ long double stold(const u16string& str,
               exponential_part_value = -exponential_part_value;
 
             if (abs(exponential_part_value) != 0)
-              number_value *= pow(8, exponential_part_value);
+              number_value *= powl(8, exponential_part_value);
           }
         }
 
@@ -5379,7 +5282,7 @@ long double stold(const u16string& str,
         if (temp_str[i] == u'.') {
           if (!fractional_part_found) {
             fractional_part_found = true;
-            fractional_part_value = 0.f;
+            fractional_part_value = 0;
             fractional_part_position_index = -1;
           } else {
             found_invalid_character = true;
@@ -5444,7 +5347,7 @@ long double stold(const u16string& str,
               exponential_part_value = -exponential_part_value;
 
             if (abs(exponential_part_value) != 0)
-              number_value *= pow(10, exponential_part_value);
+              number_value *= powl(10, exponential_part_value);
           }
         }
 
@@ -5454,7 +5357,7 @@ long double stold(const u16string& str,
         if (temp_str[i] == u'.') {
           if (!fractional_part_found) {
             fractional_part_found = true;
-            fractional_part_value = 0.f;
+            fractional_part_value = 0;
             fractional_part_position_index = -1;
           } else {
             found_invalid_character = true;
@@ -5525,7 +5428,7 @@ long double stold(const u16string& str,
         if (temp_str[i] == u'.') {
           if (!fractional_part_found) {
             fractional_part_found = true;
-            fractional_part_value = 0.f;
+            fractional_part_value = 0;
             fractional_part_position_index = -1;
           } else {
             found_invalid_character = true;
@@ -5590,7 +5493,7 @@ long double stold(const u16string& str,
               exponential_part_value = -exponential_part_value;
 
             if (abs(exponential_part_value) != 0)
-              number_value *= pow(10, exponential_part_value);
+              number_value *= powl(10, exponential_part_value);
           }
         }
 
@@ -5609,7 +5512,7 @@ long double stold(const u16string& str,
         exponential_part_value = -exponential_part_value;
 
       if (abs(exponential_part_value) != 0)
-        number_value *= pow(2, exponential_part_value);
+        number_value *= powl(2, exponential_part_value);
     }
   }
 
@@ -6345,7 +6248,7 @@ float stof(const u32string& str,
               exponential_part_value = -exponential_part_value;
 
             if (abs(exponential_part_value) != 0)
-              number_value *= pow(2.f, exponential_part_value);
+              number_value *= powf(2.f, exponential_part_value);
           }
         }
 
@@ -6421,7 +6324,7 @@ float stof(const u32string& str,
               exponential_part_value = -exponential_part_value;
 
             if (abs(exponential_part_value) != 0)
-              number_value *= pow(8.f, exponential_part_value);
+              number_value *= powf(8.f, exponential_part_value);
           }
         }
 
@@ -6496,7 +6399,7 @@ float stof(const u32string& str,
               exponential_part_value = -exponential_part_value;
 
             if (abs(exponential_part_value) != 0)
-              number_value *= pow(10.f, exponential_part_value);
+              number_value *= powf(10.f, exponential_part_value);
           }
         }
 
@@ -6640,7 +6543,7 @@ float stof(const u32string& str,
               exponential_part_value = -exponential_part_value;
 
             if (abs(exponential_part_value) != 0)
-              number_value *= pow(10.f, exponential_part_value);
+              number_value *= powf(10.f, exponential_part_value);
           }
         }
 
@@ -6659,7 +6562,7 @@ float stof(const u32string& str,
         exponential_part_value = -exponential_part_value;
 
       if (abs(exponential_part_value) != 0)
-        number_value *= pow(2.f, exponential_part_value);
+        number_value *= powf(2.f, exponential_part_value);
     }
   }
 
@@ -6756,7 +6659,7 @@ double stod(const u32string& str,
         if (temp_str[i] == U'.') {
           if (!fractional_part_found) {
             fractional_part_found = true;
-            fractional_part_value = 0.f;
+            fractional_part_value = 0;
             fractional_part_position_index = -1;
           } else {
             found_invalid_character = true;
@@ -6832,7 +6735,7 @@ double stod(const u32string& str,
         if (temp_str[i] == U'.') {
           if (!fractional_part_found) {
             fractional_part_found = true;
-            fractional_part_value = 0.f;
+            fractional_part_value = 0;
             fractional_part_position_index = -1;
           } else {
             found_invalid_character = true;
@@ -6907,7 +6810,7 @@ double stod(const u32string& str,
         if (temp_str[i] == U'.') {
           if (!fractional_part_found) {
             fractional_part_found = true;
-            fractional_part_value = 0.f;
+            fractional_part_value = 0;
             fractional_part_position_index = -1;
           } else {
             found_invalid_character = true;
@@ -6982,7 +6885,7 @@ double stod(const u32string& str,
         if (temp_str[i] == U'.') {
           if (!fractional_part_found) {
             fractional_part_found = true;
-            fractional_part_value = 0.f;
+            fractional_part_value = 0;
             fractional_part_position_index = -1;
           } else {
             found_invalid_character = true;
@@ -7051,7 +6954,7 @@ double stod(const u32string& str,
         if (temp_str[i] == U'.') {
           if (!fractional_part_found) {
             fractional_part_found = true;
-            fractional_part_value = 0.f;
+            fractional_part_value = 0;
             fractional_part_position_index = -1;
           } else {
             found_invalid_character = true;
@@ -7232,7 +7135,7 @@ long double stold(const u32string& str,
         if (temp_str[i] == U'.') {
           if (!fractional_part_found) {
             fractional_part_found = true;
-            fractional_part_value = 0.f;
+            fractional_part_value = 0;
             fractional_part_position_index = -1;
           } else {
             found_invalid_character = true;
@@ -7297,7 +7200,7 @@ long double stold(const u32string& str,
               exponential_part_value = -exponential_part_value;
 
             if (abs(exponential_part_value) != 0)
-              number_value *= pow(2, exponential_part_value);
+              number_value *= powl(2, exponential_part_value);
           }
         }
 
@@ -7308,7 +7211,7 @@ long double stold(const u32string& str,
         if (temp_str[i] == U'.') {
           if (!fractional_part_found) {
             fractional_part_found = true;
-            fractional_part_value = 0.f;
+            fractional_part_value = 0;
             fractional_part_position_index = -1;
           } else {
             found_invalid_character = true;
@@ -7373,7 +7276,7 @@ long double stold(const u32string& str,
               exponential_part_value = -exponential_part_value;
 
             if (abs(exponential_part_value) != 0)
-              number_value *= pow(8, exponential_part_value);
+              number_value *= powl(8, exponential_part_value);
           }
         }
 
@@ -7383,7 +7286,7 @@ long double stold(const u32string& str,
         if (temp_str[i] == U'.') {
           if (!fractional_part_found) {
             fractional_part_found = true;
-            fractional_part_value = 0.f;
+            fractional_part_value = 0;
             fractional_part_position_index = -1;
           } else {
             found_invalid_character = true;
@@ -7448,7 +7351,7 @@ long double stold(const u32string& str,
               exponential_part_value = -exponential_part_value;
 
             if (abs(exponential_part_value) != 0)
-              number_value *= pow(10, exponential_part_value);
+              number_value *= powl(10, exponential_part_value);
           }
         }
 
@@ -7458,7 +7361,7 @@ long double stold(const u32string& str,
         if (temp_str[i] == U'.') {
           if (!fractional_part_found) {
             fractional_part_found = true;
-            fractional_part_value = 0.f;
+            fractional_part_value = 0;
             fractional_part_position_index = -1;
           } else {
             found_invalid_character = true;
@@ -7529,7 +7432,7 @@ long double stold(const u32string& str,
         if (temp_str[i] == U'.') {
           if (!fractional_part_found) {
             fractional_part_found = true;
-            fractional_part_value = 0.f;
+            fractional_part_value = 0;
             fractional_part_position_index = -1;
           } else {
             found_invalid_character = true;
@@ -7594,7 +7497,7 @@ long double stold(const u32string& str,
               exponential_part_value = -exponential_part_value;
 
             if (abs(exponential_part_value) != 0)
-              number_value *= pow(10, exponential_part_value);
+              number_value *= powl(10, exponential_part_value);
           }
         }
 
@@ -7613,7 +7516,7 @@ long double stold(const u32string& str,
         exponential_part_value = -exponential_part_value;
 
       if (abs(exponential_part_value) != 0)
-        number_value *= pow(2, exponential_part_value);
+        number_value *= powl(2, exponential_part_value);
     }
   }
 
@@ -7623,5 +7526,4 @@ long double stold(const u32string& str,
   return number_value;
 }
 
-}  // namespace experimental
-}  // namespace cpp
+}  // namespace stl::helper

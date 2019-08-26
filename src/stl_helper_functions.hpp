@@ -45,11 +45,10 @@
 #define PRINT_VAR_NAME(arg) std::cout << #arg << ' '
 #define PRINT_VAR_NAMEW(arg) std::wcout << #arg << L' '
 
-namespace cpp {
-namespace experimental {
+namespace stl::helper {
 
-constexpr const char* __stl_helper_utility_major_version__{"1"};
-constexpr const char* __stl_helper_utility_minor_version__{"01"};
+static constexpr const char* __stl_helper_utility_library_version__{
+    "0.0.1-devel"};
 
 enum class string_type { cstr, wstr, u16_str, u32_str };
 
@@ -754,34 +753,27 @@ template <typename T>
 using add_const_pointer_to_char_type_t =
     typename add_const_pointer_to_char_type<T>::type;
 
-static constexpr size_t max_string_length{std::numeric_limits<size_t>::max()};
 static constexpr size_t not_found_index{std::string::npos};
 
-template <
-    typename T,
-    size_t ARRAY_SIZE,
-    typename = std::enable_if_t<is_valid_char_type_v<std::remove_cv_t<T>>>>
-size_t len(T (&arr)[ARRAY_SIZE],
-           const size_t max_allowed_string_length = max_string_length) {
+template <typename T,
+          size_t ARRAY_SIZE,
+          typename = std::enable_if_t<is_valid_char_type_v<T>>>
+size_t len(T (&arr)[ARRAY_SIZE]) {
   size_t length{};
 
   while (arr[length])
     length++;
 
-  return length <= max_allowed_string_length ? length
-                                             : max_allowed_string_length;
+  return length;
 }
 
 template <typename T,
           typename = std::enable_if_t<is_char_pointer_type_v<T> ||
                                       is_valid_string_type_v<T> ||
                                       is_valid_string_view_type_v<T>>>
-size_t len(const T& src,
-           const size_t max_allowed_string_length = max_string_length) {
+size_t len(const T& src) {
   if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
-    return src.length() <= max_allowed_string_length
-               ? src.length()
-               : max_allowed_string_length;
+    return src.length();
 
   if (nullptr == src)
     return 0U;
@@ -791,8 +783,7 @@ size_t len(const T& src,
   while (src[length])
     length++;
 
-  return length <= max_allowed_string_length ? length
-                                             : max_allowed_string_length;
+  return length;
 }
 
 template <typename T,
@@ -2323,11 +2314,10 @@ bool has_item(const ForwardIterType first,
   return last != std::find(first, last, std::forward<ItemType>(item));
 }
 
-template <
-    typename T,
-    size_t ARRAY_SIZE1,
-    size_t ARRAY_SIZE2,
-    typename = std::enable_if_t<is_valid_char_type_v<std::remove_cv_t<T>>>>
+template <typename T,
+          size_t ARRAY_SIZE1,
+          size_t ARRAY_SIZE2,
+          typename = std::enable_if_t<is_valid_char_type_v<T>>>
 int str_compare(T (&arr1)[ARRAY_SIZE1], T (&arr2)[ARRAY_SIZE2]) {
   const size_t arr1_len{len(arr1)};
   const size_t arr2_len{len(arr2)};
@@ -2353,7 +2343,7 @@ template <typename T,
           size_t ARRAY_SIZE,
           typename U,
           typename = std::enable_if_t<
-              is_valid_char_type_v<std::remove_cv_t<T>> &&
+              is_valid_char_type_v<T> &&
               (is_char_pointer_type_v<U> || is_valid_string_type_v<U> ||
                is_valid_string_view_type_v<U>)&&std::
                   is_same_v<std::remove_cv_t<T>, get_char_type_t<U>>>>
@@ -2382,7 +2372,7 @@ template <typename T,
           typename U,
           size_t ARRAY_SIZE,
           typename = std::enable_if_t<
-              is_valid_char_type_v<std::remove_cv_t<U>> &&
+              is_valid_char_type_v<U> &&
               (is_char_pointer_type_v<T> || is_valid_string_type_v<T> ||
                is_valid_string_view_type_v<T>)&&std::
                   is_same_v<get_char_type_t<T>, std::remove_cv_t<U>>>>
@@ -2436,11 +2426,10 @@ int str_compare(const T& src1, const U& src2) {
   return static_cast<int>(src1[i] - src2[i]);
 }
 
-template <
-    typename T,
-    size_t ARRAY_SIZE1,
-    size_t ARRAY_SIZE2,
-    typename = std::enable_if_t<is_valid_char_type_v<std::remove_cv_t<T>>>>
+template <typename T,
+          size_t ARRAY_SIZE1,
+          size_t ARRAY_SIZE2,
+          typename = std::enable_if_t<is_valid_char_type_v<T>>>
 int str_compare_n(T (&arr1)[ARRAY_SIZE1],
                   T (&arr2)[ARRAY_SIZE2],
                   size_t number_of_characters_to_compare) {
@@ -2470,7 +2459,7 @@ template <typename T,
           size_t ARRAY_SIZE,
           typename U,
           typename = std::enable_if_t<
-              is_valid_char_type_v<std::remove_cv_t<T>> &&
+              is_valid_char_type_v<T> &&
               (is_char_pointer_type_v<U> || is_valid_string_type_v<U> ||
                is_valid_string_view_type_v<U>)&&std::
                   is_same_v<std::remove_cv_t<T>, get_char_type_t<U>>>>
@@ -2501,7 +2490,7 @@ template <typename T,
           typename U,
           size_t ARRAY_SIZE,
           typename = std::enable_if_t<
-              is_valid_char_type_v<std::remove_cv_t<U>> &&
+              is_valid_char_type_v<U> &&
               (is_char_pointer_type_v<T> || is_valid_string_type_v<T> ||
                is_valid_string_view_type_v<T>)&&std::
                   is_same_v<get_char_type_t<T>, std::remove_cv_t<U>>>>
@@ -2562,11 +2551,10 @@ int str_compare_n(const T& src1,
   return static_cast<int>(src1[i] - src2[i]);
 }
 
-template <
-    typename T,
-    size_t ARRAY_SIZE1,
-    size_t ARRAY_SIZE2,
-    typename = std::enable_if_t<is_valid_char_type_v<std::remove_cv_t<T>>>>
+template <typename T,
+          size_t ARRAY_SIZE1,
+          size_t ARRAY_SIZE2,
+          typename = std::enable_if_t<is_valid_char_type_v<T>>>
 int str_compare_i(T (&arr1)[ARRAY_SIZE1],
                   T (&arr2)[ARRAY_SIZE2],
                   const std::locale& loc = std::locale{}) {
@@ -2614,7 +2602,7 @@ template <typename T,
           size_t ARRAY_SIZE,
           typename U,
           typename = std::enable_if_t<
-              is_valid_char_type_v<std::remove_cv_t<T>> &&
+              is_valid_char_type_v<T> &&
               (is_char_pointer_type_v<U> || is_valid_string_type_v<U> ||
                is_valid_string_view_type_v<U>)&&std::
                   is_same_v<std::remove_cv_t<T>, get_char_type_t<U>>>>
@@ -2663,7 +2651,7 @@ template <typename T,
           typename U,
           size_t ARRAY_SIZE,
           typename = std::enable_if_t<
-              is_valid_char_type_v<std::remove_cv_t<U>> &&
+              is_valid_char_type_v<U> &&
               (is_char_pointer_type_v<T> || is_valid_string_type_v<T> ||
                is_valid_string_view_type_v<T>)&&std::
                   is_same_v<get_char_type_t<T>, std::remove_cv_t<U>>>>
@@ -2759,11 +2747,10 @@ int str_compare_i(const T& src1,
   }
 }
 
-template <
-    typename T,
-    size_t ARRAY_SIZE1,
-    size_t ARRAY_SIZE2,
-    typename = std::enable_if_t<is_valid_char_type_v<std::remove_cv_t<T>>>>
+template <typename T,
+          size_t ARRAY_SIZE1,
+          size_t ARRAY_SIZE2,
+          typename = std::enable_if_t<is_valid_char_type_v<T>>>
 int str_compare_n_i(T (&arr1)[ARRAY_SIZE1],
                     T (&arr2)[ARRAY_SIZE2],
                     size_t number_of_characters_to_compare,
@@ -2808,7 +2795,7 @@ template <typename T,
           size_t ARRAY_SIZE,
           typename U,
           typename = std::enable_if_t<
-              is_valid_char_type_v<std::remove_cv_t<T>> &&
+              is_valid_char_type_v<T> &&
               (is_char_pointer_type_v<U> || is_valid_string_type_v<U> ||
                is_valid_string_view_type_v<U>)&&std::
                   is_same_v<std::remove_cv_t<T>, get_char_type_t<U>>>>
@@ -2854,7 +2841,7 @@ template <typename T,
           typename U,
           size_t ARRAY_SIZE,
           typename = std::enable_if_t<
-              is_valid_char_type_v<std::remove_cv_t<U>> &&
+              is_valid_char_type_v<U> &&
               (is_char_pointer_type_v<T> || is_valid_string_type_v<T> ||
                is_valid_string_view_type_v<T>)&&std::
                   is_same_v<get_char_type_t<T>, std::remove_cv_t<U>>>>
@@ -2956,7 +2943,7 @@ template <
     size_t ARRAY_SIZE,
     typename U,
     typename = std::enable_if_t<
-        !std::is_const_v<T> &&
+        is_valid_char_type_v<T> && !std::is_const_v<T> &&
         (is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
          is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)&&std::
             is_same_v<std::remove_cv_t<T>, get_char_type_t<U>>>>
@@ -3083,6 +3070,7 @@ template <typename T,
           size_t ARRAY_SIZE,
           typename = std::enable_if_t<
               is_valid_string_type_v<T> && !std::is_const_v<T> &&
+              is_valid_char_type_v<U> &&
               std::is_same_v<get_char_type_t<T>, std::remove_cv_t<U>>>>
 size_t str_copy(T& dst,
                 U (&src)[ARRAY_SIZE],
@@ -3099,7 +3087,7 @@ template <
     size_t ARRAY_SIZE,
     typename U,
     typename = std::enable_if_t<
-        !std::is_const_v<T> &&
+        is_valid_char_type_v<T> && !std::is_const_v<T> &&
         (is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
          is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)&&std::
             is_same_v<std::remove_cv_t<T>, get_char_type_t<U>>>>
@@ -3258,6 +3246,7 @@ template <typename T,
           size_t ARRAY_SIZE,
           typename = std::enable_if_t<
               is_valid_string_type_v<T> && !std::is_const_v<T> &&
+              is_valid_char_type_v<U> &&
               std::is_same_v<get_char_type_t<T>, std::remove_cv_t<U>>>>
 size_t str_copy_n(T& dst,
                   U (&src)[ARRAY_SIZE],
@@ -3287,7 +3276,7 @@ template <
     size_t ARRAY_SIZE,
     typename U,
     typename = std::enable_if_t<
-        !std::is_const_v<T> &&
+        is_valid_char_type_v<T> && !std::is_const_v<T> &&
         (is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
          is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)&&std::
             is_same_v<std::remove_cv_t<T>, get_char_type_t<U>>>>
@@ -3466,7 +3455,7 @@ template <
     size_t ARRAY_SIZE,
     typename U,
     typename = std::enable_if_t<
-        !std::is_const_v<T> &&
+        is_valid_char_type_v<T> && !std::is_const_v<T> &&
         (is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
          is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)&&std::
             is_same_v<std::remove_cv_t<T>, get_char_type_t<U>>>>
@@ -3693,7 +3682,7 @@ template <
     size_t ARRAY_SIZE,
     typename U,
     typename = std::enable_if_t<
-        !std::is_const_v<T> &&
+        is_valid_char_type_v<T> && !std::is_const_v<T> &&
         (is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
          is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)&&std::
             is_same_v<std::remove_cv_t<T>, get_char_type_t<U>>>>
@@ -3836,19 +3825,32 @@ std::basic_string<get_char_type_t<T>> str_prepend(
   if (required_dst_capacity)
     *required_dst_capacity = dst_len + src_len + 1;
 
-  if constexpr (is_char_pointer_type_v<U>) {
-    if (nullptr == src)
-      return {};
-  }
+  std::basic_string_view<char_type> dv{}, sv{};
+  std::basic_string<char_type> dst_str{}, src_str{};
 
-  std::basic_string<char_type> final_str{src};
-
-  if constexpr (is_char_pointer_type_v<T>) {
+  if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
+    dv.assign(dst);
+  else if constexpr (is_char_pointer_type_v<T>) {
     if (nullptr == dst)
-      return final_str;
-  }
+      dv.assign(dst_str);
+    else
+      dv.assign(dst, dst_len);
+  } else
+    dv.assign(dst, dst_len);
 
-  final_str.append(dst);
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    sv.assign(src);
+  else if constexpr (is_char_pointer_type_v<U>) {
+    if (nullptr == src)
+      sv.assign(src_str);
+    else
+      sv.assign(src, src_len);
+  } else
+    sv.assign(src, src_len);
+
+  std::basic_string<char_type> final_str{std::cbegin(sv), std::cend(sv)};
+
+  final_str.append(std::cbegin(dv), std::cend(dv));
 
   return final_str;
 }
@@ -3874,7 +3876,7 @@ void str_prepend(T& dst,
       return;
   }
 
-  dst.insert(0U, src);
+  dst.insert(std::begin(dst), src);
 }
 
 template <
@@ -3882,7 +3884,7 @@ template <
     size_t ARRAY_SIZE,
     typename U,
     typename = std::enable_if_t<
-        !std::is_const_v<T> &&
+        is_valid_char_type_v<T> && !std::is_const_v<T> &&
         (is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
          is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)&&std::
             is_same_v<std::remove_cv_t<T>, get_char_type_t<U>>>>
@@ -4013,30 +4015,94 @@ size_t str_prepend_n(T dst,
 
 // TODO: implement rest of str_prepend_n funtion templates
 
-template <typename StringType>
-StringType str_prepend_n(const StringType& dst,
-                         const StringType& src,
-                         size_t number_of_characters_to_prepend) {
-  number_of_characters_to_prepend =
-      number_of_characters_to_prepend <= src.size()
-          ? number_of_characters_to_prepend
-          : src.size();
+template <typename T,
+          typename U,
+          typename = std::enable_if_t<
+              (is_valid_string_type_v<T> || is_valid_string_view_type_v<T> ||
+               is_char_pointer_type_v<T> ||
+               is_char_array_type_v<T>)&&(is_valid_string_type_v<U> ||
+                                          is_valid_string_view_type_v<U> ||
+                                          is_char_pointer_type_v<U> ||
+                                          is_char_array_type_v<U>)&&std::
+                  is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
+std::basic_string<get_char_type_t<T>> str_prepend_n(
+    const T& dst,
+    const U& src,
+    size_t number_of_characters_to_prepend =
+        std::basic_string<get_char_type_t<T>>::npos) {
+  using char_type = get_char_type_t<T>;
+  const size_t dst_len{len(dst)};
+  const size_t src_len{len(src)};
 
-  StringType final_str{src.substr(0, number_of_characters_to_prepend) + dst};
+  number_of_characters_to_prepend = src_len < number_of_characters_to_prepend
+                                        ? src_len
+                                        : number_of_characters_to_prepend;
+
+  std::basic_string_view<char_type> dv{}, sv{};
+  std::basic_string<char_type> dst_str{}, src_str{};
+
+  if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
+    dv.assign(dst);
+  else if constexpr (is_char_pointer_type_v<T>) {
+    if (nullptr == dst)
+      dv.assign(dst_str);
+    else
+      dv.assign(dst, dst_len);
+  } else
+    dv.assign(dst, dst_len);
+
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    sv.assign(src);
+  else if constexpr (is_char_pointer_type_v<U>) {
+    if (nullptr == src)
+      sv.assign(src_str);
+    else
+      sv.assign(src, src_len);
+  } else
+    sv.assign(src, src_len);
+
+  std::basic_string<char_type> final_str{
+      std::cbegin(sv), std::cbegin(sv) + number_of_characters_to_prepend};
+
+  final_str.append(std::cbegin(dv), std::cend(dv));
 
   return final_str;
 }
 
-template <typename StringType>
-void str_prepend_n(StringType& dst,
-                   const StringType& src,
-                   size_t number_of_characters_to_prepend) {
-  number_of_characters_to_prepend =
-      number_of_characters_to_prepend <= src.size()
-          ? number_of_characters_to_prepend
-          : src.size();
+template <typename T,
+          typename U,
+          typename = std::enable_if_t<
+              is_valid_string_type_v<T> && !std::is_const_v<T> &&
+              (is_valid_string_type_v<U> || is_valid_string_view_type_v<U> ||
+               is_char_pointer_type_v<U> || is_char_array_type_v<U>)&&std::
+                  is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
+void str_prepend_n(T& dst,
+                   const U& src,
+                   size_t number_of_characters_to_prepend =
+                       std::basic_string<get_char_type_t<T>>::npos) {
+  using char_type = get_char_type_t<T>;
 
-  dst.insert(0, src.substr(0, number_of_characters_to_prepend));
+  const size_t src_len{len(src)};
+
+  number_of_characters_to_prepend = src_len < number_of_characters_to_prepend
+                                        ? src_len
+                                        : number_of_characters_to_prepend;
+
+  std::basic_string_view<char_type> sv{};
+  std::basic_string<char_type> src_str{};
+
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    sv.assign(src);
+  else if constexpr (is_char_pointer_type_v<U>) {
+    if (nullptr == src)
+      sv.assign(src_str);
+    else
+      sv.assign(src, src_len);
+  } else
+    sv.assign(src, src_len);
+
+  dst.insert(std::begin(dst), std::cbegin(sv),
+             std::cbegin(sv) + number_of_characters_to_prepend);
 }
 
 enum class str_insert_behaviour {
@@ -6030,5 +6096,4 @@ str_join(FwIterType first, const FwIterType last, const NeedleType& needle) {
   return result;
 }
 
-}  // namespace experimental
-}  // namespace cpp
+}  // namespace stl::helper
