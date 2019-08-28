@@ -368,19 +368,20 @@ void show_var_info(const T& arg, std::ostream& os) {
 
 template <typename Runnable>
 class run_at_scope_exit {
-  Runnable& callable;
+  Runnable callable;
 
  public:
   template <typename RunnableObject>
-  run_at_scope_exit(RunnableObject& callable_object)
-      : callable{callable_object} {}
+  run_at_scope_exit(RunnableObject&& callable_object)
+      : callable{std::forward<RunnableObject>(callable_object)} {}
   ~run_at_scope_exit() { callable(); }
 };
 
 #define TOKEN_PASTE(x, y) x##y
 #define SetUpRunAtScopeExitObject(lambda_name, instance_name, ...) \
   auto lambda_name = [&]() { __VA_ARGS__; };                       \
-  run_at_scope_exit<decltype(lambda_name)> instance_name{lambda_name};
+  run_at_scope_exit<decltype(lambda_name)> instance_name{          \
+      std::forward<decltype(lambda_name)>(lambda_name)};
 
 #define SetUpTaskToRunAtScopeExit(next_counter_value, ...)   \
   SetUpRunAtScopeExitObject(                                 \
@@ -391,12 +392,12 @@ class run_at_scope_exit {
 
 template <typename... Runnable>
 class run_task_at_scope_exit {
-  std::initializer_list<Runnable&...> callable_tasks;
+  std::initializer_list<Runnable...> callable_tasks;
 
  public:
   template <typename... RunnableObjects>
-  run_task_at_scope_exit(RunnableObjects&... callable_objects)
-      : callable_tasks{callable_objects...} {}
+  run_task_at_scope_exit(RunnableObjects&&... callable_objects)
+      : callable_tasks{std::forward<RunnableObjects>(callable_objects)...} {}
   ~run_task_at_scope_exit() {
     for (auto& task : callable_tasks)
       task();
@@ -404,8 +405,8 @@ class run_task_at_scope_exit {
 };
 
 template <typename... Runnable>
-auto create_tasks_to_run_at_scope_exit(Runnable&... tasks) {
-  return run_task_at_scope_exit<Runnable...>{tasks...};
+auto create_tasks_to_run_at_scope_exit(Runnable&&... tasks) {
+  return run_task_at_scope_exit<Runnable...>{std::forward(tasks)...};
 }
 
 template <typename T>
