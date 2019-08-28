@@ -47,8 +47,7 @@
 
 namespace stl::helper {
 
-static constexpr const char* __stl_helper_utility_library_version__{
-    "0.0.1-devel"};
+constexpr const char* __stl_helper_utility_library_version__{"0.0.1-devel"};
 
 enum class string_type { cstr, wstr, u16_str, u32_str };
 
@@ -65,22 +64,31 @@ std::string get_type_name(T&& t) {
 template <typename T>
 std::wstring get_type_name_wstr(T&& t) {
   const std::string cstr{get_type_id(std::forward<T>(t)).name()};
-
-  return std::wstring{std::cbegin(cstr), std::cend(cstr)};
+  std::wstring wstr{};
+  wstr.reserve(cstr.length() + 1);
+  std::transform(std::cbegin(cstr), std::cend(cstr), std::begin(wstr),
+                 [](const auto ch) { return static_cast<wchar_t>(ch); });
+  return wstr;
 }
 
 template <typename T>
 std::u16string get_type_name_u16str(T&& t) {
   const std::string cstr{get_type_id(std::forward<T>(t)).name()};
-
-  return std::u16string{std::cbegin(cstr), std::cend(cstr)};
+  std::u16string u16str{};
+  u16str.reserve(cstr.length() + 1);
+  std::transform(std::cbegin(cstr), std::cend(cstr), std::begin(u16str),
+                 [](const auto ch) { return static_cast<char16_t>(ch); });
+  return u16str;
 }
 
 template <typename T>
 std::u32string get_type_name_u32str(T&& t) {
   const std::string cstr{get_type_id(std::forward<T>(t)).name()};
-
-  return std::u32string{std::cbegin(cstr), std::cend(cstr)};
+  std::u32string u32str{};
+  u32str.reserve(cstr.length() + 1);
+  std::transform(std::cbegin(cstr), std::cend(cstr), std::begin(u32str),
+                 [](const auto ch) { return static_cast<char32_t>(ch); });
+  return u32str;
 }
 
 template <typename T, typename... T0_TN>
@@ -360,20 +368,19 @@ void show_var_info(const T& arg, std::ostream& os) {
 
 template <typename Runnable>
 class run_at_scope_exit {
-  Runnable callable;
+  Runnable& callable;
 
  public:
   template <typename RunnableObject>
-  run_at_scope_exit(RunnableObject&& callable_object)
-      : callable{std::forward<RunnableObject>(callable_object)} {}
+  run_at_scope_exit(RunnableObject& callable_object)
+      : callable{callable_object} {}
   ~run_at_scope_exit() { callable(); }
 };
 
 #define TOKEN_PASTE(x, y) x##y
 #define SetUpRunAtScopeExitObject(lambda_name, instance_name, ...) \
   auto lambda_name = [&]() { __VA_ARGS__; };                       \
-  run_at_scope_exit<decltype(lambda_name)> instance_name{          \
-      std::forward<decltype(lambda_name)>(lambda_name)};
+  run_at_scope_exit<decltype(lambda_name)> instance_name{lambda_name};
 
 #define SetUpTaskToRunAtScopeExit(next_counter_value, ...)   \
   SetUpRunAtScopeExitObject(                                 \
@@ -384,12 +391,12 @@ class run_at_scope_exit {
 
 template <typename... Runnable>
 class run_task_at_scope_exit {
-  std::initializer_list<Runnable...> callable_tasks;
+  std::initializer_list<Runnable&...> callable_tasks;
 
  public:
   template <typename... RunnableObjects>
-  run_task_at_scope_exit(RunnableObjects&&... callable_objects)
-      : callable_tasks{std::forward<RunnableObjects>(callable_objects)...} {}
+  run_task_at_scope_exit(RunnableObjects&... callable_objects)
+      : callable_tasks{callable_objects...} {}
   ~run_task_at_scope_exit() {
     for (auto& task : callable_tasks)
       task();
@@ -397,8 +404,8 @@ class run_task_at_scope_exit {
 };
 
 template <typename... Runnable>
-auto create_tasks_to_run_at_scope_exit(Runnable&&... tasks) {
-  return run_task_at_scope_exit<Runnable...>{std::forward<Runnable>(tasks)...};
+auto create_tasks_to_run_at_scope_exit(Runnable&... tasks) {
+  return run_task_at_scope_exit<Runnable...>{tasks...};
 }
 
 template <typename T>
@@ -2967,30 +2974,26 @@ size_t str_copy(T (&dst)[ARRAY_SIZE],
   if (0U == src_len)
     return 0U;
 
-  std::basic_string_view<char_type> sv{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    sv.assign(src);
-  else
-    sv.assign(src, src_len);
-
   if (copy_options ==
       str_copy_behavior::do_not_copy_return_required_dst_buffer_capacity_only)
     return ret_val;
 
-  if (ARRAY_SIZE < src_len + 1) {
-    if (copy_options == str_copy_behavior::disallow_partial_copy)
-      return 0U;
+  if (copy_options == str_copy_behavior::disallow_partial_copy &&
+      ARRAY_SIZE < src_len + 1)
+    return 0U;
 
-    const auto no_of_chars_to_copy{ARRAY_SIZE - 1};
-    std::copy(std::cbegin(sv), std::cbegin(sv) + no_of_chars_to_copy, dst);
-    dst[no_of_chars_to_copy] = static_cast<char_type>('\0');
-    return no_of_chars_to_copy;
-  }
+  std::basic_string_view<char_type> src_sv{};
 
-  std::copy(std::cbegin(sv), std::cend(sv), dst);
-  dst[src_len] = static_cast<char_type>('\0');
-  return src_len;
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    src_sv.assign(src);
+  else
+    src_sv.assign(src, src_len);
+
+  const size_t no_of_chars_to_copy{std::min(ARRAY_SIZE - 1, src_len)};
+  std::copy(std::cbegin(src_sv), std::cbegin(src_sv) + no_of_chars_to_copy,
+            dst);
+  dst[no_of_chars_to_copy] = static_cast<char_type>('\0');
+  return no_of_chars_to_copy;
 }
 
 template <
@@ -3018,35 +3021,30 @@ size_t str_copy(
   if (0U == src_len || nullptr == dst)
     return 0U;
 
-  std::basic_string_view<char_type> sv{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    sv.assign(src);
-  else
-    sv.assign(src, src_len);
-
   if (copy_options ==
       str_copy_behavior::do_not_copy_return_required_dst_buffer_capacity_only)
     return ret_val;
 
-  if (dst_capacity_in_number_of_characters < src_len + 1) {
-    if (copy_options == str_copy_behavior::disallow_partial_copy)
-      return 0U;
+  if (copy_options == str_copy_behavior::disallow_partial_copy &&
+      dst_capacity_in_number_of_characters < src_len + 1)
+    return 0U;
 
-    const auto no_of_chars_to_copy{dst_capacity_in_number_of_characters - 1};
+  std::basic_string_view<char_type> src_sv{};
 
-    std::copy(std::cbegin(sv), std::cbegin(sv) + no_of_chars_to_copy, dst);
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    src_sv.assign(src);
+  else
+    src_sv.assign(src, src_len);
 
-    dst[no_of_chars_to_copy] = static_cast<char_type>('\0');
+  const size_t no_of_chars_to_copy{
+      std::min(dst_capacity_in_number_of_characters - 1, src_len)};
 
-    return no_of_chars_to_copy;
-  }
+  std::copy(std::cbegin(src_sv), std::cbegin(src_sv) + no_of_chars_to_copy,
+            dst);
 
-  std::copy(std::cbegin(sv), std::cend(sv), dst);
+  dst[no_of_chars_to_copy] = static_cast<char_type>('\0');
 
-  dst[src_len] = static_cast<char_type>('\0');
-
-  return src_len;
+  return no_of_chars_to_copy;
 }
 
 template <typename T,
@@ -3096,7 +3094,7 @@ template <
             is_same_v<std::remove_cv_t<T>, get_char_type_t<U>>>>
 size_t str_copy_n(T (&dst)[ARRAY_SIZE],
                   const U& src,
-                  const size_t number_of_characters_to_copy,
+                  size_t number_of_characters_to_copy,
                   const str_copy_behavior copy_options =
                       str_copy_behavior::disallow_partial_copy,
                   size_t* required_dst_capacity = nullptr) {
@@ -3104,49 +3102,39 @@ size_t str_copy_n(T (&dst)[ARRAY_SIZE],
 
   const auto src_len{len(src)};
 
+  number_of_characters_to_copy =
+      std::min(number_of_characters_to_copy, src_len);
+  const size_t required_dst_buffer_size{number_of_characters_to_copy + 1};
+
   if (required_dst_capacity)
-    *required_dst_capacity =
-        std::min(number_of_characters_to_copy, src_len) + 1;
+    *required_dst_capacity = required_dst_buffer_size;
 
   if (0U == src_len)
     return 0U;
 
-  std::basic_string_view<char_type> sv{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    sv.assign(src);
-  else
-    sv.assign(src, src_len);
-
-  const auto noctc{std::min(number_of_characters_to_copy, src_len)};
-
-  const auto ret_val{noctc + 1};
-
-  if (required_dst_capacity)
-    *required_dst_capacity = ret_val;
-
   if (copy_options ==
       str_copy_behavior::do_not_copy_return_required_dst_buffer_capacity_only)
-    return ret_val;
+    return required_dst_buffer_size;
 
-  if (ARRAY_SIZE < ret_val) {
-    if (copy_options == str_copy_behavior::disallow_partial_copy)
-      return 0U;
+  if (copy_options == str_copy_behavior::disallow_partial_copy &&
+      ARRAY_SIZE < required_dst_buffer_size)
+    return 0U;
 
-    auto const no_chars_to_copy = ARRAY_SIZE - 1;
+  std::basic_string_view<char_type> src_sv{};
 
-    std::copy(std::cbegin(sv), std::cbegin(sv) + no_chars_to_copy, dst);
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    src_sv.assign(src);
+  else
+    src_sv.assign(src, src_len);
 
-    dst[no_chars_to_copy] = static_cast<char_type>('\0');
+  const size_t no_chars_to_copy{
+      std::min(ARRAY_SIZE - 1, number_of_characters_to_copy)};
 
-    return no_chars_to_copy;
-  }
+  std::copy(std::cbegin(src_sv), std::cbegin(src_sv) + no_chars_to_copy, dst);
 
-  std::copy(std::cbegin(sv), std::cbegin(sv) + noctc, dst);
+  dst[no_chars_to_copy] = static_cast<char_type>('\0');
 
-  dst[noctc] = static_cast<char_type>('\0');
-
-  return noctc;
+  return no_chars_to_copy;
 }
 
 template <
@@ -3167,44 +3155,39 @@ size_t str_copy_n(
   using char_type = get_char_type_t<T>;
 
   const size_t src_len{len(src)};
-  const size_t noctc{std::min(number_of_characters_to_copy, src_len)};
-  const size_t ret_val{noctc + 1};
+  number_of_characters_to_copy =
+      std::min(number_of_characters_to_copy, src_len);
+  const size_t required_dst_buffer_size{number_of_characters_to_copy + 1};
 
   if (required_dst_capacity)
-    *required_dst_capacity = ret_val;
+    *required_dst_capacity = required_dst_buffer_size;
 
   if (nullptr == dst || 0U == src_len)
     return 0U;
 
-  std::basic_string_view<char_type> sv{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    sv.assign(src);
-  else
-    sv.assign(src, src_len);
-
   if (copy_options ==
       str_copy_behavior::do_not_copy_return_required_dst_buffer_capacity_only)
-    return ret_val;
+    return required_dst_buffer_size;
 
-  if (dst_capacity_in_number_of_characters < ret_val) {
-    if (copy_options == str_copy_behavior::disallow_partial_copy)
-      return 0U;
+  if (copy_options == str_copy_behavior::disallow_partial_copy &&
+      dst_capacity_in_number_of_characters < required_dst_buffer_size)
+    return 0U;
 
-    const size_t no_chars_to_copy{dst_capacity_in_number_of_characters - 1};
+  std::basic_string_view<char_type> src_sv{};
 
-    std::copy(std::cbegin(sv), std::cbegin(sv) + no_chars_to_copy, dst);
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    src_sv.assign(src);
+  else
+    src_sv.assign(src, src_len);
 
-    dst[no_chars_to_copy] = static_cast<char_type>('\0');
+  const size_t no_chars_to_copy{std::min(
+      dst_capacity_in_number_of_characters - 1, number_of_characters_to_copy)};
 
-    return no_chars_to_copy;
-  }
+  std::copy(std::cbegin(src_sv), std::cbegin(src_sv) + no_chars_to_copy, dst);
 
-  std::copy(std::cbegin(sv), std::cbegin(sv) + noctc, dst);
+  dst[no_chars_to_copy] = static_cast<char_type>('\0');
 
-  dst[noctc] = static_cast<char_type>('\0');
-
-  return noctc;
+  return no_chars_to_copy;
 }
 
 template <typename T,
@@ -3222,9 +3205,8 @@ size_t str_copy_n(T& dst,
   using char_type = get_char_type_t<T>;
 
   const size_t src_len{len(src)};
-  number_of_characters_to_copy = src_len < number_of_characters_to_copy
-                                     ? src_len
-                                     : number_of_characters_to_copy;
+  number_of_characters_to_copy =
+      std::min(number_of_characters_to_copy, src_len);
 
   if (required_dst_capacity)
     *required_dst_capacity = number_of_characters_to_copy + 1;
@@ -3257,13 +3239,15 @@ size_t str_copy_n(T& dst,
                       std::basic_string<get_char_type_t<T>>::npos,
                   size_t* required_dst_capacity = nullptr) {
   const size_t src_len{len(src)};
+  number_of_characters_to_copy =
+      std::min(number_of_characters_to_copy, src_len);
+
   if (required_dst_capacity)
-    *required_dst_capacity = src_len + 1;
+    *required_dst_capacity = number_of_characters_to_copy + 1;
+
   if (0U == src_len)
     return 0U;
-  number_of_characters_to_copy = src_len < number_of_characters_to_copy
-                                     ? src_len
-                                     : number_of_characters_to_copy;
+
   dst.assign(src, src + number_of_characters_to_copy);
   return number_of_characters_to_copy;
 }
@@ -3291,45 +3275,38 @@ size_t str_append(T (&dst)[ARRAY_SIZE],
   using char_type = std::remove_cv_t<T>;
   const size_t src_len{len(src)};
   const size_t dst_len{len(dst)};
-  const size_t ret_val{dst_len + src_len + 1};
+  const size_t required_dst_buffer_size{dst_len + src_len + 1};
 
   if (required_dst_capacity)
-    *required_dst_capacity = ret_val;
+    *required_dst_capacity = required_dst_buffer_size;
 
   if (0U == src_len)
     return 0U;
 
-  std::basic_string_view<char_type> sv{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    sv.assign(src);
-  else
-    sv.assign(src, src_len);
-
   if (append_options ==
       str_append_behavior::
           do_not_append_return_required_dst_buffer_capacity_only)
-    return ret_val;
+    return required_dst_buffer_size;
 
-  if (ARRAY_SIZE < ret_val) {
-    if (append_options == str_append_behavior::disallow_partial_append)
-      return 0U;
+  if (append_options == str_append_behavior::disallow_partial_append &&
+      ARRAY_SIZE < required_dst_buffer_size)
+    return 0U;
 
-    const size_t no_of_chars_to_copy{ARRAY_SIZE - dst_len - 1};
+  std::basic_string_view<char_type> src_sv{};
 
-    std::copy(std::cbegin(sv), std::cbegin(sv) + no_of_chars_to_copy,
-              dst + dst_len);
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    src_sv.assign(src);
+  else
+    src_sv.assign(src, src_len);
 
-    dst[ARRAY_SIZE - 1] = static_cast<char_type>('\0');
+  const size_t no_of_chars_to_copy{std::min(ARRAY_SIZE - dst_len - 1, src_len)};
 
-    return no_of_chars_to_copy;
-  }
+  std::copy(std::cbegin(src_sv), std::cbegin(src_sv) + no_of_chars_to_copy,
+            dst + dst_len);
 
-  std::copy(std::cbegin(sv), std::cend(sv), dst + dst_len);
+  dst[dst_len + no_of_chars_to_copy] = static_cast<char_type>('\0');
 
-  dst[dst_len + src_len] = static_cast<char_type>('\0');
-
-  return src_len;
+  return no_of_chars_to_copy;
 }
 
 template <
@@ -3350,47 +3327,39 @@ size_t str_append(T dst,
 
   const size_t src_len{len(src)};
   const size_t dst_len{len(dst)};
-  const size_t ret_val{dst_len + src_len + 1};
+  const size_t required_dst_buffer_size{dst_len + src_len + 1};
 
   if (required_dst_capacity)
-    *required_dst_capacity = ret_val;
+    *required_dst_capacity = required_dst_buffer_size;
 
   if (nullptr == dst || 0U == src_len)
     return 0U;
 
-  std::basic_string_view<char_type> sv{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    sv.assign(src);
-  else
-    sv.assign(src, src_len);
-
   if (append_behavior ==
       str_append_behavior::
           do_not_append_return_required_dst_buffer_capacity_only)
-    return ret_val;
+    return required_dst_buffer_size;
 
-  if (dst_capacity_in_number_of_characters < ret_val) {
-    if (append_behavior == str_append_behavior::disallow_partial_append)
-      return 0U;
+  if (append_behavior == str_append_behavior::disallow_partial_append &&
+      dst_capacity_in_number_of_characters < required_dst_buffer_size)
+    return 0U;
 
-    const size_t no_of_chars_to_copy{dst_capacity_in_number_of_characters -
-                                     dst_len - 1};
+  std::basic_string_view<char_type> src_sv{};
 
-    std::copy(std::cbegin(sv), std::cbegin(sv) + no_of_chars_to_copy,
-              dst + dst_len);
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    src_sv.assign(src);
+  else
+    src_sv.assign(src, src_len);
 
-    dst[dst_capacity_in_number_of_characters - 1] =
-        static_cast<char_type>('\0');
+  const size_t no_of_chars_to_copy{
+      std::min(dst_capacity_in_number_of_characters - dst_len - 1, src_len)};
 
-    return no_of_chars_to_copy;
-  }
+  std::copy(std::cbegin(src_sv), std::cbegin(src_sv) + no_of_chars_to_copy,
+            dst + dst_len);
 
-  std::copy(std::cbegin(sv), std::cend(sv), dst + dst_len);
+  dst[dst_len + no_of_chars_to_copy] = static_cast<char_type>('\0');
 
-  dst[dst_len + src_len] = static_cast<char_type>('\0');
-
-  return src_len;
+  return no_of_chars_to_copy;
 }
 
 template <typename T,
@@ -3414,17 +3383,36 @@ std::basic_string<get_char_type_t<T>> str_append(
   if (required_dst_capacity)
     *required_dst_capacity = dst_len + src_len + 1;
 
-  if constexpr (is_char_pointer_type_v<T>) {
-    if (nullptr == dst)
-      return {};
-  }
+  std::basic_string_view<char_type> dst_sv{}, src_sv{};
+  std::basic_string<char_type> dst_str{}, src_str{};
 
-  std::basic_string<char_type> final_str{dst};
+  if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
+    dst_sv.assign(dst);
+  else if constexpr (is_char_pointer_type_v<T>) {
+    if (nullptr == dst)
+      dst_sv.assign(dst_str);
+    else
+      dst_sv.assign(dst, dst_len);
+  } else
+    dst_sv.assign(dst, dst_len);
+
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    src_sv.assign(src);
+  else if constexpr (is_char_pointer_type_v<U>) {
+    if (nullptr == src)
+      src_sv.assign(src_str);
+    else
+      src_sv.assign(src, src_len);
+  } else
+    src_sv.assign(src, src_len);
+
+  std::basic_string<char_type> final_str{std::cbegin(dst_sv),
+                                         std::cend(dst_sv)};
 
   if (0U == src_len)
     return final_str;
 
-  final_str += src;
+  final_str.append(std::cbegin(src_sv), std::cend(src_sv));
 
   return final_str;
 }
@@ -3439,6 +3427,7 @@ template <typename T,
 size_t str_append(T& dst,
                   const U& src,
                   size_t* required_dst_capacity = nullptr) {
+  using char_type = get_char_type_t<T>;
   const size_t dst_len{len(dst)};
   const size_t src_len{len(src)};
 
@@ -3448,7 +3437,20 @@ size_t str_append(T& dst,
   if (0U == src_len)
     return 0U;
 
-  dst += src;
+  std::basic_string_view<char_type> src_sv{};
+  std::basic_string<char_type> src_str{};
+
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    src_sv.assign(src);
+  else if constexpr (is_char_pointer_type_v<U>) {
+    if (nullptr == src)
+      src_sv.assign(src_str);
+    else
+      src_sv.assign(src, src_len);
+  } else
+    src_sv.assign(src, src_len);
+
+  dst.append(std::cbegin(src_sv), std::cend(src_sv));
 
   return src_len;
 }
@@ -3476,41 +3478,36 @@ size_t str_append_n(T (&dst)[ARRAY_SIZE],
 
   number_of_characters_to_append =
       std::min(src_len, number_of_characters_to_append);
-  const size_t ret_val{dst_len + number_of_characters_to_append + 1};
+  const size_t required_dst_buffer_size{dst_len +
+                                        number_of_characters_to_append + 1};
 
   if (required_dst_capacity)
-    *required_dst_capacity = ret_val;
+    *required_dst_capacity = required_dst_buffer_size;
 
   if (0U == src_len)
     return 0U;
 
-  std::basic_string_view<char_type> sv{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    sv.assign(src);
-  else
-    sv.assign(src, src_len);
-
   if (append_options ==
       str_append_behavior::
           do_not_append_return_required_dst_buffer_capacity_only)
-    return ret_val;
+    return required_dst_buffer_size;
 
-  if (ret_val > ARRAY_SIZE) {
-    if (append_options == str_append_behavior::disallow_partial_append)
-      return 0U;
+  if (append_options == str_append_behavior::disallow_partial_append &&
+      required_dst_buffer_size > ARRAY_SIZE)
+    return 0U;
 
-    number_of_characters_to_append = ARRAY_SIZE - dst_len - 1;
+  std::basic_string_view<char_type> src_sv{};
 
-    std::copy(std::cbegin(src),
-              std::cbegin(src) + number_of_characters_to_append, dst + dst_len);
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    src_sv.assign(src);
+  else
+    src_sv.assign(src, src_len);
 
-    dst[ARRAY_SIZE - 1] = static_cast<char_type>('\0');
+  number_of_characters_to_append =
+      std::min(ARRAY_SIZE - dst_len - 1, number_of_characters_to_append);
 
-    return number_of_characters_to_append;
-  }
-
-  std::copy(std::cbegin(src), std::cbegin(src) + number_of_characters_to_append,
+  std::copy(std::cbegin(src_sv),
+            std::cbegin(src_sv) + number_of_characters_to_append,
             dst + dst_len);
 
   dst[dst_len + number_of_characters_to_append] = static_cast<char_type>('\0');
@@ -3542,13 +3539,25 @@ size_t str_append_n(T dst,
   number_of_characters_to_append =
       std::min(number_of_characters_to_append, src_len);
 
+  const size_t required_dst_buffer_size{dst_len +
+                                        number_of_characters_to_append + 1};
+
   if (required_dst_capacity)
-    *required_dst_capacity = dst_len + number_of_characters_to_append + 1;
+    *required_dst_capacity = required_dst_buffer_size;
 
   if (nullptr == dst)
     return 0U;
 
   if (0U == src)
+    return 0U;
+
+  if (append_options ==
+      str_append_behavior::
+          do_not_append_return_required_dst_buffer_capacity_only)
+    return required_dst_buffer_size;
+
+  if (append_options == str_append_behavior::disallow_partial_append &&
+      dst_capacity_in_number_of_characters < required_dst_buffer_size)
     return 0U;
 
   std::basic_string_view<char_type> sv{};
@@ -3558,34 +3567,15 @@ size_t str_append_n(T dst,
   else
     sv.assign(src, src_len);
 
-  const size_t required_dst_capacity_in_ch_count{
-      dst_len + number_of_characters_to_append + 1};
-
-  if (append_options ==
-      str_append_behavior::
-          do_not_append_return_required_dst_buffer_capacity_only)
-    return number_of_characters_to_append;
-
-  if (dst_capacity_in_number_of_characters <
-      required_dst_capacity_in_ch_count) {
-    if (append_options == str_append_behavior::disallow_partial_append)
-      return 0U;
-
-    number_of_characters_to_append =
-        dst_capacity_in_number_of_characters - dst_len - 1;
-
-    std::copy(std::cbegin(sv), std::cbegin(sv) + number_of_characters_to_append,
-              dst + dst_len);
-
-    dst[dst_capacity_in_number_of_characters - 1] =
-        static_cast<char_type>('\0');
-
-    return number_of_characters_to_append;
-  }
+  number_of_characters_to_append =
+      std::min(dst_capacity_in_number_of_characters - dst_len - 1,
+               number_of_characters_to_append);
 
   std::copy(std::cbegin(sv), std::cbegin(sv) + number_of_characters_to_append,
             dst + dst_len);
+
   dst[dst_len + number_of_characters_to_append] = static_cast<char_type>('\0');
+
   return number_of_characters_to_append;
 }
 
@@ -3606,36 +3596,47 @@ std::basic_string<get_char_type<T>> str_append_n(
         std::basic_string<get_char_type<T>>::npos,
     size_t* required_dst_capacity = nullptr) {
   using char_type = get_char_type_t<T>;
-
-  if constexpr (is_char_pointer_type_v<T>) {
-    if (nullptr == dst)
-      return {};
-  }
-
-  std::basic_string<char_type> str{dst};
-
+  const size_t dst_len{len(dst)};
   const size_t src_len{len(src)};
-
-  number_of_characters_to_append = src_len < number_of_characters_to_append
-                                       ? src_len
-                                       : number_of_characters_to_append;
+  number_of_characters_to_append =
+      std::min(number_of_characters_to_append, src_len);
 
   if (required_dst_capacity)
-    *required_dst_capacity = str.length() + number_of_characters_to_append + 1;
+    *required_dst_capacity = dst_len + number_of_characters_to_append + 1;
 
-  if (0U == src_len)
-    return str;
+  std::basic_string_view<char_type> dst_sv{}, src_sv{};
+  std::basic_string<char_type> dst_str{}, src_str{};
 
-  std::basic_string_view<char_type> sv{};
+  if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
+    dst_sv.assign(dst);
+  else if constexpr (is_char_pointer_type_v<T>) {
+    if (nullptr == dst)
+      dst_sv.assign(dst_str);
+    else
+      dst_sv.assign(dst, dst_len);
+  } else
+    dst_sv.assign(dst, dst_len);
 
   if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    sv.assign(src);
-  else
-    sv.assign(src, src_len);
+    src_sv.assign(src);
+  else if constexpr (is_char_pointer_type_v<U>) {
+    if (nullptr == src)
+      src_sv.assign(src_str);
+    else
+      src_sv.assign(src, src_len);
+  } else
+    src_sv.assign(src, src_len);
 
-  str += sv.substr(0, number_of_characters_to_append);
+  std::basic_string<char_type> final_str{std::cbegin(dst_sv),
+                                         std::cend(dst_sv)};
 
-  return str;
+  if (0U == src_len)
+    return final_str;
+
+  final_str.append(std::cbegin(src_sv),
+                   std::cbegin(src_sv) + number_of_characters_to_append);
+
+  return final_str;
 }
 
 template <typename T,
@@ -3652,9 +3653,8 @@ size_t str_append_n(T& dst,
                     size_t* required_dst_capacity = nullptr) {
   using char_type = get_char_type_t<T>;
   const size_t src_len{len(src)};
-  number_of_characters_to_append = src_len < number_of_characters_to_append
-                                       ? src_len
-                                       : number_of_characters_to_append;
+  number_of_characters_to_append =
+      std::min(number_of_characters_to_append, src_len);
 
   if (required_dst_capacity)
     *required_dst_capacity = dst.length() + number_of_characters_to_append + 1;
@@ -3662,16 +3662,17 @@ size_t str_append_n(T& dst,
   if (0U == src_len)
     return 0U;
 
-  std::basic_string_view<char_type> sv{};
+  std::basic_string_view<char_type> src_sv{};
 
   if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    sv.assign(src);
+    src_sv.assign(src);
   else
-    sv.assign(src, src_len);
+    src_sv.assign(src, src_len);
 
-  dst += sv.substr(0, number_of_characters_to_append);
+  dst.append(std::cbegin(src_sv),
+             std::cbegin(src_sv) + number_of_characters_to_append);
 
-  return src_len;
+  return number_of_characters_to_append;
 }
 
 enum class str_prepend_behaviour {
@@ -3699,10 +3700,10 @@ size_t str_prepend(T (&dst)[ARRAY_SIZE],
   const size_t src_len{len(src)};
   const size_t dst_len{len(dst)};
 
-  const size_t required_dst_size{dst_len + src_len + 1};
+  const size_t required_dst_buffer_size{dst_len + src_len + 1};
 
   if (required_dst_capacity)
-    *required_dst_capacity = required_dst_size;
+    *required_dst_capacity = required_dst_buffer_size;
 
   if (0U == src_len)
     return 0U;
@@ -3710,37 +3711,29 @@ size_t str_prepend(T (&dst)[ARRAY_SIZE],
   if (prepend_options ==
       str_prepend_behaviour::
           do_not_prepend_return_required_dst_buffer_capacity_only)
-    return required_dst_size;
+    return required_dst_buffer_size;
 
-  std::basic_string_view<char_type> sv{};
+  if (prepend_options == str_prepend_behaviour::disallow_partial_prepend &&
+      ARRAY_SIZE < required_dst_buffer_size)
+    return 0U;
+
+  std::basic_string_view<char_type> src_sv{};
 
   if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    sv.assign(src);
+    src_sv.assign(src);
   else
-    sv.assign(src, src_len);
+    src_sv.assign(src, src_len);
 
-  if (ARRAY_SIZE < required_dst_size) {
-    if (prepend_options == str_prepend_behaviour::disallow_partial_prepend)
-      return 0U;
+  const size_t no_of_chars_to_copy{std::min(ARRAY_SIZE - dst_len - 1, src_len)};
 
-    const size_t no_of_chars_to_copy{ARRAY_SIZE - dst_len - 1};
+  std::copy_backward(dst, dst + dst_len, dst + dst_len + no_of_chars_to_copy);
 
-    std::copy_backward(dst, dst + dst_len, dst + dst_len + no_of_chars_to_copy);
+  std::copy(std::cbegin(src_sv), std::cbegin(src_sv) + no_of_chars_to_copy,
+            dst);
 
-    std::copy(std::cbegin(sv), std::cbegin(sv) + no_of_chars_to_copy, dst);
+  dst[dst_len + no_of_chars_to_copy] = static_cast<char_type>('\0');
 
-    dst[dst_len + no_of_chars_to_copy] = static_cast<char_type>('\0');
-
-    return no_of_chars_to_copy;
-  }
-
-  std::copy_backward(dst, dst + dst_len, dst + dst_len + src_len);
-
-  std::copy(std::cbegin(sv), std::cend(sv), dst);
-
-  dst[dst_len + src_len] = static_cast<char_type>('\0');
-
-  return src_len;
+  return no_of_chars_to_copy;
 }
 
 template <
@@ -3752,7 +3745,7 @@ template <
          is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)&&std::
             is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
 size_t str_prepend(T dst,
-                   size_t dst_capacity_in_number_of_characters,
+                   const size_t dst_capacity_in_number_of_characters,
                    const U& src,
                    str_prepend_behaviour prepend_options =
                        str_prepend_behaviour::disallow_partial_prepend,
@@ -3769,41 +3762,33 @@ size_t str_prepend(T dst,
   if (nullptr == dst || 0U == src_len)
     return 0U;
 
-  std::basic_string_view<char_type> sv{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    sv.assign(src);
-  else
-    sv.assign(src, src_len);
-
   if (prepend_options ==
       str_prepend_behaviour::
           do_not_prepend_return_required_dst_buffer_capacity_only)
     return required_dst_size;
 
-  if (dst_capacity_in_number_of_characters < required_dst_size) {
-    if (prepend_options == str_prepend_behaviour::disallow_partial_prepend)
-      return 0U;
+  if (prepend_options == str_prepend_behaviour::disallow_partial_prepend &&
+      dst_capacity_in_number_of_characters < required_dst_size)
+    return 0U;
 
-    const size_t no_of_chars_to_copy{dst_capacity_in_number_of_characters -
-                                     dst_len - 1};
+  std::basic_string_view<char_type> src_sv{};
 
-    std::copy_backward(dst, dst + dst_len, dst + dst_len + no_of_chars_to_copy);
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    src_sv.assign(src);
+  else
+    src_sv.assign(src, src_len);
 
-    std::copy(std::cbegin(sv), std::cbegin(sv) + no_of_chars_to_copy, dst);
+  const size_t no_of_chars_to_copy{
+      std::min(dst_capacity_in_number_of_characters - dst_len - 1, src_len)};
 
-    dst[dst_len + no_of_chars_to_copy] = static_cast<char_type>('\0');
+  std::copy_backward(dst, dst + dst_len, dst + dst_len + no_of_chars_to_copy);
 
-    return no_of_chars_to_copy;
-  }
+  std::copy(std::cbegin(src_sv), std::cbegin(src_sv) + no_of_chars_to_copy,
+            dst);
 
-  std::copy_backward(dst, dst + dst_len, dst + dst_len + src_len);
+  dst[dst_len + no_of_chars_to_copy] = static_cast<char_type>('\0');
 
-  std::copy(std::cbegin(sv), std::cend(sv), dst);
-
-  dst[dst_len + src_len] = static_cast<char_type>('\0');
-
-  return src_len;
+  return no_of_chars_to_copy;
 }
 
 template <typename T,
@@ -3828,32 +3813,33 @@ std::basic_string<get_char_type_t<T>> str_prepend(
   if (required_dst_capacity)
     *required_dst_capacity = dst_len + src_len + 1;
 
-  std::basic_string_view<char_type> dv{}, sv{};
+  std::basic_string_view<char_type> dst_sv{}, src_sv{};
   std::basic_string<char_type> dst_str{}, src_str{};
 
   if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
-    dv.assign(dst);
+    dst_sv.assign(dst);
   else if constexpr (is_char_pointer_type_v<T>) {
     if (nullptr == dst)
-      dv.assign(dst_str);
+      dst_sv.assign(dst_str);
     else
-      dv.assign(dst, dst_len);
+      dst_sv.assign(dst, dst_len);
   } else
-    dv.assign(dst, dst_len);
+    dst_sv.assign(dst, dst_len);
 
   if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    sv.assign(src);
+    src_sv.assign(src);
   else if constexpr (is_char_pointer_type_v<U>) {
     if (nullptr == src)
-      sv.assign(src_str);
+      src_sv.assign(src_str);
     else
-      sv.assign(src, src_len);
+      src_sv.assign(src, src_len);
   } else
-    sv.assign(src, src_len);
+    src_sv.assign(src, src_len);
 
-  std::basic_string<char_type> final_str{std::cbegin(sv), std::cend(sv)};
+  std::basic_string<char_type> final_str{std::cbegin(src_sv),
+                                         std::cend(src_sv)};
 
-  final_str.append(std::cbegin(dv), std::cend(dv));
+  final_str.append(std::cbegin(dst_sv), std::cend(dst_sv));
 
   return final_str;
 }
@@ -3868,18 +3854,27 @@ template <typename T,
 void str_prepend(T& dst,
                  const U& src,
                  size_t* required_dst_capacity = nullptr) {
+  using char_type = get_char_type_t<T>;
   const size_t dst_len{dst.length()};
   const size_t src_len{len(src)};
 
   if (required_dst_capacity)
     *required_dst_capacity = dst_len + src_len + 1;
 
-  if constexpr (is_char_pointer_type_v<U>) {
-    if (nullptr == src)
-      return;
-  }
+  std::basic_string_view<char_type> src_sv{};
+  std::basic_string<char_type> src_str{};
 
-  dst.insert(std::begin(dst), src);
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    src_sv.assign(src);
+  else if constexpr (is_char_pointer_type_v<U>) {
+    if (nullptr == src)
+      src_sv.assign(src_str);
+    else
+      src_sv.assign(src, src_len);
+  } else
+    src_sv.assign(src, src_len);
+
+  dst.insert(std::begin(dst), std::cbegin(src_sv), std::cend(src_sv));
 }
 
 template <
@@ -3902,45 +3897,38 @@ size_t str_prepend_n(T (&dst)[ARRAY_SIZE],
   const size_t src_len{len(src)};
   const size_t dst_len{len(dst)};
 
-  number_of_characters_to_prepend = src_len < number_of_characters_to_prepend
-                                        ? src_len
-                                        : number_of_characters_to_prepend;
-  const size_t ret_val{dst_len + number_of_characters_to_prepend + 1};
+  number_of_characters_to_prepend =
+      std::min(number_of_characters_to_prepend, src_len);
+  const size_t required_dst_buffer_size{dst_len +
+                                        number_of_characters_to_prepend + 1};
 
   if (required_dst_capacity)
-    *required_dst_capacity = ret_val;
+    *required_dst_capacity = required_dst_buffer_size;
 
   if (prepend_options ==
       str_prepend_behaviour::
           do_not_prepend_return_required_dst_buffer_capacity_only)
-    return ret_val;
+    return required_dst_buffer_size;
 
-  std::basic_string_view<char_type> sv{};
+  if (prepend_options == str_prepend_behaviour::disallow_partial_prepend &&
+      ARRAY_SIZE < required_dst_buffer_size)
+    return 0U;
+
+  std::basic_string_view<char_type> src_sv{};
 
   if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    sv.assign(src);
+    src_sv.assign(src);
   else
-    sv.assign(src, src_len);
+    src_sv.assign(src, src_len);
 
-  if (ARRAY_SIZE < ret_val) {
-    if (prepend_options == str_prepend_behaviour::disallow_partial_prepend)
-      return 0U;
+  number_of_characters_to_prepend =
+      std::min(ARRAY_SIZE - dst_len - 1, number_of_characters_to_prepend);
 
-    const size_t nocp{ARRAY_SIZE - dst_len - 1};
-
-    std::copy_backward(dst, dst + dst_len, dst + dst_len + nocp);
-
-    std::copy(std::cbegin(sv), std::cbegin(sv) + nocp, dst);
-
-    dst[nocp + dst_len] = static_cast<char_type>('\0');
-
-    return nocp;
-  }
   std::copy_backward(dst, dst + dst_len,
                      dst + dst_len + number_of_characters_to_prepend);
 
-  std::copy(std::cbegin(sv), std::cbegin(sv) + number_of_characters_to_prepend,
-            dst);
+  std::copy(std::cbegin(src_sv),
+            std::cbegin(src_sv) + number_of_characters_to_prepend, dst);
 
   dst[number_of_characters_to_prepend + dst_len] = static_cast<char_type>('\0');
 
@@ -3966,57 +3954,47 @@ size_t str_prepend_n(T dst,
   using char_type = get_char_type_t<T>;
   const size_t src_len{len(src)};
   const size_t dst_len{len(dst)};
-  number_of_characters_to_prepend = src_len < number_of_characters_to_prepend
-                                        ? src_len
-                                        : number_of_characters_to_prepend;
-  const size_t required_dst_size{dst_len + number_of_characters_to_prepend + 1};
+  number_of_characters_to_prepend =
+      std::min(number_of_characters_to_prepend, src_len);
+  const size_t required_dst_buffer_size{dst_len +
+                                        number_of_characters_to_prepend + 1};
 
   if (required_dst_capacity)
-    *required_dst_capacity = required_dst_size;
+    *required_dst_capacity = required_dst_buffer_size;
 
   if (nullptr == dst || 0U == src_len)
     return 0U;
 
-  std::basic_string_view<char_type> sv{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    sv.assign(src);
-  else
-    sv.assign(src, src_len);
-
   if (prepend_options ==
       str_prepend_behaviour::
           do_not_prepend_return_required_dst_buffer_capacity_only)
-    return required_dst_size;
+    return required_dst_buffer_size;
 
-  if (dst_capacity_in_number_of_characters <
-      dst_len + number_of_characters_to_prepend + 1) {
-    if (prepend_options == str_prepend_behaviour::disallow_partial_prepend)
-      return 0U;
+  if (prepend_options == str_prepend_behaviour::disallow_partial_prepend &&
+      dst_capacity_in_number_of_characters < required_dst_buffer_size)
+    return 0U;
 
-    const size_t nocp{dst_capacity_in_number_of_characters - dst_len - 1};
+  std::basic_string_view<char_type> src_sv{};
 
-    std::copy_backward(dst, dst + dst_len, dst + dst_len + nocp);
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    src_sv.assign(src);
+  else
+    src_sv.assign(src, src_len);
 
-    std::copy(std::cbegin(sv), std::cbegin(sv) + nocp, dst);
-
-    dst[dst_len + nocp] = static_cast<char_type>('\0');
-
-    return nocp;
-  }
+  number_of_characters_to_prepend =
+      std::min(dst_capacity_in_number_of_characters - dst_len - 1,
+               number_of_characters_to_prepend);
 
   std::copy_backward(dst, dst + dst_len,
                      dst + dst_len + number_of_characters_to_prepend);
 
-  std::copy(std::cbegin(sv), std::cbegin(sv) + number_of_characters_to_prepend,
-            dst);
+  std::copy(std::cbegin(src_sv),
+            std::cbegin(src_sv) + number_of_characters_to_prepend, dst);
 
-  dst[dst_len + number_of_characters_to_prepend] = static_cast<char_type>('\0');
+  dst[number_of_characters_to_prepend + dst_len] = static_cast<char_type>('\0');
 
   return number_of_characters_to_prepend;
 }
-
-// TODO: implement rest of str_prepend_n funtion templates
 
 template <typename T,
           typename U,
@@ -4032,42 +4010,46 @@ std::basic_string<get_char_type_t<T>> str_prepend_n(
     const T& dst,
     const U& src,
     size_t number_of_characters_to_prepend =
-        std::basic_string<get_char_type_t<T>>::npos) {
+        std::basic_string<get_char_type_t<T>>::npos,
+    size_t* required_dst_capacity = nullptr) {
   using char_type = get_char_type_t<T>;
   const size_t dst_len{len(dst)};
   const size_t src_len{len(src)};
 
-  number_of_characters_to_prepend = src_len < number_of_characters_to_prepend
-                                        ? src_len
-                                        : number_of_characters_to_prepend;
+  number_of_characters_to_prepend =
+      std::min(number_of_characters_to_prepend, src_len);
 
-  std::basic_string_view<char_type> dv{}, sv{};
+  if (required_dst_capacity)
+    *required_dst_capacity = dst_len + number_of_characters_to_prepend + 1;
+
+  std::basic_string_view<char_type> dst_sv{}, src_sv{};
   std::basic_string<char_type> dst_str{}, src_str{};
 
   if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
-    dv.assign(dst);
+    dst_sv.assign(dst);
   else if constexpr (is_char_pointer_type_v<T>) {
     if (nullptr == dst)
-      dv.assign(dst_str);
+      dst_sv.assign(dst_str);
     else
-      dv.assign(dst, dst_len);
+      dst_sv.assign(dst, dst_len);
   } else
-    dv.assign(dst, dst_len);
+    dst_sv.assign(dst, dst_len);
 
   if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    sv.assign(src);
+    src_sv.assign(src);
   else if constexpr (is_char_pointer_type_v<U>) {
     if (nullptr == src)
-      sv.assign(src_str);
+      src_sv.assign(src_str);
     else
-      sv.assign(src, src_len);
+      src_sv.assign(src, src_len);
   } else
-    sv.assign(src, src_len);
+    src_sv.assign(src, src_len);
 
   std::basic_string<char_type> final_str{
-      std::cbegin(sv), std::cbegin(sv) + number_of_characters_to_prepend};
+      std::cbegin(src_sv),
+      std::cbegin(src_sv) + number_of_characters_to_prepend};
 
-  final_str.append(std::cbegin(dv), std::cend(dv));
+  final_str.append(std::cbegin(dst_sv), std::cend(dst_sv));
 
   return final_str;
 }
@@ -4082,30 +4064,32 @@ template <typename T,
 void str_prepend_n(T& dst,
                    const U& src,
                    size_t number_of_characters_to_prepend =
-                       std::basic_string<get_char_type_t<T>>::npos) {
+                       std::basic_string<get_char_type_t<T>>::npos,
+                   size_t* required_dst_capacity = nullptr) {
   using char_type = get_char_type_t<T>;
-
   const size_t src_len{len(src)};
 
-  number_of_characters_to_prepend = src_len < number_of_characters_to_prepend
-                                        ? src_len
-                                        : number_of_characters_to_prepend;
+  number_of_characters_to_prepend =
+      std::min(number_of_characters_to_prepend, src_len);
 
-  std::basic_string_view<char_type> sv{};
+  if (required_dst_capacity)
+    *required_dst_capacity = dst.length() + number_of_characters_to_prepend + 1;
+
+  std::basic_string_view<char_type> src_sv{};
   std::basic_string<char_type> src_str{};
 
   if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    sv.assign(src);
+    src_sv.assign(src);
   else if constexpr (is_char_pointer_type_v<U>) {
     if (nullptr == src)
-      sv.assign(src_str);
+      src_sv.assign(src_str);
     else
-      sv.assign(src, src_len);
+      src_sv.assign(src, src_len);
   } else
-    sv.assign(src, src_len);
+    src_sv.assign(src, src_len);
 
-  dst.insert(std::begin(dst), std::cbegin(sv),
-             std::cbegin(sv) + number_of_characters_to_prepend);
+  dst.insert(std::begin(dst), std::cbegin(src_sv),
+             std::cbegin(src_sv) + number_of_characters_to_prepend);
 }
 
 enum class str_insert_behaviour {
@@ -4114,518 +4098,457 @@ enum class str_insert_behaviour {
   do_not_insert_return_required_dst_buffer_capacity_only
 };
 
-template <size_t ARRAY_SIZE>
-size_t str_insert(char (&dst)[ARRAY_SIZE],
+template <
+    typename T,
+    size_t ARRAY_SIZE,
+    typename U,
+    typename = std::enable_if_t<
+        is_valid_char_type_v<T> && !std::is_const_v<T> &&
+        (is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
+         is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)&&std::
+            is_same_v<std::remove_cv_t<T>, get_char_type_t<U>>>>
+size_t str_insert(T (&dst)[ARRAY_SIZE],
                   const size_t position_index_in_dst,
-                  const char* src,
+                  const U& src,
                   const str_insert_behaviour insert_options =
                       str_insert_behaviour::disallow_partial_insert,
                   size_t* required_dst_capacity = nullptr) {
-  auto const src_len = len(src);
-  auto const dst_len = len(dst);
+  using char_type = std::remove_cv_t<T>;
 
-  if (position_index_in_dst > dst_len) {
-    if (required_dst_capacity)
-      *required_dst_capacity = dst_len + src_len + 1;
+  const size_t src_len{len(src)};
+  const size_t dst_len{len(dst)};
 
-    return 0u;
-  }
+  const size_t required_dst_buffer_size{dst_len + src_len + 1};
 
-  size_t ret_val;
+  if (required_dst_capacity)
+    *required_dst_capacity = required_dst_buffer_size;
 
   if (insert_options ==
       str_insert_behaviour::
-          do_not_insert_return_required_dst_buffer_capacity_only) {
-    ret_val = dst_len + src_len + 1;
-  } else if ((insert_options ==
-              str_insert_behaviour::disallow_partial_insert) &&
-             (ARRAY_SIZE < (dst_len + src_len + 1))) {
-    ret_val = 0u;
-  } else {
-    const auto nocti{std::min(ARRAY_SIZE - position_index_in_dst - 1, src_len)};
+          do_not_insert_return_required_dst_buffer_capacity_only)
+    return required_dst_buffer_size;
 
-    copy_backward(dst + position_index_in_dst, dst + dst_len,
-                  dst + dst_len + nocti);
+  if (0U == src_len || position_index_in_dst > dst_len ||
+      (insert_options == str_insert_behaviour::disallow_partial_insert &&
+       ARRAY_SIZE < required_dst_buffer_size))
+    return 0U;
 
-    std::copy(src, src + nocti, dst + position_index_in_dst);
+  std::basic_string_view<char_type> src_sv{};
 
-    dst[dst_len + nocti] = '\0';
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    src_sv.assign(src);
+  else
+    src_sv.assign(src, src_len);
 
-    ret_val = nocti;
-  }
+  const size_t nocti{std::min(ARRAY_SIZE - 1 - dst_len, src_len)};
+
+  std::copy_backward(dst + position_index_in_dst, dst + dst_len,
+                     dst + dst_len + nocti);
+
+  std::copy(std::cbegin(src_sv), std::cbegin(src_sv) + nocti,
+            dst + position_index_in_dst);
+
+  dst[dst_len + nocti] = static_cast<char_type>('\0');
+
+  return nocti;
+}
+
+template <
+    typename T,
+    typename U,
+    typename = std::enable_if_t<
+        is_non_const_char_pointer_type_v<T> &&
+        (is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
+         is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)&&std::
+            is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
+size_t str_insert(T dst,
+                  size_t dst_capacity_in_number_of_characters,
+                  size_t position_index_in_dst,
+                  const U& src,
+                  str_insert_behaviour insert_options =
+                      str_insert_behaviour::disallow_partial_insert,
+                  size_t* required_dst_capacity = nullptr) {
+  using char_type = get_char_type_t<T>;
+
+  const size_t src_len{len(src)};
+  const size_t dst_len{len(dst)};
+
+  const size_t required_dst_buffer_size{dst_len + src_len + 1};
+
+  if (required_dst_capacity)
+    *required_dst_capacity = required_dst_buffer_size;
+
+  if (insert_options ==
+      str_insert_behaviour::
+          do_not_insert_return_required_dst_buffer_capacity_only)
+    return required_dst_buffer_size;
+
+  if (position_index_in_dst > dst_len || 0U == src_len ||
+      (insert_options == str_insert_behaviour::disallow_partial_insert &&
+       dst_capacity_in_number_of_characters < required_dst_buffer_size))
+    return 0U;
+
+  const size_t nocti{
+      std::min(dst_capacity_in_number_of_characters - 1 - dst_len, src_len)};
+
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    src_sv.assign(src);
+  else
+    src_sv.assign(src, src_len);
+
+  std::copy_backward(dst + position_index_in_dst, dst + dst_len,
+                     dst + dst_len + nocti);
+
+  std::copy(std::cbegin(src_sv), std::cbegin(src_sv) + nocti,
+            dst + position_index_in_dst);
+
+  dst[dst_len + nocti] = static_cast<char_type>('\0');
+
+  return nocti;
+}
+
+template <typename T,
+          typename U,
+          typename = std::enable_if_t<
+              (is_valid_string_type_v<T> || is_valid_string_view_type_v<T> ||
+               is_char_pointer_type_v<T> ||
+               is_char_array_type_v<T>)&&(is_valid_string_type_v<U> ||
+                                          is_valid_string_view_type_v<U> ||
+                                          is_char_pointer_type_v<U> ||
+                                          is_char_array_type_v<U>)&&std::
+                  is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
+std::basic_string<get_char_type_t<T>> str_insert(
+    const T& dst,
+    const size_t position_index_in_dst,
+    const U& src,
+    size_t* required_dst_capacity = nullptr) {
+  using char_type = get_char_type_t<T>;
+
+  const size_t dst_len{len(dst)};
+  const size_t src_len{len(src)};
 
   if (required_dst_capacity)
     *required_dst_capacity = dst_len + src_len + 1;
 
-  return ret_val;
-}
+  std::basic_string_view<char_type> dst_sv{}, src_sv{};
+  std::basic_string<char_type> dst_str{}, src_str{};
 
-template <size_t ARRAY_SIZE>
-size_t str_insert(wchar_t (&dst)[ARRAY_SIZE],
-                  const size_t position_index_in_dst,
-                  const wchar_t* src,
-                  const str_insert_behaviour insert_options =
-                      str_insert_behaviour::disallow_partial_insert,
-                  size_t* required_dst_capacity = nullptr) {
-  auto const src_len = len(src);
-  auto const dst_len = len(dst);
+  if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
+    dst_sv.assign(dst);
+  else if constexpr (is_char_pointer_type_v<T>) {
+    if (nullptr == dst)
+      dst_sv.assign(dst_str);
+    else
+      dst_sv.assign(dst, dst_len);
+  } else
+    dst_sv.assign(dst, dst_len);
 
-  if (position_index_in_dst > dst_len) {
-    if (required_dst_capacity)
-      *required_dst_capacity = dst_len + src_len + 1;
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    src_sv.assign(src);
+  else if constexpr (is_char_pointer_type_v<U>) {
+    if (nullptr == src)
+      src_sv.assign(src_str);
+    else
+      src_sv.assign(src, src_len);
+  } else
+    src_sv.assign(src, src_len);
 
-    return 0u;
-  }
+  if (0U == dst_len && 0U == position_index_in_dst)
+    return std::basic_string<char_type>{std::cbegin(src_sv), std::cend(src_sv)};
 
-  size_t ret_val;
+  if (position_index_in_dst > dst_len)
+    return {std::cbegin(dst_sv), std::cend(dst_sv)};
 
-  if (insert_options ==
-      str_insert_behaviour::
-          do_not_insert_return_required_dst_buffer_capacity_only) {
-    ret_val = dst_len + src_len + 1;
-  } else if ((insert_options ==
-              str_insert_behaviour::disallow_partial_insert) &&
-             (ARRAY_SIZE < (dst_len + src_len + 1))) {
-    ret_val = 0u;
-  } else {
-    const auto nocti{std::min(ARRAY_SIZE - position_index_in_dst - 1, src_len)};
+  std::basic_string<char_type> final_str{
+      std::cbegin(dst_sv), std::cbegin(dst_sv) + position_index_in_dst};
 
-    copy_backward(dst + position_index_in_dst, dst + dst_len,
-                  dst + dst_len + nocti);
+  final_str.append(std::cbegin(src_sv), std::cend(src_sv));
 
-    std::copy(src, src + nocti, dst + position_index_in_dst);
-
-    dst[dst_len + nocti] = L'\0';
-
-    ret_val = nocti;
-  }
-
-  if (required_dst_capacity)
-    *required_dst_capacity = dst_len + src_len + 1;
-
-  return ret_val;
-}
-
-template <size_t ARRAY_SIZE>
-size_t str_insert(char16_t (&dst)[ARRAY_SIZE],
-                  const size_t position_index_in_dst,
-                  const char16_t* src,
-                  const str_insert_behaviour insert_options =
-                      str_insert_behaviour::disallow_partial_insert,
-                  size_t* required_dst_capacity = nullptr) {
-  auto const src_len = len(src);
-  auto const dst_len = len(dst);
-
-  if (position_index_in_dst > dst_len) {
-    if (required_dst_capacity)
-      *required_dst_capacity = dst_len + src_len + 1;
-
-    return 0u;
-  }
-
-  size_t ret_val;
-
-  if (insert_options ==
-      str_insert_behaviour::
-          do_not_insert_return_required_dst_buffer_capacity_only) {
-    ret_val = dst_len + src_len + 1;
-  } else if ((insert_options ==
-              str_insert_behaviour::disallow_partial_insert) &&
-             (ARRAY_SIZE < (dst_len + src_len + 1))) {
-    ret_val = 0u;
-  } else {
-    const auto nocti{std::min(ARRAY_SIZE - position_index_in_dst - 1, src_len)};
-
-    copy_backward(dst + position_index_in_dst, dst + dst_len,
-                  dst + dst_len + nocti);
-
-    std::copy(src, src + nocti, dst + position_index_in_dst);
-
-    dst[dst_len + nocti] = u'\0';
-
-    ret_val = nocti;
-  }
-
-  if (required_dst_capacity)
-    *required_dst_capacity = dst_len + src_len + 1;
-
-  return ret_val;
-}
-
-template <size_t ARRAY_SIZE>
-size_t str_insert(char32_t (&dst)[ARRAY_SIZE],
-                  const size_t position_index_in_dst,
-                  const char32_t* src,
-                  const str_insert_behaviour insert_options =
-                      str_insert_behaviour::disallow_partial_insert,
-                  size_t* required_dst_capacity = nullptr) {
-  auto const src_len = len(src);
-  auto const dst_len = len(dst);
-
-  if (position_index_in_dst > dst_len) {
-    if (required_dst_capacity)
-      *required_dst_capacity = dst_len + src_len + 1;
-
-    return 0u;
-  }
-
-  size_t ret_val;
-
-  if (insert_options ==
-      str_insert_behaviour::
-          do_not_insert_return_required_dst_buffer_capacity_only) {
-    ret_val = dst_len + src_len + 1;
-  } else if ((insert_options ==
-              str_insert_behaviour::disallow_partial_insert) &&
-             (ARRAY_SIZE < (dst_len + src_len + 1))) {
-    ret_val = 0u;
-  } else {
-    const auto nocti{std::min(ARRAY_SIZE - position_index_in_dst - 1, src_len)};
-
-    copy_backward(dst + position_index_in_dst, dst + dst_len,
-                  dst + dst_len + nocti);
-
-    std::copy(src, src + nocti, dst + position_index_in_dst);
-
-    dst[dst_len + nocti] = U'\0';
-
-    ret_val = nocti;
-  }
-
-  if (required_dst_capacity)
-    *required_dst_capacity = dst_len + src_len + 1;
-
-  return ret_val;
-}
-
-size_t str_insert(char* dst,
-                  size_t dst_capacity_in_number_of_characters,
-                  size_t position_index_in_dst,
-                  const char* src,
-                  str_insert_behaviour insert_options =
-                      str_insert_behaviour::disallow_partial_insert,
-                  size_t* required_dst_capacity = nullptr);
-
-size_t str_insert(wchar_t* dst,
-                  size_t dst_capacity_in_number_of_characters,
-                  size_t position_index_in_dst,
-                  const wchar_t* src,
-                  str_insert_behaviour insert_options =
-                      str_insert_behaviour::disallow_partial_insert,
-                  size_t* required_dst_capacity = nullptr);
-
-size_t str_insert(char16_t* dst,
-                  size_t dst_capacity_in_number_of_characters,
-                  size_t position_index_in_dst,
-                  const char16_t* src,
-                  str_insert_behaviour insert_options =
-                      str_insert_behaviour::disallow_partial_insert,
-                  size_t* required_dst_capacity = nullptr);
-
-size_t str_insert(char32_t* dst,
-                  size_t dst_capacity_in_number_of_characters,
-                  size_t position_index_in_dst,
-                  const char32_t* src,
-                  str_insert_behaviour insert_options =
-                      str_insert_behaviour::disallow_partial_insert,
-                  size_t* required_dst_capacity = nullptr);
-
-template <typename StringType>
-StringType str_insert(const StringType& dst,
-                      const size_t position_index_in_dst,
-                      const StringType& src) {
-  auto const dst_len{dst.size()};
-
-  if (!dst_len && (0u == position_index_in_dst))
-    return StringType{src};
-
-  StringType final_str{dst};
-
-  final_str.insert(position_index_in_dst, src);
+  final_str.append(std::cbegin(dst_sv) + position_index_in_dst,
+                   std::cend(dst_sv));
 
   return final_str;
 }
 
-template <typename StringType>
-void str_insert(StringType& dst,
+template <typename T,
+          typename U,
+          typename = std::enable_if_t<
+              is_valid_string_type_v<T> && !std::is_const_v<T> &&
+              (is_valid_string_type_v<U> || is_valid_string_view_type_v<U> ||
+               is_char_pointer_type_v<U> || is_char_array_type_v<U>)&&std::
+                  is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
+void str_insert(T& dst,
                 const size_t position_index_in_dst,
-                const StringType& src) {
-  auto const dst_len{dst.size()};
+                const U& src,
+                size_t* required_dst_capacity = nullptr) {
+  using char_type = get_char_type_t<T>;
+  const size_t dst_len{dst.length()};
+  const size_t src_len{len(src)};
 
-  if (!dst_len && (0u == position_index_in_dst))
-    dst = src;
+  if (required_dst_capacity)
+    *required_dst_capacity = dst_len + src_len + 1;
 
-  dst.insert(position_index_in_dst, src);
+  if (position_index_in_dst > dst_len)
+    return;
+
+  std::basic_string_view<char_type> src_sv{};
+  std::basic_string<char_type> src_str{};
+
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    src_sv.assign(src);
+  else if constexpr (is_char_pointer_type_v<U>) {
+    if (nullptr == src)
+      src_sv.assign(src_str);
+    else
+      src_sv.assign(src, src_len);
+  } else
+    src_sv.assign(src, src_len);
+
+  if (0U == dst_len && 0U == position_index_in_dst)
+    dst.assign(std::cbegin(src_sv), std::cend(src_sv));
+
+  dst.insert(position_index_in_dst, std::cbegin(src_sv), std::cend(src_sv));
 }
 
-template <size_t ARRAY_SIZE>
-size_t str_insert_n(char (&dst)[ARRAY_SIZE],
+template <
+    typename T,
+    size_t ARRAY_SIZE,
+    typename U,
+    typename = std::enable_if_t<
+        is_valid_char_type_v<T> && !std::is_const_v<T> &&
+        (is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
+         is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)&&std::
+            is_same_v<std::remove_cv_t<T>, get_char_type_t<U>>>>
+size_t str_insert_n(T (&dst)[ARRAY_SIZE],
                     const size_t position_index_in_dst,
-                    const char* src,
-                    const size_t number_of_characters_to_insert,
+                    const U& src,
+                    size_t number_of_characters_to_insert,
                     const str_insert_behaviour insert_options =
                         str_insert_behaviour::disallow_partial_insert,
                     size_t* required_dst_capacity = nullptr) {
-  auto const src_len = len(src);
-  auto const dst_len = len(dst);
+  using char_type = std::remove_cv_t<T>;
 
-  auto nocti{std::min(number_of_characters_to_insert, src_len)};
+  const size_t src_len{len(src)};
+  const size_t dst_len{len(dst)};
 
-  if (position_index_in_dst > dst_len) {
-    if (required_dst_capacity)
-      *required_dst_capacity = dst_len + nocti + 1;
+  number_of_characters_to_insert =
+      std::min(number_of_characters_to_insert, src_len);
 
-    return 0u;
-  }
+  const size_t required_dst_size{dst_len + number_of_characters_to_insert + 1};
 
-  size_t ret_val;
+  if (required_dst_capacity)
+    *required_dst_capacity = required_dst_size;
 
   if (insert_options ==
       str_insert_behaviour::
-          do_not_insert_return_required_dst_buffer_capacity_only) {
-    ret_val = dst_len + nocti + 1;
-  } else if ((insert_options ==
-              str_insert_behaviour::disallow_partial_insert) &&
-             (ARRAY_SIZE < (dst_len + nocti + 1))) {
-    ret_val = 0u;
-  } else {
-    nocti = std::min(ARRAY_SIZE - position_index_in_dst - 1, nocti);
+          do_not_insert_return_required_dst_buffer_capacity_only)
+    return required_dst_size;
 
-    copy_backward(dst + position_index_in_dst, dst + dst_len,
-                  dst + dst_len + nocti);
+  if (0U == src_len || position_index_in_dst > dst_len ||
+      (insert_options == str_insert_behaviour::disallow_partial_insert &&
+       ARRAY_SIZE < required_dst_size))
+    return 0U;
 
-    std::copy(src, src + nocti, dst + position_index_in_dst);
+  std::basic_string_view<char_type> src_sv{};
 
-    dst[dst_len + nocti] = '\0';
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    src_sv.assign(src);
+  else
+    src_sv.assign(src, src_len);
 
-    ret_val = nocti;
-  }
+  number_of_characters_to_insert =
+      std::min(ARRAY_SIZE - dst_len - 1, number_of_characters_to_insert);
 
-  if (required_dst_capacity)
-    *required_dst_capacity = dst_len + nocti + 1;
+  std::copy_backward(dst + position_index_in_dst, dst + dst_len,
+                     dst + dst_len + number_of_characters_to_insert);
 
-  return ret_val;
+  std::copy(std::cbegin(src_sv),
+            std::cbegin(src_sv) + number_of_characters_to_insert,
+            dst + position_index_in_dst);
+
+  dst[dst_len + number_of_characters_to_insert] = static_cast<char_type>('\0');
+
+  return number_of_characters_to_insert;
 }
 
-template <size_t ARRAY_SIZE>
-size_t str_insert_n(wchar_t (&dst)[ARRAY_SIZE],
+template <
+    typename T,
+    typename U,
+    typename = std::enable_if_t<
+        is_non_const_char_pointer_type_v<T> &&
+        (is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
+         is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)&&std::
+            is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
+size_t str_insert_n(T dst,
+                    const size_t dst_capacity_in_number_of_characters,
                     const size_t position_index_in_dst,
-                    const wchar_t* src,
-                    const size_t number_of_characters_to_insert,
-                    const str_insert_behaviour insert_options =
+                    const U& src,
+                    size_t number_of_characters_to_insert,
+                    str_insert_behaviour insert_options =
                         str_insert_behaviour::disallow_partial_insert,
                     size_t* required_dst_capacity = nullptr) {
-  auto const src_len = len(src);
-  auto const dst_len = len(dst);
+  using char_type = get_char_type_t<T>;
 
-  auto nocti{std::min(number_of_characters_to_insert, src_len)};
+  const size_t src_len{len(src)};
+  const size_t dst_len{len(dst)};
 
-  if (position_index_in_dst > dst_len) {
-    if (required_dst_capacity)
-      *required_dst_capacity = dst_len + nocti + 1;
+  number_of_characters_to_insert =
+      std::min(number_of_characters_to_insert, src_len);
 
-    return 0u;
-  }
+  const size_t required_dst_size{dst_len + number_of_characters_to_insert + 1};
 
-  size_t ret_val;
+  if (required_dst_capacity)
+    *required_dst_capacity = required_dst_size;
 
   if (insert_options ==
       str_insert_behaviour::
-          do_not_insert_return_required_dst_buffer_capacity_only) {
-    ret_val = dst_len + nocti + 1;
-  } else if ((insert_options ==
-              str_insert_behaviour::disallow_partial_insert) &&
-             (ARRAY_SIZE < (dst_len + nocti + 1))) {
-    ret_val = 0u;
-  } else {
-    nocti = std::min(ARRAY_SIZE - position_index_in_dst - 1, nocti);
+          do_not_insert_return_required_dst_buffer_capacity_only)
+    return required_dst_size;
 
-    copy_backward(dst + position_index_in_dst, dst + dst_len,
-                  dst + dst_len + nocti);
+  if (0U == src_len || position_index_in_dst > dst_len ||
+      (insert_options == str_insert_behaviour::disallow_partial_insert &&
+       dst_capacity_in_number_of_characters < required_dst_size))
+    return 0U;
 
-    std::copy(src, src + nocti, dst + position_index_in_dst);
+  number_of_characters_to_insert =
+      std::min(dst_capacity_in_number_of_characters - dst_len - 1,
+               number_of_characters_to_insert);
 
-    dst[dst_len + nocti] = L'\0';
+  std::basic_string_view<char_type> src_sv{};
 
-    ret_val = nocti;
-  }
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    src_sv.assign(src);
+  else
+    src_sv.assign(src, src_len);
 
-  if (required_dst_capacity)
-    *required_dst_capacity = dst_len + nocti + 1;
+  std::copy_backward(dst + position_index_in_dst, dst + dst_len,
+                     dst + dst_len + number_of_characters_to_insert);
 
-  return ret_val;
+  std::copy(std::cbegin(src_sv),
+            std::cbegin(src_sv) + number_of_characters_to_insert,
+            dst + position_index_in_dst);
+
+  dst[dst_len + number_of_characters_to_insert] = static_cast<char_type>('\0');
+
+  return number_of_characters_to_insert;
 }
 
-template <size_t ARRAY_SIZE>
-size_t str_insert_n(char16_t (&dst)[ARRAY_SIZE],
-                    const size_t position_index_in_dst,
-                    const char16_t* src,
-                    const size_t number_of_characters_to_insert,
-                    const str_insert_behaviour insert_options =
-                        str_insert_behaviour::disallow_partial_insert,
-                    size_t* required_dst_capacity = nullptr) {
-  auto const src_len = len(src);
-  auto const dst_len = len(dst);
+template <typename T,
+          typename U,
+          typename = std::enable_if_t<
+              (is_valid_string_type_v<T> || is_valid_string_view_type_v<T> ||
+               is_char_pointer_type_v<T> ||
+               is_char_array_type_v<T>)&&(is_valid_string_type_v<U> ||
+                                          is_valid_string_view_type_v<U> ||
+                                          is_char_pointer_type_v<U> ||
+                                          is_char_array_type_v<U>)&&std::
+                  is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
+std::basic_string<get_char_type_t<T>> str_insert_n(
+    const T& dst,
+    const size_t position_index_in_dst,
+    const U& src,
+    size_t number_of_characters_to_insert,
+    size_t* required_dst_capacity = nullptr) {
+  using char_type = get_char_type_t<T>;
 
-  auto nocti{std::min(number_of_characters_to_insert, src_len)};
+  const auto dst_len{len(dst)};
+  const auto src_len{len(src)};
 
-  if (position_index_in_dst > dst_len) {
-    if (required_dst_capacity)
-      *required_dst_capacity = dst_len + nocti + 1;
-
-    return 0u;
-  }
-
-  size_t ret_val;
-
-  if (insert_options ==
-      str_insert_behaviour::
-          do_not_insert_return_required_dst_buffer_capacity_only) {
-    ret_val = dst_len + nocti + 1;
-  } else if ((insert_options ==
-              str_insert_behaviour::disallow_partial_insert) &&
-             (ARRAY_SIZE < (dst_len + nocti + 1))) {
-    ret_val = 0u;
-  } else {
-    nocti = std::min(ARRAY_SIZE - position_index_in_dst - 1, nocti);
-
-    copy_backward(dst + position_index_in_dst, dst + dst_len,
-                  dst + dst_len + nocti);
-
-    std::copy(src, src + nocti, dst + position_index_in_dst);
-
-    dst[dst_len + nocti] = u'\0';
-
-    ret_val = nocti;
-  }
+  number_of_characters_to_insert =
+      std::min(number_of_characters_to_insert, src_len);
 
   if (required_dst_capacity)
-    *required_dst_capacity = dst_len + nocti + 1;
+    *required_dst_capacity = dst_len + number_of_characters_to_insert + 1;
 
-  return ret_val;
-}
+  std::basic_string_view<char_type> dst_sv{}, src_sv{};
+  std::basic_string<char_type> dst_str{}, src_str{};
 
-template <size_t ARRAY_SIZE>
-size_t str_insert_n(char32_t (&dst)[ARRAY_SIZE],
-                    const size_t position_index_in_dst,
-                    const char32_t* src,
-                    const size_t number_of_characters_to_insert,
-                    const str_insert_behaviour insert_options =
-                        str_insert_behaviour::disallow_partial_insert,
-                    size_t* required_dst_capacity = nullptr) {
-  auto const src_len = len(src);
-  auto const dst_len = len(dst);
+  if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
+    dst_sv.assign(dst);
+  else if constexpr (is_char_pointer_type_v<T>) {
+    if (nullptr == dst)
+      dst_sv.assign(dst_str);
+    else
+      dst_sv.assign(dst, dst_len);
+  } else
+    dst_sv.assign(dst, dst_len);
 
-  auto nocti = std::min(number_of_characters_to_insert, src_len);
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    src_sv.assign(src);
+  else if constexpr (is_char_pointer_type_v<U>) {
+    if (nullptr == src)
+      src_sv.assign(src_str);
+    else
+      src_sv.assign(src, src_len);
+  } else
+    src_sv.assign(src, src_len);
 
-  if (position_index_in_dst > dst_len) {
-    if (required_dst_capacity)
-      *required_dst_capacity = dst_len + nocti + 1;
+  if (0U == dst_len && 0U == position_index_in_dst)
+    return std::basic_string<char_type>{
+        std::cbegin(src_sv),
+        std::begin(src_sv) + number_of_characters_to_insert};
 
-    return 0u;
-  }
+  if (position_index_in_dst > dst_len)
+    return {std::cbegin(dst_sv), std::cend(dst_sv)};
 
-  size_t ret_val;
+  std::basic_string<char_type> final_str{
+      std::cbegin(dst_sv), std::cbegin(dst_sv) + position_index_in_dst};
 
-  if (insert_options ==
-      str_insert_behaviour::
-          do_not_insert_return_required_dst_buffer_capacity_only) {
-    ret_val = dst_len + nocti + 1;
-  } else if ((insert_options ==
-              str_insert_behaviour::disallow_partial_insert) &&
-             (ARRAY_SIZE < (dst_len + nocti + 1))) {
-    ret_val = 0u;
-  } else {
-    nocti = std::min(ARRAY_SIZE - position_index_in_dst - 1, nocti);
+  final_str.append(std::cbegin(src_sv),
+                   std::begin(src_sv) + number_of_characters_to_insert);
 
-    copy_backward(dst + position_index_in_dst, dst + dst_len,
-                  dst + dst_len + nocti);
-
-    std::copy(src, src + nocti, dst + position_index_in_dst);
-
-    dst[dst_len + nocti] = U'\0';
-
-    ret_val = nocti;
-  }
-
-  if (required_dst_capacity)
-    *required_dst_capacity = dst_len + nocti + 1;
-
-  return ret_val;
-}
-
-size_t str_insert_n(char* dst,
-                    size_t dst_capacity_in_number_of_characters,
-                    size_t position_index_in_dst,
-                    const char* src,
-                    size_t number_of_characters_to_insert,
-                    str_insert_behaviour insert_options =
-                        str_insert_behaviour::disallow_partial_insert,
-                    size_t* required_dst_capacity = nullptr);
-
-size_t str_insert_n(wchar_t* dst,
-                    size_t dst_capacity_in_number_of_characters,
-                    size_t position_index_in_dst,
-                    const wchar_t* src,
-                    size_t number_of_characters_to_insert,
-                    str_insert_behaviour insert_options =
-                        str_insert_behaviour::disallow_partial_insert,
-                    size_t* required_dst_capacity = nullptr);
-
-size_t str_insert_n(char16_t* dst,
-                    size_t dst_capacity_in_number_of_characters,
-                    size_t position_index_in_dst,
-                    const char16_t* src,
-                    size_t number_of_characters_to_insert,
-                    str_insert_behaviour insert_options =
-                        str_insert_behaviour::disallow_partial_insert,
-                    size_t* required_dst_capacity = nullptr);
-
-size_t str_insert_n(char32_t* dst,
-                    size_t dst_capacity_in_number_of_characters,
-                    size_t position_index_in_dst,
-                    const char32_t* src,
-                    size_t number_of_characters_to_insert,
-                    str_insert_behaviour insert_options =
-                        str_insert_behaviour::disallow_partial_insert,
-                    size_t* required_dst_capacity = nullptr);
-
-template <typename StringType>
-StringType str_insert_n(const StringType& dst,
-                        const size_t position_index_in_dst,
-                        const StringType& src,
-                        const size_t number_of_characters_to_insert) {
-  const auto dst_length{dst.size()};
-
-  const auto src_length{src.size()};
-
-  const auto no_of_chars = min(number_of_characters_to_insert, src_length);
-
-  if (!dst_length && (0u == position_index_in_dst))
-    return StringType{src.substr(0, no_of_chars)};
-
-  StringType final_str{dst};
-
-  final_str.insert(position_index_in_dst, src.substr(0, no_of_chars));
+  final_str.append(std::cbegin(dst_sv) + position_index_in_dst,
+                   std::cend(dst_sv));
 
   return final_str;
 }
 
-template <typename StringType>
-void str_insert_n(StringType& dst,
+template <typename T,
+          typename U,
+          typename = std::enable_if_t<
+              is_valid_string_type_v<T> && !std::is_const_v<T> &&
+              (is_valid_string_type_v<U> || is_valid_string_view_type_v<U> ||
+               is_char_pointer_type_v<U> || is_char_array_type_v<U>)&&std::
+                  is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
+void str_insert_n(T& dst,
                   const size_t position_index_in_dst,
-                  const StringType& src,
-                  const size_t number_of_characters_to_insert) {
-  const auto dst_length{dst.size()};
+                  const U& src,
+                  size_t number_of_characters_to_insert,
+                  size_t* required_dst_capacity = nullptr) {
+  using char_type = get_char_type_t<T>;
+  const size_t dst_len{dst.length()};
+  const size_t src_len{len(src)};
 
-  const auto src_length{src.size()};
+  number_of_characters_to_insert =
+      std::min(number_of_characters_to_insert, src_len);
 
-  const auto no_of_chars = min(number_of_characters_to_insert, src_length);
+  if (required_dst_capacity)
+    *required_dst_capacity = dst_len + number_of_characters_to_insert + 1;
 
-  if (!dst_length && (0u == position_index_in_dst))
-    dst = src.substr(0, no_of_chars);
+  if (position_index_in_dst > dst_len)
+    return;
 
-  dst.insert(position_index_in_dst, src.substr(0, no_of_chars));
+  std::basic_string_view<char_type> src_sv{};
+  std::basic_string<char_type> src_str{};
+
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    src_sv.assign(src);
+  else if constexpr (is_char_pointer_type_v<U>) {
+    if (nullptr == src)
+      src_sv.assign(src_str);
+    else
+      src_sv.assign(src, src_len);
+  } else
+    src_sv.assign(src, src_len);
+
+  if (0U == dst_len && 0U == position_index_in_dst)
+    dst.assign(std::cbegin(src_sv),
+               std::cbegin(src_sv) + number_of_characters_to_insert);
+
+  dst.insert(position_index_in_dst, std::cbegin(src_sv),
+             std::cbegin(src_sv) + number_of_characters_to_insert);
 }
 
 // enum class str_replace_behavior { no_partial_replace,
