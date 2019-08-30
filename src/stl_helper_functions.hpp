@@ -4666,403 +4666,356 @@ void str_insert_n(T& dst,
 // allow_partial_place,
 // do_not_replace_return_required_dst_capacity_only };
 
-template <
-    typename T,
-    typename U,
-    typename = std::enable_if_t<
-        (is_non_const_char_pointer_type_v<T> ||
-         is_non_const_char_array_type_v<T>)&&(is_valid_string_type_v<U> ||
-                                              is_char_pointer_type_v<U> ||
-                                              is_char_array_type_v<U>)&&std::
-            is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
-size_t str_replace_first(T& dst,
-                         const size_t dst_capacity,
-                         const U& needle,
-                         const U& replace,
-                         size_t* required_dst_capacity = nullptr) {
-  using char_type = get_char_type_t<T>;
+template <typename T,
+          size_t ARRAY_SIZE,
+          typename U,
+          typename V,
+          typename = std::enable_if_t<
+              is_valid_char_type_v<T> && !std::is_const_v<T> &&
+              (is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
+               is_valid_string_type_v<U> ||
+               is_valid_string_view_type_v<
+                   U>)&&(is_char_array_type_v<V> || is_char_pointer_type_v<V> ||
+                         is_valid_string_type_v<V> ||
+                         is_valid_string_view_type_v<
+                             V>)&&is_all_of_v<std::remove_cv_t<T>,
+                                              get_char_type_t<U>,
+                                              get_char_type_t<V>>>>
+bool str_replace_first(T (&dst)[ARRAY_SIZE],
+                       const U& needle,
+                       const V& replace,
+                       const size_t start_position_in_dst = 0U,
+                       const bool ignore_case_when_searching_for_needle = false,
+                       size_t* required_dst_capacity = nullptr) {
+  using char_type = std::remove_cv_t<T>;
 
-  const auto dst_len{len(dst)};
-  const auto needle_len{len(needle)};
-  const auto replace_len{len(replace)};
+  const size_t dst_len{len(dst)};
+  const size_t needle_len{len(needle)};
+  const size_t replace_len{len(replace)};
 
-  if (0U == needle_len || 0U == replace_len) {
+  if (0U == dst_len || 0U == needle_len || needle_len > dst_len ||
+      0U == replace_len) {
     if (required_dst_capacity)
       *required_dst_capacity = dst_len + 1;
-    return 0U;
+    return false;
   }
 
-  if (needle_len > dst_len) {
-    if (required_dst_capacity)
-      *required_dst_capacity = dst_len + 1;
+  const size_t required_dst_buffer_size{dst_len - needle_len + replace_len + 1};
 
-    return 0U;
-  }
+  if (required_dst_capacity)
+    *required_dst_capacity = required_dst_buffer_size;
 
-  const auto start_pos = str_index_of(dst, needle);
+  if (ARRAY_SIZE < required_dst_buffer_size)
+    return false;
 
-  if (not_found_index == start_pos) {
-    if (required_dst_capacity)
-      *required_dst_capacity = dst_len + 1;
+  std::basic_string_view<char_type> dst_sv{dst, dst_len}, needle_sv{};
 
-    return 0U;
-  }
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    needle_sv.assign(needle);
+  else
+    needle_sv.assign(needle, needle_len);
 
-  const auto rdc{dst_len - needle_len + replace_len + 1};
+  const auto start_pos = str_index_of(dst_sv, needle_sv, start_position_in_dst,
+                                      ignore_case_when_searching_for_needle);
 
-  if (dst_capacity < rdc) {
-    if (required_dst_capacity)
-      *required_dst_capacity = rdc;
-
-    return 0U;
-  }
+  if (not_found_index == start_pos)
+    return false;
 
   std::basic_string_view<char_type> replace_sv{};
 
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+  if constexpr (is_valid_string_type_v<V> || is_valid_string_view_type_v<V>)
     replace_sv.assign(replace);
   else
     replace_sv.assign(replace, replace_len);
 
-  if (needle_len == replace_len) {
-    std::copy(std::cbegin(replace_sv), std::cend(replace_sv), dst + start_pos);
-
-    if (required_dst_capacity)
-      *required_dst_capacity = rdc;
-
-    return 1U;
-  }
-
   if (needle_len < replace_len) {
-    const auto noctm{replace_len - needle_len};
-
-    // if needle_len == 2 and replace_len == 10, all the characters in
-    // the upper part of dst ( characters with positions >= dst +
-    // start_pos + needle_len characters ) have to be moved 'noctm' (8)
-    // character positions toward the end of dst.
+    const size_t noctm{replace_len - needle_len};
 
     std::copy_backward(dst + start_pos + needle_len, dst + dst_len,
                        dst + dst_len + noctm);
 
     dst[dst_len + noctm] = static_cast<char_type>('\0');
 
-    std::copy(std::cbegin(replace_sv), std::cend(replace_sv), dst + start_pos);
+  } else if (needle_len > replace_len) {
+    const size_t noctm{needle_len - replace_len};
 
-    if (required_dst_capacity)
-      *required_dst_capacity = rdc;
+    std::copy(dst + start_pos + needle_len, dst + dst_len,
+              dst + start_pos + replace_len);
 
-    return 1U;
+    dst[dst_len - noctm] = static_cast<char_type>('\0');
   }
-
-  // needle_len > replace_len
-  const auto noctm{needle_len - replace_len};
-
-  // if needle_len == 10 and replace_len == 2, all the characters in
-  // the upper part of dst ( characters with positions >= dst +
-  // start_pos + needle_len characters ) have to be moved 'noctm' (8)
-  // character positions toward dst
-  // + start_pos + replace_len.
-
-  for (auto i = 0; i < dst_len - (start_pos + needle_len); i++)
-    dst[start_pos + replace_len + i] = dst[start_pos + needle_len + i];
-
-  dst[dst_len - noctm] = static_cast<char_type>('\0');
 
   std::copy(std::cbegin(replace_sv), std::cend(replace_sv), dst + start_pos);
 
-  if (required_dst_capacity)
-    *required_dst_capacity = rdc;
-
-  return 1U;
+  return true;
 }
 
-template <size_t ARRAY_SIZE>
-size_t str_replace_first(wchar_t (&dst)[ARRAY_SIZE],
-                         const wchar_t* needle,
-                         const wchar_t* replace,
-                         size_t* required_dst_capacity = nullptr) {
-  auto const dst_len{len(dst)};
-  auto const needle_len{len(needle)};
-  auto const replace_len{len(replace)};
+template <typename T,
+          typename U,
+          typename V,
+          typename = std::enable_if_t<
+              is_non_const_char_pointer_type_v<T> &&
+              (is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
+               is_valid_string_type_v<U> ||
+               is_valid_string_view_type_v<
+                   U>)&&(is_char_array_type_v<V> || is_char_pointer_type_v<V> ||
+                         is_valid_string_type_v<V> ||
+                         is_valid_string_view_type_v<
+                             V>)&&is_all_of_v<get_char_type_t<T>,
+                                              get_char_type_t<U>,
+                                              get_char_type_t<V>>>>
+bool str_replace_first(T dst,
+                       const size_t dst_capacity_in_number_of_characters,
+                       const U& needle,
+                       const V& replace,
+                       const size_t start_position_in_dst = 0U,
+                       const bool ignore_case_when_searching_for_needle = false,
+                       size_t* required_dst_capacity = nullptr) {
+  using char_type = get_char_type_t<T>;
 
-  size_t rdc;
+  const size_t dst_len{len(dst)};
+  const size_t needle_len{len(needle)};
+  const size_t replace_len{len(replace)};
 
-  if (needle_len > dst_len) {
-    rdc = max(dst_len, replace_len);
-
+  if (0U == dst_len || 0U == needle_len || needle_len > dst_len ||
+      0U == replace_len) {
     if (required_dst_capacity)
-      *required_dst_capacity = rdc;
-
-    return 0u;
+      *required_dst_capacity = dst_len + 1;
+    return false;
   }
 
-  rdc = dst_len - needle_len + replace_len;
+  const size_t required_dst_buffer_size{dst_len - needle_len + replace_len + 1};
 
-  auto const start_pos = str_index_of(dst, needle);
+  if (required_dst_capacity)
+    *required_dst_capacity = required_dst_buffer_size;
 
-  if (start_pos == std::wstring::npos) {
-    if (required_dst_capacity)
-      *required_dst_capacity = rdc;
+  if (dst_capacity_in_number_of_characters < required_dst_buffer_size)
+    return false;
 
-    return 0u;
-  }
+  std::basic_string_view<char_type> dst_sv{dst, dst_len}, needle_sv{};
 
-  if ((ARRAY_SIZE - 1) < rdc) {
-    if (required_dst_capacity)
-      *required_dst_capacity = rdc;
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    needle_sv.assign(needle);
+  else
+    needle_sv.assign(needle, needle_len);
 
-    return 0u;
-  }
+  const auto start_pos = str_index_of(dst_sv, needle_sv, start_position_in_dst,
+                                      ignore_case_when_searching_for_needle);
 
-  if (needle_len == replace_len) {
-    std::copy(replace, replace + replace_len, dst + start_pos);
+  if (not_found_index == start_pos)
+    return false;
 
-    if (required_dst_capacity)
-      *required_dst_capacity = rdc;
+  std::basic_string_view<char_type> replace_sv{};
 
-    return 1u;
-  }
+  if constexpr (is_valid_string_type_v<V> || is_valid_string_view_type_v<V>)
+    replace_sv.assign(replace);
+  else
+    replace_sv.assign(replace, replace_len);
 
   if (needle_len < replace_len) {
-    auto const noctm = replace_len - needle_len;
+    const size_t noctm{replace_len - needle_len};
 
-    // if needle_len == 2 and replace_len == 10, all the characters in
-    // the upper part of dst ( characters with positions >= dst +
-    // start_pos + needle_len characters ) have to be moved 'noctm' (8)
-    // character positions toward the end of dst.
+    std::copy_backward(dst + start_pos + needle_len, dst + dst_len,
+                       dst + dst_len + noctm);
 
-    copy_backward(dst + start_pos + needle_len, dst + dst_len,
-                  dst + dst_len + noctm);
+    dst[dst_len + noctm] = static_cast<char_type>('\0');
 
-    dst[dst_len + noctm] = L'\0';
+  } else if (needle_len > replace_len) {
+    const size_t noctm{needle_len - replace_len};
 
-    std::copy(replace, replace + replace_len, dst + start_pos);
+    std::copy(dst + start_pos + needle_len, dst + dst_len,
+              dst + start_pos + replace_len);
 
-    if (required_dst_capacity)
-      *required_dst_capacity = rdc;
+    dst[dst_len - noctm] = static_cast<char_type>('\0');
+  }
 
-    return 1u;
-  }  // needle_len > replace_len
-  auto const noctm = needle_len - replace_len;
+  std::copy(std::cbegin(replace_sv), std::cend(replace_sv), dst + start_pos);
 
-  // if needle_len == 10 and replace_len == 2, all the characters in
-  // the upper part of dst ( characters with positions >= dst +
-  // start_pos + needle_len characters ) have to be moved 'noctm' (8)
-  // character positions toward dst
-  // + start_pos + replace_len.
-
-  for (auto i = 0; i < dst_len - (start_pos + needle_len); i++)
-    dst[start_pos + replace_len + i] = dst[start_pos + needle_len + i];
-
-  dst[dst_len - noctm] = L'\0';
-
-  std::copy(replace, replace + replace_len, dst + start_pos);
-
-  if (required_dst_capacity)
-    *required_dst_capacity = rdc;
-
-  return 1u;
+  return true;
 }
 
-template <size_t ARRAY_SIZE>
-size_t str_replace_first(char16_t (&dst)[ARRAY_SIZE],
-                         const char16_t* needle,
-                         const char16_t* replace,
-                         size_t* required_dst_capacity = nullptr) {
-  auto const dst_len{len(dst)};
-  auto const needle_len{len(needle)};
-  auto const replace_len{len(replace)};
+template <
+    typename T,
+    typename U,
+    typename V,
+    typename = std::enable_if_t<(
+        is_valid_string_type_v<T> || is_valid_string_view_type_v<T> ||
+        is_char_pointer_type_v<T> ||
+        is_char_array_type_v<
+            T>)&&(is_valid_string_type_v<U> || is_valid_string_view_type_v<U> ||
+                  is_char_pointer_type_v<U> ||
+                  is_char_array_type_v<
+                      U>)&&(is_valid_string_type_v<V> ||
+                            is_valid_string_view_type_v<V> ||
+                            is_char_pointer_type_v<V> ||
+                            is_char_array_type_v<
+                                V>)&&is_all_of_v<get_char_type_t<T>,
+                                                 get_char_type_t<U>,
+                                                 get_char_type_t<V>>>>
+std::basic_string<get_char_type_t<T>> str_replace_first(
+    const T& dst,
+    const U& needle,
+    const V& replace,
+    const size_t start_position_in_dst = 0U,
+    const bool ignore_case_when_searching_for_needle = false,
+    size_t* required_dst_capacity = nullptr) {
+  using char_type = get_char_type_t<T>;
 
-  size_t rdc;
+  const size_t dst_len{len(dst)};
+  const size_t needle_len{len(needle)};
+  const size_t replace_len{len(replace)};
 
-  if (needle_len > dst_len) {
-    rdc = max(dst_len, replace_len);
+  std::basic_string_view<char_type> dst_sv{};
+  std::basic_string<char_type> dst_str{};
 
+  if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
+    dst_sv.assign(dst);
+  else if constexpr (is_char_pointer_type_v<T>) {
+    if (nullptr == dst)
+      dst_sv.assign(dst_str);
+    else
+      dst_sv.assign(dst, dst_len);
+  } else
+    dst_sv.assign(dst, dst_len);
+
+  std::basic_string<char_type> str{std::cbegin(dst_sv), std::cend(dst_sv)};
+
+  if (0U == needle_len || 0U == needle_len || needle_len > dst_len ||
+      0U == replace_len) {
     if (required_dst_capacity)
-      *required_dst_capacity = rdc;
-
-    return 0u;
+      *required_dst_capacity = dst_len + 1;
+    return str;
   }
 
-  rdc = dst_len - needle_len + replace_len;
+  const size_t required_dst_buffer_size{dst_len - needle_len + replace_len + 1};
 
-  auto const start_pos = str_index_of(dst, needle);
+  if (required_dst_capacity)
+    *required_dst_capacity = required_dst_buffer_size;
 
-  if (start_pos == std::u16string::npos) {
-    if (required_dst_capacity)
-      *required_dst_capacity = rdc;
+  std::basic_string_view<char_type> needle_sv{};
 
-    return 0u;
-  }
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    needle_sv.assign(needle);
+  else
+    needle_sv.assign(needle, needle_len);
 
-  if ((ARRAY_SIZE - 1) < rdc) {
-    if (required_dst_capacity)
-      *required_dst_capacity = rdc;
+  const auto start_pos = str_index_of(dst_sv, needle_sv, start_position_in_dst,
+                                      ignore_case_when_searching_for_needle);
 
-    return 0u;
-  }
+  if (not_found_index == start_pos)
+    return str;
 
-  if (needle_len == replace_len) {
-    std::copy(replace, replace + replace_len, dst + start_pos);
+  std::basic_string_view<char_type> replace_sv{};
 
-    if (required_dst_capacity)
-      *required_dst_capacity = rdc;
-
-    return 1u;
-  }
+  if constexpr (is_valid_string_type_v<V> || is_valid_string_view_type_v<V>)
+    replace_sv.assign(replace);
+  else
+    replace_sv.assign(replace, replace_len);
 
   if (needle_len < replace_len) {
-    auto const noctm = replace_len - needle_len;
+    const size_t noctm{replace_len - needle_len};
 
-    // if needle_len == 2 and replace_len == 10, all the characters in
-    // the upper part of dst ( characters with positions >= dst +
-    // start_pos + needle_len characters ) have to be moved 'noctm' (8)
-    // character positions toward the end of dst.
+    std::copy_backward(std::cbegin(dst_sv) + start_pos + needle_len,
+                       std::cend(dst_sv), std::begin(str) + dst_len + noctm);
 
-    copy_backward(dst + start_pos + needle_len, dst + dst_len,
-                  dst + dst_len + noctm);
+    str[dst_len + noctm] = static_cast<char_type>('\0');
 
-    dst[dst_len + noctm] = u'\0';
+  } else if (needle_len > replace_len) {
+    const size_t noctm{needle_len - replace_len};
 
-    std::copy(replace, replace + replace_len, dst + start_pos);
+    std::copy(std::cbegin(dst_sv) + start_pos + needle_len, std::cend(dst_sv),
+              std::begin(str) + start_pos + replace_len);
 
-    if (required_dst_capacity)
-      *required_dst_capacity = rdc;
+    str[dst_len - noctm] = static_cast<char_type>('\0');
+  }
 
-    return 1u;
-  }  // needle_len > replace_len
-  auto const noctm = needle_len - replace_len;
+  std::copy(std::cbegin(replace_sv), std::cend(replace_sv),
+            std::begin(str) + start_pos);
 
-  // if needle_len == 10 and replace_len == 2, all the characters in
-  // the upper part of dst ( characters with positions >= dst +
-  // start_pos + needle_len characters ) have to be moved 'noctm' (8)
-  // character positions toward dst
-  // + start_pos + replace_len.
-
-  for (auto i = 0; i < dst_len - (start_pos + needle_len); i++)
-    dst[start_pos + replace_len + i] = dst[start_pos + needle_len + i];
-
-  dst[dst_len - noctm] = u'\0';
-
-  std::copy(replace, replace + replace_len, dst + start_pos);
-
-  if (required_dst_capacity)
-    *required_dst_capacity = rdc;
-
-  return 1u;
+  return str;
 }
 
-template <size_t ARRAY_SIZE>
-size_t str_replace_first(char32_t (&dst)[ARRAY_SIZE],
-                         const char32_t* needle,
-                         const char32_t* replace,
-                         size_t* required_dst_capacity = nullptr) {
-  auto const dst_len{len(dst)};
-  auto const needle_len{len(needle)};
-  auto const replace_len{len(replace)};
+template <
+    typename T,
+    typename U,
+    typename V,
+    typename = std::enable_if_t<
+        is_valid_string_type_v<T> && !std::is_const_v<T> &&
+        (is_valid_string_type_v<U> || is_valid_string_view_type_v<U> ||
+         is_char_pointer_type_v<U> ||
+         is_char_array_type_v<U>)&&(is_valid_string_type_v<V> ||
+                                    is_valid_string_view_type_v<V> ||
+                                    is_char_pointer_type_v<V> ||
+                                    is_char_array_type_v<
+                                        V>)&&is_all_of_v<get_char_type_t<T>,
+                                                         get_char_type_t<U>,
+                                                         get_char_type_t<V>>>>
+bool str_replace_first(T& dst,
+                       const U& needle,
+                       const V& replace,
+                       const size_t start_position_in_dst = 0U,
+                       const bool ignore_case_when_searching_for_needle = false,
+                       size_t* required_dst_capacity = nullptr) {
+  using char_type = get_char_type_t<T>;
 
-  size_t rdc;
+  const size_t dst_len{dst.length()};
+  const size_t needle_len{len(needle)};
+  const size_t replace_len{len(replace)};
 
-  if (needle_len > dst_len) {
-    rdc = max(dst_len, replace_len);
-
+  if (0U == dst_len || 0U == needle_len || needle_len > dst_len ||
+      0U == replace_len) {
     if (required_dst_capacity)
-      *required_dst_capacity = rdc;
-
-    return 0u;
+      *required_dst_capacity = dst_len + 1;
+    return false;
   }
 
-  rdc = dst_len - needle_len + replace_len;
+  const size_t required_dst_buffer_size{dst_len - needle_len + replace_len + 1};
 
-  auto const start_pos = str_index_of(dst, needle);
+  if (required_dst_capacity)
+    *required_dst_capacity = required_dst_buffer_size;
 
-  if (start_pos == std::u32string::npos) {
-    if (required_dst_capacity)
-      *required_dst_capacity = rdc;
+  std::basic_string_view<char_type> dst_sv{dst}, needle_sv{};
 
-    return 0u;
-  }
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    needle_sv.assign(needle);
+  else
+    needle_sv.assign(needle, needle_len);
 
-  if ((ARRAY_SIZE - 1) < rdc) {
-    if (required_dst_capacity)
-      *required_dst_capacity = rdc;
+  const auto start_pos = str_index_of(dst_sv, needle_sv, start_position_in_dst,
+                                      ignore_case_when_searching_for_needle);
 
-    return 0u;
-  }
+  if (not_found_index == start_pos)
+    return false;
 
-  if (needle_len == replace_len) {
-    std::copy(replace, replace + replace_len, dst + start_pos);
+  std::basic_string_view<char_type> replace_sv{};
 
-    if (required_dst_capacity)
-      *required_dst_capacity = rdc;
-
-    return 1u;
-  }
+  if constexpr (is_valid_string_type_v<V> || is_valid_string_view_type_v<V>)
+    replace_sv.assign(replace);
+  else
+    replace_sv.assign(replace, replace_len);
 
   if (needle_len < replace_len) {
-    auto const noctm = replace_len - needle_len;
+    const size_t noctm{replace_len - needle_len};
 
-    // if needle_len == 2 and replace_len == 10, all the characters in
-    // the upper part of dst ( characters with positions >= dst +
-    // start_pos + needle_len characters ) have to be moved 'noctm' (8)
-    // character positions toward the end of dst.
+    std::copy_backward(std::cbegin(dst_sv) + start_pos + needle_len,
+                       std::cend(dst_sv), std::begin(dst) + dst_len + noctm);
 
-    copy_backward(dst + start_pos + needle_len, dst + dst_len,
-                  dst + dst_len + noctm);
+    dst[dst_len + noctm] = static_cast<char_type>('\0');
 
-    dst[dst_len + noctm] = U'\0';
+  } else if (needle_len > replace_len) {
+    const size_t noctm{needle_len - replace_len};
 
-    std::copy(replace, replace + replace_len, dst + start_pos);
+    std::copy(std::cbegin(dst_sv) + start_pos + needle_len, std::cend(dst_sv),
+              std::begin(dst) + start_pos + replace_len);
 
-    if (required_dst_capacity)
-      *required_dst_capacity = rdc;
+    dst[dst_len - noctm] = static_cast<char_type>('\0');
+  }
 
-    return 1u;
-  }  // needle_len > replace_len
-  auto const noctm = needle_len - replace_len;
+  std::copy(std::cbegin(replace_sv), std::cend(replace_sv),
+            std::begin(dst) + start_pos);
 
-  // if needle_len == 10 and replace_len == 2, all the characters in
-  // the upper part of dst ( characters with positions >= dst +
-  // start_pos + needle_len characters ) have to be moved 'noctm' (8)
-  // character positions toward dst
-  // + start_pos + replace_len.
-
-  for (auto i = 0; i < dst_len - (start_pos + needle_len); i++)
-    dst[start_pos + replace_len + i] = dst[start_pos + needle_len + i];
-
-  dst[dst_len - noctm] = U'\0';
-
-  std::copy(replace, replace + replace_len, dst + start_pos);
-
-  if (required_dst_capacity)
-    *required_dst_capacity = rdc;
-
-  return 1u;
+  return true;
 }
-
-size_t str_replace_first(char* dst,
-                         size_t dst_capacity_in_number_of_characters,
-                         const char* needle,
-                         const char* replace,
-                         size_t* required_dst_capacity = nullptr);
-
-size_t str_replace_first(wchar_t* dst,
-                         size_t dst_capacity_in_number_of_characters,
-                         const char* needle,
-                         const char* replace,
-                         size_t* required_dst_capacity = nullptr);
-
-size_t str_replace_first(char16_t* dst,
-                         size_t dst_capacity_in_number_of_characters,
-                         const char* needle,
-                         const char* replace,
-                         size_t* required_dst_capacity = nullptr);
-
-size_t str_replace_first(char32_t* dst,
-                         size_t dst_capacity_in_number_of_characters,
-                         const char* needle,
-                         const char* replace,
-                         size_t* required_dst_capacity = nullptr);
 
 template <typename T,
           typename U,
