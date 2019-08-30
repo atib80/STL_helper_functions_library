@@ -658,20 +658,6 @@ constexpr inline void swap(T& first, T& second) {
        std::true_type, std::false_type > {});
 }
 
-template <typename BiDirIter1, typename BiDirIter2>
-constexpr inline BiDirIter2 copy_backward(BiDirIter1 src_first,
-                                          BiDirIter1 src_last,
-                                          BiDirIter2 dst_last) {
-  if (src_first == src_last)
-    return dst_last;
-
-  while (src_first != src_last) {
-    *--dst_last = *--src_last;
-  }
-
-  return dst_last;
-}
-
 template <typename T>
 struct is_valid_char_type {
   static constexpr const bool value =
@@ -1575,11 +1561,11 @@ template <typename SrcIterType,
           typename = std::enable_if_t<check_equality_v<
               typename std::iterator_traits<SrcIterType>::value_type,
               typename std::iterator_traits<DstIterType>::value_type>>>
-constexpr size_t index_of(const SrcIterType src_first,
-                          const SrcIterType src_last,
-                          const DstIterType dst_first,
-                          const DstIterType dst_last,
-                          const bool is_find_whole_dst_range = true) {
+constexpr SrcIterType index_of(const SrcIterType src_first,
+                               const SrcIterType src_last,
+                               const DstIterType dst_first,
+                               const DstIterType dst_last,
+                               const bool is_find_whole_dst_range = true) {
   if (src_first == src_last || dst_first == dst_last)
     return not_found_index;
 
@@ -1588,9 +1574,7 @@ constexpr size_t index_of(const SrcIterType src_first,
           ? std::search(src_first, src_last, dst_first, dst_last)
           : std::find_first_of(src_first, src_last, dst_first, dst_last)};
 
-  if (src_last == found_iter)
-    return not_found_index;
-  return static_cast<size_t>(std::distance(src_first, found_iter));
+  return found_iter;
 }
 
 template <typename T,
@@ -1814,6 +1798,252 @@ typename std::basic_string<get_char_type_t<T>>::size_type str_index_of(
   }
 
   return src_lc.find(needle_lc, start_pos);
+}
+
+template <typename SrcIterType,
+          typename DstIterType,
+          typename = std::enable_if_t<check_equality_v<
+              typename std::iterator_traits<SrcIterType>::value_type,
+              typename std::iterator_traits<DstIterType>::value_type>>>
+constexpr SrcIterType last_index_of(const SrcIterType src_first,
+                                    const SrcIterType src_last,
+                                    const DstIterType dst_first,
+                                    const DstIterType dst_last,
+                                    const bool is_find_whole_dst_range = true) {
+  if (src_first == src_last || dst_first == dst_last)
+    return not_found_index;
+
+  const SrcIterType found_iter{
+      is_find_whole_dst_range
+          ? std::find_end(src_first, src_last, dst_first, dst_last)
+          : std::find_first_of(std::make_reverse_iterator(src_last),
+                               std::make_reverse_iterator(src_first), dst_first,
+                               dst_last)
+                .base()};
+
+  return found_iter;
+}
+
+template <typename T,
+          typename U,
+          typename = std::enable_if_t<
+              (is_char_array_type_v<T> || is_char_pointer_type_v<T>)&&(
+                  is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
+                  is_valid_char_type_v<get_char_type_t<U>>)&&std::
+                  is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
+typename std::basic_string<get_char_type_t<T>>::size_type str_last_index_of(
+    const T src,
+    const U needle,
+    const size_t start_pos = std::basic_string<get_char_type_t<T>>::npos,
+    const bool ignore_case = false,
+    const std::locale& loc = std::locale{}) {
+  using char_type = get_char_type_t<U>;
+
+  if constexpr (is_char_pointer_type_v<T>) {
+    if (nullptr == src)
+      return std::basic_string<char_type>::npos;
+  }
+
+  if constexpr (is_char_pointer_type_v<U>) {
+    if (nullptr == needle)
+      return std::basic_string<char_type>::npos;
+  }
+
+  const size_t src_len{len(src)};
+
+  if constexpr (is_valid_char_type_v<std::remove_cv_t<U>>) {
+    if (0U == src_len)
+      return std::basic_string<char_type>::npos;
+
+    if (!ignore_case) {
+      std::basic_string_view<char_type> src_str_view{src, src_len};
+      return src_str_view.rfind(needle, start_pos);
+    }
+
+    std::basic_string<char_type> src_str{src};
+    char_type needle_lc{needle};
+
+    if (std::has_facet<std::ctype<char_type>>(loc)) {
+      const auto& f = std::use_facet<std::ctype<char_type>>(loc);
+
+      std::transform(std::cbegin(src_str), std::cend(src_str),
+                     std::begin(src_str),
+                     [&f](const auto ch) { return f.tolower(ch); });
+      needle_lc = f.tolower(needle);
+
+    } else {
+      std::transform(std::cbegin(src_str), std::cend(src_str),
+                     std::begin(src_str), [](const auto ch) {
+                       return static_cast<char_type>(std::tolower(ch));
+                     });
+
+      needle_lc = static_cast<char_type>(std::tolower(needle));
+    }
+
+    return src_str.rfind(needle_lc, start_pos);
+
+  } else {
+    const auto needle_len{len(needle)};
+
+    if (0U == src_len || 0U == needle_len || needle_len > src_len)
+      return std::basic_string<char_type>::npos;
+
+    std::basic_string_view<char_type> src_sv{src, src_len};
+    std::basic_string_view<char_type> needle_sv{needle, needle_len};
+
+    if (!ignore_case)
+      return src_sv.rfind(needle_sv, start_pos);
+
+    std::basic_string<char_type> src_str{src};
+    std::basic_string<char_type> needle_str{needle};
+
+    if (std::has_facet<std::ctype<char_type>>(loc)) {
+      const auto& f = std::use_facet<std::ctype<char_type>>(loc);
+      std::transform(std::cbegin(src_str), std::cend(src_str),
+                     std::begin(src_str),
+                     [&f](const auto ch) { return f.tolower(ch); });
+      std::transform(std::cbegin(needle_str), std::cend(needle_str),
+                     std::begin(needle_str),
+                     [&f](const auto ch) { return f.tolower(ch); });
+
+    } else {
+      std::transform(std::cbegin(src_str), std::cend(src_str),
+                     std::begin(src_str), [](const auto ch) {
+                       return static_cast<char_type>(std::tolower(ch));
+                     });
+      std::transform(std::cbegin(needle_str), std::cend(needle_str),
+                     std::begin(needle_str), [](const auto ch) {
+                       return static_cast<char_type>(std::tolower(ch));
+                     });
+    }
+
+    return src_str.rfind(needle_str, start_pos);
+  }
+}
+
+template <typename T,
+          typename = std::enable_if_t<is_valid_string_type_v<T> ||
+                                      is_valid_string_view_type_v<T>>>
+typename std::basic_string<get_char_type_t<T>>::size_type str_last_index_of(
+    const T& src,
+    const get_char_type_t<T> needle_char,
+    const size_t start_pos = std::basic_string<get_char_type_t<T>>::npos,
+    const bool ignore_case = false,
+    const std::locale& loc = std::locale{}) {
+  using char_type = get_char_type_t<T>;
+
+  if (0U == src.length())
+    return std::basic_string<char_type>::npos;
+
+  if (!ignore_case)
+    return src.rfind(needle_char, start_pos);
+
+  std::basic_string<char_type> src_lc{src};
+  char_type needle_char_lc{needle_char};
+
+  if (std::has_facet<std::ctype<char_type>>(loc)) {
+    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
+    std::transform(std::cbegin(src), std::cend(src), std::begin(src_lc),
+                   [&f](const auto ch) { return f.tolower(ch); });
+    needle_char_lc = f.tolower(needle_char);
+
+  } else {
+    std::transform(
+        std::cbegin(src), std::cend(src), std::begin(src_lc),
+        [](const auto ch) { return static_cast<char_type>(std::tolower(ch)); });
+    needle_char_lc = static_cast<char_type>(std::tolower(needle_char));
+  }
+
+  return src_lc.rfind(needle_char_lc, start_pos);
+}
+
+template <typename T,
+          typename = std::enable_if_t<is_valid_string_type_v<T> ||
+                                      is_valid_string_view_type_v<T>>>
+typename std::basic_string<get_char_type_t<T>>::size_type str_last_index_of(
+    const T& src,
+    const get_char_type_t<T>* needle,
+    const size_t start_pos = std::basic_string<get_char_type_t<T>>::npos,
+    const bool ignore_case = false,
+    const std::locale& loc = std::locale{}) {
+  using char_type = get_char_type_t<T>;
+
+  if (nullptr == needle)
+    return false;
+
+  const auto text_len{src.length()};
+  const auto needle_len{len(needle)};
+
+  if (0U == text_len || 0U == needle_len || needle_len > text_len)
+    return std::basic_string<char_type>::npos;
+
+  if (!ignore_case)
+    return src.rfind(needle, start_pos);
+
+  std::basic_string<char_type> src_lc{src};
+  std::basic_string<char_type> needle_str{needle};
+
+  if (std::has_facet<std::ctype<char_type>>(loc)) {
+    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
+    std::transform(std::cbegin(src), std::cend(src), std::begin(src_lc),
+                   [&f](const auto ch) { return f.tolower(ch); });
+    std::transform(std::cbegin(needle_str), std::cend(needle_str),
+                   std::begin(needle_str),
+                   [&f](const auto ch) { return f.tolower(ch); });
+
+  } else {
+    std::transform(
+        std::cbegin(src), std::cend(src), std::begin(src_lc),
+        [](const auto ch) { return static_cast<char_type>(std::tolower(ch)); });
+    std::transform(
+        std::cbegin(needle_str), std::cend(needle_str), std::begin(needle_str),
+        [](const auto ch) { return static_cast<char_type>(std::tolower(ch)); });
+  }
+
+  return src_lc.rfind(needle_str, start_pos);
+}
+
+template <typename T,
+          typename = std::enable_if_t<is_valid_string_type_v<T> ||
+                                      is_valid_string_view_type_v<T>>>
+typename std::basic_string<get_char_type_t<T>>::size_type str_last_index_of(
+    const T& src,
+    const T& needle,
+    const size_t start_pos = std::basic_string<get_char_type_t<T>>::npos,
+    const bool ignore_case = false,
+    const std::locale& loc = std::locale{}) {
+  using char_type = get_char_type_t<T>;
+
+  const auto src_len{src.length()};
+  const auto needle_len{needle.length()};
+
+  if (0U == src_len || 0U == needle_len || needle_len > src_len)
+    return std::basic_string<char_type>::npos;
+
+  if (!ignore_case)
+    return src.rfind(needle, start_pos);
+
+  std::basic_string<char_type> src_lc{src};
+  std::basic_string<char_type> needle_lc{needle};
+
+  if (std::has_facet<std::ctype<char_type>>(loc)) {
+    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
+    std::transform(std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
+                   [&f](const auto ch) { return f.tolower(ch); });
+    std::transform(std::cbegin(needle_lc), std::cend(needle_lc),
+                   std::begin(needle_lc),
+                   [&f](const auto ch) { return f.tolower(ch); });
+
+  } else {
+    std::transform(
+        std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
+        [](const auto ch) { return static_cast<char_type>(std::tolower(ch)); });
+    std::transform(
+        std::cbegin(needle_lc), std::cend(needle_lc), std::begin(needle_lc),
+        [](const auto ch) { return static_cast<char_type>(std::tolower(ch)); });
+  }
+
+  return src_lc.rfind(needle_lc, start_pos);
 }
 
 template <typename SrcIterType,
@@ -5018,34 +5248,753 @@ bool str_replace_first(T& dst,
 }
 
 template <typename T,
+          size_t ARRAY_SIZE,
           typename U,
+          typename V,
           typename = std::enable_if_t<
-              (is_non_const_char_array_type_v<T> ||
-               is_non_const_char_pointer_type_v<
-                   T>)&&(is_char_array_type_v<U> ||
-                         is_char_pointer_type_v<
-                             U>)&&(std::is_same_v<get_char_type_t<T>,
-                                                  get_char_type_t<U>>)>>
-get_char_type_t<T>* str_replace_nth(T src,
-                                    U needle,
-                                    const size_t nth_index = 1) {
-  // using char_type = get_char_type_t<T>;
-  unused_args(src, needle, nth_index);
+              is_valid_char_type_v<T> && !std::is_const_v<T> &&
+              (is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
+               is_valid_string_type_v<U> ||
+               is_valid_string_view_type_v<
+                   U>)&&(is_char_array_type_v<V> || is_char_pointer_type_v<V> ||
+                         is_valid_string_type_v<V> ||
+                         is_valid_string_view_type_v<
+                             V>)&&is_all_of_v<std::remove_cv_t<T>,
+                                              get_char_type_t<U>,
+                                              get_char_type_t<V>>>>
+bool str_replace_nth(T (&dst)[ARRAY_SIZE],
+                     const U& needle,
+                     const V& replace,
+                     const size_t nth_needle_index = 1,
+                     const size_t start_position_in_dst = 0U,
+                     const bool ignore_case_when_searching_for_needle = false,
+                     size_t* required_dst_capacity = nullptr) {
+  using char_type = std::remove_cv_t<T>;
 
-  return nullptr;
+  const size_t dst_len{len(dst)};
+  const size_t needle_len{len(needle)};
+  const size_t replace_len{len(replace)};
+
+  if (0U == dst_len || 0U == needle_len || needle_len > dst_len ||
+      0U == replace_len) {
+    if (required_dst_capacity)
+      *required_dst_capacity = dst_len + 1;
+    return false;
+  }
+
+  const size_t required_dst_buffer_size{dst_len - needle_len + replace_len + 1};
+
+  if (required_dst_capacity)
+    *required_dst_capacity = required_dst_buffer_size;
+
+  if (ARRAY_SIZE < required_dst_buffer_size)
+    return false;
+
+  std::basic_string_view<char_type> dst_sv{dst, dst_len}, needle_sv{};
+
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    needle_sv.assign(needle);
+  else
+    needle_sv.assign(needle, needle_len);
+
+  size_t nth_needle_pos{start_position_in_dst}, found_needle_index{};
+
+  do {
+    const size_t next_pos{str_index_of(dst_sv, needle_sv, nth_needle_pos,
+                                       ignore_case_when_searching_for_needle)};
+    if (not_found_index == next_pos)
+      return false;
+    nth_needle_pos = next_pos;
+    if (++found_needle_index == nth_needle_index)
+      break;
+    ++nth_needle_pos;
+  } while (true);
+
+  std::basic_string_view<char_type> replace_sv{};
+
+  if constexpr (is_valid_string_type_v<V> || is_valid_string_view_type_v<V>)
+    replace_sv.assign(replace);
+  else
+    replace_sv.assign(replace, replace_len);
+
+  if (needle_len < replace_len) {
+    const size_t noctm{replace_len - needle_len};
+
+    std::copy_backward(dst + nth_needle_pos + needle_len, dst + dst_len,
+                       dst + dst_len + noctm);
+
+    dst[dst_len + noctm] = static_cast<char_type>('\0');
+
+  } else if (needle_len > replace_len) {
+    const size_t noctm{needle_len - replace_len};
+
+    std::copy(dst + nth_needle_pos + needle_len, dst + dst_len,
+              dst + nth_needle_pos + replace_len);
+
+    dst[dst_len - noctm] = static_cast<char_type>('\0');
+  }
+
+  std::copy(std::cbegin(replace_sv), std::cend(replace_sv),
+            dst + nth_needle_pos);
+
+  return true;
 }
 
-template <typename CharacterPointerType,
+template <typename T,
+          typename U,
+          typename V,
           typename = std::enable_if_t<
-              std::is_array_v<CharacterPointerType> ||
-              std::is_same_v<CharacterPointerType, char*> ||
-              std::is_same_v<CharacterPointerType, wchar_t*> ||
-              std::is_same_v<CharacterPointerType, char16_t*> ||
-              std::is_same_v<CharacterPointerType, char32_t*>>>
-CharacterPointerType str_replace_last(CharacterPointerType src,
-                                      const CharacterPointerType needle) {
-  unused_args(src, needle);
-  return nullptr;
+              is_non_const_char_pointer_type_v<T> &&
+              (is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
+               is_valid_string_type_v<U> ||
+               is_valid_string_view_type_v<
+                   U>)&&(is_char_array_type_v<V> || is_char_pointer_type_v<V> ||
+                         is_valid_string_type_v<V> ||
+                         is_valid_string_view_type_v<
+                             V>)&&is_all_of_v<get_char_type_t<T>,
+                                              get_char_type_t<U>,
+                                              get_char_type_t<V>>>>
+bool str_replace_nth(T dst,
+                     const size_t dst_capacity_in_number_of_characters,
+                     const U& needle,
+                     const V& replace,
+                     const size_t nth_needle_index = 1,
+                     const size_t start_position_in_dst = 0U,
+                     const bool ignore_case_when_searching_for_needle = false,
+                     size_t* required_dst_capacity = nullptr) {
+  using char_type = get_char_type_t<T>;
+
+  const size_t dst_len{len(dst)};
+  const size_t needle_len{len(needle)};
+  const size_t replace_len{len(replace)};
+
+  if (0U == dst_len || 0U == needle_len || needle_len > dst_len ||
+      0U == replace_len) {
+    if (required_dst_capacity)
+      *required_dst_capacity = dst_len + 1;
+    return false;
+  }
+
+  const size_t required_dst_buffer_size{dst_len - needle_len + replace_len + 1};
+
+  if (required_dst_capacity)
+    *required_dst_capacity = required_dst_buffer_size;
+
+  if (dst_capacity_in_number_of_characters < required_dst_buffer_size)
+    return false;
+
+  std::basic_string_view<char_type> dst_sv{dst, dst_len}, needle_sv{};
+
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    needle_sv.assign(needle);
+  else
+    needle_sv.assign(needle, needle_len);
+
+  size_t nth_needle_pos{start_position_in_dst}, found_needle_index{};
+
+  do {
+    const size_t next_pos{str_index_of(dst_sv, needle_sv, nth_needle_pos,
+                                       ignore_case_when_searching_for_needle)};
+    if (not_found_index == next_pos)
+      return false;
+    nth_needle_pos = next_pos;
+    if (++found_needle_index == nth_needle_index)
+      break;
+    ++nth_needle_pos;
+  } while (true);
+
+  std::basic_string_view<char_type> replace_sv{};
+
+  if constexpr (is_valid_string_type_v<V> || is_valid_string_view_type_v<V>)
+    replace_sv.assign(replace);
+  else
+    replace_sv.assign(replace, replace_len);
+
+  if (needle_len < replace_len) {
+    const size_t noctm{replace_len - needle_len};
+
+    std::copy_backward(dst + nth_needle_pos + needle_len, dst + dst_len,
+                       dst + dst_len + noctm);
+
+    dst[dst_len + noctm] = static_cast<char_type>('\0');
+
+  } else if (needle_len > replace_len) {
+    const size_t noctm{needle_len - replace_len};
+
+    std::copy(dst + nth_needle_pos + needle_len, dst + dst_len,
+              dst + nth_needle_pos + replace_len);
+
+    dst[dst_len - noctm] = static_cast<char_type>('\0');
+  }
+
+  std::copy(std::cbegin(replace_sv), std::cend(replace_sv),
+            dst + nth_needle_pos);
+
+  return true;
+}
+
+template <
+    typename T,
+    typename U,
+    typename V,
+    typename = std::enable_if_t<(
+        is_valid_string_type_v<T> || is_valid_string_view_type_v<T> ||
+        is_char_pointer_type_v<T> ||
+        is_char_array_type_v<
+            T>)&&(is_valid_string_type_v<U> || is_valid_string_view_type_v<U> ||
+                  is_char_pointer_type_v<U> ||
+                  is_char_array_type_v<
+                      U>)&&(is_valid_string_type_v<V> ||
+                            is_valid_string_view_type_v<V> ||
+                            is_char_pointer_type_v<V> ||
+                            is_char_array_type_v<
+                                V>)&&is_all_of_v<get_char_type_t<T>,
+                                                 get_char_type_t<U>,
+                                                 get_char_type_t<V>>>>
+std::basic_string<get_char_type_t<T>> str_replace_nth(
+    const T& dst,
+    const U& needle,
+    const V& replace,
+    const size_t nth_needle_index = 1,
+    const size_t start_position_in_dst = 0U,
+    const bool ignore_case_when_searching_for_needle = false,
+    size_t* required_dst_capacity = nullptr) {
+  using char_type = get_char_type_t<T>;
+
+  const size_t dst_len{len(dst)};
+  const size_t needle_len{len(needle)};
+  const size_t replace_len{len(replace)};
+
+  std::basic_string_view<char_type> dst_sv{};
+  std::basic_string<char_type> dst_str{};
+
+  if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
+    dst_sv.assign(dst);
+  else if constexpr (is_char_pointer_type_v<T>) {
+    if (nullptr == dst)
+      dst_sv.assign(dst_str);
+    else
+      dst_sv.assign(dst, dst_len);
+  } else
+    dst_sv.assign(dst, dst_len);
+
+  std::basic_string<char_type> str{std::cbegin(dst_sv), std::cend(dst_sv)};
+
+  if (0U == needle_len || 0U == needle_len || needle_len > dst_len ||
+      0U == replace_len) {
+    if (required_dst_capacity)
+      *required_dst_capacity = dst_len + 1;
+    return str;
+  }
+
+  const size_t required_dst_buffer_size{dst_len - needle_len + replace_len + 1};
+
+  if (required_dst_capacity)
+    *required_dst_capacity = required_dst_buffer_size;
+
+  std::basic_string_view<char_type> needle_sv{};
+
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    needle_sv.assign(needle);
+  else
+    needle_sv.assign(needle, needle_len);
+
+  size_t nth_needle_pos{start_position_in_dst}, found_needle_index{};
+
+  do {
+    const size_t next_pos{str_index_of(dst_sv, needle_sv, nth_needle_pos,
+                                       ignore_case_when_searching_for_needle)};
+    if (not_found_index == next_pos)
+      return str;
+    nth_needle_pos = next_pos;
+    if (++found_needle_index == nth_needle_index)
+      break;
+    ++nth_needle_pos;
+  } while (true);
+
+  std::basic_string_view<char_type> replace_sv{};
+
+  if constexpr (is_valid_string_type_v<V> || is_valid_string_view_type_v<V>)
+    replace_sv.assign(replace);
+  else
+    replace_sv.assign(replace, replace_len);
+
+  if (needle_len < replace_len) {
+    const size_t noctm{replace_len - needle_len};
+
+    std::copy_backward(std::cbegin(dst_sv) + nth_needle_pos + needle_len,
+                       std::cend(dst_sv), std::begin(str) + dst_len + noctm);
+
+    str[dst_len + noctm] = static_cast<char_type>('\0');
+
+  } else if (needle_len > replace_len) {
+    const size_t noctm{needle_len - replace_len};
+
+    std::copy(std::cbegin(dst_sv) + nth_needle_pos + needle_len,
+              std::cend(dst_sv),
+              std::begin(str) + nth_needle_pos + replace_len);
+
+    str[dst_len - noctm] = static_cast<char_type>('\0');
+  }
+
+  std::copy(std::cbegin(replace_sv), std::cend(replace_sv),
+            std::begin(str) + nth_needle_pos);
+
+  return str;
+}
+
+template <
+    typename T,
+    typename U,
+    typename V,
+    typename = std::enable_if_t<
+        is_valid_string_type_v<T> && !std::is_const_v<T> &&
+        (is_valid_string_type_v<U> || is_valid_string_view_type_v<U> ||
+         is_char_pointer_type_v<U> ||
+         is_char_array_type_v<U>)&&(is_valid_string_type_v<V> ||
+                                    is_valid_string_view_type_v<V> ||
+                                    is_char_pointer_type_v<V> ||
+                                    is_char_array_type_v<
+                                        V>)&&is_all_of_v<get_char_type_t<T>,
+                                                         get_char_type_t<U>,
+                                                         get_char_type_t<V>>>>
+bool str_replace_nth(T& dst,
+                     const U& needle,
+                     const V& replace,
+                     const size_t nth_needle_index = 1,
+                     const size_t start_position_in_dst = 0U,
+                     const bool ignore_case_when_searching_for_needle = false,
+                     size_t* required_dst_capacity = nullptr) {
+  using char_type = get_char_type_t<T>;
+
+  const size_t dst_len{dst.length()};
+  const size_t needle_len{len(needle)};
+  const size_t replace_len{len(replace)};
+
+  if (0U == dst_len || 0U == needle_len || needle_len > dst_len ||
+      0U == replace_len) {
+    if (required_dst_capacity)
+      *required_dst_capacity = dst_len + 1;
+    return false;
+  }
+
+  const size_t required_dst_buffer_size{dst_len - needle_len + replace_len + 1};
+
+  if (required_dst_capacity)
+    *required_dst_capacity = required_dst_buffer_size;
+
+  std::basic_string_view<char_type> dst_sv{dst}, needle_sv{};
+
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    needle_sv.assign(needle);
+  else
+    needle_sv.assign(needle, needle_len);
+
+  size_t nth_needle_pos{start_position_in_dst}, found_needle_index{};
+
+  do {
+    const size_t next_pos{str_index_of(dst_sv, needle_sv, nth_needle_pos,
+                                       ignore_case_when_searching_for_needle)};
+    if (not_found_index == next_pos)
+      return false;
+    nth_needle_pos = next_pos;
+    if (++found_needle_index == nth_needle_index)
+      break;
+    ++nth_needle_pos;
+  } while (true);
+
+  std::basic_string_view<char_type> replace_sv{};
+
+  if constexpr (is_valid_string_type_v<V> || is_valid_string_view_type_v<V>)
+    replace_sv.assign(replace);
+  else
+    replace_sv.assign(replace, replace_len);
+
+  if (needle_len < replace_len) {
+    const size_t noctm{replace_len - needle_len};
+
+    std::copy_backward(std::cbegin(dst_sv) + nth_needle_pos + needle_len,
+                       std::cend(dst_sv), std::begin(dst) + dst_len + noctm);
+
+    dst[dst_len + noctm] = static_cast<char_type>('\0');
+
+  } else if (needle_len > replace_len) {
+    const size_t noctm{needle_len - replace_len};
+
+    std::copy(std::cbegin(dst_sv) + nth_needle_pos + needle_len,
+              std::cend(dst_sv),
+              std::begin(dst) + nth_needle_pos + replace_len);
+
+    dst[dst_len - noctm] = static_cast<char_type>('\0');
+  }
+
+  std::copy(std::cbegin(replace_sv), std::cend(replace_sv),
+            std::begin(dst) + nth_needle_pos);
+
+  return true;
+}
+
+template <typename T,
+          size_t ARRAY_SIZE,
+          typename U,
+          typename V,
+          typename = std::enable_if_t<
+              is_valid_char_type_v<T> && !std::is_const_v<T> &&
+              (is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
+               is_valid_string_type_v<U> ||
+               is_valid_string_view_type_v<
+                   U>)&&(is_char_array_type_v<V> || is_char_pointer_type_v<V> ||
+                         is_valid_string_type_v<V> ||
+                         is_valid_string_view_type_v<
+                             V>)&&is_all_of_v<std::remove_cv_t<T>,
+                                              get_char_type_t<U>,
+                                              get_char_type_t<V>>>>
+bool str_replace_last(T (&dst)[ARRAY_SIZE],
+                      const U& needle,
+                      const V& replace,
+                      const size_t start_position_in_dst =
+                          std::basic_string<std::remove_cv_t<T>>::npos,
+                      const bool ignore_case_when_searching_for_needle = false,
+                      size_t* required_dst_capacity = nullptr) {
+  using char_type = std::remove_cv_t<T>;
+
+  const size_t dst_len{len(dst)};
+  const size_t needle_len{len(needle)};
+  const size_t replace_len{len(replace)};
+
+  if (0U == dst_len || 0U == needle_len || needle_len > dst_len ||
+      0U == replace_len) {
+    if (required_dst_capacity)
+      *required_dst_capacity = dst_len + 1;
+    return false;
+  }
+
+  const size_t required_dst_buffer_size{dst_len - needle_len + replace_len + 1};
+
+  if (required_dst_capacity)
+    *required_dst_capacity = required_dst_buffer_size;
+
+  if (ARRAY_SIZE < required_dst_buffer_size)
+    return false;
+
+  std::basic_string_view<char_type> dst_sv{dst, dst_len}, needle_sv{};
+
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    needle_sv.assign(needle);
+  else
+    needle_sv.assign(needle, needle_len);
+
+  const size_t last_needle_pos{
+      str_last_index_of(dst_sv, needle_sv, start_position_in_dst,
+                        ignore_case_when_searching_for_needle)};
+
+  if (not_found_index == last_needle_pos)
+    return false;
+
+  std::basic_string_view<char_type> replace_sv{};
+
+  if constexpr (is_valid_string_type_v<V> || is_valid_string_view_type_v<V>)
+    replace_sv.assign(replace);
+  else
+    replace_sv.assign(replace, replace_len);
+
+  if (needle_len < replace_len) {
+    const size_t noctm{replace_len - needle_len};
+
+    std::copy_backward(dst + last_needle_pos + needle_len, dst + dst_len,
+                       dst + dst_len + noctm);
+
+    dst[dst_len + noctm] = static_cast<char_type>('\0');
+
+  } else if (needle_len > replace_len) {
+    const size_t noctm{needle_len - replace_len};
+
+    std::copy(dst + last_needle_pos + needle_len, dst + dst_len,
+              dst + last_needle_pos + replace_len);
+
+    dst[dst_len - noctm] = static_cast<char_type>('\0');
+  }
+
+  std::copy(std::cbegin(replace_sv), std::cend(replace_sv),
+            dst + last_needle_pos);
+
+  return true;
+}
+
+template <typename T,
+          typename U,
+          typename V,
+          typename = std::enable_if_t<
+              is_non_const_char_pointer_type_v<T> &&
+              (is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
+               is_valid_string_type_v<U> ||
+               is_valid_string_view_type_v<
+                   U>)&&(is_char_array_type_v<V> || is_char_pointer_type_v<V> ||
+                         is_valid_string_type_v<V> ||
+                         is_valid_string_view_type_v<
+                             V>)&&is_all_of_v<get_char_type_t<T>,
+                                              get_char_type_t<U>,
+                                              get_char_type_t<V>>>>
+bool str_replace_last(T dst,
+                      const size_t dst_capacity_in_number_of_characters,
+                      const U& needle,
+                      const V& replace,
+                      const size_t start_position_in_dst =
+                          std::basic_string<get_char_type_t<T>>::npos,
+                      const bool ignore_case_when_searching_for_needle = false,
+                      size_t* required_dst_capacity = nullptr) {
+  using char_type = get_char_type_t<T>;
+
+  const size_t dst_len{len(dst)};
+  const size_t needle_len{len(needle)};
+  const size_t replace_len{len(replace)};
+
+  if (0U == dst_len || 0U == needle_len || needle_len > dst_len ||
+      0U == replace_len) {
+    if (required_dst_capacity)
+      *required_dst_capacity = dst_len + 1;
+    return false;
+  }
+
+  const size_t required_dst_buffer_size{dst_len - needle_len + replace_len + 1};
+
+  if (required_dst_capacity)
+    *required_dst_capacity = required_dst_buffer_size;
+
+  if (dst_capacity_in_number_of_characters < required_dst_buffer_size)
+    return false;
+
+  std::basic_string_view<char_type> dst_sv{dst, dst_len}, needle_sv{};
+
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    needle_sv.assign(needle);
+  else
+    needle_sv.assign(needle, needle_len);
+
+  const size_t last_needle_pos{
+      str_last_index_of(dst_sv, needle_sv, start_position_in_dst,
+                        ignore_case_when_searching_for_needle)};
+
+  if (not_found_index == last_needle_pos)
+    return false;
+
+  std::basic_string_view<char_type> replace_sv{};
+
+  if constexpr (is_valid_string_type_v<V> || is_valid_string_view_type_v<V>)
+    replace_sv.assign(replace);
+  else
+    replace_sv.assign(replace, replace_len);
+
+  if (needle_len < replace_len) {
+    const size_t noctm{replace_len - needle_len};
+
+    std::copy_backward(dst + last_needle_pos + needle_len, dst + dst_len,
+                       dst + dst_len + noctm);
+
+    dst[dst_len + noctm] = static_cast<char_type>('\0');
+
+  } else if (needle_len > replace_len) {
+    const size_t noctm{needle_len - replace_len};
+
+    std::copy(dst + last_needle_pos + needle_len, dst + dst_len,
+              dst + last_needle_pos + replace_len);
+
+    dst[dst_len - noctm] = static_cast<char_type>('\0');
+  }
+
+  std::copy(std::cbegin(replace_sv), std::cend(replace_sv),
+            dst + last_needle_pos);
+
+  return true;
+}
+
+template <
+    typename T,
+    typename U,
+    typename V,
+    typename = std::enable_if_t<(
+        is_valid_string_type_v<T> || is_valid_string_view_type_v<T> ||
+        is_char_pointer_type_v<T> ||
+        is_char_array_type_v<
+            T>)&&(is_valid_string_type_v<U> || is_valid_string_view_type_v<U> ||
+                  is_char_pointer_type_v<U> ||
+                  is_char_array_type_v<
+                      U>)&&(is_valid_string_type_v<V> ||
+                            is_valid_string_view_type_v<V> ||
+                            is_char_pointer_type_v<V> ||
+                            is_char_array_type_v<
+                                V>)&&is_all_of_v<get_char_type_t<T>,
+                                                 get_char_type_t<U>,
+                                                 get_char_type_t<V>>>>
+std::basic_string<get_char_type_t<T>> str_replace_last(
+    const T& dst,
+    const U& needle,
+    const V& replace,
+    const size_t start_position_in_dst =
+        std::basic_string<get_char_type_t<T>>::npos,
+    const bool ignore_case_when_searching_for_needle = false,
+    size_t* required_dst_capacity = nullptr) {
+  using char_type = get_char_type_t<T>;
+
+  const size_t dst_len{len(dst)};
+  const size_t needle_len{len(needle)};
+  const size_t replace_len{len(replace)};
+
+  std::basic_string_view<char_type> dst_sv{};
+  std::basic_string<char_type> dst_str{};
+
+  if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
+    dst_sv.assign(dst);
+  else if constexpr (is_char_pointer_type_v<T>) {
+    if (nullptr == dst)
+      dst_sv.assign(dst_str);
+    else
+      dst_sv.assign(dst, dst_len);
+  } else
+    dst_sv.assign(dst, dst_len);
+
+  std::basic_string<char_type> str{std::cbegin(dst_sv), std::cend(dst_sv)};
+
+  if (0U == needle_len || 0U == needle_len || needle_len > dst_len ||
+      0U == replace_len) {
+    if (required_dst_capacity)
+      *required_dst_capacity = dst_len + 1;
+    return str;
+  }
+
+  const size_t required_dst_buffer_size{dst_len - needle_len + replace_len + 1};
+
+  if (required_dst_capacity)
+    *required_dst_capacity = required_dst_buffer_size;
+
+  std::basic_string_view<char_type> needle_sv{};
+
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    needle_sv.assign(needle);
+  else
+    needle_sv.assign(needle, needle_len);
+
+  const size_t last_needle_pos{
+      str_last_index_of(dst_sv, needle_sv, start_position_in_dst,
+                        ignore_case_when_searching_for_needle)};
+
+  if (not_found_index == last_needle_pos)
+    return str;
+
+  std::basic_string_view<char_type> replace_sv{};
+
+  if constexpr (is_valid_string_type_v<V> || is_valid_string_view_type_v<V>)
+    replace_sv.assign(replace);
+  else
+    replace_sv.assign(replace, replace_len);
+
+  if (needle_len < replace_len) {
+    const size_t noctm{replace_len - needle_len};
+
+    std::copy_backward(std::cbegin(dst_sv) + last_needle_pos + needle_len,
+                       std::cend(dst_sv), std::begin(str) + dst_len + noctm);
+
+    str[dst_len + noctm] = static_cast<char_type>('\0');
+
+  } else if (needle_len > replace_len) {
+    const size_t noctm{needle_len - replace_len};
+
+    std::copy(std::cbegin(dst_sv) + last_needle_pos + needle_len,
+              std::cend(dst_sv),
+              std::begin(str) + last_needle_pos + replace_len);
+
+    str[dst_len - noctm] = static_cast<char_type>('\0');
+  }
+
+  std::copy(std::cbegin(replace_sv), std::cend(replace_sv),
+            std::begin(str) + last_needle_pos);
+
+  return str;
+}
+
+template <
+    typename T,
+    typename U,
+    typename V,
+    typename = std::enable_if_t<
+        is_valid_string_type_v<T> && !std::is_const_v<T> &&
+        (is_valid_string_type_v<U> || is_valid_string_view_type_v<U> ||
+         is_char_pointer_type_v<U> ||
+         is_char_array_type_v<U>)&&(is_valid_string_type_v<V> ||
+                                    is_valid_string_view_type_v<V> ||
+                                    is_char_pointer_type_v<V> ||
+                                    is_char_array_type_v<
+                                        V>)&&is_all_of_v<get_char_type_t<T>,
+                                                         get_char_type_t<U>,
+                                                         get_char_type_t<V>>>>
+bool str_replace_last(T& dst,
+                      const U& needle,
+                      const V& replace,
+                      const size_t start_position_in_dst =
+                          std::basic_string<get_char_type_t<T>>::npos,
+                      const bool ignore_case_when_searching_for_needle = false,
+                      size_t* required_dst_capacity = nullptr) {
+  using char_type = get_char_type_t<T>;
+
+  const size_t dst_len{dst.length()};
+  const size_t needle_len{len(needle)};
+  const size_t replace_len{len(replace)};
+
+  if (0U == dst_len || 0U == needle_len || needle_len > dst_len ||
+      0U == replace_len) {
+    if (required_dst_capacity)
+      *required_dst_capacity = dst_len + 1;
+    return false;
+  }
+
+  const size_t required_dst_buffer_size{dst_len - needle_len + replace_len + 1};
+
+  if (required_dst_capacity)
+    *required_dst_capacity = required_dst_buffer_size;
+
+  std::basic_string_view<char_type> dst_sv{dst}, needle_sv{};
+
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    needle_sv.assign(needle);
+  else
+    needle_sv.assign(needle, needle_len);
+
+  const size_t last_needle_pos{
+      str_last_index_of(dst_sv, needle_sv, start_position_in_dst,
+                        ignore_case_when_searching_for_needle)};
+
+  if (not_found_index == last_needle_pos)
+    return false;
+
+  std::basic_string_view<char_type> replace_sv{};
+
+  if constexpr (is_valid_string_type_v<V> || is_valid_string_view_type_v<V>)
+    replace_sv.assign(replace);
+  else
+    replace_sv.assign(replace, replace_len);
+
+  if (needle_len < replace_len) {
+    const size_t noctm{replace_len - needle_len};
+
+    std::copy_backward(std::cbegin(dst_sv) + last_needle_pos + needle_len,
+                       std::cend(dst_sv), std::begin(dst) + dst_len + noctm);
+
+    dst[dst_len + noctm] = static_cast<char_type>('\0');
+
+  } else if (needle_len > replace_len) {
+    const size_t noctm{needle_len - replace_len};
+
+    std::copy(std::cbegin(dst_sv) + last_needle_pos + needle_len,
+              std::cend(dst_sv),
+              std::begin(dst) + last_needle_pos + replace_len);
+
+    dst[dst_len - noctm] = static_cast<char_type>('\0');
+  }
+
+  std::copy(std::cbegin(replace_sv), std::cend(replace_sv),
+            std::begin(dst) + last_needle_pos);
+
+  return true;
 }
 
 template <typename CharacterPointerType,
