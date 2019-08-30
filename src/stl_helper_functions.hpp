@@ -1802,26 +1802,53 @@ typename std::basic_string<get_char_type_t<T>>::size_type str_index_of(
 
 template <typename SrcIterType,
           typename DstIterType,
-          typename = std::enable_if_t<check_equality_v<
-              typename std::iterator_traits<SrcIterType>::value_type,
-              typename std::iterator_traits<DstIterType>::value_type>>>
-constexpr SrcIterType last_index_of(const SrcIterType src_first,
+          typename = std::enable_if_t<
+              is_anyone_of_v<
+                  typename std::iterator_traits<SrcIterType>::iterator_category,
+                  typename std::forward_iterator_tag,
+                  typename std::bidirectional_iterator_tag,
+                  typename std::random_access_iterator_tag> &&
+              check_equality_v<
+                  typename std::iterator_traits<SrcIterType>::value_type,
+                  typename std::iterator_traits<DstIterType>::value_type>>>
+constexpr SrcIterType last_index_of(SrcIterType src_first,
                                     const SrcIterType src_last,
                                     const DstIterType dst_first,
                                     const DstIterType dst_last,
                                     const bool is_find_whole_dst_range = true) {
   if (src_first == src_last || dst_first == dst_last)
-    return not_found_index;
+    return src_last;
 
-  const SrcIterType found_iter{
-      is_find_whole_dst_range
-          ? std::find_end(src_first, src_last, dst_first, dst_last)
-          : std::find_first_of(std::make_reverse_iterator(src_last),
-                               std::make_reverse_iterator(src_first), dst_first,
-                               dst_last)
-                .base()};
+  if (is_find_whole_dst_range)
+    return std::find_end(src_first, src_last, dst_first, dst_last);
 
-  return found_iter;
+  if constexpr (is_anyone_of_v<typename std::iterator_traits<
+                                   SrcIterType>::iterator_category,
+                               typename std::bidirectional_iterator_tag,
+                               typename std::random_access_iterator_tag>) {
+    const auto found_iter = std::find_first_of(
+        std::make_reverse_iterator(src_last),
+        std::make_reverse_iterator(src_first), dst_first, dst_last);
+
+    return found_iter != std::make_reverse_iterator(src_first)
+               ? found_iter.base()
+               : src_last;
+  } else {
+    SrcIterType found_last_item_iter{src_last};
+
+    do {
+      const auto found_iter =
+          std::find_first_of(src_first, src_last, dst_first, dst_last);
+      if (found_iter == src_last)
+        break;
+      found_last_item_iter = found_iter;
+      src_first = found_iter;
+      ++src_first;
+
+    } while (true);
+
+    return src_last != found_last_item_iter ? found_last_item_iter : src_last;
+  }
 }
 
 template <typename T,
