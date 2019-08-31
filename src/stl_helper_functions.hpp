@@ -1825,15 +1825,9 @@ typename std::basic_string<get_char_type_t<T>>::size_type str_index_of(
 
 template <typename SrcIterType,
           typename DstIterType,
-          typename = std::enable_if_t<
-              is_anyone_of_v<
-                  typename std::iterator_traits<SrcIterType>::iterator_category,
-                  typename std::forward_iterator_tag,
-                  typename std::bidirectional_iterator_tag,
-                  typename std::random_access_iterator_tag> &&
-              check_equality_v<
-                  typename std::iterator_traits<SrcIterType>::value_type,
-                  typename std::iterator_traits<DstIterType>::value_type>>>
+          typename = std::enable_if_t<check_equality_v<
+              typename std::iterator_traits<SrcIterType>::value_type,
+              typename std::iterator_traits<DstIterType>::value_type>>>
 constexpr SrcIterType find_last_all_of(SrcIterType src_first,
                                        const SrcIterType src_last,
                                        const DstIterType dst_first,
@@ -1846,15 +1840,9 @@ constexpr SrcIterType find_last_all_of(SrcIterType src_first,
 
 template <typename SrcIterType,
           typename DstIterType,
-          typename = std::enable_if_t<
-              is_anyone_of_v<
-                  typename std::iterator_traits<SrcIterType>::iterator_category,
-                  typename std::forward_iterator_tag,
-                  typename std::bidirectional_iterator_tag,
-                  typename std::random_access_iterator_tag> &&
-              check_equality_v<
-                  typename std::iterator_traits<SrcIterType>::value_type,
-                  typename std::iterator_traits<DstIterType>::value_type>>>
+          typename = std::enable_if_t<check_equality_v<
+              typename std::iterator_traits<SrcIterType>::value_type,
+              typename std::iterator_traits<DstIterType>::value_type>>>
 constexpr SrcIterType find_last_any_of(SrcIterType src_first,
                                        const SrcIterType src_last,
                                        const DstIterType dst_first,
@@ -1866,13 +1854,12 @@ constexpr SrcIterType find_last_any_of(SrcIterType src_first,
                                    SrcIterType>::iterator_category,
                                typename std::bidirectional_iterator_tag,
                                typename std::random_access_iterator_tag>) {
-    const auto found_iter = std::find_first_of(
-        std::make_reverse_iterator(src_last),
-        std::make_reverse_iterator(src_first), dst_first, dst_last);
+    const auto src_rfirst = std::make_reverse_iterator(src_last);
+    const auto src_rlast = std::make_reverse_iterator(src_first);
+    const auto found_iter =
+        std::find_first_of(src_rfirst, src_rlast, dst_first, dst_last);
 
-    return found_iter != std::make_reverse_iterator(src_first)
-               ? found_iter.base()
-               : src_last;
+    return found_iter != src_rlast ? found_iter.base() : src_last;
   } else {
     SrcIterType found_last_item_iter{src_last};
 
