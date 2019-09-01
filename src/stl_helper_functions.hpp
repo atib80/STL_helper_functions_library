@@ -7601,17 +7601,27 @@ CharacterPointerType str_erase_last_n(CharacterPointerType src,
 template <
     typename T,
     typename U,
-    std::enable_if_t<(is_char_array_type_v<T> || is_char_pointer_type_v<T>)&&(
-        is_char_array_type_v<U> ||
-        is_char_pointer_type_v<U>)&&(std::is_same_v<get_char_type_t<T>,
-                                                    get_char_type_t<U>>)>>
-const get_char_type_t<T>* strstr(const T& src, const U& needle) {
+    std::enable_if_t<(is_char_pointer_type_v<T> || is_char_array_type_v<T>)&&(
+        is_char_pointer_type_v<U> || is_char_array_type_v<U>)&&std::
+                         is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
+std::conditional_t<std::is_const_v<T>,
+                   const get_char_type_t<T>*,
+                   get_char_type_t<T>*>
+strstr(T src, U needle) {
   using char_type = get_char_type_t<T>;
-  using return_type = const char_type*;
-  const std::basic_string_view<char_type> sv{src, len(src)},
-      nv{needle, len(needle)};
+  using return_type =
+      std::conditional_t<std::is_const_v<T>, const char_type*, char_type*>;
 
-  const size_t pos{sv.find(nv)};
+  const size_t src_len{len(src)};
+  const size_t needle_len{len(needle)};
+
+  if (0U == src_len || 0U == needle_len)
+    return nullptr;
+
+  const std::basic_string_view<char_type> src_sv{src, src_len},
+      needle_sv{needle, needle_len};
+
+  const size_t pos = src_sv.find(needle_sv);
   return std::basic_string_view<char_type>::npos != pos
              ? static_cast<return_type>(&src[0] + pos)
              : nullptr;
@@ -7625,9 +7635,11 @@ template <
             is_valid_string_type_v<U> ||
             is_valid_string_view_type_v<
                 U>)&&(std::is_same_v<get_char_type_t<T>, get_char_type_t<U>>)>>
-decltype(std::declval<T&>().find(std::declval<T>())) strstr(const T& src,
-                                                            const U& needle) {
-  return src.find(needle);
+auto strstr(const T& src, const U& needle) {
+  using char_type = get_char_type_t<T>;
+  const size_t pos = src.find(needle);
+  return std::basic_string<char_type>::npos != pos ? std::cbegin(src) + pos
+                                                   : std::cend(src);
 }
 
 template <
@@ -7637,11 +7649,20 @@ template <
         is_char_array_type_v<U> ||
         is_char_pointer_type_v<U>)&&(std::is_same_v<get_char_type_t<T>,
                                                     get_char_type_t<U>>)>>
-const get_char_type_t<T>* strstri(const T& src,
-                                  const U& needle,
-                                  const std::locale& loc = std::locale{}) {
+std::conditional_t<std::is_const_v<T>,
+                   const get_char_type_t<T>*,
+                   get_char_type_t<T>*>
+strstri(T src, U needle, const std::locale& loc = std::locale{}) {
   using char_type = get_char_type_t<T>;
-  using return_type = const char_type*;
+  using return_type =
+      std::conditional_t<std::is_const_v<T>, const char_type*, char_type*>;
+
+  const size_t src_len{len(src)};
+  const size_t needle_len{len(needle)};
+
+  if (0U == src_len || 0U == needle_len)
+    return nullptr;
+
   const std::basic_string<char_type> src_lc{src}, needle_lc{needle};
 
   if (std::has_facet<std::ctype<char_type>>(loc)) {
@@ -7655,15 +7676,16 @@ const get_char_type_t<T>* strstri(const T& src,
                    [&f](const auto ch) { return f.tolower(ch); });
 
   } else {
-    std::transform(std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
-                   [](const auto ch) { return std::tolower(ch); });
+    std::transform(
+        std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
+        [](const auto ch) { return static_cast<char_type>(std::tolower(ch)); });
 
-    std::transform(std::cbegin(needle_lc), std::cend(needle_lc),
-                   std::begin(needle_lc),
-                   [](const auto ch) { return std::tolower(ch); });
+    std::transform(
+        std::cbegin(needle_lc), std::cend(needle_lc), std::begin(needle_lc),
+        [](const auto ch) { return static_cast<char_type>(std::tolower(ch)); });
   }
 
-  const size_t pos{src_lc.find(needle_lc)};
+  const size_t pos = src_lc.find(needle_lc);
   return std::basic_string<char_type>::npos != pos
              ? static_cast<return_type>(&src[0] + pos)
              : nullptr;
@@ -7677,9 +7699,10 @@ template <
             is_valid_string_type_v<U> ||
             is_valid_string_view_type_v<
                 U>)&&(std::is_same_v<get_char_type_t<T>, get_char_type_t<U>>)>>
-decltype(std::declval<T&>().find(std::declval<T>()))
-strstri(const T& src, const U& needle, const std::locale& loc = std::locale{}) {
-  using char_type = typename T::value_type;
+auto strstri(const T& src,
+             const U& needle,
+             const std::locale& loc = std::locale{}) {
+  using char_type = get_char_type_t<T>;
   std::basic_string<char_type> src_lc{src};
   std::basic_string<char_type> needle_lc{needle};
 
@@ -7694,15 +7717,18 @@ strstri(const T& src, const U& needle, const std::locale& loc = std::locale{}) {
                    [&f](const auto ch) { return f.tolower(ch); });
 
   } else {
-    std::transform(std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
-                   [](const auto ch) { return std::tolower(ch); });
+    std::transform(
+        std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
+        [](const auto ch) { return static_cast<char_type>(std::tolower(ch)); });
 
-    std::transform(std::cbegin(needle_lc), std::cend(needle_lc),
-                   std::begin(needle_lc),
-                   [](const auto ch) { return std::tolower(ch); });
+    std::transform(
+        std::cbegin(needle_lc), std::cend(needle_lc), std::begin(needle_lc),
+        [](const auto ch) { return static_cast<char_type>(std::tolower(ch)); });
   }
 
-  return src_lc.find(needle_lc);
+  const size_t pos = src_lc.find(needle_lc);
+  return std::basic_string<char_type>::npos != pos ? std::cbegin(src) + pos
+                                                   : std::cend(src);
 }
 
 template <typename T,
@@ -7710,39 +7736,40 @@ template <typename T,
               is_char_array_type_v<T> || is_char_pointer_type_v<T> ||
               is_valid_string_type_v<T> || is_valid_string_view_type_v<T>>>
 std::basic_string<get_char_type_t<T>> to_lower_case(
-    const T& str,
+    const T& src,
     const std::locale& loc = std::locale{}) {
   using char_type = get_char_type_t<T>;
 
   if constexpr (is_char_pointer_type_v<T>) {
-    if (nullptr == str)
+    if (nullptr == src)
       return {};
   }
 
-  std::basic_string<char_type> str_lc{str};
+  std::basic_string<char_type> src_lc{src};
 
   if (std::has_facet<std::ctype<char_type>>(loc)) {
     const auto& f = std::use_facet<std::ctype<char_type>>(loc);
-    std::transform(std::cbegin(str_lc), std::cend(str_lc), std::begin(str_lc),
+    std::transform(std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
                    [&f](const auto ch) { return f.tolower(ch); });
 
   } else {
-    std::transform(std::cbegin(str_lc), std::cend(str_lc), std::begin(str_lc),
-                   [](const auto ch) { return std::tolower(ch); });
+    std::transform(
+        std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
+        [](const auto ch) { return static_cast<char_type>(std::tolower(ch)); });
   }
 
-  return str_lc;
+  return src_lc;
 }
 
 template <typename T,
           typename = std::enable_if_t<is_non_const_char_array_type_v<T> ||
                                       is_non_const_char_pointer_type_v<T> ||
                                       is_valid_string_type_v<T>>>
-void to_lower_case_in_place(T& str, const std::locale& loc = std::locale{}) {
+void to_lower_case_in_place(T& src, const std::locale& loc = std::locale{}) {
   using char_type = get_char_type_t<T>;
 
-  size_t str_len{len(str)};
-  char_type* first{&str[0]};
+  size_t str_len{len(src)};
+  char_type* first{&src[0]};
 
   if (std::has_facet<std::ctype<char_type>>(loc)) {
     const auto& f = std::use_facet<std::ctype<char_type>>(loc);
@@ -7750,8 +7777,9 @@ void to_lower_case_in_place(T& str, const std::locale& loc = std::locale{}) {
                    [&f](const auto ch) { return f.tolower(ch); });
 
   } else {
-    std::transform(first, first + str_len, first,
-                   [](const auto ch) { return std::tolower(ch); });
+    std::transform(first, first + str_len, first, [](const auto ch) {
+      return static_cast<char_type>(std::tolower(ch));
+    });
   }
 }
 
@@ -7760,48 +7788,54 @@ template <typename T,
               is_char_array_type_v<T> || is_char_pointer_type_v<T> ||
               is_valid_string_type_v<T> || is_valid_string_view_type_v<T>>>
 std::basic_string<get_char_type_t<T>> to_upper_case(
-    const T& str,
+    const T& src,
     const std::locale& loc = std::locale{}) {
   using char_type = get_char_type_t<T>;
 
   if constexpr (is_char_pointer_type_v<T>) {
-    if (nullptr == str)
+    if (nullptr == src)
       return {};
   }
 
-  std::basic_string<char_type> str_lc{str};
+  std::basic_string<char_type> src_uc{src};
 
   if (std::has_facet<std::ctype<char_type>>(loc)) {
     const auto& f = std::use_facet<std::ctype<char_type>>(loc);
-    std::transform(std::cbegin(str_lc), std::cend(str_lc), std::begin(str_lc),
+    std::transform(std::cbegin(src_uc), std::cend(src_uc), std::begin(src_uc),
                    [&f](const auto ch) { return f.toupper(ch); });
 
   } else {
-    std::transform(std::cbegin(str_lc), std::cend(str_lc), std::begin(str_lc),
-                   [](const auto ch) { return std::toupper(ch); });
+    std::transform(
+        std::cbegin(src_uc), std::cend(src_uc), std::begin(src_uc),
+        [](const auto ch) { return static_cast<char_type>(std::toupper(ch)); });
   }
 
-  return str_lc;
+  return src_uc;
 }
 
 template <typename T,
           typename = std::enable_if_t<is_non_const_char_array_type_v<T> ||
                                       is_non_const_char_pointer_type_v<T> ||
                                       is_valid_string_type_v<T>>>
-void to_upper_case_in_place(T& str, const std::locale& loc = std::locale{}) {
+void to_upper_case_in_place(T& src, const std::locale& loc = std::locale{}) {
   using char_type = get_char_type_t<T>;
 
-  size_t str_len{len(str)};
-  char_type* first{&str[0]};
+  size_t src_len{len(src)};
+
+  if (0U == src_len)
+    return;
+
+  char_type* first{&src[0]};
 
   if (std::has_facet<std::ctype<char_type>>(loc)) {
     const auto& f = std::use_facet<std::ctype<char_type>>(loc);
-    std::transform(first, first + str_len, first,
+    std::transform(first, first + src_len, first,
                    [&f](const auto ch) { return f.toupper(ch); });
 
   } else {
-    std::transform(first, first + str_len, first,
-                   [](const auto ch) { return std::toupper(ch); });
+    std::transform(first, first + src_len, first, [](const auto ch) {
+      return static_cast<char_type>(std::toupper(ch));
+    });
   }
 }
 
@@ -7810,11 +7844,16 @@ template <typename T,
               is_char_array_type_v<T> || is_char_pointer_type_v<T> ||
               is_valid_string_type_v<T> || is_valid_string_view_type_v<T>>>
 std::basic_string<get_char_type_t<T>> to_title_case(
-    const T& str,
+    const T& src,
     const std::locale& loc = std::locale{}) {
   using char_type = get_char_type_t<T>;
 
-  std::basic_string<char_type> final_str{str};
+  if constexpr (is_char_pointer_type_v<T>) {
+    if (nullptr == src)
+      return {};
+  }
+
+  std::basic_string<char_type> final_src{src};
 
   bool is_new_sentence{true};
 
@@ -7825,7 +7864,7 @@ std::basic_string<get_char_type_t<T>> to_title_case(
   if (std::has_facet<std::ctype<char_type>>(loc))
     f = std::use_facet<std::ctype<char_type>>(loc);
 
-  for (auto& ch : final_str) {
+  for (auto& ch : final_src) {
     if (static_cast<char_type>('.') == ch) {
       is_new_sentence = true;
       continue;
@@ -7835,21 +7874,28 @@ std::basic_string<get_char_type_t<T>> to_title_case(
       if (f.has_value())
         ch = f.toupper(ch);
       else
-        ch = std::toupper(ch);
+        ch = static_cast<char_type>(std::toupper(ch));
 
       is_new_sentence = false;
     }
   }
 
-  return final_str;
+  return final_src;
 }
 
 template <typename T,
           typename = std::enable_if_t<is_char_array_type_v<T> ||
                                       is_char_pointer_type_v<T> ||
                                       is_valid_string_type_v<T>>>
-void to_title_case_in_place(T& str, const std::locale& loc = std::locale{}) {
+void to_title_case_in_place(T& src, const std::locale& loc = std::locale{}) {
   using char_type = get_char_type_t<T>;
+
+  size_t src_len{len(src)};
+  if (0U == src_len)
+    return;
+  char_type* first{&src[0]};
+  bool is_new_sentence{true};
+
   std::optional<decltype(
       std::use_facet<std::ctype<char_type>>(std::declval<std::locale>()))>
       f{};
@@ -7857,11 +7903,7 @@ void to_title_case_in_place(T& str, const std::locale& loc = std::locale{}) {
   if (std::has_facet<std::ctype<char_type>>(loc))
     f = std::use_facet<std::ctype<char_type>>(loc);
 
-  size_t str_len{len(str)};
-  char_type* first{&str[0]};
-  bool is_new_sentence{true};
-
-  for (char_type *first{&str[0]}, last{&str[0] + str_len}; first != last;
+  for (char_type *first{&src[0]}, last{&src[0] + src_len}; first != last;
        ++first) {
     if (static_cast<char_type>('.') == *first) {
       is_new_sentence = true;
@@ -7872,7 +7914,7 @@ void to_title_case_in_place(T& str, const std::locale& loc = std::locale{}) {
       if (f.has_value())
         *first = f.toupper(*first);
       else
-        *first = std::toupper(*first);
+        *first = static_cast<char_type>(std::toupper(*first));
 
       is_new_sentence = false;
     }
