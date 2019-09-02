@@ -1,5 +1,8 @@
 #define CATCH_CONFIG_MAIN
 
+#include "../includes/catch.hpp"
+#include "../src/stl_helper_functions.hpp"
+
 #if defined(_MSC_VER)
 #include <crtdbg.h>
 #define ASSERT _ASSERTE_
@@ -16,8 +19,6 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
-#include "../includes/catch.hpp"
-#include "../src/stl_helper_functions.hpp"
 
 using namespace std;
 using namespace std::chrono;

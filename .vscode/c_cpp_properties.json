@@ -2,26 +2,10 @@
     "configurations": [
         {
             "name": "Win32",
-            "includePath": [
-                "${workspaceFolder}/**",
-                "c:/MinGW/include/c++/8.2.0/**",
-                "c:/MinGW/x86_64-w64-mingw32/include/**"
-            ],
-            "defines": [
-                "_DEBUG",
-                "UNICODE",
-                "_UNICODE"
-            ],
-            
-            "intelliSenseMode": "msvc-x64",
-            "cppStandard": "c++17",
-            "cStandard": "c11"
-        },
-        {
-            "name": "MinGW",
             "intelliSenseMode": "gcc-x64",
             "includePath": [
                 "${workspaceRoot}/**",
+                "${workspaceFolder}/**",
                 "C:/msys64/mingw64/include/**",
                 "C:/msys64/mingw64/include/c++/9.1.0/**",
                 "C:/msys64/mingw64/x86_64-w64-mingw32/include/**"
@@ -34,6 +18,7 @@
             "browse": {
                 "path": [
                     "${workspaceRoot}/**",
+                    "${workspaceFolder}/**",
                     "C:/msys64/mingw64/include/**",
                     "C:/msys64/mingw64/include/c++/9.1.0/**",
                     "C:/msys64/mingw64/x86_64-w64-mingw32/include/**"
@@ -44,10 +29,49 @@
             "compilerArgs": [
                 "-Wall",
                 "-Wextra",
+                "-Werror",
                 "-Wpedantic",
                 "-std=c++17",
-                "-O0",
-                "-Og"
+                "-O3",
+                "-Ofast"
+            ],
+            "cppStandard": "c++17",
+            "cStandard": "c11"
+        },
+        {
+            "name": "MinGW",
+            "intelliSenseMode": "gcc-x64",
+            "includePath": [
+                "${workspaceRoot}/**",
+                "${workspaceFolder}/**",
+                "C:/msys64/mingw64/include/**",
+                "C:/msys64/mingw64/include/c++/9.1.0/**",
+                "C:/msys64/mingw64/x86_64-w64-mingw32/include/**"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "__cdecl=__attribute__((__cdecl__))"
+            ],
+            "browse": {
+                "path": [
+                    "${workspaceRoot}/**",
+                    "${workspaceFolder}/**",
+                    "C:/msys64/mingw64/include/**",
+                    "C:/msys64/mingw64/include/c++/9.1.0/**",
+                    "C:/msys64/mingw64/x86_64-w64-mingw32/include/**"
+                ],
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+            },
+            "compilerArgs": [
+                "-Wall",
+                "-Wextra",
+                "-Werror",
+                "-Wpedantic",
+                "-std=c++17",
+                "-O3",
+                "-Ofast"
             ],
             "cppStandard": "c++17",
             "cStandard": "c11"
