@@ -1390,35 +1390,30 @@ constexpr bool starts_with_any_of(const SrcIterType src_first,
          std::find_first_of(src_first, src_last, dst_first, dst_last);
 }
 
-template <typename T,
-          typename U,
-          typename = std::enable_if_t<
-              (is_char_array_type_v<T> || is_char_pointer_type_v<T>)&&(
-                  is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
-                  is_valid_char_type_v<get_char_type_t<U>>)&&std::
-                  is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
-bool str_starts_with(T src,
-                     const U needle,
+template <
+    typename T,
+    typename U,
+    typename = std::enable_if_t<(
+        is_char_array_type_v<T> || is_char_pointer_type_v<T> ||
+        is_valid_string_type_v<T> ||
+        is_valid_string_view_type_v<
+            T>)&&(is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
+                  is_valid_string_type_v<U> || is_valid_string_view_type_v<U> ||
+                  is_valid_char_type_v<U>)&&std::is_same_v<get_char_type_t<T>,
+                                                           get_char_type_t<U>>>>
+bool str_starts_with(const T& src,
+                     const U& needle,
                      const bool ignore_case = false,
                      const std::locale& loc = std::locale{}) {
-  using char_type = get_char_type_t<U>;
-
-  if constexpr (is_char_pointer_type_v<T>) {
-    if (nullptr == src)
-      return false;
-  }
-
-  if constexpr (is_char_pointer_type_v<U>) {
-    if (nullptr == needle)
-      return false;
-  }
+  using char_type = get_char_type_t<T>;
 
   const size_t src_len{len(src)};
+  const size_t needle_len{len(needle)};
 
-  if (0U == src_len)
+  if (0U == src_len || 0U == needle_len || needle_len > src_len)
     return false;
 
-  if constexpr (is_valid_char_type_v<std::remove_cv_t<U>>) {
+  if constexpr (is_valid_char_type_v<U>) {
     if (!ignore_case)
       return needle == src[0];
 
@@ -1430,11 +1425,6 @@ bool str_starts_with(T src,
     return std::tolower(src[0]) == std::tolower(needle);
 
   } else {
-    const size_t needle_len{len(needle)};
-
-    if (0U == needle_len || needle_len > src_len)
-      return false;
-
     if (!ignore_case) {
       for (size_t i{}; i < needle_len; i++) {
         if (src[i] != needle[i])
@@ -1468,106 +1458,6 @@ bool str_starts_with(T src,
 
     return true;
   }
-}
-
-template <typename T,
-          typename = std::enable_if_t<is_valid_string_type_v<T> ||
-                                      is_valid_string_view_type_v<T>>>
-bool str_starts_with(const T& src,
-                     const get_char_type_t<T> start_char,
-                     const bool ignore_case = false,
-                     const std::locale& loc = std::locale{}) {
-  using char_type = get_char_type_t<T>;
-
-  if (0u == src.length())
-    return false;
-
-  if (!ignore_case)
-    return start_char == src[0];
-
-  if (std::has_facet<std::ctype<char_type>>(loc)) {
-    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
-    return f.tolower(src[0]) == f.tolower(start_char);
-  }
-
-  return std::tolower(src[0]) == std::tolower(start_char);
-}
-
-template <typename T,
-          typename = std::enable_if_t<is_valid_string_type_v<T> ||
-                                      is_valid_string_view_type_v<T>>>
-bool str_starts_with(const T& src,
-                     const get_char_type_t<T>* needle,
-                     const bool ignore_case = false,
-                     const std::locale& loc = std::locale{}) {
-  using char_type = get_char_type_t<T>;
-
-  if (nullptr == needle)
-    return false;
-
-  const auto src_len{src.length()};
-  const auto needle_len{len(needle)};
-
-  if (0u == src_len || 0u == needle_len || needle_len > src_len)
-    return false;
-
-  if (!ignore_case)
-    return 0u == src.find(needle);
-
-  if (std::has_facet<std::ctype<char_type>>(loc)) {
-    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
-
-    for (size_t i{}; i < needle_len; i++) {
-      if (f.tolower(src[i]) != f.tolower(needle[i]))
-        return false;
-    }
-
-    return true;
-  }
-
-  for (size_t i{}; i < needle_len; i++) {
-    if (std::tolower(src[i]) != std::tolower(needle[i]))
-      return false;
-  }
-
-  return true;
-}
-
-template <typename T,
-          typename = std::enable_if_t<is_valid_string_type_v<T> ||
-                                      is_valid_string_view_type_v<T>>>
-bool str_starts_with(const T& src,
-                     const T& needle,
-                     const bool ignore_case = false,
-                     const std::locale& loc = std::locale{}) {
-  using char_type = get_char_type_t<T>;
-
-  const auto src_len{src.length()};
-  const auto needle_len{needle.length()};
-
-  if (0u == src_len || 0u == needle_len || needle_len > src_len)
-    return false;
-
-  if (!ignore_case)
-    return 0u == src.find(needle);
-
-  if (std::has_facet<std::ctype<char_type>>(loc)) {
-    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
-
-    for (size_t i{}; i < needle_len; i++) {
-      if (f.tolower(src[i]) != f.tolower(needle[i]))
-        return false;
-    }
-
-    return true;
-  }
-
-  for (size_t i{}; i < needle_len; i++) {
-    if (std::tolower(src[i]) != std::tolower(needle[i]))
-      return false;
-  }
-
-  return true;
 }
 
 template <typename SrcIterType,
@@ -1614,7 +1504,7 @@ template <
 typename std::basic_string<get_char_type_t<T>>::size_type str_index_of(
     const T& src,
     const U& needle,
-    const size_t start_pos = 0u,
+    const size_t start_pos = 0U,
     const bool ignore_case = false,
     const std::locale& loc = std::locale{}) {
   using char_type = get_char_type_t<T>;
@@ -1623,7 +1513,7 @@ typename std::basic_string<get_char_type_t<T>>::size_type str_index_of(
   const size_t needle_len{len(needle)};
 
   if (0U == src_len || 0U == needle_len || needle_len > src_len)
-    return std::basic_string<char_type>::npos;
+    return not_found_index;
 
   std::basic_string_view<char_type> src_sv{}, needle_sv{};
   std::basic_string<char_type> needle_str{};
@@ -1649,56 +1539,54 @@ typename std::basic_string<get_char_type_t<T>>::size_type str_index_of(
     if (!ignore_case)
       return src_sv.find(needle, start_pos);
 
-    std::basic_string<char_type> src_str{src};
+    std::basic_string<char_type> src_lc{src_sv};
     char_type needle_lc{needle};
 
     if (std::has_facet<std::ctype<char_type>>(loc)) {
       const auto& f = std::use_facet<std::ctype<char_type>>(loc);
 
-      std::transform(std::cbegin(src_str), std::cend(src_str),
-                     std::begin(src_str),
+      std::transform(std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
                      [&f](const auto ch) { return f.tolower(ch); });
       needle_lc = f.tolower(needle);
 
     } else {
-      std::transform(std::cbegin(src_str), std::cend(src_str),
-                     std::begin(src_str), [](const auto ch) {
+      std::transform(std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
+                     [](const auto ch) {
                        return static_cast<char_type>(std::tolower(ch));
                      });
 
       needle_lc = static_cast<char_type>(std::tolower(needle));
     }
 
-    return src_str.find(needle_lc, start_pos);
+    return src_lc.find(needle_lc, start_pos);
 
   } else {
     if (!ignore_case)
       return src_sv.find(needle_sv, start_pos);
 
-    std::basic_string<char_type> src_str{src};
-    std::basic_string<char_type> needle_str{needle};
+    std::basic_string<char_type> src_lc{src_sv};
+    std::basic_string<char_type> needle_lc{needle_sv};
 
     if (std::has_facet<std::ctype<char_type>>(loc)) {
       const auto& f = std::use_facet<std::ctype<char_type>>(loc);
-      std::transform(std::cbegin(src_str), std::cend(src_str),
-                     std::begin(src_str),
+      std::transform(std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
                      [&f](const auto ch) { return f.tolower(ch); });
-      std::transform(std::cbegin(needle_str), std::cend(needle_str),
-                     std::begin(needle_str),
+      std::transform(std::cbegin(needle_lc), std::cend(needle_lc),
+                     std::begin(needle_lc),
                      [&f](const auto ch) { return f.tolower(ch); });
 
     } else {
-      std::transform(std::cbegin(src_str), std::cend(src_str),
-                     std::begin(src_str), [](const auto ch) {
+      std::transform(std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
+                     [](const auto ch) {
                        return static_cast<char_type>(std::tolower(ch));
                      });
-      std::transform(std::cbegin(needle_str), std::cend(needle_str),
-                     std::begin(needle_str), [](const auto ch) {
+      std::transform(std::cbegin(needle_lc), std::cend(needle_lc),
+                     std::begin(needle_lc), [](const auto ch) {
                        return static_cast<char_type>(std::tolower(ch));
                      });
     }
 
-    return src_str.find(needle_str, start_pos);
+    return src_lc.find(needle_lc, start_pos);
   }
 }
 
@@ -1746,14 +1634,12 @@ constexpr SrcIterType find_last_any_of(SrcIterType src_first,
       const auto found_iter =
           std::find_first_of(src_first, src_last, dst_first, dst_last);
       if (found_iter == src_last)
-        break;
+        return found_last_item_iter;
       found_last_item_iter = found_iter;
       src_first = found_iter;
       ++src_first;
 
     } while (true);
-
-    return src_last != found_last_item_iter ? found_last_item_iter : src_last;
   }
 }
 
@@ -1771,7 +1657,7 @@ template <
 typename std::basic_string<get_char_type_t<T>>::size_type str_last_index_of(
     const T& src,
     const U& needle,
-    const size_t start_pos = std::basic_string<get_char_type_t<T>>::npos,
+    const size_t start_pos = not_found_index,
     const bool ignore_case = false,
     const std::locale& loc = std::locale{}) {
   using char_type = get_char_type_t<T>;
@@ -1780,7 +1666,7 @@ typename std::basic_string<get_char_type_t<T>>::size_type str_last_index_of(
   const size_t needle_len{len(needle)};
 
   if (0U == src_len || 0U == needle_len || needle_len > src_len)
-    return std::basic_string<char_type>::npos;
+    return not_found_index;
 
   std::basic_string_view<char_type> src_sv{}, needle_sv{};
   std::basic_string<char_type> needle_str{};
@@ -1806,56 +1692,54 @@ typename std::basic_string<get_char_type_t<T>>::size_type str_last_index_of(
     if (!ignore_case)
       return src_sv.rfind(needle, start_pos);
 
-    std::basic_string<char_type> src_str{src};
+    std::basic_string<char_type> src_lc{src_sv};
     char_type needle_lc{needle};
 
     if (std::has_facet<std::ctype<char_type>>(loc)) {
       const auto& f = std::use_facet<std::ctype<char_type>>(loc);
 
-      std::transform(std::cbegin(src_str), std::cend(src_str),
-                     std::begin(src_str),
+      std::transform(std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
                      [&f](const auto ch) { return f.tolower(ch); });
       needle_lc = f.tolower(needle);
 
     } else {
-      std::transform(std::cbegin(src_str), std::cend(src_str),
-                     std::begin(src_str), [](const auto ch) {
+      std::transform(std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
+                     [](const auto ch) {
                        return static_cast<char_type>(std::tolower(ch));
                      });
 
       needle_lc = static_cast<char_type>(std::tolower(needle));
     }
 
-    return src_str.rfind(needle_lc, start_pos);
+    return src_lc.rfind(needle_lc, start_pos);
 
   } else {
     if (!ignore_case)
-      return src_sv.find(needle_sv, start_pos);
+      return src_sv.rfind(needle_sv, start_pos);
 
-    std::basic_string<char_type> src_str{src};
-    std::basic_string<char_type> needle_str{needle};
+    std::basic_string<char_type> src_lc{src_sv};
+    std::basic_string<char_type> needle_lc{needle_sv};
 
     if (std::has_facet<std::ctype<char_type>>(loc)) {
       const auto& f = std::use_facet<std::ctype<char_type>>(loc);
-      std::transform(std::cbegin(src_str), std::cend(src_str),
-                     std::begin(src_str),
+      std::transform(std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
                      [&f](const auto ch) { return f.tolower(ch); });
-      std::transform(std::cbegin(needle_str), std::cend(needle_str),
-                     std::begin(needle_str),
+      std::transform(std::cbegin(needle_lc), std::cend(needle_lc),
+                     std::begin(needle_lc),
                      [&f](const auto ch) { return f.tolower(ch); });
 
     } else {
-      std::transform(std::cbegin(src_str), std::cend(src_str),
-                     std::begin(src_str), [](const auto ch) {
+      std::transform(std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
+                     [](const auto ch) {
                        return static_cast<char_type>(std::tolower(ch));
                      });
-      std::transform(std::cbegin(needle_str), std::cend(needle_str),
-                     std::begin(needle_str), [](const auto ch) {
+      std::transform(std::cbegin(needle_lc), std::cend(needle_lc),
+                     std::begin(needle_lc), [](const auto ch) {
                        return static_cast<char_type>(std::tolower(ch));
                      });
     }
 
-    return src_str.rfind(needle_str, start_pos);
+    return src_lc.rfind(needle_lc, start_pos);
   }
 }
 
@@ -1893,236 +1777,102 @@ constexpr bool contains_any_of(const SrcIterType src_first,
 template <
     typename T,
     typename U,
-    typename = std::enable_if_t<
-        (is_char_array_type_v<T> || is_char_pointer_type_v<T>)&&(
-            is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
-            is_valid_char_type_v<get_char_type_t<
-                U>>)&&(std::is_same_v<get_char_type_t<T>, get_char_type_t<U>>)>>
-bool str_contains(const T src,
-                  const U needle,
-                  size_t start_pos = 0u,
+    typename = std::enable_if_t<(
+        is_char_array_type_v<T> || is_char_pointer_type_v<T> ||
+        is_valid_string_type_v<T> ||
+        is_valid_string_view_type_v<
+            T>)&&(is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
+                  is_valid_string_type_v<U> || is_valid_string_view_type_v<U> ||
+                  is_valid_char_type_v<U>)&&std::is_same_v<get_char_type_t<T>,
+                                                           get_char_type_t<U>>>>
+bool str_contains(const T& src,
+                  const U& needle,
+                  size_t start_pos = 0U,
                   bool ignore_case = false,
                   const std::locale& loc = std::locale{}) {
   using char_type = get_char_type_t<T>;
 
-  if constexpr (is_char_pointer_type_v<T>) {
-    if (nullptr == src)
-      return false;
-  }
+  const size_t src_len{len(src)};
+  const size_t needle_len{len(needle)};
 
-  if constexpr (is_char_pointer_type_v<U>) {
-    if (nullptr == needle)
-      return false;
-  }
-
-  const auto src_len{len(src)};
-
-  if (0U == src_len)
+  if (0U == src_len || 0U == needle_len || needle_len > src_len)
     return false;
 
-  if constexpr (is_valid_char_type_v<std::remove_cv_t<U>>) {
-    if (!ignore_case)
-      return src + src_len != std::find(src + start_pos, src + src_len, needle);
+  std::basic_string_view<char_type> src_sv{}, needle_sv{};
+  std::basic_string<char_type> needle_str{};
 
-    std::basic_string<char_type> src_str{src};
+  if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
+    src_sv.assign(src);
+
+  if constexpr (is_char_array_type_v<T> || is_char_pointer_type_v<T>)
+    src_sv.assign(src, src_len);
+
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    needle_sv.assign(needle);
+
+  if constexpr (is_valid_char_type_v<U>) {
+    needle_str.assign(1, needle);
+    needle_sv.assign(needle_str);
+  }
+
+  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
+    needle_sv.assign(needle, needle_len);
+
+  if constexpr (is_valid_char_type_v<U>) {
+    if (!ignore_case)
+      return not_found_index != src_sv.find(needle_sv, start_pos);
+
+    std::basic_string<char_type> src_lc{src_sv};
     char_type needle_lc{needle};
 
     if (std::has_facet<std::ctype<char_type>>(loc)) {
       const auto& f = std::use_facet<std::ctype<char_type>>(loc);
 
-      std::transform(std::cbegin(src_str), std::cend(src_str),
-                     std::begin(src_str),
+      std::transform(std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
                      [&f](const auto ch) { return f.tolower(ch); });
       needle_lc = f.tolower(needle);
     } else {
-      std::transform(std::cbegin(src_str), std::cend(src_str),
-                     std::begin(src_str), [](const auto ch) {
+      std::transform(std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
+                     [](const auto ch) {
                        return static_cast<char_type>(std::tolower(ch));
                      });
 
       needle_lc = static_cast<char_type>(std::tolower(needle));
     }
 
-    return std::basic_string<char_type>::npos !=
-           src_str.find(needle_lc, start_pos);
+    return not_found_index != src_lc.find(needle_lc, start_pos);
 
   } else {
-    const auto needle_len{len(needle)};
-
-    if (0U == needle_len || needle_len > src_len)
-      return false;
-
-    std::basic_string_view<char_type> src_str_view(src, src_len);
-    std::basic_string_view<char_type> needle_str_view(needle, needle_len);
-
     if (!ignore_case)
-      return std::basic_string_view<char_type>::npos !=
-             src_str_view.find(needle_str_view, start_pos);
+      return not_found_index != src_sv.find(needle_sv, start_pos);
 
-    std::basic_string<char_type> src_str{src};
-    std::basic_string<char_type> needle_str{needle};
+    std::basic_string<char_type> src_lc{src_sv};
+    std::basic_string<char_type> needle_lc{needle_sv};
 
     if (std::has_facet<std::ctype<char_type>>(loc)) {
       const auto& f = std::use_facet<std::ctype<char_type>>(loc);
 
-      std::transform(std::cbegin(src_str), std::cend(src_str),
-                     std::begin(src_str),
+      std::transform(std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
                      [&f](const auto ch) { return f.tolower(ch); });
 
-      std::transform(std::cbegin(needle_str), std::cend(needle_str),
-                     std::begin(needle_str),
+      std::transform(std::cbegin(needle_lc), std::cend(needle_lc),
+                     std::begin(needle_lc),
                      [&f](const auto ch) { return f.tolower(ch); });
 
     } else {
-      std::transform(std::cbegin(src_str), std::cend(src_str),
-                     std::begin(src_str), [](const auto ch) {
+      std::transform(std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
+                     [](const auto ch) {
                        return static_cast<char_type>(std::tolower(ch));
                      });
 
-      std::transform(std::cbegin(needle_str), std::cend(needle_str),
-                     std::begin(needle_str), [](const auto ch) {
+      std::transform(std::cbegin(needle_lc), std::cend(needle_lc),
+                     std::begin(needle_lc), [](const auto ch) {
                        return static_cast<char_type>(std::tolower(ch));
                      });
     }
 
-    return std::basic_string<char_type>::npos !=
-           src_str.find(needle_str, start_pos);
+    return not_found_index != src_lc.find(needle_lc, start_pos);
   }
-}
-
-template <typename T,
-          typename = std::enable_if_t<is_valid_string_type_v<T> ||
-                                      is_valid_string_view_type_v<T>>>
-bool str_contains(const T& src,
-                  const get_char_type_t<T> needle_char,
-                  const size_t start_pos = 0u,
-                  const bool ignore_case = false,
-                  const std::locale& loc = std::locale{}) {
-  using char_type = get_char_type_t<T>;
-  if (0u == src.length())
-    return false;
-
-  if (!ignore_case)
-    return std::basic_string<char_type>::npos !=
-           src.find(needle_char, start_pos);
-
-  std::basic_string<char_type> src_lc{src};
-  char_type needle_char_lc{needle_char};
-
-  if (std::has_facet<std::ctype<char_type>>(loc)) {
-    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
-
-    std::transform(std::cbegin(src), std::cend(src), std::begin(src_lc),
-                   [&f](const auto ch) { return f.tolower(ch); });
-
-    needle_char_lc = f.tolower(needle_char);
-
-  } else {
-    std::transform(
-        std::cbegin(src), std::cend(src), std::begin(src_lc),
-        [](const auto ch) { return static_cast<char_type>(std::tolower(ch)); });
-
-    needle_char_lc = static_cast<char_type>(std::tolower(needle_char));
-  }
-
-  return std::basic_string<char_type>::npos !=
-         src_lc.find(needle_char_lc, start_pos);
-}
-
-template <typename T,
-          typename = std::enable_if_t<is_valid_string_type_v<T> ||
-                                      is_valid_string_view_type_v<T>>>
-bool str_contains(const T& src,
-                  const get_char_type_t<T>* needle,
-                  const size_t start_pos = 0u,
-                  const bool ignore_case = false,
-                  const std::locale& loc = std::locale{}) {
-  using char_type = get_char_type_t<T>;
-
-  if (nullptr == needle)
-    return false;
-
-  const auto src_len{src.length()};
-  const auto needle_len{len(needle)};
-
-  if (0u == src_len || 0u == needle_len || needle_len > src_len)
-    return false;
-
-  if (!ignore_case)
-    return src.find(needle, start_pos) != T::npos;
-
-  std::basic_string<char_type> src_lc{src};
-  std::basic_string<char_type> needle_str{needle};
-
-  if (std::has_facet<std::ctype<char_type>>(loc)) {
-    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
-
-    std::transform(std::cbegin(src), std::cend(src), std::begin(src_lc),
-                   [&f](const auto ch) { return f.tolower(ch); });
-
-    std::transform(std::cbegin(needle_str), std::cend(needle_str),
-                   std::begin(needle_str),
-                   [&f](const auto ch) { return f.tolower(ch); });
-
-  } else {
-    std::transform(
-        std::cbegin(src), std::cend(src), std::begin(src_lc),
-        [](const auto ch) { return static_cast<char_type>(std::tolower(ch)); });
-
-    std::transform(
-        std::cbegin(needle_str), std::cend(needle_str), std::begin(needle_str),
-        [](const auto ch) { return static_cast<char_type>(std::tolower(ch)); });
-  }
-
-  return T::npos != src_lc.find(needle_str, start_pos);
-}
-
-template <typename T,
-          typename = std::enable_if_t<is_valid_string_type_v<T> ||
-                                      is_valid_string_view_type_v<T>>>
-bool str_contains(const T& src,
-                  const T& needle,
-                  const size_t start_pos = 0u,
-                  const bool ignore_case = false,
-                  const std::locale& loc = std::locale{}) {
-  using char_type = get_char_type_t<T>;
-
-  const auto src_len{src.length()};
-  const auto needle_len{needle.length()};
-
-  if (0u == src_len || 0u == needle_len || needle_len > src_len)
-    return false;
-
-  if (!ignore_case)
-    return std::basic_string<char_type>::npos != src.find(needle, start_pos);
-
-  const auto& f = std::use_facet<std::ctype<char_type>>(loc);
-
-  std::basic_string<char_type> src_lc{src};
-  std::basic_string<char_type> needle_lc{needle};
-
-  if (std::has_facet<std::ctype<char_type>>(loc)) {
-    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
-
-    std::transform(std::cbegin(src), std::cend(src), std::begin(src_lc),
-                   [&f](const auto ch) { return f.tolower(ch); });
-
-    std::transform(std::cbegin(needle), std::cend(needle),
-                   std::begin(needle_lc),
-                   [&f](const auto ch) { return f.tolower(ch); });
-
-  } else {
-    std::transform(
-        std::cbegin(src), std::cend(src), std::begin(src_lc),
-        [](const auto ch) { return static_cast<char_type>(std::tolower(ch)); });
-
-    std::transform(
-        std::cbegin(needle), std::cend(needle), std::begin(needle_lc),
-        [](const auto ch) { return static_cast<char_type>(std::tolower(ch)); });
-  }
-
-  return std::basic_string<char_type>::npos !=
-         src_lc.find(needle_lc, start_pos);
 }
 
 template <typename SrcIterType,
@@ -2177,33 +1927,27 @@ constexpr bool ends_with_any_of(const SrcIterType src_first,
 template <
     typename T,
     typename U,
-    typename = std::enable_if_t<
-        (is_char_array_type_v<T> || is_char_pointer_type_v<T>)&&(
-            is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
-            is_valid_char_type_v<get_char_type_t<
-                U>>)&&(std::is_same_v<get_char_type_t<T>, get_char_type_t<U>>)>>
-bool str_ends_with(const T src,
-                   const U needle,
+    typename = std::enable_if_t<(
+        is_char_array_type_v<T> || is_char_pointer_type_v<T> ||
+        is_valid_string_type_v<T> ||
+        is_valid_string_view_type_v<
+            T>)&&(is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
+                  is_valid_string_type_v<U> || is_valid_string_view_type_v<U> ||
+                  is_valid_char_type_v<U>)&&std::is_same_v<get_char_type_t<T>,
+                                                           get_char_type_t<U>>>>
+bool str_ends_with(const T& src,
+                   const U& needle,
                    bool ignore_case = false,
                    const std::locale& loc = std::locale{}) {
   using char_type = get_char_type_t<T>;
 
-  if constexpr (is_char_pointer_type_v<T>) {
-    if (nullptr == src)
-      return false;
-  }
+  const size_t src_len{len(src)};
+  const size_t needle_len{len(needle)};
 
-  if constexpr (is_char_pointer_type_v<U>) {
-    if (nullptr == needle)
-      return false;
-  }
-
-  const auto src_len{len(src)};
-
-  if (0u == src_len)
+  if (0U == src_len || 0U == needle_len || needle_len > src_len)
     return false;
 
-  if constexpr (is_valid_char_type_v<std::remove_cv_t<U>>) {
+  if constexpr (is_valid_char_type_v<U>) {
     if (!ignore_case)
       return needle == src[src_len - 1];
 
@@ -2215,16 +1959,10 @@ bool str_ends_with(const T src,
     return std::tolower(src[src_len - 1]) == std::tolower(needle);
 
   } else {
-    const size_t needle_len{len(needle)};
-
-    if (0u == needle_len || needle_len > src_len)
-      return false;
-
-    const size_t expected_start_pos_of_end_tag{src_len - needle_len};
+    const size_t expected_start_pos_of_needle{src_len - needle_len};
 
     if (!ignore_case) {
-      for (size_t i{expected_start_pos_of_end_tag}, j{}; i < src_len;
-           i++, j++) {
+      for (size_t i{expected_start_pos_of_needle}, j{}; i < src_len; i++, j++) {
         if (src[i] != needle[j])
           return false;
       }
@@ -2235,8 +1973,7 @@ bool str_ends_with(const T src,
     if (std::has_facet<std::ctype<char_type>>(loc)) {
       const auto& f = std::use_facet<std::ctype<char_type>>(loc);
 
-      for (size_t i{expected_start_pos_of_end_tag}, j{}; i < src_len;
-           i++, j++) {
+      for (size_t i{expected_start_pos_of_needle}, j{}; i < src_len; i++, j++) {
         if (f.tolower(src[i]) != f.tolower(needle[j]))
           return false;
       }
@@ -2244,129 +1981,13 @@ bool str_ends_with(const T src,
       return true;
     }
 
-    for (size_t i{expected_start_pos_of_end_tag}, j{}; i < src_len; i++, j++) {
+    for (size_t i{expected_start_pos_of_needle}, j{}; i < src_len; i++, j++) {
       if (std::tolower(src[i]) != std::tolower(needle[j]))
         return false;
     }
 
     return true;
   }
-}
-
-template <typename T,
-          typename = std::enable_if_t<is_valid_string_type_v<T> ||
-                                      is_valid_string_view_type_v<T>>>
-bool str_ends_with(const T& src,
-                   const get_char_type_t<T> end_char,
-                   const bool ignore_case = false,
-                   const std::locale& loc = std::locale{}) {
-  using char_type = get_char_type_t<T>;
-
-  if (0u == src.length())
-    return false;
-
-  if (!ignore_case)
-    return src.back() == end_char;
-
-  if (std::has_facet<std::ctype<char_type>>(loc)) {
-    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
-    return f.tolower(src.back()) == f.tolower(end_char);
-  }
-
-  return std::tolower(src.back()) == std::tolower(end_char);
-}
-
-template <typename T,
-          typename = std::enable_if_t<is_valid_string_type_v<T> ||
-                                      is_valid_string_view_type_v<T>>>
-bool str_ends_with(const T& src,
-                   const get_char_type_t<T>* needle,
-                   const bool ignore_case = false,
-                   const std::locale& loc = std::locale{}) {
-  using char_type = get_char_type_t<T>;
-
-  if (nullptr == needle)
-    return false;
-
-  const auto src_len{src.length()};
-  const size_t needle_len{len(needle)};
-
-  if (0u == src_len || 0u == needle_len || needle_len > src_len)
-    return false;
-
-  const size_t expected_start_pos_of_end_tag{src_len - needle_len};
-
-  if (!ignore_case) {
-    for (size_t i{expected_start_pos_of_end_tag}, j{}; i < src_len; i++, j++) {
-      if (src[i] != needle[j])
-        return false;
-    }
-
-    return true;
-  }
-
-  if (std::has_facet<std::ctype<char_type>>(loc)) {
-    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
-
-    for (size_t i{expected_start_pos_of_end_tag}, j{}; i < src_len; i++, j++) {
-      if (f.tolower(src[i]) != f.tolower(needle[j]))
-        return false;
-    }
-
-    return true;
-  }
-
-  for (size_t i{expected_start_pos_of_end_tag}, j{}; i < src_len; i++, j++) {
-    if (std::tolower(src[i]) != std::tolower(needle[j]))
-      return false;
-  }
-
-  return true;
-}
-
-template <typename T,
-          typename = std::enable_if_t<is_valid_string_type_v<T> ||
-                                      is_valid_string_view_type_v<T>>>
-bool str_ends_with(const T& src,
-                   const T& needle,
-                   const bool ignore_case = false,
-                   const std::locale& loc = std::locale{}) {
-  using char_type = get_char_type_t<T>;
-
-  const auto src_len{src.length()};
-  const size_t needle_len{needle.length()};
-
-  if (0u == src_len || 0u == needle_len || needle_len > src_len)
-    return false;
-
-  const size_t expected_start_pos_of_end_tag{src_len - needle_len};
-
-  if (!ignore_case) {
-    for (size_t i{expected_start_pos_of_end_tag}, j{}; i < src_len; i++, j++) {
-      if (src[i] != needle[j])
-        return false;
-    }
-
-    return true;
-  }
-
-  if (std::has_facet<std::ctype<char_type>>(loc)) {
-    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
-
-    for (size_t i{expected_start_pos_of_end_tag}, j{}; i < src_len; i++, j++) {
-      if (f.tolower(src[i]) != f.tolower(needle[j]))
-        return false;
-    }
-
-    return true;
-  }
-
-  for (size_t i{expected_start_pos_of_end_tag}, j{}; i < src_len; i++, j++) {
-    if (std::tolower(src[i]) != std::tolower(needle[j]))
-      return false;
-  }
-
-  return true;
 }
 
 template <typename... Args>
@@ -2508,97 +2129,15 @@ bool has_item(const ForwardIterType first,
 }
 
 template <typename T,
-          size_t ARRAY_SIZE1,
-          size_t ARRAY_SIZE2,
-          typename = std::enable_if_t<is_valid_char_type_v<T>>>
-int str_compare(T (&arr1)[ARRAY_SIZE1], T (&arr2)[ARRAY_SIZE2]) {
-  const size_t arr1_len{len(arr1)};
-  const size_t arr2_len{len(arr2)};
-
-  if (0U == arr1_len)
-    return 0U == arr2_len ? 0 : -static_cast<int>(arr2[0]);
-  if (0U == arr2_len)
-    return 0U == arr1_len ? 0 : static_cast<int>(arr1[0]);
-
-  size_t const number_of_characters_to_compare{std::min(arr1_len, arr2_len)};
-
-  size_t i{};
-
-  for (; i < number_of_characters_to_compare; ++i) {
-    if (arr1[i] != arr2[i])
-      return static_cast<int>(arr1[i] - arr2[i]);
-  }
-
-  return static_cast<int>(arr1[i] - arr2[i]);
-}
-
-template <typename T,
-          size_t ARRAY_SIZE,
           typename U,
           typename = std::enable_if_t<
-              is_valid_char_type_v<T> &&
-              (is_char_pointer_type_v<U> || is_valid_string_type_v<U> ||
-               is_valid_string_view_type_v<U>)&&std::
-                  is_same_v<std::remove_cv_t<T>, get_char_type_t<U>>>>
-int str_compare(T (&src1)[ARRAY_SIZE], const U& src2) {
-  const size_t src1_len{len(src1)};
-  const size_t src2_len{len(src2)};
-
-  if (0U == src1_len)
-    return 0U == src2_len ? 0 : -static_cast<int>(src2[0]);
-  if (0U == src2_len)
-    return 0U == src1_len ? 0 : static_cast<int>(src1[0]);
-
-  const size_t number_of_characters_to_compare{std::min(src1_len, src2_len)};
-
-  size_t i{};
-
-  for (; i < number_of_characters_to_compare; ++i) {
-    if (src1[i] != src2[i])
-      return static_cast<int>(src1[i] - src2[i]);
-  }
-
-  return static_cast<int>(src1[i] - src2[i]);
-}
-
-template <typename T,
-          typename U,
-          size_t ARRAY_SIZE,
-          typename = std::enable_if_t<
-              is_valid_char_type_v<U> &&
-              (is_char_pointer_type_v<T> || is_valid_string_type_v<T> ||
-               is_valid_string_view_type_v<T>)&&std::
-                  is_same_v<get_char_type_t<T>, std::remove_cv_t<U>>>>
-int str_compare(const T& src1, U (&src2)[ARRAY_SIZE]) {
-  const size_t src1_len{len(src1)};
-  const size_t src2_len{len(src2)};
-
-  if (0U == src1_len)
-    return 0U == src2_len ? 0 : -static_cast<int>(src2[0]);
-  if (0U == src2_len)
-    return 0U == src1_len ? 0 : static_cast<int>(src1[0]);
-
-  const size_t number_of_characters_to_compare{std::min(src1_len, src2_len)};
-
-  size_t i{};
-
-  for (; i < number_of_characters_to_compare; ++i) {
-    if (src1[i] != src2[i])
-      return static_cast<int>(src1[i] - src2[i]);
-  }
-
-  return static_cast<int>(src1[i] - src2[i]);
-}
-
-template <
-    typename T,
-    typename U,
-    typename = std::enable_if_t<
-        (is_char_pointer_type_v<T> || is_valid_string_type_v<T> ||
-         is_valid_string_view_type_v<
-             T>)&&(is_char_pointer_type_v<U> || is_valid_string_type_v<U> ||
-                   is_valid_string_view_type_v<U>)&&std::
-            is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
+              (is_char_array_type_v<T> || is_char_pointer_type_v<T> ||
+               is_valid_string_type_v<T> ||
+               is_valid_string_view_type_v<
+                   T>)&&(is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
+                         is_valid_string_type_v<U> ||
+                         is_valid_string_view_type_v<U>)&&std::
+                  is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
 int str_compare(const T& src1, const U& src2) {
   const size_t src1_len{len(src1)};
   const size_t src2_len{len(src2)};
@@ -2609,65 +2148,6 @@ int str_compare(const T& src1, const U& src2) {
     return 0U == src1_len ? 0 : static_cast<int>(src1[0]);
 
   size_t const number_of_characters_to_compare{std::min(src1_len, src2_len)};
-  size_t i{};
-
-  for (; i < number_of_characters_to_compare; ++i) {
-    if (src1[i] != src2[i])
-      return static_cast<int>(src1[i] - src2[i]);
-  }
-
-  return static_cast<int>(src1[i] - src2[i]);
-}
-
-template <typename T,
-          size_t ARRAY_SIZE1,
-          size_t ARRAY_SIZE2,
-          typename = std::enable_if_t<is_valid_char_type_v<T>>>
-int str_compare_n(T (&arr1)[ARRAY_SIZE1],
-                  T (&arr2)[ARRAY_SIZE2],
-                  size_t number_of_characters_to_compare) {
-  const size_t arr1_len{len(arr1)};
-  const size_t arr2_len{len(arr2)};
-
-  if (0U == arr1_len)
-    return 0U == arr2_len ? 0 : -static_cast<int>(arr2[0]);
-  if (0U == arr2_len)
-    return 0U == arr1_len ? 0 : static_cast<int>(arr1[0]);
-
-  if (arr1_len < number_of_characters_to_compare ||
-      arr2_len < number_of_characters_to_compare)
-    number_of_characters_to_compare = std::min(arr1_len, arr2_len);
-
-  size_t i{};
-
-  for (; i < number_of_characters_to_compare; ++i) {
-    if (arr1[i] != arr2[i])
-      return static_cast<int>(arr1[i] - arr2[i]);
-  }
-
-  return static_cast<int>(arr1[i] - arr2[i]);
-}
-
-template <typename T,
-          size_t ARRAY_SIZE,
-          typename U,
-          typename = std::enable_if_t<
-              is_valid_char_type_v<T> &&
-              (is_char_pointer_type_v<U> || is_valid_string_type_v<U> ||
-               is_valid_string_view_type_v<U>)&&std::
-                  is_same_v<std::remove_cv_t<T>, get_char_type_t<U>>>>
-int str_compare_n(T (&src1)[ARRAY_SIZE],
-                  const U& src2,
-                  size_t number_of_characters_to_compare) {
-  const size_t src1_len{len(src1)};
-  const size_t src2_len{len(src2)};
-
-  if (0U == src2_len)
-    return static_cast<int>(src1[0]);
-
-  if (src1_len < number_of_characters_to_compare ||
-      src2_len < number_of_characters_to_compare)
-    number_of_characters_to_compare = std::min(src1_len, src2_len);
 
   size_t i{};
 
@@ -2681,44 +2161,14 @@ int str_compare_n(T (&src1)[ARRAY_SIZE],
 
 template <typename T,
           typename U,
-          size_t ARRAY_SIZE,
           typename = std::enable_if_t<
-              is_valid_char_type_v<U> &&
-              (is_char_pointer_type_v<T> || is_valid_string_type_v<T> ||
-               is_valid_string_view_type_v<T>)&&std::
-                  is_same_v<get_char_type_t<T>, std::remove_cv_t<U>>>>
-int str_compare_n(const T& src1,
-                  U (&src2)[ARRAY_SIZE],
-                  size_t number_of_characters_to_compare) {
-  const size_t src1_len{len(src1)};
-  const size_t src2_len{len(src2)};
-
-  if (0U == src1_len)
-    return -static_cast<int>(src2[0]);
-
-  if (src1_len < number_of_characters_to_compare ||
-      src2_len < number_of_characters_to_compare)
-    number_of_characters_to_compare = std::min(src1_len, src2_len);
-
-  size_t i{};
-
-  for (; i < number_of_characters_to_compare; ++i) {
-    if (src1[i] != src2[i])
-      return static_cast<int>(src1[i] - src2[i]);
-  }
-
-  return static_cast<int>(src1[i] - src2[i]);
-}
-
-template <
-    typename T,
-    typename U,
-    typename = std::enable_if_t<
-        (is_char_pointer_type_v<T> || is_valid_string_type_v<T> ||
-         is_valid_string_view_type_v<
-             T>)&&(is_char_pointer_type_v<U> || is_valid_string_type_v<U> ||
-                   is_valid_string_view_type_v<U>)&&std::
-            is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
+              (is_char_array_type_v<T> || is_char_pointer_type_v<T> ||
+               is_valid_string_type_v<T> ||
+               is_valid_string_view_type_v<
+                   T>)&&(is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
+                         is_valid_string_type_v<U> ||
+                         is_valid_string_view_type_v<U>)&&std::
+                  is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
 int str_compare_n(const T& src1,
                   const U& src2,
                   size_t number_of_characters_to_compare) {
@@ -2745,70 +2195,27 @@ int str_compare_n(const T& src1,
 }
 
 template <typename T,
-          size_t ARRAY_SIZE1,
-          size_t ARRAY_SIZE2,
-          typename = std::enable_if_t<is_valid_char_type_v<T>>>
-int str_compare_i(T (&arr1)[ARRAY_SIZE1],
-                  T (&arr2)[ARRAY_SIZE2],
-                  const std::locale& loc = std::locale{}) {
-  using char_type = std::remove_cv_t<T>;
-
-  const size_t arr1_len{len(arr1)};
-  const size_t arr2_len{len(arr2)};
-
-  if (0U == arr1_len)
-    return 0U == arr2_len ? 0 : -static_cast<int>(arr2[0]);
-  if (0U == arr2_len)
-    return 0U == arr1_len ? 0 : static_cast<int>(arr1[0]);
-
-  const size_t number_of_characters_to_compare{std::min(arr1_len, arr2_len)};
-
-  if (std::has_facet<std::ctype<char_type>>(loc)) {
-    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
-
-    size_t i{};
-
-    for (; i < number_of_characters_to_compare; ++i) {
-      const auto ch1{f.tolower(arr1[i])};
-      const auto ch2{f.tolower(arr2[i])};
-      if (ch1 != ch2)
-        return static_cast<int>(ch1 - ch2);
-    }
-
-    return static_cast<int>(f.tolower(arr1[i]) - f.tolower(arr2[i]));
-
-  } else {
-    size_t i{};
-
-    for (; i < number_of_characters_to_compare; ++i) {
-      const auto ch1{std::tolower(arr1[i])};
-      const auto ch2{std::tolower(arr2[i])};
-      if (ch1 != ch2)
-        return static_cast<int>(ch1 - ch2);
-    }
-
-    return static_cast<int>(std::tolower(arr1[i]) - std::tolower(arr2[i]));
-  }
-}
-
-template <typename T,
-          size_t ARRAY_SIZE,
           typename U,
           typename = std::enable_if_t<
-              is_valid_char_type_v<T> &&
-              (is_char_pointer_type_v<U> || is_valid_string_type_v<U> ||
-               is_valid_string_view_type_v<U>)&&std::
-                  is_same_v<std::remove_cv_t<T>, get_char_type_t<U>>>>
-int str_compare_i(T (&src1)[ARRAY_SIZE],
+              (is_char_array_type_v<T> || is_char_pointer_type_v<T> ||
+               is_valid_string_type_v<T> ||
+               is_valid_string_view_type_v<
+                   T>)&&(is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
+                         is_valid_string_type_v<U> ||
+                         is_valid_string_view_type_v<U>)&&std::
+                  is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
+int str_compare_i(const T& src1,
                   const U& src2,
                   const std::locale& loc = std::locale{}) {
-  using char_type = std::remove_cv_t<T>;
+  using char_type = get_char_type_t<T>;
 
   const size_t src1_len{len(src1)};
   const size_t src2_len{len(src2)};
 
+  if (0U == src1_len)
+    return 0U == src2_len ? 0 : -static_cast<int>(src2[0]);
   if (0U == src2_len)
-    return static_cast<int>(src1[0]);
+    return 0U == src1_len ? 0 : static_cast<int>(src1[0]);
 
   const size_t number_of_characters_to_compare{std::min(src1_len, src2_len)};
 
@@ -2825,268 +2232,32 @@ int str_compare_i(T (&src1)[ARRAY_SIZE],
     }
 
     return static_cast<int>(f.tolower(src1[i]) - f.tolower(src2[i]));
-
-  } else {
-    size_t i{};
-
-    for (; i < number_of_characters_to_compare; ++i) {
-      const auto ch1{std::tolower(src1[i])};
-      const auto ch2{std::tolower(src2[i])};
-      if (ch1 != ch2)
-        return static_cast<int>(ch1 - ch2);
-    }
-
-    return static_cast<int>(std::tolower(src1[i]) - std::tolower(src2[i]));
   }
+
+  size_t i{};
+
+  for (; i < number_of_characters_to_compare; ++i) {
+    const auto ch1{std::tolower(src1[i])};
+    const auto ch2{std::tolower(src2[i])};
+    if (ch1 != ch2)
+      return static_cast<int>(ch1 - ch2);
+  }
+
+  return static_cast<int>(std::tolower(src1[i]) - std::tolower(src2[i]));
 }
 
 template <typename T,
           typename U,
-          size_t ARRAY_SIZE,
           typename = std::enable_if_t<
-              is_valid_char_type_v<U> &&
-              (is_char_pointer_type_v<T> || is_valid_string_type_v<T> ||
-               is_valid_string_view_type_v<T>)&&std::
-                  is_same_v<get_char_type_t<T>, std::remove_cv_t<U>>>>
-int str_compare_i(const T& src1,
-                  U (&src2)[ARRAY_SIZE],
-                  const std::locale& loc = std::locale{}) {
-  using char_type = std::remove_cv_t<U>;
-
-  const size_t src1_len{len(src1)};
-  const size_t src2_len{len(src2)};
-
-  if (0U == src1_len)
-    return -static_cast<int>(src2[0]);
-
-  const size_t number_of_characters_to_compare{std::min(src1_len, src2_len)};
-
-  if (std::has_facet<std::ctype<char_type>>(loc)) {
-    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
-
-    size_t i{};
-
-    for (; i < number_of_characters_to_compare; ++i) {
-      const auto ch1{f.tolower(src1[i])};
-      const auto ch2{f.tolower(src2[i])};
-      if (ch1 != ch2)
-        return static_cast<int>(ch1 - ch2);
-    }
-
-    return static_cast<int>(f.tolower(src1[i]) - f.tolower(src2[i]));
-
-  } else {
-    size_t i{};
-
-    for (; i < number_of_characters_to_compare; ++i) {
-      const auto ch1{std::tolower(src1[i])};
-      const auto ch2{std::tolower(src2[i])};
-      if (ch1 != ch2)
-        return static_cast<int>(ch1 - ch2);
-    }
-
-    return static_cast<int>(std::tolower(src1[i]) - std::tolower(src2[i]));
-  }
-}
-
-template <
-    typename T,
-    typename U,
-    typename = std::enable_if_t<
-        (is_char_pointer_type_v<T> || is_valid_string_type_v<T> ||
-         is_valid_string_view_type_v<
-             T>)&&(is_char_pointer_type_v<U> || is_valid_string_type_v<U> ||
-                   is_valid_string_view_type_v<U>)&&std::
-            is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
-int str_compare_i(const T& src1,
-                  const U& src2,
-                  const std::locale& loc = std::locale{}) {
-  using char_type = get_char_type_t<T>;
-
-  const size_t src1_len{len(src1)};
-  const size_t src2_len{len(src2)};
-
-  if (0U == src1_len)
-    return 0U == src2_len ? 0 : -static_cast<int>(src2[0]);
-  if (0U == src2_len)
-    return 0U == src1_len ? 0 : static_cast<int>(src1[0]);
-
-  size_t const number_of_characters_to_compare{std::min(src1_len, src2_len)};
-  if (std::has_facet<std::ctype<char_type>>(loc)) {
-    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
-
-    size_t i{};
-
-    for (; i < number_of_characters_to_compare; ++i) {
-      const auto ch1{f.tolower(src1[i])};
-      const auto ch2{f.tolower(src2[i])};
-      if (ch1 != ch2)
-        return static_cast<int>(ch1 - ch2);
-    }
-
-    return static_cast<int>(f.tolower(src1[i]) - f.tolower(src2[i]));
-
-  } else {
-    size_t i{};
-
-    for (; i < number_of_characters_to_compare; ++i) {
-      const auto ch1{std::tolower(src1[i])};
-      const auto ch2{std::tolower(src2[i])};
-      if (ch1 != ch2)
-        return static_cast<int>(ch1 - ch2);
-    }
-
-    return static_cast<int>(std::tolower(src1[i]) - std::tolower(src2[i]));
-  }
-}
-
-template <typename T,
-          size_t ARRAY_SIZE1,
-          size_t ARRAY_SIZE2,
-          typename = std::enable_if_t<is_valid_char_type_v<T>>>
-int str_compare_n_i(T (&arr1)[ARRAY_SIZE1],
-                    T (&arr2)[ARRAY_SIZE2],
-                    size_t number_of_characters_to_compare,
-                    const std::locale& loc = std::locale{}) {
-  using char_type = std::remove_cv_t<T>;
-
-  const size_t arr1_len{len(arr1)};
-  const size_t arr2_len{len(arr2)};
-
-  if (0U == arr1_len)
-    return 0U == arr2_len ? 0 : -static_cast<int>(arr2[0]);
-  if (0U == arr2_len)
-    return 0U == arr1_len ? 0 : static_cast<int>(arr1[0]);
-
-  if (arr1_len < number_of_characters_to_compare ||
-      arr2_len < number_of_characters_to_compare) {
-    number_of_characters_to_compare = std::min(arr1_len, arr2_len);
-  }
-
-  if (std::has_facet<std::ctype<char_type>>(loc)) {
-    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
-
-    for (size_t i{}; i < number_of_characters_to_compare; ++i) {
-      const auto ch1{f.tolower(arr1[i])};
-      const auto ch2{f.tolower(arr2[i])};
-      if (ch1 != ch2)
-        return static_cast<int>(ch1 - ch2);
-    }
-  } else {
-    for (size_t i{}; i < number_of_characters_to_compare; ++i) {
-      const auto ch1{std::tolower(arr1[i])};
-      const auto ch2{std::tolower(arr2[i])};
-      if (ch1 != ch2)
-        return static_cast<int>(ch1 - ch2);
-    }
-  }
-
-  return 0;
-}
-
-template <typename T,
-          size_t ARRAY_SIZE,
-          typename U,
-          typename = std::enable_if_t<
-              is_valid_char_type_v<T> &&
-              (is_char_pointer_type_v<U> || is_valid_string_type_v<U> ||
-               is_valid_string_view_type_v<U>)&&std::
-                  is_same_v<std::remove_cv_t<T>, get_char_type_t<U>>>>
-int str_compare_n_i(T (&src1)[ARRAY_SIZE],
-                    const U& src2,
-                    size_t number_of_characters_to_compare,
-                    const std::locale& loc = std::locale{}) {
-  using char_type = std::remove_cv_t<T>;
-
-  const size_t src1_len{len(src1)};
-  const size_t src2_len{len(src2)};
-
-  if (0U == src2_len)
-    return static_cast<int>(src1[0]);
-
-  if (src1_len < number_of_characters_to_compare ||
-      src2_len < number_of_characters_to_compare) {
-    number_of_characters_to_compare = std::min(src1_len, src2_len);
-  }
-
-  if (std::has_facet<std::ctype<char_type>>(loc)) {
-    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
-
-    for (size_t i{}; i < number_of_characters_to_compare; ++i) {
-      const auto ch1{f.tolower(src1[i])};
-      const auto ch2{f.tolower(src2[i])};
-      if (ch1 != ch2)
-        return static_cast<int>(ch1 - ch2);
-    }
-  } else {
-    for (size_t i{}; i < number_of_characters_to_compare; ++i) {
-      const auto ch1{std::tolower(src1[i])};
-      const auto ch2{std::tolower(src2[i])};
-      if (ch1 != ch2)
-        return static_cast<int>(ch1 - ch2);
-    }
-  }
-
-  return 0;
-}
-
-template <typename T,
-          typename U,
-          size_t ARRAY_SIZE,
-          typename = std::enable_if_t<
-              is_valid_char_type_v<U> &&
-              (is_char_pointer_type_v<T> || is_valid_string_type_v<T> ||
-               is_valid_string_view_type_v<T>)&&std::
-                  is_same_v<get_char_type_t<T>, std::remove_cv_t<U>>>>
+              (is_char_array_type_v<T> || is_char_pointer_type_v<T> ||
+               is_valid_string_type_v<T> ||
+               is_valid_string_view_type_v<
+                   T>)&&(is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
+                         is_valid_string_type_v<U> ||
+                         is_valid_string_view_type_v<U>)&&std::
+                  is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
 int str_compare_n_i(const T& src1,
-                    U (&src2)[ARRAY_SIZE],
-                    size_t number_of_characters_to_compare,
-                    const std::locale& loc = std::locale{}) {
-  using char_type = std::remove_cv_t<U>;
-
-  const size_t src1_len{len(src1)};
-  const size_t src2_len{len(src2)};
-
-  if (0U == src1_len)
-    return -static_cast<int>(src2[0]);
-
-  if (src1_len < number_of_characters_to_compare ||
-      src2_len < number_of_characters_to_compare) {
-    number_of_characters_to_compare = std::min(src1_len, src2_len);
-  }
-
-  if (std::has_facet<std::ctype<char_type>>(loc)) {
-    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
-
-    for (size_t i{}; i < number_of_characters_to_compare; ++i) {
-      const auto ch1{f.tolower(src1[i])};
-      const auto ch2{f.tolower(src2[i])};
-      if (ch1 != ch2)
-        return static_cast<int>(ch1 - ch2);
-    }
-  } else {
-    for (size_t i{}; i < number_of_characters_to_compare; ++i) {
-      const auto ch1{std::tolower(src1[i])};
-      const auto ch2{std::tolower(src2[i])};
-      if (ch1 != ch2)
-        return static_cast<int>(ch1 - ch2);
-    }
-  }
-
-  return 0;
-}
-
-template <
-    typename T,
-    typename U,
-    typename = std::enable_if_t<
-        (is_char_pointer_type_v<T> || is_valid_string_type_v<T> ||
-         is_valid_string_view_type_v<
-             T>)&&(is_char_pointer_type_v<U> || is_valid_string_type_v<U> ||
-                   is_valid_string_view_type_v<U>)&&std::
-            is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
-int str_compare_n_i(const T& src1,
-                    const U& src2,
+                    const T& src2,
                     size_t number_of_characters_to_compare,
                     const std::locale& loc = std::locale{}) {
   using char_type = get_char_type_t<T>;
@@ -3099,10 +2270,8 @@ int str_compare_n_i(const T& src1,
   if (0U == src2_len)
     return 0U == src1_len ? 0 : static_cast<int>(src1[0]);
 
-  if (src1_len < number_of_characters_to_compare ||
-      src2_len < number_of_characters_to_compare) {
-    number_of_characters_to_compare = std::min(src1_len, src2_len);
-  }
+  number_of_characters_to_compare =
+      std::min(number_of_characters_to_compare, std::min(src1_len, src2_len));
 
   if (std::has_facet<std::ctype<char_type>>(loc)) {
     const auto& f = std::use_facet<std::ctype<char_type>>(loc);
@@ -3113,13 +2282,15 @@ int str_compare_n_i(const T& src1,
       if (ch1 != ch2)
         return static_cast<int>(ch1 - ch2);
     }
-  } else {
-    for (size_t i{}; i < number_of_characters_to_compare; ++i) {
-      const auto ch1{std::tolower(src1[i])};
-      const auto ch2{std::tolower(src2[i])};
-      if (ch1 != ch2)
-        return static_cast<int>(ch1 - ch2);
-    }
+
+    return 0;
+  }
+
+  for (size_t i{}; i < number_of_characters_to_compare; ++i) {
+    const auto ch1{std::tolower(src1[i])};
+    const auto ch2{std::tolower(src2[i])};
+    if (ch1 != ch2)
+      return static_cast<int>(ch1 - ch2);
   }
 
   return 0;
