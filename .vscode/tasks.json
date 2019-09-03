@@ -3,16 +3,28 @@
         {
             "type": "shell",
             "label": "clang++ build active file",
-            "command": "/usr/bin/clang++",
+            "command": "clang++",
             "args": [
-                "-g",
-                "${file}",
+                "-Wall",
+                "-Wextra",
+                "-Wpedantic",
+                "-std=c++17",
+                "-O0",
+                "-g",               
                 "-o",
-                "${fileDirname}/${fileBasenameNoExtension}"
+                "build/test.exe",
+                "src/stl_helper_functions.cpp",
+                "tests/test_main.cpp"
+                // "${fileDirname}/${fileBasenameNoExtension}"
             ],
             "options": {
-                "cwd": "/usr/bin"
-            }
+                "cwd": "${workspaceFolder}"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": "$gcc"
         }
     ],
     "version": "2.0.0"

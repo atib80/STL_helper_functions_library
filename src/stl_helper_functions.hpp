@@ -809,6 +809,19 @@ template <typename T>
 using remove_all_decorations_t = typename remove_all_decorations<T>::type;
 
 template <typename T>
+struct remove_cv_ref {
+  using mt1 = std::conditional_t<std::is_const_v<T>, std::remove_cv_t<T>, T>;
+  using mt2 = std::conditional_t<std::is_reference_v<mt1>,
+                                 std::remove_reference_t<mt1>,
+                                 mt1>;
+  using type =
+      std::conditional_t<std::is_const_v<mt2>, std::remove_cv_t<mt2>, mt2>;
+};
+
+template <typename T>
+using remove_cv_ref_t = typename remove_cv_ref<T>::type;
+
+template <typename T>
 struct is_valid_string_type {
   static constexpr const bool value =
       is_anyone_of_v<remove_all_decorations_t<T>,
@@ -8666,9 +8679,98 @@ void to_title_case_in_place(T& src, const std::locale& loc = std::locale{}) {
   }
 }
 
-// global conversion functions from the appropriate signed/unsigned
-// integral as well as floating point types to std::u16string and
-// std::u32string newer STL C++11 string types
+template <typename T>
+std::string num_to_str(const T& data, const char* format_string = nullptr) {
+  using data_type = remove_all_decorations_t<T>;
+
+  static constexpr const size_t buffer_size{32};
+
+  char buffer[buffer_size];
+
+  if (nullptr != format_string) {
+    if constexpr (!std::is_integral_v<data_type> &&
+                  !std::is_floating_point_v<data_type>) {
+      std::ostringstream oss{};
+      oss << data;
+      return oss.str();
+    } else
+      SNPRINTF(buffer, buffer_size, format_string, data);
+  }
+
+  if constexpr (std::is_integral_v<data_type>) {
+    if constexpr (std::is_signed_v<data_type>) {
+      const long long value{data};
+      SNPRINTF(buffer, buffer_size, "%lld", value);
+    } else {
+      const unsigned long long value{data};
+      SNPRINTF(buffer, buffer_size, "%llu", value);
+    }
+  } else if constexpr (std::is_floating_point_v<data_type>) {
+    if constexpr (std::is_same_v<float, data_type>)
+      SNPRINTF(buffer, buffer_size, "%f", data);
+    else if constexpr (std::is_same_v<double, data_type>)
+      SNPRINTF(buffer, buffer_size, "%lf", data);
+    else
+      SNPRINTF(buffer, buffer_size, "%Lf", data);
+
+  } else {
+    static char buffer[128];
+    SNPRINTF(buffer, 128,
+             "Provided data type [%s] is not a valid primitive integral or "
+             "floating point number type!",
+             typeid(data_type).name());
+    throw std::invalid_argument{buffer};
+  }
+
+  return buffer;
+}
+
+template <typename T>
+std::wstring num_to_wstr(const T& data,
+                         const wchar_t* format_string = nullptr) {
+  using data_type = remove_all_decorations_t<T>;
+
+  static constexpr const size_t buffer_size{32};
+
+  wchar_t buffer[buffer_size];
+
+  if (nullptr != format_string) {
+    if constexpr (!std::is_integral_v<data_type> &&
+                  !std::is_floating_point_v<data_type>) {
+      std::wostringstream oss{};
+      oss << data;
+      return oss.str();
+    } else
+      SNWPRINTF(buffer, buffer_size, format_string, data);
+  }
+
+  if constexpr (std::is_integral_v<data_type>) {
+    if constexpr (std::is_signed_v<data_type>) {
+      const long long value{data};
+      SNWPRINTF(buffer, buffer_size, L"%lld", value);
+    } else {
+      const unsigned long long value{data};
+      SNWPRINTF(buffer, buffer_size, L"%llu", value);
+    }
+  } else if constexpr (std::is_floating_point_v<data_type>) {
+    if constexpr (std::is_same_v<float, data_type>)
+      SNWPRINTF(buffer, buffer_size, L"%f", data);
+    else if constexpr (std::is_same_v<double, data_type>)
+      SNWPRINTF(buffer, buffer_size, L"%lf", data);
+    else
+      SNWPRINTF(buffer, buffer_size, L"%Lf", data);
+
+  } else {
+    static char buffer[128];
+    SNPRINTF(buffer, 128,
+             "Provided data type [%s] is not a valid primitive integral or "
+             "floating point number type!",
+             typeid(data_type).name());
+    throw std::invalid_argument{buffer};
+  }
+
+  return buffer;
+}
 
 enum class number_base { decimal, hexadecimal, octal, binary };
 
@@ -8681,191 +8783,416 @@ enum class add_number_base_sign {
 };
 
 template <typename T,
-          typename FormatStringType = const char*,
-          typename = std::enable_if_t<
-              has_output_stream_operator_v<
-                  std::basic_ostream<get_char_type_t<FormatStringType>>,
-                  std::remove_reference_t<T>> &&
-              is_valid_char_type_v<get_char_type_t<FormatStringType>> &&
-              is_anyone_of_v<get_char_type_t<FormatStringType>, char, wchar_t>>>
-std::basic_string<get_char_type_t<FormatStringType>> num_to_str(
-    T&& data,
-    FormatStringType format_string = nullptr) {
-  using char_type = get_char_type_t<FormatStringType>;
-  using data_type = remove_all_decorations_t<T>;
+          typename = std::enable_if_t<std::is_integral_v<remove_cv_ref<T>>>>
+std::u16string to_u16string(
+    T number,
+    number_base convert_to_number_base = number_base::decimal,
+    add_number_base_sign number_base_sign =
+        add_number_base_sign::no_number_base_sign) {
+  using integral_type = remove_cv_ref<T>;
 
-  static constexpr const size_t buf_size{32};
+  constexpr const size_t buffer_size{24};
+  char16_t buffer[buffer_size];
 
-  static char_type buffer[buf_size]{};
+  const auto base = static_cast<integral_type>([&]() {
+    switch (convert_to_number_base) {
+      case number_base::binary:
+        return 2;
 
-  if (nullptr != format_string) {
-    if constexpr (!std::is_integral_v<data_type> &&
-                  !std::is_floating_point_v<data_type>) {
-      std::basic_ostringstream<char_type> oss{};
-      oss << std::forward<T>(data);
-      return oss.str();
-    } else if constexpr (std::is_same_v<char_type, char>)
-      SNPRINTF(buffer, buf_size, format_string, std::forward<T>(data));
-    else
-      SNWPRINTF(buffer, buf_size, format_string, std::forward<T>(data));
+      case number_base::octal:
+        return 8;
+
+      case number_base::decimal:
+        return 10;
+
+      case number_base::hexadecimal:
+        return 16;
+    }
+  }());
+
+  size_t first_digit_pos{};
+
+  if (add_number_base_sign::prepend_in_lower_case_format == number_base_sign ||
+      add_number_base_sign::prepend_in_upper_case_format == number_base_sign) {
+    first_digit_pos += 2;
+
+    if (add_number_base_sign::prepend_in_lower_case_format ==
+        number_base_sign) {
+      switch (base) {
+        case 2:
+          str_copy(buffer, u"0b");
+          break;
+
+        case 8:
+          str_copy(buffer, u"0o");
+          break;
+
+        case 10:
+          str_copy(buffer, u"0d");
+          break;
+
+        case 16:
+          str_copy(buffer, u"0x");
+          break;
+      }
+
+    } else {
+      switch (base) {
+        case 2:
+          str_copy(buffer, u"0B");
+          break;
+
+        case 8:
+          str_copy(buffer, u"0O");
+          break;
+
+        case 10:
+          str_copy(buffer, u"0D");
+          break;
+
+        case 16:
+          str_copy(buffer, u"0X");
+          break;
+      }
+    }
   }
 
-  if constexpr (std::is_integral_v<data_type>) {
-    if constexpr (std::is_signed_v<data_type>) {
-      const long long value{std::forward<T>(data)};
-      if constexpr (std::is_same_v<char_type, char>)
-        SNPRINTF(buffer, buf_size, "%lld", value);
-      else
-        SNWPRINTF(buffer, buf_size, L"%lld", value);
-    } else {
-      const unsigned long long value{std::forward<T>(data)};
-      if constexpr (std::is_same_v<char_type, char>)
-        SNPRINTF(buffer, buf_size, "%llu", value);
-      else
-        SNWPRINTF(buffer, buf_size, L"%llu", value);
-    }
-  } else if constexpr (std::is_floating_point_v<data_type>) {
-    if constexpr (std::is_same_v<float, data_type>) {
-      if constexpr (std::is_same_v<char_type, char>)
-        SNPRINTF(buffer, buf_size, "%f", std::forward<T>(data));
-      else
-        SNWPRINTF(buffer, buf_size, L"%f", std::forward<T>(data));
-    } else if constexpr (std::is_same_v<double, data_type>) {
-      if constexpr (std::is_same_v<char_type, char>)
-        SNPRINTF(buffer, buf_size, "%lf", std::forward<T>(data));
-      else
-        SNWPRINTF(buffer, buf_size, L"%lf", std::forward<T>(data));
-    } else {
-      if constexpr (std::is_same_v<char_type, char>)
-        SNPRINTF(buffer, buf_size, "%Lf", std::forward<T>(data));
-      else
-        SNWPRINTF(buffer, buf_size, L"%Lf", std::forward<T>(data));
-    }
-  } else {
-    static char buffer[128]{};
-    SNPRINTF(buffer, 128,
-             "Provided data type [%s] is not a valid primitive integral or "
-             "floating point number type!",
-             typeid(data_type).name());
-    throw std::invalid_argument{buffer};
+  size_t i{first_digit_pos};
+  while (number) {
+    const auto character_code_offset = number % base;
+
+    char16_t character_to_use{
+        static_cast<char16_t>(u'0' + character_code_offset)};
+
+    if (base == 16 && character_code_offset > 9)
+      character_to_use =
+          static_cast<char16_t>(u'A' + (character_code_offset - 10));
+
+    buffer[i++] = character_to_use;
+
+    number /= base;
   }
 
-  return buffer;
+  buffer[i] = u'\0';
+  std::reverse(buffer + first_digit_pos, buffer + i);
+
+  if (0 != first_digit_pos)
+    return buffer;
+
+  switch (number_base_sign) {
+    case add_number_base_sign::no_number_base_sign:
+    case add_number_base_sign::prepend_in_lower_case_format:
+    case add_number_base_sign::prepend_in_upper_case_format:
+
+      return buffer;
+
+    case add_number_base_sign::append_in_lower_case_format:
+
+      switch (base) {
+        case 2:
+          str_append(buffer, u"0b");
+          break;
+
+        case 8:
+          str_append(buffer, u"0o");
+          break;
+
+        case 10:
+          str_append(buffer, u"0d");
+          break;
+
+        case 16:
+          str_append(buffer, u"0x");
+          break;
+      }
+
+      return buffer;
+
+    case add_number_base_sign::append_in_upper_case_format:
+
+      switch (base) {
+        case 2:
+          str_append(buffer, u"0B");
+          break;
+
+        case 8:
+          str_append(buffer, u"0O");
+          break;
+
+        case 10:
+          str_append(buffer, u"0D");
+          break;
+
+        case 16:
+          str_append(buffer, u"0X");
+          break;
+      }
+
+      return buffer;
+  }
 }
 
+template <
+    typename T,
+    typename = std::enable_if_t<std::is_floating_point_v<remove_cv_ref_t<T>>>>
 std::u16string to_u16string(
-    short number,
-    number_base convert_to_number_base = number_base::decimal,
-    add_number_base_sign add_number_base_sign =
-        add_number_base_sign::no_number_base_sign);
+    T number,
+    const wchar_t* format_str = nullptr,
+    int number_of_decimal_digits =
+        std::numeric_limits<remove_cv_ref_t<T>>::digits10) {
+  using floating_type = remove_cv_ref_t<T>;
 
-std::u16string to_u16string(
-    unsigned short number,
-    number_base convert_to_number_base = number_base::decimal,
-    add_number_base_sign add_number_base_sign =
-        add_number_base_sign::no_number_base_sign);
+  constexpr const size_t buffer_size{32U};
 
-std::u16string to_u16string(
-    int number,
-    number_base convert_to_number_base = number_base::decimal,
-    add_number_base_sign add_number_base_sign =
-        add_number_base_sign::no_number_base_sign);
+  wchar_t format_str_buffer[buffer_size]{L"%."}, buffer[buffer_size];
 
-std::u16string to_u16string(
-    unsigned int number,
-    number_base convert_to_number_base = number_base::decimal,
-    add_number_base_sign add_number_base_sign =
-        add_number_base_sign::no_number_base_sign);
+  if (nullptr != format_str) {
+    SNWPRINTF(buffer, buffer_size, format_str, number);
 
-std::u16string to_u16string(
-    long number,
-    number_base convert_to_number_base = number_base::decimal,
-    add_number_base_sign add_number_base_sign =
-        add_number_base_sign::no_number_base_sign);
+  } else {
+    if constexpr (std::is_same_v<floating_type, float>)
+      number_of_decimal_digits = std::min(number_of_decimal_digits,
+                                          std::numeric_limits<float>::digits10);
 
-std::u16string to_u16string(
-    unsigned long number,
-    number_base convert_to_number_base = number_base::decimal,
-    add_number_base_sign add_number_base_sign =
-        add_number_base_sign::no_number_base_sign);
+    if constexpr (std::is_same_v<floating_type, double>)
+      number_of_decimal_digits = std::min(
+          number_of_decimal_digits, std::numeric_limits<double>::digits10);
 
-std::u16string to_u16string(
-    long long number,
-    number_base convert_to_number_base = number_base::decimal,
-    add_number_base_sign add_number_base_sign =
-        add_number_base_sign::no_number_base_sign);
+    if constexpr (std::is_same_v<floating_type, long double>)
+      number_of_decimal_digits = std::min(
+          number_of_decimal_digits, std::numeric_limits<long double>::digits10);
 
-std::u16string to_u16string(
-    unsigned long long number,
-    number_base convert_to_number_base = number_base::decimal,
-    add_number_base_sign add_number_base_sign =
-        add_number_base_sign::no_number_base_sign);
+    str_append(format_str_buffer,
+               num_to_wstr(number_of_decimal_digits, L"%d").c_str());
 
-std::u16string to_u16string(float number,
-                            int round_to_specified_number_of_digits = 6);
+    if constexpr (std::is_same_v<floating_type, float>)
+      str_append(format_str_buffer, L"f");
 
-std::u16string to_u16string(double number,
-                            int round_to_specified_number_of_digits = 6);
+    if constexpr (std::is_same_v<floating_type, double>)
+      str_append(format_str_buffer, L"lf");
 
-std::u16string to_u16string(long double number,
-                            int round_to_specified_number_of_digits = 6);
+    if constexpr (std::is_same_v<floating_type, long double>)
+      str_append(format_str_buffer, L"Lf");
 
+    SNWPRINTF(buffer, buffer_size, format_str_buffer, number);
+  }
+
+  const size_t buffer_len{len(buffer)};
+  std::u16string number_str{};
+  number_str.reserve(buffer_len + 1);
+
+  std::transform(buffer, buffer + buffer_len + 1,
+                 std::back_inserter(number_str),
+                 [](const auto ch) { return static_cast<char16_t>(ch); });
+
+  return number_str;
+}
+
+template <typename T,
+          typename = std::enable_if_t<std::is_integral_v<remove_cv_ref<T>>>>
 std::u32string to_u32string(
-    short number,
+    T number,
     number_base convert_to_number_base = number_base::decimal,
-    add_number_base_sign add_number_base_sign =
-        add_number_base_sign::no_number_base_sign);
+    add_number_base_sign number_base_sign =
+        add_number_base_sign::no_number_base_sign) {
+  using integral_type = remove_cv_ref<T>;
 
+  constexpr const size_t buffer_size{32U};
+  char32_t buffer[buffer_size];
+
+  const auto base = static_cast<integral_type>([&]() {
+    switch (convert_to_number_base) {
+      case number_base::binary:
+        return 2;
+
+      case number_base::octal:
+        return 8;
+
+      case number_base::decimal:
+        return 10;
+
+      case number_base::hexadecimal:
+        return 16;
+    }
+  }());
+
+  size_t first_digit_pos{};
+
+  if (add_number_base_sign::prepend_in_lower_case_format == number_base_sign ||
+      add_number_base_sign::prepend_in_upper_case_format == number_base_sign) {
+    first_digit_pos += 2;
+
+    if (add_number_base_sign::prepend_in_lower_case_format ==
+        number_base_sign) {
+      switch (base) {
+        case 2:
+          str_copy(buffer, U"0b");
+          break;
+
+        case 8:
+          str_copy(buffer, U"0o");
+          break;
+
+        case 10:
+          str_copy(buffer, U"0d");
+          break;
+
+        case 16:
+          str_copy(buffer, U"0x");
+          break;
+      }
+
+    } else {
+      switch (base) {
+        case 2:
+          str_copy(buffer, U"0B");
+          break;
+
+        case 8:
+          str_copy(buffer, U"0O");
+          break;
+
+        case 10:
+          str_copy(buffer, U"0D");
+          break;
+
+        case 16:
+          str_copy(buffer, U"0X");
+          break;
+      }
+    }
+  }
+
+  size_t i{first_digit_pos};
+  while (number) {
+    const auto character_code_offset = number % base;
+
+    char32_t character_to_use{
+        static_cast<char32_t>(U'0' + character_code_offset)};
+
+    if (base == 16 && character_code_offset > 9)
+      character_to_use =
+          static_cast<char32_t>(U'A' + (character_code_offset - 10));
+
+    buffer[i++] = character_to_use;
+
+    number /= base;
+  }
+
+  buffer[i] = U'\0';
+  std::reverse(buffer + first_digit_pos, buffer + i);
+
+  if (0 != first_digit_pos)
+    return buffer;
+
+  switch (number_base_sign) {
+    case add_number_base_sign::no_number_base_sign:
+    case add_number_base_sign::prepend_in_lower_case_format:
+    case add_number_base_sign::prepend_in_upper_case_format:
+
+      return buffer;
+
+    case add_number_base_sign::append_in_lower_case_format:
+
+      switch (base) {
+        case 2:
+          str_append(buffer, U"0b");
+          break;
+
+        case 8:
+          str_append(buffer, U"0o");
+          break;
+
+        case 10:
+          str_append(buffer, U"0d");
+          break;
+
+        case 16:
+          str_append(buffer, U"0x");
+          break;
+      }
+
+      return buffer;
+
+    case add_number_base_sign::append_in_upper_case_format:
+
+      switch (base) {
+        case 2:
+          str_append(buffer, U"0B");
+          break;
+
+        case 8:
+          str_append(buffer, U"0O");
+          break;
+
+        case 10:
+          str_append(buffer, U"0D");
+          break;
+
+        case 16:
+          str_append(buffer, U"0X");
+          break;
+      }
+
+      return buffer;
+  }
+}
+
+template <
+    typename T,
+    typename = std::enable_if_t<std::is_floating_point_v<remove_cv_ref_t<T>>>>
 std::u32string to_u32string(
-    unsigned short number,
-    number_base convert_to_number_base = number_base::decimal,
-    add_number_base_sign add_number_base_sign =
-        add_number_base_sign::no_number_base_sign);
+    T number,
+    const wchar_t* format_str = nullptr,
+    int number_of_decimal_digits =
+        std::numeric_limits<remove_cv_ref_t<T>>::digits10) {
+  using floating_type = remove_cv_ref_t<T>;
 
-std::u32string to_u32string(
-    int number,
-    number_base convert_to_number_base = number_base::decimal,
-    add_number_base_sign add_number_base_sign =
-        add_number_base_sign::no_number_base_sign);
+  constexpr const size_t buffer_size{32U};
 
-std::u32string to_u32string(
-    unsigned int number,
-    number_base convert_to_number_base = number_base::decimal,
-    add_number_base_sign add_number_base_sign =
-        add_number_base_sign::no_number_base_sign);
+  wchar_t format_str_buffer[buffer_size]{L"%."}, buffer[buffer_size];
 
-std::u32string to_u32string(
-    long number,
-    number_base convert_to_number_base = number_base::decimal,
-    add_number_base_sign add_number_base_sign =
-        add_number_base_sign::no_number_base_sign);
+  if (nullptr != format_str) {
+    SNWPRINTF(buffer, buffer_size, format_str, number);
 
-std::u32string to_u32string(
-    unsigned long number,
-    number_base convert_to_number_base = number_base::decimal,
-    add_number_base_sign add_number_base_sign =
-        add_number_base_sign::no_number_base_sign);
+  } else {
+    if constexpr (std::is_same_v<floating_type, float>)
+      number_of_decimal_digits = std::min(number_of_decimal_digits,
+                                          std::numeric_limits<float>::digits10);
 
-std::u32string to_u32string(
-    long long number,
-    number_base convert_to_number_base = number_base::decimal,
-    add_number_base_sign add_number_base_sign =
-        add_number_base_sign::no_number_base_sign);
+    if constexpr (std::is_same_v<floating_type, double>)
+      number_of_decimal_digits = std::min(
+          number_of_decimal_digits, std::numeric_limits<double>::digits10);
 
-std::u32string to_u32string(
-    unsigned long long number,
-    number_base convert_to_number_base = number_base::decimal,
-    add_number_base_sign add_number_base_sign =
-        add_number_base_sign::no_number_base_sign);
+    if constexpr (std::is_same_v<floating_type, long double>)
+      number_of_decimal_digits = std::min(
+          number_of_decimal_digits, std::numeric_limits<long double>::digits10);
 
-std::u32string to_u32string(float number,
-                            int round_to_specified_number_of_digits = 6);
+    str_append(format_str_buffer,
+               num_to_wstr(number_of_decimal_digits, L"%d").c_str());
 
-std::u32string to_u32string(double number,
-                            int round_to_specified_number_of_digits = 6);
+    if constexpr (std::is_same_v<floating_type, float>)
+      str_append(format_str_buffer, L"f");
 
-std::u32string to_u32string(long double number,
-                            int round_to_specified_number_of_digits = 6);
+    if constexpr (std::is_same_v<floating_type, double>)
+      str_append(format_str_buffer, L"lf");
+
+    if constexpr (std::is_same_v<floating_type, long double>)
+      str_append(format_str_buffer, L"Lf");
+
+    SNWPRINTF(buffer, buffer_size, format_str_buffer, number);
+  }
+
+  const size_t buffer_len{len(buffer)};
+  std::u32string number_str{};
+  number_str.reserve(buffer_len + 1);
+
+  std::transform(buffer, buffer + buffer_len + 1,
+                 std::back_inserter(number_str),
+                 [](const auto ch) { return static_cast<char32_t>(ch); });
+
+  return number_str;
+}
 
 int stoi(const std::u16string& str,
          size_t* pos = nullptr,
