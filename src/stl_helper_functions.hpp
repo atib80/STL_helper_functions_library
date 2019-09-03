@@ -2270,7 +2270,7 @@ template <typename T,
                          is_valid_string_view_type_v<U>)&&std::
                   is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
 int str_compare_n_i(const T& src1,
-                    const T& src2,
+                    const U& src2,
                     size_t number_of_characters_to_compare,
                     const std::locale& loc = std::locale{}) {
   using char_type = get_char_type_t<T>;
@@ -8693,8 +8693,9 @@ std::string num_to_str(const T& data, const char* format_string = nullptr) {
       std::ostringstream oss{};
       oss << data;
       return oss.str();
-    } else
-      SNPRINTF(buffer, buffer_size, format_string, data);
+    }
+    SNPRINTF(buffer, buffer_size, format_string, data);
+    return buffer;
   }
 
   if constexpr (std::is_integral_v<data_type>) {
@@ -8740,8 +8741,10 @@ std::wstring num_to_wstr(const T& data,
       std::wostringstream oss{};
       oss << data;
       return oss.str();
-    } else
-      SNWPRINTF(buffer, buffer_size, format_string, data);
+    }
+
+    SNWPRINTF(buffer, buffer_size, format_string, data);
+    return buffer;
   }
 
   if constexpr (std::is_integral_v<data_type>) {
@@ -8787,7 +8790,7 @@ template <typename T,
 std::u16string to_u16string(
     T number,
     number_base convert_to_number_base = number_base::decimal,
-    add_number_base_sign number_base_sign =
+    add_number_base_sign number_base_sign_location =
         add_number_base_sign::no_number_base_sign) {
   using integral_type = remove_cv_ref<T>;
 
@@ -8812,12 +8815,14 @@ std::u16string to_u16string(
 
   size_t first_digit_pos{};
 
-  if (add_number_base_sign::prepend_in_lower_case_format == number_base_sign ||
-      add_number_base_sign::prepend_in_upper_case_format == number_base_sign) {
+  if (add_number_base_sign::prepend_in_lower_case_format ==
+          number_base_sign_location ||
+      add_number_base_sign::prepend_in_upper_case_format ==
+          number_base_sign_location) {
     first_digit_pos += 2;
 
     if (add_number_base_sign::prepend_in_lower_case_format ==
-        number_base_sign) {
+        number_base_sign_location) {
       switch (base) {
         case 2:
           str_copy(buffer, u"0b");
@@ -8879,7 +8884,7 @@ std::u16string to_u16string(
   if (0 != first_digit_pos)
     return buffer;
 
-  switch (number_base_sign) {
+  switch (number_base_sign_location) {
     case add_number_base_sign::no_number_base_sign:
     case add_number_base_sign::prepend_in_lower_case_format:
     case add_number_base_sign::prepend_in_upper_case_format:
@@ -8950,17 +8955,8 @@ std::u16string to_u16string(
     SNWPRINTF(buffer, buffer_size, format_str, number);
 
   } else {
-    if constexpr (std::is_same_v<floating_type, float>)
-      number_of_decimal_digits = std::min(number_of_decimal_digits,
-                                          std::numeric_limits<float>::digits10);
-
-    if constexpr (std::is_same_v<floating_type, double>)
-      number_of_decimal_digits = std::min(
-          number_of_decimal_digits, std::numeric_limits<double>::digits10);
-
-    if constexpr (std::is_same_v<floating_type, long double>)
-      number_of_decimal_digits = std::min(
-          number_of_decimal_digits, std::numeric_limits<long double>::digits10);
+    number_of_decimal_digits = std::min(
+        number_of_decimal_digits, std::numeric_limits<floating_type>::digits10);
 
     str_append(format_str_buffer,
                num_to_wstr(number_of_decimal_digits, L"%d").c_str());
@@ -8993,7 +8989,7 @@ template <typename T,
 std::u32string to_u32string(
     T number,
     number_base convert_to_number_base = number_base::decimal,
-    add_number_base_sign number_base_sign =
+    add_number_base_sign number_base_sign_location =
         add_number_base_sign::no_number_base_sign) {
   using integral_type = remove_cv_ref<T>;
 
@@ -9018,12 +9014,14 @@ std::u32string to_u32string(
 
   size_t first_digit_pos{};
 
-  if (add_number_base_sign::prepend_in_lower_case_format == number_base_sign ||
-      add_number_base_sign::prepend_in_upper_case_format == number_base_sign) {
+  if (add_number_base_sign::prepend_in_lower_case_format ==
+          number_base_sign_location ||
+      add_number_base_sign::prepend_in_upper_case_format ==
+          number_base_sign_location) {
     first_digit_pos += 2;
 
     if (add_number_base_sign::prepend_in_lower_case_format ==
-        number_base_sign) {
+        number_base_sign_location) {
       switch (base) {
         case 2:
           str_copy(buffer, U"0b");
@@ -9085,7 +9083,7 @@ std::u32string to_u32string(
   if (0 != first_digit_pos)
     return buffer;
 
-  switch (number_base_sign) {
+  switch (number_base_sign_location) {
     case add_number_base_sign::no_number_base_sign:
     case add_number_base_sign::prepend_in_lower_case_format:
     case add_number_base_sign::prepend_in_upper_case_format:
@@ -9156,17 +9154,8 @@ std::u32string to_u32string(
     SNWPRINTF(buffer, buffer_size, format_str, number);
 
   } else {
-    if constexpr (std::is_same_v<floating_type, float>)
-      number_of_decimal_digits = std::min(number_of_decimal_digits,
-                                          std::numeric_limits<float>::digits10);
-
-    if constexpr (std::is_same_v<floating_type, double>)
-      number_of_decimal_digits = std::min(
-          number_of_decimal_digits, std::numeric_limits<double>::digits10);
-
-    if constexpr (std::is_same_v<floating_type, long double>)
-      number_of_decimal_digits = std::min(
-          number_of_decimal_digits, std::numeric_limits<long double>::digits10);
+    number_of_decimal_digits = std::min(
+        number_of_decimal_digits, std::numeric_limits<floating_type>::digits10);
 
     str_append(format_str_buffer,
                num_to_wstr(number_of_decimal_digits, L"%d").c_str());
@@ -9194,30 +9183,692 @@ std::u32string to_u32string(
   return number_str;
 }
 
-int stoi(const std::u16string& str,
-         size_t* pos = nullptr,
-         int base = 10,
-         bool ignore_leading_white_space_characters = true);
+template <typename T,
+          typename U,
+          typename = std::enable_if_t<
+              is_char_array_type_v<T> || is_char_pointer_type_v<T> ||
+              is_valid_string_type_v<T> || is_valid_string_view_type_v<T>>>
+int stoi(const T& src,
+         const number_base base = number_base::decimal,
+         bool ignore_leading_white_space_characters = true,
+         size_t* pos = nullptr) {
+  using char_type = get_char_type_t<T>;
 
-long stol(const std::u16string& str,
-          size_t* pos = nullptr,
-          int base = 10,
-          bool ignore_leading_white_space_characters = true);
+  static const std::basic_string<char_type> binary_number_base_prefix{
+      static_cast<char_type>('0'), static_cast<char_type>('b')};
+  static const std::basic_string<char_type> octal_number_base_prefix{
+      static_cast<char_type>('0'), static_cast<char_type>('o')};
+  static const std::basic_string<char_type> hexadecimal_number_base_prefix{
+      static_cast<char_type>('0'), static_cast<char_type>('x')};
 
-unsigned long stoul(const std::u16string& str,
-                    size_t* pos = nullptr,
-                    int base = 10,
-                    bool ignore_leading_white_space_characters = true);
+  const size_t src_len{len(src)};
 
-long long stoll(const std::u16string& str,
-                size_t* pos = nullptr,
-                int base = 10,
-                bool ignore_leading_white_space_characters = true);
+  if (0U == src_len) {
+    if (pos)
+      *pos = 0;
+    return 0;
+  }
 
-unsigned long long stoull(const std::u16string& str,
-                          size_t* pos = nullptr,
-                          int base = 10,
-                          bool ignore_leading_white_space_characters = true);
+  int number_value{};
+
+  std::basic_string<char_type> temp_src{};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
+    src_sv.assign(src);
+
+  if constexpr (is_char_array_type_v<T> || is_char_pointer_type_v<T>)
+    src_sv.assign(src, src_len);
+
+  if (ignore_leading_white_space_characters) {
+    temp_src = ltrim(src_sv);
+    src_sv.assign(temp_src);
+  }
+
+  auto itr = std::cbegin(src_sv);
+
+  if (number_base::binary == base &&
+      (static_cast<char_type>('b') == src_sv[0] ||
+       static_cast<char_type>('B') == src_sv[0]))
+    ++itr;
+
+  else if (number_base::binary == base &&
+           0 == str_compare_n_i(src_sv, binary_number_base_prefix, 2))
+    itr += 2;
+
+  else if (number_base::octal == base &&
+           (static_cast<char_type>('0') == src_sv[0] ||
+            static_cast<char_type>('o') == src_sv[0] ||
+            static_cast<char_type>('O') == src_sv[0]))
+    ++itr;
+
+  else if (number_base::octal == base &&
+           0 == str_compare_n_i(src_sv, octal_number_base_prefix, 2))
+    itr += 2;
+
+  else if (number_base::hexadecimal == base &&
+           (static_cast<char_type>('x') == src_sv[0] ||
+            static_cast<char_type>('X') == src_sv[0]))
+    ++itr;
+
+  else if (number_base::hexadecimal == base &&
+           0 == str_compare_n_i(src_sv, hexadecimal_number_base_prefix, 2))
+    itr += 2;
+
+  bool found_invalid_character{};
+
+  for (; !found_invalid_character && itr != std::cend(src_sv); ++itr) {
+    const char_type ch{*itr};
+    switch (base) {
+      case number_base::binary:
+        if (static_cast<char_type>('0') == ch ||
+            static_cast<char_type>('1') == ch) {
+          number_value *= 2;
+          number_value += static_cast<int>(ch - static_cast<char_type>('0'));
+        } else
+          found_invalid_character = true;
+        break;
+
+      case number_base::octal:
+        if (ch >= static_cast<char_type>('0') &&
+            ch <= static_cast<char_type>('7')) {
+          number_value *= 8;
+          number_value += static_cast<int>(ch - static_cast<char_type>('0'));
+        } else
+          found_invalid_character = true;
+        break;
+
+      case number_base::decimal:
+        if (ch >= static_cast<char_type>('0') &&
+            ch <= static_cast<char_type>('9')) {
+          number_value *= 10;
+          number_value += static_cast<int>(ch - static_cast<char_type>('0'));
+        } else
+          found_invalid_character = true;
+        break;
+
+      case number_base::hexadecimal:
+        if ((ch >= static_cast<char_type>('0') &&
+             ch <= static_cast<char_type>('9')) ||
+            (ch >= static_cast<char_type>('A') &&
+             ch <= static_cast<char_type>('F')) ||
+            (ch >= static_cast<char_type>('a') &&
+             ch <= static_cast<char_type>('f'))) {
+          number_value *= 16;
+          if (ch >= static_cast<char_type>('0') &&
+              ch <= static_cast<char_type>('9'))
+            number_value += static_cast<int>(ch - static_cast<char_type>('0'));
+          else if (ch >= static_cast<char_type>('A') &&
+                   ch <= static_cast<char_type>('F'))
+            number_value +=
+                static_cast<int>(10 + (ch - static_cast<char_type>('A')));
+          else
+            number_value +=
+                static_cast<int>(10 + (ch - static_cast<char_type>('a')));
+        } else
+          found_invalid_character = true;
+
+        break;
+    }
+  }
+
+  if (pos)
+    *pos = static_cast<size_t>(itr - std::cbegin(src_sv));
+
+  return number_value;
+}
+
+template <typename T,
+          typename U,
+          typename = std::enable_if_t<
+              is_char_array_type_v<T> || is_char_pointer_type_v<T> ||
+              is_valid_string_type_v<T> || is_valid_string_view_type_v<T>>>
+long stol(const T& src,
+          const number_base base = number_base::decimal,
+          bool ignore_leading_white_space_characters = true,
+          size_t* pos = nullptr) {
+  using char_type = get_char_type_t<T>;
+
+  static const std::basic_string<char_type> binary_number_base_prefix{
+      static_cast<char_type>('0'), static_cast<char_type>('b')};
+  static const std::basic_string<char_type> octal_number_base_prefix{
+      static_cast<char_type>('0'), static_cast<char_type>('o')};
+  static const std::basic_string<char_type> hexadecimal_number_base_prefix{
+      static_cast<char_type>('0'), static_cast<char_type>('x')};
+
+  const size_t src_len{len(src)};
+
+  if (0U == src_len) {
+    if (pos)
+      *pos = 0;
+    return 0;
+  }
+
+  long number_value{};
+
+  std::basic_string<char_type> temp_src{};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
+    src_sv.assign(src);
+
+  if constexpr (is_char_array_type_v<T> || is_char_pointer_type_v<T>)
+    src_sv.assign(src, src_len);
+
+  if (ignore_leading_white_space_characters) {
+    temp_src = ltrim(src_sv);
+    src_sv.assign(temp_src);
+  }
+
+  auto itr = std::cbegin(src_sv);
+
+  if (number_base::binary == base &&
+      (static_cast<char_type>('b') == src_sv[0] ||
+       static_cast<char_type>('B') == src_sv[0]))
+    ++itr;
+
+  else if (number_base::binary == base &&
+           0 == str_compare_n_i(src_sv, binary_number_base_prefix, 2))
+    itr += 2;
+
+  else if (number_base::octal == base &&
+           (static_cast<char_type>('0') == src_sv[0] ||
+            static_cast<char_type>('o') == src_sv[0] ||
+            static_cast<char_type>('O') == src_sv[0]))
+    ++itr;
+
+  else if (number_base::octal == base &&
+           0 == str_compare_n_i(src_sv, octal_number_base_prefix, 2))
+    itr += 2;
+
+  else if (number_base::hexadecimal == base &&
+           (static_cast<char_type>('x') == src_sv[0] ||
+            static_cast<char_type>('X') == src_sv[0]))
+    ++itr;
+
+  else if (number_base::hexadecimal == base &&
+           0 == str_compare_n_i(src_sv, hexadecimal_number_base_prefix, 2))
+    itr += 2;
+
+  bool found_invalid_character{};
+
+  for (; !found_invalid_character && itr != std::cend(src_sv); ++itr) {
+    const char_type ch{*itr};
+    switch (base) {
+      case number_base::binary:
+        if (static_cast<char_type>('0') == ch ||
+            static_cast<char_type>('1') == ch) {
+          number_value *= 2;
+          number_value += static_cast<long>(ch - static_cast<char_type>('0'));
+        } else
+          found_invalid_character = true;
+        break;
+
+      case number_base::octal:
+        if (ch >= static_cast<char_type>('0') &&
+            ch <= static_cast<char_type>('7')) {
+          number_value *= 8;
+          number_value += static_cast<long>(ch - static_cast<char_type>('0'));
+        } else
+          found_invalid_character = true;
+        break;
+
+      case number_base::decimal:
+        if (ch >= static_cast<char_type>('0') &&
+            ch <= static_cast<char_type>('9')) {
+          number_value *= 10;
+          number_value += static_cast<long>(ch - static_cast<char_type>('0'));
+        } else
+          found_invalid_character = true;
+        break;
+
+      case number_base::hexadecimal:
+        if ((ch >= static_cast<char_type>('0') &&
+             ch <= static_cast<char_type>('9')) ||
+            (ch >= static_cast<char_type>('A') &&
+             ch <= static_cast<char_type>('F')) ||
+            (ch >= static_cast<char_type>('a') &&
+             ch <= static_cast<char_type>('f'))) {
+          number_value *= 16;
+          if (ch >= static_cast<char_type>('0') &&
+              ch <= static_cast<char_type>('9'))
+            number_value += static_cast<long>(ch - static_cast<char_type>('0'));
+          else if (ch >= static_cast<char_type>('A') &&
+                   ch <= static_cast<char_type>('F'))
+            number_value +=
+                static_cast<long>(10 + (ch - static_cast<char_type>('A')));
+          else
+            number_value +=
+                static_cast<long>(10 + (ch - static_cast<char_type>('a')));
+        } else
+          found_invalid_character = true;
+
+        break;
+    }
+  }
+
+  if (pos)
+    *pos = static_cast<size_t>(itr - std::cbegin(src_sv));
+
+  return number_value;
+}
+
+template <typename T,
+          typename U,
+          typename = std::enable_if_t<
+              is_char_array_type_v<T> || is_char_pointer_type_v<T> ||
+              is_valid_string_type_v<T> || is_valid_string_view_type_v<T>>>
+unsigned long stoul(const T& src,
+                    const number_base base = number_base::decimal,
+                    bool ignore_leading_white_space_characters = true,
+                    size_t* pos = nullptr) {
+  using char_type = get_char_type_t<T>;
+
+  static const std::basic_string<char_type> binary_number_base_prefix{
+      static_cast<char_type>('0'), static_cast<char_type>('b')};
+  static const std::basic_string<char_type> octal_number_base_prefix{
+      static_cast<char_type>('0'), static_cast<char_type>('o')};
+  static const std::basic_string<char_type> hexadecimal_number_base_prefix{
+      static_cast<char_type>('0'), static_cast<char_type>('x')};
+
+  const size_t src_len{len(src)};
+
+  if (0U == src_len) {
+    if (pos)
+      *pos = 0;
+    return 0;
+  }
+
+  unsigned long number_value{};
+
+  std::basic_string<char_type> temp_src{};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
+    src_sv.assign(src);
+
+  if constexpr (is_char_array_type_v<T> || is_char_pointer_type_v<T>)
+    src_sv.assign(src, src_len);
+
+  if (ignore_leading_white_space_characters) {
+    temp_src = ltrim(src_sv);
+    src_sv.assign(temp_src);
+  }
+
+  auto itr = std::cbegin(src_sv);
+
+  if (number_base::binary == base &&
+      (static_cast<char_type>('b') == src_sv[0] ||
+       static_cast<char_type>('B') == src_sv[0]))
+    ++itr;
+
+  else if (number_base::binary == base &&
+           0 == str_compare_n_i(src_sv, binary_number_base_prefix, 2))
+    itr += 2;
+
+  else if (number_base::octal == base &&
+           (static_cast<char_type>('0') == src_sv[0] ||
+            static_cast<char_type>('o') == src_sv[0] ||
+            static_cast<char_type>('O') == src_sv[0]))
+    ++itr;
+
+  else if (number_base::octal == base &&
+           0 == str_compare_n_i(src_sv, octal_number_base_prefix, 2))
+    itr += 2;
+
+  else if (number_base::hexadecimal == base &&
+           (static_cast<char_type>('x') == src_sv[0] ||
+            static_cast<char_type>('X') == src_sv[0]))
+    ++itr;
+
+  else if (number_base::hexadecimal == base &&
+           0 == str_compare_n_i(src_sv, hexadecimal_number_base_prefix, 2))
+    itr += 2;
+
+  bool found_invalid_character{};
+
+  for (; !found_invalid_character && itr != std::cend(src_sv); ++itr) {
+    const char_type ch{*itr};
+    switch (base) {
+      case number_base::binary:
+        if (static_cast<char_type>('0') == ch ||
+            static_cast<char_type>('1') == ch) {
+          number_value *= 2;
+          number_value +=
+              static_cast<unsigned long>(ch - static_cast<char_type>('0'));
+        } else
+          found_invalid_character = true;
+        break;
+
+      case number_base::octal:
+        if (ch >= static_cast<char_type>('0') &&
+            ch <= static_cast<char_type>('7')) {
+          number_value *= 8;
+          number_value +=
+              static_cast<unsigned long>(ch - static_cast<char_type>('0'));
+        } else
+          found_invalid_character = true;
+        break;
+
+      case number_base::decimal:
+        if (ch >= static_cast<char_type>('0') &&
+            ch <= static_cast<char_type>('9')) {
+          number_value *= 10;
+          number_value +=
+              static_cast<unsigned long>(ch - static_cast<char_type>('0'));
+        } else
+          found_invalid_character = true;
+        break;
+
+      case number_base::hexadecimal:
+        if ((ch >= static_cast<char_type>('0') &&
+             ch <= static_cast<char_type>('9')) ||
+            (ch >= static_cast<char_type>('A') &&
+             ch <= static_cast<char_type>('F')) ||
+            (ch >= static_cast<char_type>('a') &&
+             ch <= static_cast<char_type>('f'))) {
+          number_value *= 16;
+          if (ch >= static_cast<char_type>('0') &&
+              ch <= static_cast<char_type>('9'))
+            number_value +=
+                static_cast<unsigned long>(ch - static_cast<char_type>('0'));
+          else if (ch >= static_cast<char_type>('A') &&
+                   ch <= static_cast<char_type>('F'))
+            number_value += static_cast<unsigned long>(
+                10 + (ch - static_cast<char_type>('A')));
+          else
+            number_value += static_cast<unsigned long>(
+                10 + (ch - static_cast<char_type>('a')));
+        } else
+          found_invalid_character = true;
+
+        break;
+    }
+  }
+
+  if (pos)
+    *pos = static_cast<size_t>(itr - std::cbegin(src_sv));
+
+  return number_value;
+}
+
+template <typename T,
+          typename U,
+          typename = std::enable_if_t<
+              is_char_array_type_v<T> || is_char_pointer_type_v<T> ||
+              is_valid_string_type_v<T> || is_valid_string_view_type_v<T>>>
+long long stoll(const T& src,
+                const number_base base = number_base::decimal,
+                bool ignore_leading_white_space_characters = true,
+                size_t* pos = nullptr) {
+  using char_type = get_char_type_t<T>;
+
+  static const std::basic_string<char_type> binary_number_base_prefix{
+      static_cast<char_type>('0'), static_cast<char_type>('b')};
+  static const std::basic_string<char_type> octal_number_base_prefix{
+      static_cast<char_type>('0'), static_cast<char_type>('o')};
+  static const std::basic_string<char_type> hexadecimal_number_base_prefix{
+      static_cast<char_type>('0'), static_cast<char_type>('x')};
+
+  const size_t src_len{len(src)};
+
+  if (0U == src_len) {
+    if (pos)
+      *pos = 0;
+    return 0;
+  }
+
+  long long number_value{};
+
+  std::basic_string<char_type> temp_src{};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
+    src_sv.assign(src);
+
+  if constexpr (is_char_array_type_v<T> || is_char_pointer_type_v<T>)
+    src_sv.assign(src, src_len);
+
+  if (ignore_leading_white_space_characters) {
+    temp_src = ltrim(src_sv);
+    src_sv.assign(temp_src);
+  }
+
+  auto itr = std::cbegin(src_sv);
+
+  if (number_base::binary == base &&
+      (static_cast<char_type>('b') == src_sv[0] ||
+       static_cast<char_type>('B') == src_sv[0]))
+    ++itr;
+
+  else if (number_base::binary == base &&
+           0 == str_compare_n_i(src_sv, binary_number_base_prefix, 2))
+    itr += 2;
+
+  else if (number_base::octal == base &&
+           (static_cast<char_type>('0') == src_sv[0] ||
+            static_cast<char_type>('o') == src_sv[0] ||
+            static_cast<char_type>('O') == src_sv[0]))
+    ++itr;
+
+  else if (number_base::octal == base &&
+           0 == str_compare_n_i(src_sv, octal_number_base_prefix, 2))
+    itr += 2;
+
+  else if (number_base::hexadecimal == base &&
+           (static_cast<char_type>('x') == src_sv[0] ||
+            static_cast<char_type>('X') == src_sv[0]))
+    ++itr;
+
+  else if (number_base::hexadecimal == base &&
+           0 == str_compare_n_i(src_sv, hexadecimal_number_base_prefix, 2))
+    itr += 2;
+
+  bool found_invalid_character{};
+
+  for (; !found_invalid_character && itr != std::cend(src_sv); ++itr) {
+    const char_type ch{*itr};
+    switch (base) {
+      case number_base::binary:
+        if (static_cast<char_type>('0') == ch ||
+            static_cast<char_type>('1') == ch) {
+          number_value *= 2;
+          number_value +=
+              static_cast<long long>(ch - static_cast<char_type>('0'));
+        } else
+          found_invalid_character = true;
+        break;
+
+      case number_base::octal:
+        if (ch >= static_cast<char_type>('0') &&
+            ch <= static_cast<char_type>('7')) {
+          number_value *= 8;
+          number_value +=
+              static_cast<long long>(ch - static_cast<char_type>('0'));
+        } else
+          found_invalid_character = true;
+        break;
+
+      case number_base::decimal:
+        if (ch >= static_cast<char_type>('0') &&
+            ch <= static_cast<char_type>('9')) {
+          number_value *= 10;
+          number_value +=
+              static_cast<long long>(ch - static_cast<char_type>('0'));
+        } else
+          found_invalid_character = true;
+        break;
+
+      case number_base::hexadecimal:
+        if ((ch >= static_cast<char_type>('0') &&
+             ch <= static_cast<char_type>('9')) ||
+            (ch >= static_cast<char_type>('A') &&
+             ch <= static_cast<char_type>('F')) ||
+            (ch >= static_cast<char_type>('a') &&
+             ch <= static_cast<char_type>('f'))) {
+          number_value *= 16;
+          if (ch >= static_cast<char_type>('0') &&
+              ch <= static_cast<char_type>('9'))
+            number_value +=
+                static_cast<long long>(ch - static_cast<char_type>('0'));
+          else if (ch >= static_cast<char_type>('A') &&
+                   ch <= static_cast<char_type>('F'))
+            number_value +=
+                static_cast<long long>(10 + (ch - static_cast<char_type>('A')));
+          else
+            number_value +=
+                static_cast<long long>(10 + (ch - static_cast<char_type>('a')));
+        } else
+          found_invalid_character = true;
+
+        break;
+    }
+  }
+
+  if (pos)
+    *pos = static_cast<size_t>(itr - std::cbegin(src_sv));
+
+  return number_value;
+}
+
+template <typename T,
+          typename U,
+          typename = std::enable_if_t<
+              is_char_array_type_v<T> || is_char_pointer_type_v<T> ||
+              is_valid_string_type_v<T> || is_valid_string_view_type_v<T>>>
+unsigned long long stoull(const T& src,
+                          const number_base base = number_base::decimal,
+                          bool ignore_leading_white_space_characters = true,
+                          size_t* pos = nullptr) {
+  using char_type = get_char_type_t<T>;
+
+  static const std::basic_string<char_type> binary_number_base_prefix{
+      static_cast<char_type>('0'), static_cast<char_type>('b')};
+  static const std::basic_string<char_type> octal_number_base_prefix{
+      static_cast<char_type>('0'), static_cast<char_type>('o')};
+  static const std::basic_string<char_type> hexadecimal_number_base_prefix{
+      static_cast<char_type>('0'), static_cast<char_type>('x')};
+
+  const size_t src_len{len(src)};
+
+  if (0U == src_len) {
+    if (pos)
+      *pos = 0;
+    return 0;
+  }
+
+  unsigned long long number_value{};
+
+  std::basic_string<char_type> temp_src{};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
+    src_sv.assign(src);
+
+  if constexpr (is_char_array_type_v<T> || is_char_pointer_type_v<T>)
+    src_sv.assign(src, src_len);
+
+  if (ignore_leading_white_space_characters) {
+    temp_src = ltrim(src_sv);
+    src_sv.assign(temp_src);
+  }
+
+  auto itr = std::cbegin(src_sv);
+
+  if (number_base::binary == base &&
+      (static_cast<char_type>('b') == src_sv[0] ||
+       static_cast<char_type>('B') == src_sv[0]))
+    ++itr;
+
+  else if (number_base::binary == base &&
+           0 == str_compare_n_i(src_sv, binary_number_base_prefix, 2))
+    itr += 2;
+
+  else if (number_base::octal == base &&
+           (static_cast<char_type>('0') == src_sv[0] ||
+            static_cast<char_type>('o') == src_sv[0] ||
+            static_cast<char_type>('O') == src_sv[0]))
+    ++itr;
+
+  else if (number_base::octal == base &&
+           0 == str_compare_n_i(src_sv, octal_number_base_prefix, 2))
+    itr += 2;
+
+  else if (number_base::hexadecimal == base &&
+           (static_cast<char_type>('x') == src_sv[0] ||
+            static_cast<char_type>('X') == src_sv[0]))
+    ++itr;
+
+  else if (number_base::hexadecimal == base &&
+           0 == str_compare_n_i(src_sv, hexadecimal_number_base_prefix, 2))
+    itr += 2;
+
+  bool found_invalid_character{};
+
+  for (; !found_invalid_character && itr != std::cend(src_sv); ++itr) {
+    const char_type ch{*itr};
+    switch (base) {
+      case number_base::binary:
+        if (static_cast<char_type>('0') == ch ||
+            static_cast<char_type>('1') == ch) {
+          number_value *= 2;
+          number_value +=
+              static_cast<unsigned long long>(ch - static_cast<char_type>('0'));
+        } else
+          found_invalid_character = true;
+        break;
+
+      case number_base::octal:
+        if (ch >= static_cast<char_type>('0') &&
+            ch <= static_cast<char_type>('7')) {
+          number_value *= 8;
+          number_value +=
+              static_cast<unsigned long long>(ch - static_cast<char_type>('0'));
+        } else
+          found_invalid_character = true;
+        break;
+
+      case number_base::decimal:
+        if (ch >= static_cast<char_type>('0') &&
+            ch <= static_cast<char_type>('9')) {
+          number_value *= 10;
+          number_value +=
+              static_cast<unsigned long long>(ch - static_cast<char_type>('0'));
+        } else
+          found_invalid_character = true;
+        break;
+
+      case number_base::hexadecimal:
+        if ((ch >= static_cast<char_type>('0') &&
+             ch <= static_cast<char_type>('9')) ||
+            (ch >= static_cast<char_type>('A') &&
+             ch <= static_cast<char_type>('F')) ||
+            (ch >= static_cast<char_type>('a') &&
+             ch <= static_cast<char_type>('f'))) {
+          number_value *= 16;
+          if (ch >= static_cast<char_type>('0') &&
+              ch <= static_cast<char_type>('9'))
+            number_value += static_cast<unsigned long long>(
+                ch - static_cast<char_type>('0'));
+          else if (ch >= static_cast<char_type>('A') &&
+                   ch <= static_cast<char_type>('F'))
+            number_value += static_cast<unsigned long long>(
+                10 + (ch - static_cast<char_type>('A')));
+          else
+            number_value += static_cast<unsigned long long>(
+                10 + (ch - static_cast<char_type>('a')));
+        } else
+          found_invalid_character = true;
+
+        break;
+    }
+  }
+
+  if (pos)
+    *pos = static_cast<size_t>(itr - std::cbegin(src_sv));
+
+  return number_value;
+}
 
 float stof(const std::u16string& str,
            size_t* pos = nullptr,
@@ -9230,46 +9881,6 @@ double stod(const std::u16string& str,
             bool ignore_leading_white_space_characters = true);
 
 long double stold(const std::u16string& str,
-                  size_t* pos = nullptr,
-                  int base = 10,
-                  bool ignore_leading_white_space_characters = true);
-
-int stoi(const std::u32string& str,
-         size_t* pos = nullptr,
-         int base = 10,
-         bool ignore_leading_white_space_characters = true);
-
-long stol(const std::u32string& str,
-          size_t* pos = nullptr,
-          int base = 10,
-          bool ignore_leading_white_space_characters = true);
-
-unsigned long stoul(const std::u32string& str,
-                    size_t* pos = nullptr,
-                    int base = 10,
-                    bool ignore_leading_white_space_characters = true);
-
-long long stoll(const std::u32string& str,
-                size_t* pos = nullptr,
-                int base = 10,
-                bool ignore_leading_white_space_characters = true);
-
-unsigned long long stoull(const std::u32string& str,
-                          size_t* pos = nullptr,
-                          int base = 10,
-                          bool ignore_leading_white_space_characters = true);
-
-float stof(const std::u32string& str,
-           size_t* pos = nullptr,
-           int base = 10,
-           bool ignore_leading_white_space_characters = true);
-
-double stod(const std::u32string& str,
-            size_t* pos = nullptr,
-            int base = 10,
-            bool ignore_leading_white_space_characters = true);
-
-long double stold(const std::u32string& str,
                   size_t* pos = nullptr,
                   int base = 10,
                   bool ignore_leading_white_space_characters = true);

@@ -12,13 +12,13 @@
                 "-O0",
                 "-g",               
                 "-o",
-                "build/test.exe",
+                "${workspaceFolder}/build/test.exe",
                 "src/stl_helper_functions.cpp",
                 "tests/test_main.cpp"
                 // "${fileDirname}/${fileBasenameNoExtension}"
             ],
             "options": {
-                "cwd": "${workspaceFolder}"
+                "cwd": "${workspaceFolder}/build"
             },
             "group": {
                 "kind": "build",
