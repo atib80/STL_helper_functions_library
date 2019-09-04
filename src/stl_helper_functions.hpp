@@ -2172,6 +2172,37 @@ int str_compare(const T& src1, const U& src2) {
   return static_cast<int>(src1[i] - src2[i]);
 }
 
+template <
+    typename FwIterType1,
+    typename FwIterType2,
+    typename = std::enable_if_t<std::is_same_v<
+        get_char_type_t<typename std::iterator_traits<FwIterType1>::value_type>,
+        get_char_type_t<
+            typename std::iterator_traits<FwIterType2>::value_type>>>>
+int str_compare(FwIterType1 first1,
+                FwIterType1 last1,
+                FwIterType2 first2,
+                FwIterType2 last2) {
+  const size_t src1_len{static_cast<size_t>(std::distance(first1, last1))};
+  const size_t src2_len{static_cast<size_t>(std::distance(first2, last2))};
+
+  if (0U == src1_len)
+    return 0U == src2_len ? 0 : -static_cast<int>(*first2);
+  if (0U == src2_len)
+    return 0U == src1_len ? 0 : static_cast<int>(*first1);
+
+  size_t const number_of_characters_to_compare{std::min(src1_len, src2_len)};
+
+  size_t i{};
+
+  for (; i < number_of_characters_to_compare; ++i, ++first1, ++first2) {
+    if (*first1 != *first2)
+      return static_cast<int>(*first1 - *first2);
+  }
+
+  return static_cast<int>(*first1 - *first2);
+}
+
 template <typename T,
           typename U,
           typename = std::enable_if_t<
@@ -2205,6 +2236,40 @@ int str_compare_n(const T& src1,
   }
 
   return static_cast<int>(src1[i] - src2[i]);
+}
+
+template <
+    typename FwIterType1,
+    typename FwIterType2,
+    typename = std::enable_if_t<std::is_same_v<
+        get_char_type_t<typename std::iterator_traits<FwIterType1>::value_type>,
+        get_char_type_t<
+            typename std::iterator_traits<FwIterType2>::value_type>>>>
+int str_compare_n(FwIterType1 first1,
+                  FwIterType1 last1,
+                  FwIterType2 first2,
+                  FwIterType2 last2,
+                  size_t number_of_characters_to_compare) {
+  const size_t src1_len{static_cast<size_t>(std::distance(first1, last1))};
+  const size_t src2_len{static_cast<size_t>(std::distance(first2, last2))};
+
+  if (0U == src1_len)
+    return 0U == src2_len ? 0 : -static_cast<int>(*first2);
+  if (0U == src2_len)
+    return 0U == src1_len ? 0 : static_cast<int>(*first1);
+
+  if (src1_len < number_of_characters_to_compare ||
+      src2_len < number_of_characters_to_compare)
+    number_of_characters_to_compare = std::min(src1_len, src2_len);
+
+  size_t i{};
+
+  for (; i < number_of_characters_to_compare; ++i, ++first1, ++first2) {
+    if (*first1 != *first2)
+      return static_cast<int>(*first1 - *first2);
+  }
+
+  return static_cast<int>(*first1 - *first2);
 }
 
 template <typename T,
@@ -2259,6 +2324,58 @@ int str_compare_i(const T& src1,
   return static_cast<int>(std::tolower(src1[i]) - std::tolower(src2[i]));
 }
 
+template <
+    typename FwIterType1,
+    typename FwIterType2,
+    typename = std::enable_if_t<std::is_same_v<
+        get_char_type_t<typename std::iterator_traits<FwIterType1>::value_type>,
+        get_char_type_t<
+            typename std::iterator_traits<FwIterType2>::value_type>>>>
+int str_compare_i(FwIterType1 first1,
+                  FwIterType1 last1,
+                  FwIterType2 first2,
+                  FwIterType2 last2,
+                  const std::locale& loc = std::locale{}) {
+  using char_type =
+      get_char_type_t<typename std::iterator_traits<FwIterType1>::value_type>;
+
+  const size_t src1_len{static_cast<size_t>(std::distance(first1, last1))};
+  const size_t src2_len{static_cast<size_t>(std::distance(first2, last2))};
+
+  if (0U == src1_len)
+    return 0U == src2_len ? 0 : -static_cast<int>(*first2);
+  if (0U == src2_len)
+    return 0U == src1_len ? 0 : static_cast<int>(*first1);
+
+  const size_t number_of_characters_to_compare{std::min(src1_len, src2_len)};
+
+  if (std::has_facet<std::ctype<char_type>>(loc)) {
+    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
+
+    size_t i{};
+
+    for (; i < number_of_characters_to_compare; ++i, ++first1, ++first2) {
+      const auto ch1{f.tolower(*first1)};
+      const auto ch2{f.tolower(*first2)};
+      if (ch1 != ch2)
+        return static_cast<int>(ch1 - ch2);
+    }
+
+    return static_cast<int>(f.tolower(*first1) - f.tolower(*first2));
+  }
+
+  size_t i{};
+
+  for (; i < number_of_characters_to_compare; ++i, ++first1, ++first2) {
+    const auto ch1{std::tolower(*first1)};
+    const auto ch2{std::tolower(*first2)};
+    if (ch1 != ch2)
+      return static_cast<int>(ch1 - ch2);
+  }
+
+  return static_cast<int>(std::tolower(*first1) - std::tolower(*first2));
+}
+
 template <typename T,
           typename U,
           typename = std::enable_if_t<
@@ -2302,6 +2419,58 @@ int str_compare_n_i(const T& src1,
   for (size_t i{}; i < number_of_characters_to_compare; ++i) {
     const auto ch1{std::tolower(src1[i])};
     const auto ch2{std::tolower(src2[i])};
+    if (ch1 != ch2)
+      return static_cast<int>(ch1 - ch2);
+  }
+
+  return 0;
+}
+
+template <
+    typename FwIterType1,
+    typename FwIterType2,
+    typename = std::enable_if_t<std::is_same_v<
+        get_char_type_t<typename std::iterator_traits<FwIterType1>::value_type>,
+        get_char_type_t<
+            typename std::iterator_traits<FwIterType2>::value_type>>>>
+int str_compare_n_i(FwIterType1 first1,
+                    FwIterType1 last1,
+                    FwIterType2 first2,
+                    FwIterType2 last2,
+                    size_t number_of_characters_to_compare,
+                    const std::locale& loc = std::locale{}) {
+  using char_type =
+      get_char_type_t<typename std::iterator_traits<FwIterType1>::value_type>;
+
+  const size_t src1_len{static_cast<size_t>(std::distance(first1, last1))};
+  const size_t src2_len{static_cast<size_t>(std::distance(first2, last2))};
+
+  if (0U == src1_len)
+    return 0U == src2_len ? 0 : -static_cast<int>(*first2);
+  if (0U == src2_len)
+    return 0U == src1_len ? 0 : static_cast<int>(*first1);
+
+  number_of_characters_to_compare =
+      std::min(number_of_characters_to_compare, std::min(src1_len, src2_len));
+
+  if (std::has_facet<std::ctype<char_type>>(loc)) {
+    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
+
+    for (size_t i{}; i < number_of_characters_to_compare;
+         ++i, ++first1, ++first2) {
+      const auto ch1{f.tolower(*first1)};
+      const auto ch2{f.tolower(*first2)};
+      if (ch1 != ch2)
+        return static_cast<int>(ch1 - ch2);
+    }
+
+    return 0;
+  }
+
+  for (size_t i{}; i < number_of_characters_to_compare;
+       ++i, ++first1, ++first2) {
+    const auto ch1{std::tolower(*first1)};
+    const auto ch2{std::tolower(*first2)};
     if (ch1 != ch2)
       return static_cast<int>(ch1 - ch2);
   }
@@ -9870,20 +10039,1354 @@ unsigned long long stoull(const T& src,
   return number_value;
 }
 
-float stof(const std::u16string& str,
-           size_t* pos = nullptr,
-           int base = 10,
-           bool ignore_leading_white_space_characters = true);
+template <typename T,
+          typename U,
+          typename = std::enable_if_t<
+              is_char_array_type_v<T> || is_char_pointer_type_v<T> ||
+              is_valid_string_type_v<T> || is_valid_string_view_type_v<T>>>
+float stof(const T& src,
+           const number_base base = number_base::decimal,
+           bool ignore_leading_white_space_characters = true,
+           size_t* pos = nullptr) {
+  using char_type = get_char_type_t<T>;
 
-double stod(const std::u16string& str,
-            size_t* pos = nullptr,
-            int base = 10,
-            bool ignore_leading_white_space_characters = true);
+  static const std::basic_string<char_type> binary_number_base_prefix{
+      static_cast<char_type>('0'), static_cast<char_type>('b')};
+  static const std::basic_string<char_type> octal_number_base_prefix{
+      static_cast<char_type>('0'), static_cast<char_type>('o')};
+  static const std::basic_string<char_type> hexadecimal_number_base_prefix{
+      static_cast<char_type>('0'), static_cast<char_type>('x')};
 
-long double stold(const std::u16string& str,
-                  size_t* pos = nullptr,
-                  int base = 10,
-                  bool ignore_leading_white_space_characters = true);
+  const size_t src_len{len(src)};
+
+  if (0U == src_len) {
+    if (pos)
+      *pos = 0;
+    return 0;
+  }
+
+  float number_value{};
+
+  bool negative_sign_found{};
+  float fractional_part_value{};
+  bool fractional_part_found{};
+  int fractional_part_position_index{-1};
+
+  bool exponential_sign_found{};
+  bool negative_exponent_sign_found{};
+  bool exponent_leading_zero_values{true};
+  int exponential_part_value{};
+
+  bool found_invalid_character{};
+
+  std::basic_string<char_type> temp_src{};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
+    src_sv.assign(src);
+
+  if constexpr (is_char_array_type_v<T> || is_char_pointer_type_v<T>)
+    src_sv.assign(src, src_len);
+
+  if (ignore_leading_white_space_characters) {
+    temp_src = ltrim(src_sv);
+    src_sv.assign(temp_src);
+  }
+
+  auto itr = std::cbegin(src_sv);
+
+  if (*itr == static_cast<char_type>('+'))
+    ++itr;
+
+  else if (*itr == static_cast<char_type>('-')) {
+    negative_sign_found = true;
+    ++itr;
+  }
+
+  if (number_base::binary == base && (static_cast<char_type>('b') == *itr ||
+                                      static_cast<char_type>('B') == *itr))
+    ++itr;
+
+  else if (number_base::binary == base &&
+           0 == str_compare_n_i(itr, std::cend(src_sv),
+                                std::cbegin(binary_number_base_prefix),
+                                std::cend(binary_number_base_prefix), 2))
+    itr += 2;
+
+  else if (number_base::octal == base && (static_cast<char_type>('0') == *itr ||
+                                          static_cast<char_type>('o') == *itr ||
+                                          static_cast<char_type>('O') == *itr))
+    ++itr;
+
+  else if (number_base::octal == base &&
+           0 == str_compare_n_i(itr, std::cend(src_sv),
+                                std::cbegin(octal_number_base_prefix),
+                                std::cend(octal_number_base_prefix), 2))
+    itr += 2;
+
+  else if (number_base::hexadecimal == base &&
+           (static_cast<char_type>('x') == *itr ||
+            static_cast<char_type>('X') == *itr))
+    ++itr;
+
+  else if (number_base::hexadecimal == base &&
+           0 == str_compare_n_i(itr, std::cend(src_sv),
+                                std::cbegin(hexadecimal_number_base_prefix),
+                                std::cend(hexadecimal_number_base_prefix), 2))
+    itr += 2;
+
+  if (static_cast<char_type>('+') == *itr)
+    ++itr;
+
+  else if (static_cast<char_type>('-') == *itr) {
+    negative_sign_found = true;
+    ++itr;
+  }
+
+  if (static_cast<char_type>('.') == *itr) {
+    fractional_part_found = true;
+    ++itr;
+  }
+
+  if (pos)
+    *pos = 0;
+
+  if (!fractional_part_found && static_cast<char_type>('0') == *itr)
+    return number_value;
+
+  if (base != number_base::hexadecimal &&
+      (*itr == static_cast<char_type>('e') ||
+       *itr == static_cast<char_type>('E'))) {
+    if (fractional_part_found)
+      return number_value;
+    exponential_sign_found = true;
+    ++itr;
+  }
+
+  size_t i{static_cast<size_t>(std::distance(std::cbegin(src_sv), itr))};
+
+  for (; !found_invalid_character && i != src_sv.length(); ++i) {
+    switch (base) {
+      case number_base::binary:
+
+        if (src_sv[i] == static_cast<char_type>('.')) {
+          if (!fractional_part_found) {
+            fractional_part_found = true;
+            fractional_part_value = 0.f;
+            fractional_part_position_index = -1;
+          } else
+            found_invalid_character = true;
+        }
+
+        else if (!exponential_sign_found &&
+                 (src_sv[i] == static_cast<char_type>('e') ||
+                  src_sv[i] == static_cast<char_type>('E')))
+          exponential_sign_found = true;
+
+        else if (exponential_sign_found &&
+                 src_sv[i] == static_cast<char_type>('+')) {
+          if (src_sv[i - 1] != static_cast<char_type>('e') &&
+              src_sv[i - 1] != static_cast<char_type>('E'))
+            found_invalid_character = true;
+
+          exponential_part_value = 0;
+        }
+
+        else if (exponential_sign_found &&
+                 src_sv[i] == static_cast<char_type>('-')) {
+          if (src_sv[i - 1] != static_cast<char_type>('e') &&
+              src_sv[i - 1] != static_cast<char_type>('E'))
+            found_invalid_character = true;
+          else
+            negative_exponent_sign_found = true;
+
+          exponential_part_value = 0;
+        }
+
+        else if (exponential_sign_found && exponent_leading_zero_values &&
+                 src_sv[i] == static_cast<char_type>('0'))
+          exponential_part_value = 0;
+
+        else if (src_sv[i] < static_cast<char_type>('0') ||
+                 src_sv[i] > static_cast<char_type>('1'))
+          found_invalid_character = true;
+
+        else {
+          if (exponential_sign_found) {
+            exponent_leading_zero_values = false;
+            exponential_part_value *= 2;
+            exponential_part_value += src_sv[i] - static_cast<char_type>('0');
+          } else if (fractional_part_found) {
+            fractional_part_value +=
+                static_cast<float>((src_sv[i] - static_cast<char_type>('0')) *
+                                   std::pow(2, fractional_part_position_index));
+            fractional_part_position_index--;
+          } else {
+            number_value *= 2;
+            number_value += src_sv[i] - static_cast<char_type>('0');
+          }
+        }
+
+        if (found_invalid_character) {
+          number_value += fractional_part_value;
+
+          if (negative_sign_found)
+            number_value = -number_value;
+
+          if (exponential_sign_found) {
+            if (negative_exponent_sign_found)
+              exponential_part_value = -exponential_part_value;
+
+            if (std::abs(exponential_part_value) != 0)
+              number_value *=
+                  static_cast<float>(std::pow(2, exponential_part_value));
+          }
+        }
+
+        break;
+
+      case number_base::octal:
+
+        if (src_sv[i] == static_cast<char_type>('.')) {
+          if (!fractional_part_found) {
+            fractional_part_found = true;
+            fractional_part_value = 0.f;
+            fractional_part_position_index = -1;
+          } else
+            found_invalid_character = true;
+        }
+
+        else if (!exponential_sign_found &&
+                 (src_sv[i] == static_cast<char_type>('e') ||
+                  src_sv[i] == static_cast<char_type>('E')))
+          exponential_sign_found = true;
+
+        else if (exponential_sign_found &&
+                 src_sv[i] == static_cast<char_type>('+')) {
+          if (src_sv[i - 1] != static_cast<char_type>('e') &&
+              src_sv[i - 1] != static_cast<char_type>('E'))
+            found_invalid_character = true;
+          exponential_part_value = 0;
+        }
+
+        else if (exponential_sign_found &&
+                 src_sv[i] == static_cast<char_type>('-')) {
+          if (src_sv[i - 1] != static_cast<char_type>('e') &&
+              src_sv[i - 1] != static_cast<char_type>('E'))
+            found_invalid_character = true;
+          else
+            negative_exponent_sign_found = true;
+          exponential_part_value = 0;
+        }
+
+        else if (exponential_sign_found && exponent_leading_zero_values &&
+                 src_sv[i] == static_cast<char_type>('0'))
+          exponential_part_value = 0;
+
+        else if (src_sv[i] < static_cast<char_type>('0') ||
+                 src_sv[i] > static_cast<char_type>('7'))
+          found_invalid_character = true;
+
+        else {
+          if (exponential_sign_found) {
+            exponent_leading_zero_values = false;
+            exponential_part_value *= 2;
+            exponential_part_value += src_sv[i] - static_cast<char_type>('0');
+          } else if (fractional_part_found) {
+            fractional_part_value +=
+                static_cast<float>((src_sv[i] - static_cast<char_type>('0')) *
+                                   std::pow(8, fractional_part_position_index));
+            fractional_part_position_index--;
+          } else {
+            number_value *= 8;
+            number_value += src_sv[i] - static_cast<char_type>('0');
+          }
+        }
+
+        if (found_invalid_character) {
+          number_value += fractional_part_value;
+
+          if (negative_sign_found)
+            number_value = -number_value;
+
+          if (exponential_sign_found) {
+            if (negative_exponent_sign_found)
+              exponential_part_value = -exponential_part_value;
+
+            if (std::abs(exponential_part_value) != 0)
+              number_value *=
+                  static_cast<float>(std::pow(8, exponential_part_value));
+          }
+        }
+
+        break;
+
+      case number_base::decimal:
+        if (src_sv[i] == static_cast<char_type>('.')) {
+          if (!fractional_part_found) {
+            fractional_part_found = true;
+            fractional_part_value = 0.f;
+            fractional_part_position_index = -1;
+          } else
+            found_invalid_character = true;
+        }
+
+        else if (!exponential_sign_found &&
+                 (src_sv[i] == static_cast<char_type>('e') ||
+                  src_sv[i] == static_cast<char_type>('E')))
+          exponential_sign_found = true;
+
+        else if (exponential_sign_found &&
+                 src_sv[i] == static_cast<char_type>('+')) {
+          if (src_sv[i - 1] != static_cast<char_type>('e') &&
+              src_sv[i - 1] != static_cast<char_type>('E'))
+            found_invalid_character = true;
+          exponential_part_value = 0;
+        }
+
+        else if (exponential_sign_found &&
+                 src_sv[i] == static_cast<char_type>('-')) {
+          if (src_sv[i - 1] != static_cast<char_type>('e') &&
+              src_sv[i - 1] != static_cast<char_type>('E'))
+            found_invalid_character = true;
+          else
+            negative_exponent_sign_found = true;
+          exponential_part_value = 0;
+        }
+
+        else if (exponential_sign_found && exponent_leading_zero_values &&
+                 src_sv[i] == static_cast<char_type>('0'))
+          exponential_part_value = 0;
+        else if (src_sv[i] < static_cast<char_type>('0') ||
+                 src_sv[i] > static_cast<char_type>('9'))
+          found_invalid_character = true;
+
+        else {
+          if (exponential_sign_found) {
+            exponent_leading_zero_values = false;
+            exponential_part_value *= 10;
+            exponential_part_value += src_sv[i] - static_cast<char_type>('0');
+          } else if (fractional_part_found) {
+            fractional_part_value += static_cast<float>(
+                (src_sv[i] - static_cast<char_type>('0')) *
+                std::pow(10, fractional_part_position_index));
+            fractional_part_position_index--;
+          } else {
+            number_value *= 10;
+            number_value += src_sv[i] - static_cast<char_type>('0');
+          }
+        }
+
+        if (found_invalid_character) {
+          number_value += fractional_part_value;
+
+          if (negative_sign_found)
+            number_value = -number_value;
+
+          if (exponential_sign_found) {
+            if (negative_exponent_sign_found)
+              exponential_part_value = -exponential_part_value;
+
+            if (std::abs(exponential_part_value) != 0)
+              number_value *=
+                  static_cast<float>(std::pow(10, exponential_part_value));
+          }
+        }
+
+        break;
+
+      case number_base::hexadecimal:
+        if (src_sv[i] == static_cast<char_type>('.')) {
+          if (!fractional_part_found) {
+            fractional_part_found = true;
+            fractional_part_value = 0.f;
+            fractional_part_position_index = -1;
+          } else
+            found_invalid_character = true;
+
+        } else {
+          if (fractional_part_found) {
+            if ((src_sv[i] >= static_cast<char_type>('0') &&
+                 src_sv[i] <= static_cast<char_type>('9')) ||
+                (src_sv[i] >= static_cast<char_type>('A') &&
+                 src_sv[i] <= static_cast<char_type>('F')) ||
+                (src_sv[i] >= static_cast<char_type>('a') &&
+                 src_sv[i] <= static_cast<char_type>('f'))) {
+              number_value *= 16;
+
+              if (src_sv[i] >= static_cast<char_type>('0') &&
+                  src_sv[i] <= static_cast<char_type>('9'))
+                fractional_part_value += static_cast<float>(
+                    (src_sv[i] - static_cast<char_type>('0')) *
+                    std::pow(16, fractional_part_position_index));
+
+              else if (src_sv[i] >= static_cast<char_type>('A') &&
+                       src_sv[i] <= static_cast<char_type>('F'))
+                fractional_part_value += static_cast<float>(
+                    (src_sv[i] - static_cast<char_type>('A')) *
+                    std::pow(16, fractional_part_position_index));
+
+              else
+                fractional_part_value += static_cast<float>(
+                    (src_sv[i] - static_cast<char_type>('a')) *
+                    std::pow(16, fractional_part_position_index));
+
+              fractional_part_position_index--;
+            } else
+              found_invalid_character = true;
+
+          } else {
+            if ((src_sv[i] >= static_cast<char_type>('0') &&
+                 src_sv[i] <= static_cast<char_type>('9')) ||
+                (src_sv[i] >= static_cast<char_type>('A') &&
+                 src_sv[i] <= static_cast<char_type>('F')) ||
+                (src_sv[i] >= static_cast<char_type>('a') &&
+                 src_sv[i] <= static_cast<char_type>('f'))) {
+              number_value *= 16;
+              if (src_sv[i] >= static_cast<char_type>('0') &&
+                  src_sv[i] <= static_cast<char_type>('9'))
+                number_value += src_sv[i] - static_cast<char_type>('0');
+              else if (src_sv[i] >= static_cast<char_type>('A') &&
+                       src_sv[i] <= static_cast<char_type>('F'))
+                number_value += 10 + (src_sv[i] - static_cast<char_type>('A'));
+              else
+                number_value += 10 + (src_sv[i] - static_cast<char_type>('a'));
+            } else
+              found_invalid_character = true;
+          }
+        }
+
+        if (found_invalid_character) {
+          number_value += fractional_part_value;
+
+          if (negative_sign_found)
+            number_value = -number_value;
+        }
+
+        break;
+    }
+  }
+
+  if (!found_invalid_character) {
+    number_value += fractional_part_value;
+
+    if (negative_sign_found)
+      number_value = -number_value;
+
+    if (exponential_sign_found && base != number_base::hexadecimal) {
+      if (negative_exponent_sign_found)
+        exponential_part_value = -exponential_part_value;
+
+      if (std::abs(exponential_part_value) != 0)
+        number_value *= static_cast<float>(std::pow(2, exponential_part_value));
+    }
+  }
+
+  if (pos)
+    *pos = i;
+
+  return number_value;
+}
+
+template <typename T,
+          typename U,
+          typename = std::enable_if_t<
+              is_char_array_type_v<T> || is_char_pointer_type_v<T> ||
+              is_valid_string_type_v<T> || is_valid_string_view_type_v<T>>>
+double stod(const T& src,
+            const number_base base = number_base::decimal,
+            bool ignore_leading_white_space_characters = true,
+            size_t* pos = nullptr) {
+  using char_type = get_char_type_t<T>;
+
+  static const std::basic_string<char_type> binary_number_base_prefix{
+      static_cast<char_type>('0'), static_cast<char_type>('b')};
+  static const std::basic_string<char_type> octal_number_base_prefix{
+      static_cast<char_type>('0'), static_cast<char_type>('o')};
+  static const std::basic_string<char_type> hexadecimal_number_base_prefix{
+      static_cast<char_type>('0'), static_cast<char_type>('x')};
+
+  const size_t src_len{len(src)};
+
+  if (0U == src_len) {
+    if (pos)
+      *pos = 0;
+    return 0;
+  }
+
+  double number_value{};
+
+  bool negative_sign_found{};
+  double fractional_part_value{};
+  bool fractional_part_found{};
+  int fractional_part_position_index{-1};
+
+  bool exponential_sign_found{};
+  bool negative_exponent_sign_found{};
+  bool exponent_leading_zero_values{true};
+  int exponential_part_value{};
+
+  bool found_invalid_character{};
+
+  std::basic_string<char_type> temp_src{};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
+    src_sv.assign(src);
+
+  if constexpr (is_char_array_type_v<T> || is_char_pointer_type_v<T>)
+    src_sv.assign(src, src_len);
+
+  if (ignore_leading_white_space_characters) {
+    temp_src = ltrim(src_sv);
+    src_sv.assign(temp_src);
+  }
+
+  auto itr = std::cbegin(src_sv);
+
+  if (*itr == static_cast<char_type>('+'))
+    ++itr;
+
+  else if (*itr == static_cast<char_type>('-')) {
+    negative_sign_found = true;
+    ++itr;
+  }
+
+  if (number_base::binary == base && (static_cast<char_type>('b') == *itr ||
+                                      static_cast<char_type>('B') == *itr))
+    ++itr;
+
+  else if (number_base::binary == base &&
+           0 == str_compare_n_i(itr, std::cend(src_sv),
+                                std::cbegin(binary_number_base_prefix),
+                                std::cend(binary_number_base_prefix), 2))
+    itr += 2;
+
+  else if (number_base::octal == base && (static_cast<char_type>('0') == *itr ||
+                                          static_cast<char_type>('o') == *itr ||
+                                          static_cast<char_type>('O') == *itr))
+    ++itr;
+
+  else if (number_base::octal == base &&
+           0 == str_compare_n_i(itr, std::cend(src_sv),
+                                std::cbegin(octal_number_base_prefix),
+                                std::cend(octal_number_base_prefix), 2))
+    itr += 2;
+
+  else if (number_base::hexadecimal == base &&
+           (static_cast<char_type>('x') == *itr ||
+            static_cast<char_type>('X') == *itr))
+    ++itr;
+
+  else if (number_base::hexadecimal == base &&
+           0 == str_compare_n_i(itr, std::cend(src_sv),
+                                std::cbegin(hexadecimal_number_base_prefix),
+                                std::cend(hexadecimal_number_base_prefix), 2))
+    itr += 2;
+
+  if (static_cast<char_type>('+') == *itr)
+    ++itr;
+
+  else if (static_cast<char_type>('-') == *itr) {
+    negative_sign_found = true;
+    ++itr;
+  }
+
+  if (static_cast<char_type>('.') == *itr) {
+    fractional_part_found = true;
+    ++itr;
+  }
+
+  if (pos)
+    *pos = 0;
+
+  if (!fractional_part_found && static_cast<char_type>('0') == *itr)
+    return number_value;
+
+  if (base != number_base::hexadecimal &&
+      (*itr == static_cast<char_type>('e') ||
+       *itr == static_cast<char_type>('E'))) {
+    if (fractional_part_found)
+      return number_value;
+    exponential_sign_found = true;
+    ++itr;
+  }
+
+  size_t i{static_cast<size_t>(std::distance(std::cbegin(src_sv), itr))};
+
+  for (; !found_invalid_character && i != src_sv.length(); ++i) {
+    switch (base) {
+      case number_base::binary:
+
+        if (src_sv[i] == static_cast<char_type>('.')) {
+          if (!fractional_part_found) {
+            fractional_part_found = true;
+            fractional_part_value = 0;
+            fractional_part_position_index = -1;
+          } else
+            found_invalid_character = true;
+        }
+
+        else if (!exponential_sign_found &&
+                 (src_sv[i] == static_cast<char_type>('e') ||
+                  src_sv[i] == static_cast<char_type>('E')))
+          exponential_sign_found = true;
+
+        else if (exponential_sign_found &&
+                 src_sv[i] == static_cast<char_type>('+')) {
+          if (src_sv[i - 1] != static_cast<char_type>('e') &&
+              src_sv[i - 1] != static_cast<char_type>('E'))
+            found_invalid_character = true;
+
+          exponential_part_value = 0;
+        }
+
+        else if (exponential_sign_found &&
+                 src_sv[i] == static_cast<char_type>('-')) {
+          if (src_sv[i - 1] != static_cast<char_type>('e') &&
+              src_sv[i - 1] != static_cast<char_type>('E'))
+            found_invalid_character = true;
+          else
+            negative_exponent_sign_found = true;
+
+          exponential_part_value = 0;
+        }
+
+        else if (exponential_sign_found && exponent_leading_zero_values &&
+                 src_sv[i] == static_cast<char_type>('0'))
+          exponential_part_value = 0;
+
+        else if (src_sv[i] < static_cast<char_type>('0') ||
+                 src_sv[i] > static_cast<char_type>('1'))
+          found_invalid_character = true;
+
+        else {
+          if (exponential_sign_found) {
+            exponent_leading_zero_values = false;
+            exponential_part_value *= 2;
+            exponential_part_value += src_sv[i] - static_cast<char_type>('0');
+          } else if (fractional_part_found) {
+            fractional_part_value += static_cast<double>(
+                (src_sv[i] - static_cast<char_type>('0')) *
+                std::pow(2, fractional_part_position_index));
+            fractional_part_position_index--;
+          } else {
+            number_value *= 2;
+            number_value += src_sv[i] - static_cast<char_type>('0');
+          }
+        }
+
+        if (found_invalid_character) {
+          number_value += fractional_part_value;
+
+          if (negative_sign_found)
+            number_value = -number_value;
+
+          if (exponential_sign_found) {
+            if (negative_exponent_sign_found)
+              exponential_part_value = -exponential_part_value;
+
+            if (std::abs(exponential_part_value) != 0)
+              number_value *=
+                  static_cast<double>(std::pow(2, exponential_part_value));
+          }
+        }
+
+        break;
+
+      case number_base::octal:
+
+        if (src_sv[i] == static_cast<char_type>('.')) {
+          if (!fractional_part_found) {
+            fractional_part_found = true;
+            fractional_part_value = 0;
+            fractional_part_position_index = -1;
+          } else
+            found_invalid_character = true;
+        }
+
+        else if (!exponential_sign_found &&
+                 (src_sv[i] == static_cast<char_type>('e') ||
+                  src_sv[i] == static_cast<char_type>('E')))
+          exponential_sign_found = true;
+
+        else if (exponential_sign_found &&
+                 src_sv[i] == static_cast<char_type>('+')) {
+          if (src_sv[i - 1] != static_cast<char_type>('e') &&
+              src_sv[i - 1] != static_cast<char_type>('E'))
+            found_invalid_character = true;
+          exponential_part_value = 0;
+        }
+
+        else if (exponential_sign_found &&
+                 src_sv[i] == static_cast<char_type>('-')) {
+          if (src_sv[i - 1] != static_cast<char_type>('e') &&
+              src_sv[i - 1] != static_cast<char_type>('E'))
+            found_invalid_character = true;
+          else
+            negative_exponent_sign_found = true;
+          exponential_part_value = 0;
+        }
+
+        else if (exponential_sign_found && exponent_leading_zero_values &&
+                 src_sv[i] == static_cast<char_type>('0'))
+          exponential_part_value = 0;
+
+        else if (src_sv[i] < static_cast<char_type>('0') ||
+                 src_sv[i] > static_cast<char_type>('7'))
+          found_invalid_character = true;
+
+        else {
+          if (exponential_sign_found) {
+            exponent_leading_zero_values = false;
+            exponential_part_value *= 2;
+            exponential_part_value += src_sv[i] - static_cast<char_type>('0');
+          } else if (fractional_part_found) {
+            fractional_part_value += static_cast<double>(
+                (src_sv[i] - static_cast<char_type>('0')) *
+                std::pow(8, fractional_part_position_index));
+            fractional_part_position_index--;
+          } else {
+            number_value *= 8;
+            number_value += src_sv[i] - static_cast<char_type>('0');
+          }
+        }
+
+        if (found_invalid_character) {
+          number_value += fractional_part_value;
+
+          if (negative_sign_found)
+            number_value = -number_value;
+
+          if (exponential_sign_found) {
+            if (negative_exponent_sign_found)
+              exponential_part_value = -exponential_part_value;
+
+            if (std::abs(exponential_part_value) != 0)
+              number_value *=
+                  static_cast<double>(std::pow(8, exponential_part_value));
+          }
+        }
+
+        break;
+
+      case number_base::decimal:
+        if (src_sv[i] == static_cast<char_type>('.')) {
+          if (!fractional_part_found) {
+            fractional_part_found = true;
+            fractional_part_value = 0;
+            fractional_part_position_index = -1;
+          } else
+            found_invalid_character = true;
+        }
+
+        else if (!exponential_sign_found &&
+                 (src_sv[i] == static_cast<char_type>('e') ||
+                  src_sv[i] == static_cast<char_type>('E')))
+          exponential_sign_found = true;
+
+        else if (exponential_sign_found &&
+                 src_sv[i] == static_cast<char_type>('+')) {
+          if (src_sv[i - 1] != static_cast<char_type>('e') &&
+              src_sv[i - 1] != static_cast<char_type>('E'))
+            found_invalid_character = true;
+          exponential_part_value = 0;
+        }
+
+        else if (exponential_sign_found &&
+                 src_sv[i] == static_cast<char_type>('-')) {
+          if (src_sv[i - 1] != static_cast<char_type>('e') &&
+              src_sv[i - 1] != static_cast<char_type>('E'))
+            found_invalid_character = true;
+          else
+            negative_exponent_sign_found = true;
+          exponential_part_value = 0;
+        }
+
+        else if (exponential_sign_found && exponent_leading_zero_values &&
+                 src_sv[i] == static_cast<char_type>('0'))
+          exponential_part_value = 0;
+        else if (src_sv[i] < static_cast<char_type>('0') ||
+                 src_sv[i] > static_cast<char_type>('9'))
+          found_invalid_character = true;
+
+        else {
+          if (exponential_sign_found) {
+            exponent_leading_zero_values = false;
+            exponential_part_value *= 10;
+            exponential_part_value += src_sv[i] - static_cast<char_type>('0');
+          } else if (fractional_part_found) {
+            fractional_part_value += static_cast<double>(
+                (src_sv[i] - static_cast<char_type>('0')) *
+                std::pow(10, fractional_part_position_index));
+            fractional_part_position_index--;
+          } else {
+            number_value *= 10;
+            number_value += src_sv[i] - static_cast<char_type>('0');
+          }
+        }
+
+        if (found_invalid_character) {
+          number_value += fractional_part_value;
+
+          if (negative_sign_found)
+            number_value = -number_value;
+
+          if (exponential_sign_found) {
+            if (negative_exponent_sign_found)
+              exponential_part_value = -exponential_part_value;
+
+            if (std::abs(exponential_part_value) != 0)
+              number_value *=
+                  static_cast<double>(std::pow(10, exponential_part_value));
+          }
+        }
+
+        break;
+
+      case number_base::hexadecimal:
+        if (src_sv[i] == static_cast<char_type>('.')) {
+          if (!fractional_part_found) {
+            fractional_part_found = true;
+            fractional_part_value = 0;
+            fractional_part_position_index = -1;
+          } else
+            found_invalid_character = true;
+
+        } else {
+          if (fractional_part_found) {
+            if ((src_sv[i] >= static_cast<char_type>('0') &&
+                 src_sv[i] <= static_cast<char_type>('9')) ||
+                (src_sv[i] >= static_cast<char_type>('A') &&
+                 src_sv[i] <= static_cast<char_type>('F')) ||
+                (src_sv[i] >= static_cast<char_type>('a') &&
+                 src_sv[i] <= static_cast<char_type>('f'))) {
+              number_value *= 16;
+
+              if (src_sv[i] >= static_cast<char_type>('0') &&
+                  src_sv[i] <= static_cast<char_type>('9'))
+                fractional_part_value += static_cast<double>(
+                    (src_sv[i] - static_cast<char_type>('0')) *
+                    std::pow(16, fractional_part_position_index));
+
+              else if (src_sv[i] >= static_cast<char_type>('A') &&
+                       src_sv[i] <= static_cast<char_type>('F'))
+                fractional_part_value += static_cast<double>(
+                    (src_sv[i] - static_cast<char_type>('A')) *
+                    std::pow(16, fractional_part_position_index));
+
+              else
+                fractional_part_value += static_cast<double>(
+                    (src_sv[i] - static_cast<char_type>('a')) *
+                    std::pow(16, fractional_part_position_index));
+
+              fractional_part_position_index--;
+            } else
+              found_invalid_character = true;
+
+          } else {
+            if ((src_sv[i] >= static_cast<char_type>('0') &&
+                 src_sv[i] <= static_cast<char_type>('9')) ||
+                (src_sv[i] >= static_cast<char_type>('A') &&
+                 src_sv[i] <= static_cast<char_type>('F')) ||
+                (src_sv[i] >= static_cast<char_type>('a') &&
+                 src_sv[i] <= static_cast<char_type>('f'))) {
+              number_value *= 16;
+              if (src_sv[i] >= static_cast<char_type>('0') &&
+                  src_sv[i] <= static_cast<char_type>('9'))
+                number_value += src_sv[i] - static_cast<char_type>('0');
+              else if (src_sv[i] >= static_cast<char_type>('A') &&
+                       src_sv[i] <= static_cast<char_type>('F'))
+                number_value += 10 + (src_sv[i] - static_cast<char_type>('A'));
+              else
+                number_value += 10 + (src_sv[i] - static_cast<char_type>('a'));
+            } else
+              found_invalid_character = true;
+          }
+        }
+
+        if (found_invalid_character) {
+          number_value += fractional_part_value;
+
+          if (negative_sign_found)
+            number_value = -number_value;
+        }
+
+        break;
+    }
+  }
+
+  if (!found_invalid_character) {
+    number_value += fractional_part_value;
+
+    if (negative_sign_found)
+      number_value = -number_value;
+
+    if (exponential_sign_found && base != number_base::hexadecimal) {
+      if (negative_exponent_sign_found)
+        exponential_part_value = -exponential_part_value;
+
+      if (std::abs(exponential_part_value) != 0)
+        number_value *=
+            static_cast<double>(std::pow(2, exponential_part_value));
+    }
+  }
+
+  if (pos)
+    *pos = i;
+
+  return number_value;
+}
+
+template <typename T,
+          typename U,
+          typename = std::enable_if_t<
+              is_char_array_type_v<T> || is_char_pointer_type_v<T> ||
+              is_valid_string_type_v<T> || is_valid_string_view_type_v<T>>>
+long double stold(const T& src,
+                  const number_base base = number_base::decimal,
+                  bool ignore_leading_white_space_characters = true,
+                  size_t* pos = nullptr) {
+  using char_type = get_char_type_t<T>;
+
+  static const std::basic_string<char_type> binary_number_base_prefix{
+      static_cast<char_type>('0'), static_cast<char_type>('b')};
+  static const std::basic_string<char_type> octal_number_base_prefix{
+      static_cast<char_type>('0'), static_cast<char_type>('o')};
+  static const std::basic_string<char_type> hexadecimal_number_base_prefix{
+      static_cast<char_type>('0'), static_cast<char_type>('x')};
+
+  const size_t src_len{len(src)};
+
+  if (0U == src_len) {
+    if (pos)
+      *pos = 0;
+    return 0;
+  }
+
+  long double number_value{};
+
+  bool negative_sign_found{};
+  long double fractional_part_value{};
+  bool fractional_part_found{};
+  int fractional_part_position_index{-1};
+
+  bool exponential_sign_found{};
+  bool negative_exponent_sign_found{};
+  bool exponent_leading_zero_values{true};
+  int exponential_part_value{};
+
+  bool found_invalid_character{};
+
+  std::basic_string<char_type> temp_src{};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
+    src_sv.assign(src);
+
+  if constexpr (is_char_array_type_v<T> || is_char_pointer_type_v<T>)
+    src_sv.assign(src, src_len);
+
+  if (ignore_leading_white_space_characters) {
+    temp_src = ltrim(src_sv);
+    src_sv.assign(temp_src);
+  }
+
+  auto itr = std::cbegin(src_sv);
+
+  if (*itr == static_cast<char_type>('+'))
+    ++itr;
+
+  else if (*itr == static_cast<char_type>('-')) {
+    negative_sign_found = true;
+    ++itr;
+  }
+
+  if (number_base::binary == base && (static_cast<char_type>('b') == *itr ||
+                                      static_cast<char_type>('B') == *itr))
+    ++itr;
+
+  else if (number_base::binary == base &&
+           0 == str_compare_n_i(itr, std::cend(src_sv),
+                                std::cbegin(binary_number_base_prefix),
+                                std::cend(binary_number_base_prefix), 2))
+    itr += 2;
+
+  else if (number_base::octal == base && (static_cast<char_type>('0') == *itr ||
+                                          static_cast<char_type>('o') == *itr ||
+                                          static_cast<char_type>('O') == *itr))
+    ++itr;
+
+  else if (number_base::octal == base &&
+           0 == str_compare_n_i(itr, std::cend(src_sv),
+                                std::cbegin(octal_number_base_prefix),
+                                std::cend(octal_number_base_prefix), 2))
+    itr += 2;
+
+  else if (number_base::hexadecimal == base &&
+           (static_cast<char_type>('x') == *itr ||
+            static_cast<char_type>('X') == *itr))
+    ++itr;
+
+  else if (number_base::hexadecimal == base &&
+           0 == str_compare_n_i(itr, std::cend(src_sv),
+                                std::cbegin(hexadecimal_number_base_prefix),
+                                std::cend(hexadecimal_number_base_prefix), 2))
+    itr += 2;
+
+  if (static_cast<char_type>('+') == *itr)
+    ++itr;
+
+  else if (static_cast<char_type>('-') == *itr) {
+    negative_sign_found = true;
+    ++itr;
+  }
+
+  if (static_cast<char_type>('.') == *itr) {
+    fractional_part_found = true;
+    ++itr;
+  }
+
+  if (pos)
+    *pos = 0;
+
+  if (!fractional_part_found && static_cast<char_type>('0') == *itr)
+    return number_value;
+
+  if (base != number_base::hexadecimal &&
+      (*itr == static_cast<char_type>('e') ||
+       *itr == static_cast<char_type>('E'))) {
+    if (fractional_part_found)
+      return number_value;
+    exponential_sign_found = true;
+    ++itr;
+  }
+
+  size_t i{static_cast<size_t>(std::distance(std::cbegin(src_sv), itr))};
+
+  for (; !found_invalid_character && i != src_sv.length(); ++i) {
+    switch (base) {
+      case number_base::binary:
+
+        if (src_sv[i] == static_cast<char_type>('.')) {
+          if (!fractional_part_found) {
+            fractional_part_found = true;
+            fractional_part_value = 0;
+            fractional_part_position_index = -1;
+          } else
+            found_invalid_character = true;
+        }
+
+        else if (!exponential_sign_found &&
+                 (src_sv[i] == static_cast<char_type>('e') ||
+                  src_sv[i] == static_cast<char_type>('E')))
+          exponential_sign_found = true;
+
+        else if (exponential_sign_found &&
+                 src_sv[i] == static_cast<char_type>('+')) {
+          if (src_sv[i - 1] != static_cast<char_type>('e') &&
+              src_sv[i - 1] != static_cast<char_type>('E'))
+            found_invalid_character = true;
+
+          exponential_part_value = 0;
+        }
+
+        else if (exponential_sign_found &&
+                 src_sv[i] == static_cast<char_type>('-')) {
+          if (src_sv[i - 1] != static_cast<char_type>('e') &&
+              src_sv[i - 1] != static_cast<char_type>('E'))
+            found_invalid_character = true;
+          else
+            negative_exponent_sign_found = true;
+
+          exponential_part_value = 0;
+        }
+
+        else if (exponential_sign_found && exponent_leading_zero_values &&
+                 src_sv[i] == static_cast<char_type>('0'))
+          exponential_part_value = 0;
+
+        else if (src_sv[i] < static_cast<char_type>('0') ||
+                 src_sv[i] > static_cast<char_type>('1'))
+          found_invalid_character = true;
+
+        else {
+          if (exponential_sign_found) {
+            exponent_leading_zero_values = false;
+            exponential_part_value *= 2;
+            exponential_part_value += src_sv[i] - static_cast<char_type>('0');
+          } else if (fractional_part_found) {
+            fractional_part_value += static_cast<long double>(
+                (src_sv[i] - static_cast<char_type>('0')) *
+                std::pow(2, fractional_part_position_index));
+            fractional_part_position_index--;
+          } else {
+            number_value *= 2;
+            number_value += src_sv[i] - static_cast<char_type>('0');
+          }
+        }
+
+        if (found_invalid_character) {
+          number_value += fractional_part_value;
+
+          if (negative_sign_found)
+            number_value = -number_value;
+
+          if (exponential_sign_found) {
+            if (negative_exponent_sign_found)
+              exponential_part_value = -exponential_part_value;
+
+            if (std::abs(exponential_part_value) != 0)
+              number_value *=
+                  static_cast<long double>(std::pow(2, exponential_part_value));
+          }
+        }
+
+        break;
+
+      case number_base::octal:
+
+        if (src_sv[i] == static_cast<char_type>('.')) {
+          if (!fractional_part_found) {
+            fractional_part_found = true;
+            fractional_part_value = 0;
+            fractional_part_position_index = -1;
+          } else
+            found_invalid_character = true;
+        }
+
+        else if (!exponential_sign_found &&
+                 (src_sv[i] == static_cast<char_type>('e') ||
+                  src_sv[i] == static_cast<char_type>('E')))
+          exponential_sign_found = true;
+
+        else if (exponential_sign_found &&
+                 src_sv[i] == static_cast<char_type>('+')) {
+          if (src_sv[i - 1] != static_cast<char_type>('e') &&
+              src_sv[i - 1] != static_cast<char_type>('E'))
+            found_invalid_character = true;
+          exponential_part_value = 0;
+        }
+
+        else if (exponential_sign_found &&
+                 src_sv[i] == static_cast<char_type>('-')) {
+          if (src_sv[i - 1] != static_cast<char_type>('e') &&
+              src_sv[i - 1] != static_cast<char_type>('E'))
+            found_invalid_character = true;
+          else
+            negative_exponent_sign_found = true;
+          exponential_part_value = 0;
+        }
+
+        else if (exponential_sign_found && exponent_leading_zero_values &&
+                 src_sv[i] == static_cast<char_type>('0'))
+          exponential_part_value = 0;
+
+        else if (src_sv[i] < static_cast<char_type>('0') ||
+                 src_sv[i] > static_cast<char_type>('7'))
+          found_invalid_character = true;
+
+        else {
+          if (exponential_sign_found) {
+            exponent_leading_zero_values = false;
+            exponential_part_value *= 2;
+            exponential_part_value += src_sv[i] - static_cast<char_type>('0');
+          } else if (fractional_part_found) {
+            fractional_part_value += static_cast<long double>(
+                (src_sv[i] - static_cast<char_type>('0')) *
+                std::pow(8, fractional_part_position_index));
+            fractional_part_position_index--;
+          } else {
+            number_value *= 8;
+            number_value += src_sv[i] - static_cast<char_type>('0');
+          }
+        }
+
+        if (found_invalid_character) {
+          number_value += fractional_part_value;
+
+          if (negative_sign_found)
+            number_value = -number_value;
+
+          if (exponential_sign_found) {
+            if (negative_exponent_sign_found)
+              exponential_part_value = -exponential_part_value;
+
+            if (std::abs(exponential_part_value) != 0)
+              number_value *=
+                  static_cast<long double>(std::pow(8, exponential_part_value));
+          }
+        }
+
+        break;
+
+      case number_base::decimal:
+        if (src_sv[i] == static_cast<char_type>('.')) {
+          if (!fractional_part_found) {
+            fractional_part_found = true;
+            fractional_part_value = 0;
+            fractional_part_position_index = -1;
+          } else
+            found_invalid_character = true;
+        }
+
+        else if (!exponential_sign_found &&
+                 (src_sv[i] == static_cast<char_type>('e') ||
+                  src_sv[i] == static_cast<char_type>('E')))
+          exponential_sign_found = true;
+
+        else if (exponential_sign_found &&
+                 src_sv[i] == static_cast<char_type>('+')) {
+          if (src_sv[i - 1] != static_cast<char_type>('e') &&
+              src_sv[i - 1] != static_cast<char_type>('E'))
+            found_invalid_character = true;
+          exponential_part_value = 0;
+        }
+
+        else if (exponential_sign_found &&
+                 src_sv[i] == static_cast<char_type>('-')) {
+          if (src_sv[i - 1] != static_cast<char_type>('e') &&
+              src_sv[i - 1] != static_cast<char_type>('E'))
+            found_invalid_character = true;
+          else
+            negative_exponent_sign_found = true;
+          exponential_part_value = 0;
+        }
+
+        else if (exponential_sign_found && exponent_leading_zero_values &&
+                 src_sv[i] == static_cast<char_type>('0'))
+          exponential_part_value = 0;
+        else if (src_sv[i] < static_cast<char_type>('0') ||
+                 src_sv[i] > static_cast<char_type>('9'))
+          found_invalid_character = true;
+
+        else {
+          if (exponential_sign_found) {
+            exponent_leading_zero_values = false;
+            exponential_part_value *= 10;
+            exponential_part_value += src_sv[i] - static_cast<char_type>('0');
+          } else if (fractional_part_found) {
+            fractional_part_value += static_cast<long double>(
+                (src_sv[i] - static_cast<char_type>('0')) *
+                std::pow(10, fractional_part_position_index));
+            fractional_part_position_index--;
+          } else {
+            number_value *= 10;
+            number_value += src_sv[i] - static_cast<char_type>('0');
+          }
+        }
+
+        if (found_invalid_character) {
+          number_value += fractional_part_value;
+
+          if (negative_sign_found)
+            number_value = -number_value;
+
+          if (exponential_sign_found) {
+            if (negative_exponent_sign_found)
+              exponential_part_value = -exponential_part_value;
+
+            if (std::abs(exponential_part_value) != 0)
+              number_value *= static_cast<long double>(
+                  std::pow(10, exponential_part_value));
+          }
+        }
+
+        break;
+
+      case number_base::hexadecimal:
+        if (src_sv[i] == static_cast<char_type>('.')) {
+          if (!fractional_part_found) {
+            fractional_part_found = true;
+            fractional_part_value = 0;
+            fractional_part_position_index = -1;
+          } else
+            found_invalid_character = true;
+
+        } else {
+          if (fractional_part_found) {
+            if ((src_sv[i] >= static_cast<char_type>('0') &&
+                 src_sv[i] <= static_cast<char_type>('9')) ||
+                (src_sv[i] >= static_cast<char_type>('A') &&
+                 src_sv[i] <= static_cast<char_type>('F')) ||
+                (src_sv[i] >= static_cast<char_type>('a') &&
+                 src_sv[i] <= static_cast<char_type>('f'))) {
+              number_value *= 16;
+
+              if (src_sv[i] >= static_cast<char_type>('0') &&
+                  src_sv[i] <= static_cast<char_type>('9'))
+                fractional_part_value += static_cast<long double>(
+                    (src_sv[i] - static_cast<char_type>('0')) *
+                    std::pow(16, fractional_part_position_index));
+
+              else if (src_sv[i] >= static_cast<char_type>('A') &&
+                       src_sv[i] <= static_cast<char_type>('F'))
+                fractional_part_value += static_cast<long double>(
+                    (src_sv[i] - static_cast<char_type>('A')) *
+                    std::pow(16, fractional_part_position_index));
+
+              else
+                fractional_part_value += static_cast<long double>(
+                    (src_sv[i] - static_cast<char_type>('a')) *
+                    std::pow(16, fractional_part_position_index));
+
+              fractional_part_position_index--;
+            } else
+              found_invalid_character = true;
+
+          } else {
+            if ((src_sv[i] >= static_cast<char_type>('0') &&
+                 src_sv[i] <= static_cast<char_type>('9')) ||
+                (src_sv[i] >= static_cast<char_type>('A') &&
+                 src_sv[i] <= static_cast<char_type>('F')) ||
+                (src_sv[i] >= static_cast<char_type>('a') &&
+                 src_sv[i] <= static_cast<char_type>('f'))) {
+              number_value *= 16;
+              if (src_sv[i] >= static_cast<char_type>('0') &&
+                  src_sv[i] <= static_cast<char_type>('9'))
+                number_value += src_sv[i] - static_cast<char_type>('0');
+              else if (src_sv[i] >= static_cast<char_type>('A') &&
+                       src_sv[i] <= static_cast<char_type>('F'))
+                number_value += 10 + (src_sv[i] - static_cast<char_type>('A'));
+              else
+                number_value += 10 + (src_sv[i] - static_cast<char_type>('a'));
+            } else
+              found_invalid_character = true;
+          }
+        }
+
+        if (found_invalid_character) {
+          number_value += fractional_part_value;
+
+          if (negative_sign_found)
+            number_value = -number_value;
+        }
+
+        break;
+    }
+  }
+
+  if (!found_invalid_character) {
+    number_value += fractional_part_value;
+
+    if (negative_sign_found)
+      number_value = -number_value;
+
+    if (exponential_sign_found && base != number_base::hexadecimal) {
+      if (negative_exponent_sign_found)
+        exponential_part_value = -exponential_part_value;
+
+      if (std::abs(exponential_part_value) != 0)
+        number_value *=
+            static_cast<long double>(std::pow(2, exponential_part_value));
+    }
+  }
+
+  if (pos)
+    *pos = i;
+
+  return number_value;
+}
 
 template <
     typename T,
