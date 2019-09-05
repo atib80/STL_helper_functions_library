@@ -143,14 +143,14 @@ TEST_CASE("void swap(T& first, T& second)",
   string first{"first"}, second{"second"};
   REQUIRE(first == "first"s);
   REQUIRE(second == "second"s);
-  swap(first, second);
+  stl::helper::swap(first, second);
   REQUIRE(first == "second"s);
   REQUIRE(second == "first"s);
 
   no_move_type a{1}, b{2};
   REQUIRE(1 == a.id);
   REQUIRE(2 == b.id);
-  swap(a, b);
+  stl::helper::swap(a, b);
   REQUIRE(2 == a.id);
   REQUIRE(1 == b.id);
 }
@@ -177,12 +177,50 @@ TEST_CASE("is_non_const_char_array_type<T>",
 }
 
 TEST_CASE("is_const_char_array_type<T>",
-          "Testing is_const_char_array_type<T> class template") {}
+          "Testing is_const_char_array_type<T> class template") {
+  REQUIRE(is_const_char_array_type<const char[10]>::value);
+  REQUIRE(is_const_char_array_type<const wchar_t[10]>::value);
+  REQUIRE(is_const_char_array_type<const char16_t[10]>::value);
+  REQUIRE(is_const_char_array_type<const char32_t[10]>::value);
+  REQUIRE(is_const_char_array_type_v<const char[10]>);
+  REQUIRE(is_const_char_array_type_v<const wchar_t[10]>);
+  REQUIRE(is_const_char_array_type_v<const char16_t[10]>);
+  REQUIRE(is_const_char_array_type_v<const char32_t[10]>);
+
+  REQUIRE(!is_const_char_array_type<char[10]>::value);
+  REQUIRE(!is_const_char_array_type<wchar_t[10]>::value);
+  REQUIRE(!is_const_char_array_type<char16_t[10]>::value);
+  REQUIRE(!is_const_char_array_type<char32_t[10]>::value);
+  REQUIRE(!is_const_char_array_type_v<char[10]>);
+  REQUIRE(!is_const_char_array_type_v<wchar_t[10]>);
+  REQUIRE(!is_const_char_array_type_v<char16_t[10]>);
+  REQUIRE(!is_const_char_array_type_v<char32_t[10]>);
+}
 
 TEST_CASE(
     "size_t len(T src, const size_t max_allowed_string_length = "
     "max_string_length)",
     "Testing global function len)") {
+  const char ch1{'a'};
+  const wchar_t ch2{L'A'};
+  const char16_t ch3{u'b'};
+  const char32_t ch4{U'B'};
+
+  REQUIRE(len(ch1) == 1U);
+  REQUIRE(len(ch2) == 1U);
+  REQUIRE(len(ch3) == 1U);
+  REQUIRE(len(ch4) == 1U);
+
+  REQUIRE(len('a') == 1U);
+  REQUIRE(len('b') == 1U);
+  REQUIRE(len('c') == 1U);
+  REQUIRE(len('d') == 1U);
+
+  REQUIRE(len("Hello") == 5U);
+  REQUIRE(len(L"Hello") == 5U);
+  REQUIRE(len(u"Hello") == 5U);
+  REQUIRE(len(U"Hello") == 5U);
+
   const char* src1 = "Hello World!\n";
   REQUIRE(len(src1) == strlen(src1));
 
@@ -214,23 +252,22 @@ TEST_CASE("bool trim_in_place(CharPointerType mutable_char_buffer)",
           "Testing global function template bool trim_in_place(CharPointerType "
           "mutable_char_buffer)") {
   char char_buffer[64] = "\t Hello World!\t \n";
-
   const char* char_str = "Hello World!";
 
   REQUIRE(trim_in_place(char_buffer));
 
-  REQUIRE(strcmp(char_buffer, char_str) == 0);
+  REQUIRE(0 == strcmp(char_buffer, char_str));
+  REQUIRE(0 == str_compare(char_buffer, char_str));
 
   wchar_t wchar_t_buffer[64] = L" \t Hello World!\t \n";
-
   const wchar_t* wchar_t_str = L"Hello World!";
 
   REQUIRE(trim_in_place(wchar_t_buffer));
 
-  REQUIRE(wcscmp(wchar_t_buffer, wchar_t_str) == 0);
+  REQUIRE(0 == wcscmp(wchar_t_buffer, wchar_t_str));
+  REQUIRE(0 == str_compare(wchar_t_buffer, wchar_t_str));
 
   char16_t char16_t_buffer[64] = u" \t Hello World!\t \n";
-
   const char16_t* char16_t_str = u"Hello World!";
 
   REQUIRE(trim_in_place(char16_t_buffer));
@@ -239,9 +276,9 @@ TEST_CASE("bool trim_in_place(CharPointerType mutable_char_buffer)",
   u16string dst_u16string{char16_t_str};
 
   REQUIRE(src_u16string == dst_u16string);
+  REQUIRE(0 == str_compare(char16_t_buffer, char16_t_str));
 
   char32_t char32_t_buffer[64] = U" \t Hello World!\t \n";
-
   const char32_t* char32_t_str_dst = U"Hello World!";
 
   REQUIRE(trim_in_place(char32_t_buffer));
@@ -250,29 +287,29 @@ TEST_CASE("bool trim_in_place(CharPointerType mutable_char_buffer)",
   u32string dst_u32string{char32_t_str_dst};
 
   REQUIRE(src_u32string == dst_u32string);
+  REQUIRE(0 == str_compare(char32_t_buffer, char32_t_str_dst));
 }
 
 TEST_CASE("bool ltrim_in_place(CharPointerType mutable_char_buffer)",
           "Testing global function template bool "
           "ltrim_in_place(CharPointerType mutable_char_buffer)") {
   char char_buffer[64] = "\t Hello World!";
-
   const char* char_str = "Hello World!";
 
   REQUIRE(ltrim_in_place(char_buffer));
 
-  REQUIRE(strcmp(char_buffer, char_str) == 0);
+  REQUIRE(0 == strcmp(char_buffer, char_str));
+  REQUIRE(0 == str_compare(char_buffer, char_str));
 
   wchar_t wchar_t_buffer[64] = L" \t Hello World!";
-
   const wchar_t* wchar_t_str = L"Hello World!";
 
   REQUIRE(ltrim_in_place(wchar_t_buffer));
 
-  REQUIRE(wcscmp(wchar_t_buffer, wchar_t_str) == 0);
+  REQUIRE(0 == wcscmp(wchar_t_buffer, wchar_t_str));
+  REQUIRE(0 == str_compare(wchar_t_buffer, wchar_t_str));
 
   char16_t char16_t_buffer[64] = u" \t Hello World!";
-
   const char16_t* char16_t_str = u"Hello World!";
 
   REQUIRE(ltrim_in_place(char16_t_buffer));
@@ -281,9 +318,9 @@ TEST_CASE("bool ltrim_in_place(CharPointerType mutable_char_buffer)",
   u16string dst_u16string{char16_t_str};
 
   REQUIRE(src_u16string == dst_u16string);
+  REQUIRE(0 == str_compare(char16_t_buffer, char16_t_str));
 
   char32_t char32_t_buffer[64] = U" \t Hello World!";
-
   const char32_t* char32_t_str_dst = U"Hello World!";
 
   REQUIRE(ltrim_in_place(char32_t_buffer));
@@ -292,29 +329,29 @@ TEST_CASE("bool ltrim_in_place(CharPointerType mutable_char_buffer)",
   u32string dst_u32string{char32_t_str_dst};
 
   REQUIRE(src_u32string == dst_u32string);
+  REQUIRE(0 == str_compare(char32_t_buffer, char32_t_str_dst));
 }
 
 TEST_CASE("bool rtrim_in_place(CharPointerType mutable_char_buffer)",
           "Testing global function template bool "
           "rtrim_in_place(CharPointerType mutable_char_buffer)") {
   char char_buffer[64] = "Hello World!\t\n";
-
   const char* char_str = "Hello World!";
 
   REQUIRE(rtrim_in_place(char_buffer));
 
-  REQUIRE(strcmp(char_buffer, char_str) == 0);
+  REQUIRE(0 == strcmp(char_buffer, char_str));
+  REQUIRE(0 == str_compare(char_buffer, char_str));
 
   wchar_t wchar_t_buffer[64] = L"Hello World!\t\n";
-
   const wchar_t* wchar_t_str = L"Hello World!";
 
   REQUIRE(rtrim_in_place(wchar_t_buffer));
 
   REQUIRE(wcscmp(wchar_t_buffer, wchar_t_str) == 0);
+  REQUIRE(0 == str_compare(wchar_t_buffer, wchar_t_str));
 
   char16_t char16_t_buffer[64] = u"Hello World!\t\n";
-
   const char16_t* char16_t_str = u"Hello World!";
 
   REQUIRE(rtrim_in_place(char16_t_buffer));
@@ -323,9 +360,9 @@ TEST_CASE("bool rtrim_in_place(CharPointerType mutable_char_buffer)",
   u16string dst_u16string{char16_t_str};
 
   REQUIRE(src_u16string == dst_u16string);
+  REQUIRE(0 == str_compare(char16_t_buffer, char16_t_str));
 
   char32_t char32_t_buffer[64] = U"Hello World!\t\n";
-
   const char32_t* char32_t_str_dst = U"Hello World!";
 
   REQUIRE(rtrim_in_place(char32_t_buffer));
@@ -334,14 +371,13 @@ TEST_CASE("bool rtrim_in_place(CharPointerType mutable_char_buffer)",
   u32string dst_u32string{char32_t_str_dst};
 
   REQUIRE(src_u32string == dst_u32string);
+  REQUIRE(0 == str_compare(char32_t_buffer, char32_t_str_dst));
 }
 
 TEST_CASE("auto trim(ConstCharPointerType src)",
           "Testing global function auto trim(ConstCharPointerType src)") {
   const char* src_char = " \t Hello World!\t \n";
-
   const string src_string{" \t Hello World!\t \n"};
-
   const string dst_string{"Hello World!"};
 
   string output_string{trim(src_char)};
@@ -352,10 +388,10 @@ TEST_CASE("auto trim(ConstCharPointerType src)",
 
   REQUIRE(output_string == dst_string);
 
+  REQUIRE(dst_string == trim(" \t Hello World!\t \n"));
+
   const wchar_t* src_wchar_t = L" \t Hello World!\t \n";
-
   const wstring src_wstring{L" \t Hello World!\t \n"};
-
   const wstring dst_wstring{L"Hello World!"};
 
   wstring output_wstring{trim(src_wchar_t)};
@@ -365,11 +401,10 @@ TEST_CASE("auto trim(ConstCharPointerType src)",
   output_wstring = trim(src_wstring);
 
   REQUIRE(output_wstring == dst_wstring);
+  REQUIRE(dst_wstring == trim(L" \t Hello World!\t \n"));
 
   const char16_t* src_char16_t = u" \t Hello World!\t \n";
-
   const u16string src_u16string{u" \t Hello World!\t \n"};
-
   const u16string dst_u16string{u"Hello World!"};
 
   u16string output_u16string{trim(src_char16_t)};
@@ -379,11 +414,10 @@ TEST_CASE("auto trim(ConstCharPointerType src)",
   output_u16string = trim(src_u16string);
 
   REQUIRE(output_u16string == dst_u16string);
+  REQUIRE(dst_u16string == trim(u" \t Hello World!\t \n"));
 
   const char32_t* src_char32_t = U" \t Hello World!\t \n";
-
   const u32string src_u32string{U" \t Hello World!\t \n"};
-
   const u32string dst_u32string{U"Hello World!"};
 
   u32string output_u32string{trim(src_char32_t)};
@@ -393,14 +427,13 @@ TEST_CASE("auto trim(ConstCharPointerType src)",
   output_u32string = trim(src_u32string);
 
   REQUIRE(output_u32string == dst_u32string);
+  REQUIRE(dst_u32string == trim(U" \t Hello World!\t \n"));
 }
 
 TEST_CASE("auto ltrim(ConstCharPointerType src)",
           "Testing global function auto ltrim(ConstCharPointerType src)") {
   const char* src_char = " \t Hello World!";
-
   const string src_string{" \t Hello World!"};
-
   const string dst_string{"Hello World!"};
 
   string output_string{ltrim(src_char)};
@@ -410,11 +443,10 @@ TEST_CASE("auto ltrim(ConstCharPointerType src)",
   output_string = ltrim(src_string);
 
   REQUIRE(output_string == dst_string);
+  REQUIRE(dst_string == ltrim(" \t Hello World!"));
 
   const wchar_t* src_wchar_t = L" \t Hello World!";
-
   const wstring src_wstring{L" \t Hello World!"};
-
   const wstring dst_wstring{L"Hello World!"};
 
   wstring output_wstring{ltrim(src_wchar_t)};
@@ -424,11 +456,10 @@ TEST_CASE("auto ltrim(ConstCharPointerType src)",
   output_wstring = ltrim(src_wstring);
 
   REQUIRE(output_wstring == dst_wstring);
+  REQUIRE(dst_wstring == ltrim(L" \t Hello World!"));
 
   const char16_t* src_char16_t = u" \t Hello World!";
-
   const u16string src_u16string{u" \t Hello World!"};
-
   const u16string dst_u16string{u"Hello World!"};
 
   u16string output_u16string{ltrim(src_char16_t)};
@@ -438,11 +469,10 @@ TEST_CASE("auto ltrim(ConstCharPointerType src)",
   output_u16string = ltrim(src_u16string);
 
   REQUIRE(output_u16string == dst_u16string);
+  REQUIRE(dst_u16string == ltrim(u" \t Hello World!"));
 
   const char32_t* src_char32_t = U" \t Hello World!";
-
   const u32string src_u32string{U" \t Hello World!"};
-
   const u32string dst_u32string{U"Hello World!"};
 
   u32string output_u32string{ltrim(src_char32_t)};
@@ -452,14 +482,13 @@ TEST_CASE("auto ltrim(ConstCharPointerType src)",
   output_u32string = ltrim(src_u32string);
 
   REQUIRE(output_u32string == dst_u32string);
+  REQUIRE(dst_u32string == ltrim(U" \t Hello World!"));
 }
 
 TEST_CASE("auto rtrim(ConstCharPointerType src)",
           "Testing global function auto rtrim(ConstCharPointerType src)") {
   const char* src_char = "Hello World!\t \n";
-
   const string src_string{"Hello World!\t \n"};
-
   const string dst_string{"Hello World!"};
 
   string output_string{rtrim(src_char)};
@@ -469,11 +498,10 @@ TEST_CASE("auto rtrim(ConstCharPointerType src)",
   output_string = rtrim(src_string);
 
   REQUIRE(output_string == dst_string);
+  REQUIRE(dst_string == rtrim("Hello World!\t \n"));
 
   const wchar_t* src_wchar_t = L"Hello World!\t \n";
-
   const wstring src_wstring{L"Hello World!\t \n"};
-
   const wstring dst_wstring{L"Hello World!"};
 
   wstring output_wstring{rtrim(src_wchar_t)};
@@ -483,11 +511,10 @@ TEST_CASE("auto rtrim(ConstCharPointerType src)",
   output_wstring = rtrim(src_wstring);
 
   REQUIRE(output_wstring == dst_wstring);
+  REQUIRE(dst_wstring == rtrim(L"Hello World!\t \n"));
 
   const char16_t* src_char16_t = u"Hello World!\t \n";
-
   const u16string src_u16string{u"Hello World!\t \n"};
-
   const u16string dst_u16string{u"Hello World!"};
 
   u16string output_u16string{rtrim(src_char16_t)};
@@ -497,11 +524,10 @@ TEST_CASE("auto rtrim(ConstCharPointerType src)",
   output_u16string = rtrim(src_u16string);
 
   REQUIRE(output_u16string == dst_u16string);
+  REQUIRE(dst_u16string == rtrim(u"Hello World!\t \n"));
 
   const char32_t* src_char32_t = U"Hello World!\t \n";
-
   const u32string src_u32string{U"Hello World!\t \n"};
-
   const u32string dst_u32string{U"Hello World!"};
 
   u32string output_u32string{rtrim(src_char32_t)};
@@ -511,6 +537,7 @@ TEST_CASE("auto rtrim(ConstCharPointerType src)",
   output_u32string = rtrim(src_u32string);
 
   REQUIRE(output_u32string == dst_u32string);
+  REQUIRE(dst_u32string == rtrim(U"Hello World!\t \n"));
 }
 
 // TEST_CASE("int u16_strcmp(const char16_t* str1, const char16_t* str2)",

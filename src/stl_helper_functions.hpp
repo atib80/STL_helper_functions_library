@@ -291,7 +291,7 @@ template <typename T, typename U = T>
 using is_operator_less_than_defined_t =
     decltype(std::declval<T>() < std::declval<U>());
 
-template <typename T, typename U, typename = void>
+template <typename T, typename U = T, typename = void>
 struct is_operator_less_than_defined : std::false_type {};
 
 template <typename T, typename U>
@@ -300,7 +300,7 @@ struct is_operator_less_than_defined<
     U,
     std::void_t<is_operator_less_than_defined_t<T, U>>> : std::true_type {};
 
-template <typename T, typename U>
+template <typename T, typename U = T>
 constexpr const bool is_operator_less_than_defined_v =
     is_operator_less_than_defined<T, U>::value;
 
@@ -773,6 +773,11 @@ using add_const_pointer_to_char_type_t =
 
 static constexpr auto not_found_index{std::string::npos};
 
+template <typename T, typename = std::enable_if_t<is_valid_char_type_v<T>>>
+constexpr size_t len(const T) {
+  return 1U;
+}
+
 template <typename T,
           size_t ARRAY_SIZE,
           typename = std::enable_if_t<is_valid_char_type_v<T>>>
@@ -786,18 +791,17 @@ size_t len(T (&arr)[ARRAY_SIZE]) {
 }
 
 template <typename T,
-          typename = std::enable_if_t<
-              is_valid_char_type_v<T> || is_char_pointer_type_v<T> ||
-              is_valid_string_type_v<T> || is_valid_string_view_type_v<T>>>
+          typename = std::enable_if_t<is_char_pointer_type_v<T> ||
+                                      is_valid_string_type_v<T> ||
+                                      is_valid_string_view_type_v<T>>>
 size_t len(const T& src) {
   if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
     return src.length();
 
-  if constexpr (is_valid_char_type_v<T>)
-    return 1U;
-
-  if (nullptr == src)
-    return 0U;
+  if constexpr (is_char_pointer_type_v<T>) {
+    if (nullptr == src)
+      return 0U;
+  }
 
   size_t length{};
 
@@ -841,9 +845,10 @@ size_t say_slow(std::ostream& os,
   size_t ch_count{};
 
   for (size_t i{}; i < len(output_buffer_sp.get()); ++i) {
-    if (os << output_buffer_sp.get()[i]; os.fail())
+    if (os << output_buffer_sp.get()[i])
+      ++ch_count;
+    else
       return ch_count;
-    ++ch_count;
     std::this_thread::sleep_for(std::chrono::milliseconds(time_delay_in_ms));
   }
 
@@ -868,9 +873,11 @@ size_t say_slow(std::ostream& os,
   size_t ch_count{};
 
   for (size_t i = 0; i < len(output_buffer_sp.get()); ++i) {
-    if (os << output_buffer_sp.get()[i]; os.fail())
+    if (os << output_buffer_sp.get()[i])
+      ++ch_count;
+    else
       return ch_count;
-    ++ch_count;
+
     std::this_thread::sleep_for(std::chrono::milliseconds(time_delay_in_ms));
   }
 
@@ -890,10 +897,8 @@ size_t say(std::ostream& os, const char* format_string, Args... args) {
   const auto ch_count =
       SNPRINTF(output_buffer_sp.get(), buffer_size, format_string, args...);
 
-  if (os << output_buffer_sp.get(); os.fail())
-    return std::string::npos;
-
-  return len(output_buffer_sp.get());
+  return (os << output_buffer_sp.get()) ? len(output_buffer_sp.get())
+                                        : std::string::npos;
 }
 
 template <typename... Args>
@@ -908,10 +913,8 @@ size_t say(std::ostream& os, const wchar_t* format_string, Args... args) {
 
   SNWPRINTF(output_buffer_sp.get(), buffer_size, format_string, args...);
 
-  if (os << output_buffer_sp.get(); os.fail())
-    return std::wstring::npos;
-
-  return len(output_buffer_sp.get());
+  return (os << output_buffer_sp.get()) ? len(output_buffer_sp.get())
+                                        : std::wstring::npos;
 }
 
 template <typename T,
@@ -1533,21 +1536,21 @@ typename std::basic_string<get_char_type_t<T>>::size_type str_index_of(
   std::basic_string<char_type> needle_str{};
 
   if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
-    src_sv.assign(src);
+    src_sv = src;
 
   if constexpr (is_char_array_type_v<T> || is_char_pointer_type_v<T>)
-    src_sv.assign(src, src_len);
+    src_sv = {src, src_len};
 
   if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
+    needle_sv = needle;
 
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
+    needle_sv = needle_str;
   }
 
   if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = {needle, needle_len};
 
   if constexpr (is_valid_char_type_v<U>) {
     if (!ignore_case)
