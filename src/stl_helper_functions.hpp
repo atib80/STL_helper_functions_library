@@ -526,112 +526,6 @@ void show_var_info_w(const T& arg, std::wostream& wos) {
   wos << L"\nType: " << get_type_name(arg) << L"\nValue: " << arg << '\n';
 }
 
-struct char_buffer_deleter {
-  using pointer_type = char*;
-
-  void operator()(const pointer_type pointer) const noexcept {
-    delete[] pointer;
-  }
-};
-
-struct wchar_t_buffer_deleter {
-  using pointer_type = wchar_t*;
-
-  void operator()(const pointer_type pointer) const noexcept {
-    delete[] pointer;
-  }
-};
-
-template <typename... Args>
-int say_slow(const size_t time_delay_in_ms,
-             const char* format_string,
-             Args... args) {
-  auto const buffer_size = _scprintf(format_string, args...) + 1;
-
-  std::unique_ptr<char[], char_buffer_deleter> output_buffer_sp(
-      new char[buffer_size], char_buffer_deleter{});
-
-  if (!output_buffer_sp)
-    return -1;
-
-  SNPRINTF(output_buffer_sp.get(), buffer_size, format_string, args...);
-
-  int final_ret_val{};
-
-  for (size_t i{}; i < strlen(output_buffer_sp.get()); ++i) {
-    const int ret_val{printf("%c", output_buffer_sp.get()[i])};
-
-    if (ret_val < 0)
-      return final_ret_val;
-
-    final_ret_val += ret_val;
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(time_delay_in_ms));
-  }
-
-  return final_ret_val;
-}
-
-template <typename... Args>
-int say_slow(const size_t time_delay_in_ms,
-             const wchar_t* format_string,
-             Args... args) {
-  auto const buffer_size = _scwprintf(format_string, args...) + 1;
-
-  std::unique_ptr<wchar_t[], wchar_t_buffer_deleter> output_buffer_sp(
-      new wchar_t[buffer_size], wchar_t_buffer_deleter{});
-
-  if (!output_buffer_sp)
-    return -1;
-
-  SNWPRINTF(output_buffer_sp.get(), buffer_size, format_string, args...);
-
-  int final_ret_val{};
-
-  for (size_t i = 0; i < wcslen(output_buffer_sp.get()); ++i) {
-    const int ret_val{wprintf(L"%c", output_buffer_sp.get()[i])};
-
-    if (ret_val < 0)
-      return final_ret_val;
-
-    final_ret_val += ret_val;
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(time_delay_in_ms));
-  }
-
-  return final_ret_val;
-}
-
-template <typename... Args>
-int say(const char* format_string, Args... args) {
-  auto const buffer_size = _scprintf(format_string, args...) + 1;
-
-  std::unique_ptr<char[], char_buffer_deleter> output_buffer_sp(
-      new char[buffer_size], char_buffer_deleter{});
-
-  if (!output_buffer_sp)
-    return -1;
-
-  SNPRINTF(output_buffer_sp.get(), buffer_size, format_string, args...);
-
-  return printf("%s", output_buffer_sp.get());
-}
-
-template <typename... Args>
-int say(const wchar_t* format_string, Args... args) {
-  auto const buffer_size = _scwprintf(format_string, args...) + 1;
-
-  std::unique_ptr<wchar_t[], wchar_t_buffer_deleter> output_buffer_sp(
-      new wchar_t[buffer_size], wchar_t_buffer_deleter{});
-
-  if (!output_buffer_sp)
-    return -1;
-
-  SNWPRINTF(output_buffer_sp.get(), buffer_size, format_string, args...);
-
-  return wprintf(L"%ls", output_buffer_sp.get());
-}
-
 template <typename T>
 constexpr inline void swap(T& first, T& second, std::true_type) noexcept(
     std::is_nothrow_move_constructible_v<T>&&
@@ -911,6 +805,113 @@ size_t len(const T& src) {
     length++;
 
   return length;
+}
+
+struct char_buffer_deleter {
+  using pointer_type = char*;
+
+  void operator()(const pointer_type pointer) const noexcept {
+    delete[] pointer;
+  }
+};
+
+struct wchar_t_buffer_deleter {
+  using pointer_type = wchar_t*;
+
+  void operator()(const pointer_type pointer) const noexcept {
+    delete[] pointer;
+  }
+};
+
+template <typename... Args>
+size_t say_slow(std::ostream& os,
+                const size_t time_delay_in_ms,
+                const char* format_string,
+                Args... args) {
+  auto const buffer_size = _scprintf(format_string, args...) + 1;
+
+  std::unique_ptr<char[], char_buffer_deleter> output_buffer_sp(
+      new char[buffer_size], char_buffer_deleter{});
+
+  if (!output_buffer_sp)
+    return std::string::npos;
+
+  SNPRINTF(output_buffer_sp.get(), buffer_size, format_string, args...);
+
+  size_t ch_count{};
+
+  for (size_t i{}; i < len(output_buffer_sp.get()); ++i) {
+    if (os << output_buffer_sp.get()[i]; os.fail())
+      return ch_count;
+    ++ch_count;
+    std::this_thread::sleep_for(std::chrono::milliseconds(time_delay_in_ms));
+  }
+
+  return ch_count;
+}
+
+template <typename... Args>
+size_t say_slow(std::ostream& os,
+                const size_t time_delay_in_ms,
+                const wchar_t* format_string,
+                Args... args) {
+  auto const buffer_size = _scwprintf(format_string, args...) + 1;
+
+  std::unique_ptr<wchar_t[], wchar_t_buffer_deleter> output_buffer_sp(
+      new wchar_t[buffer_size], wchar_t_buffer_deleter{});
+
+  if (!output_buffer_sp)
+    return std::wstring::npos;
+
+  SNWPRINTF(output_buffer_sp.get(), buffer_size, format_string, args...);
+
+  size_t ch_count{};
+
+  for (size_t i = 0; i < len(output_buffer_sp.get()); ++i) {
+    if (os << output_buffer_sp.get()[i]; os.fail())
+      return ch_count;
+    ++ch_count;
+    std::this_thread::sleep_for(std::chrono::milliseconds(time_delay_in_ms));
+  }
+
+  return ch_count;
+}
+
+template <typename... Args>
+size_t say(std::ostream& os, const char* format_string, Args... args) {
+  auto const buffer_size = _scprintf(format_string, args...) + 1;
+
+  std::unique_ptr<char[], char_buffer_deleter> output_buffer_sp(
+      new char[buffer_size], char_buffer_deleter{});
+
+  if (!output_buffer_sp)
+    return std::string::npos;
+
+  const auto ch_count =
+      SNPRINTF(output_buffer_sp.get(), buffer_size, format_string, args...);
+
+  if (os << output_buffer_sp.get(); os.fail())
+    return std::string::npos;
+
+  return len(output_buffer_sp.get());
+}
+
+template <typename... Args>
+size_t say(std::ostream& os, const wchar_t* format_string, Args... args) {
+  auto const buffer_size = _scwprintf(format_string, args...) + 1;
+
+  std::unique_ptr<wchar_t[], wchar_t_buffer_deleter> output_buffer_sp(
+      new wchar_t[buffer_size], wchar_t_buffer_deleter{});
+
+  if (!output_buffer_sp)
+    return std::wstring::npos;
+
+  SNWPRINTF(output_buffer_sp.get(), buffer_size, format_string, args...);
+
+  if (os << output_buffer_sp.get(); os.fail())
+    return std::wstring::npos;
+
+  return len(output_buffer_sp.get());
 }
 
 template <typename T,
