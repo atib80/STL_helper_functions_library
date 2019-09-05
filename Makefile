@@ -3,22 +3,20 @@ CXX=g++
 CODE_FORMAT=clang-format
 CODE_FORMAT_PARAMS=-i -style=Chromium
 RM=rm -f
-CPPFLAGS=-Wall -Wextra -Wpedantic -std=c++17 -O3 -Ofast
+CPPFLAGS=-Wall -Wextra -Wpedantic -Wno-implicit-conversion -std=c++17 -O0 -Og
 SRC_DIR=src
 TESTS_DIR=tests
 BUILD_DIR=build
 
-SRCS=$(SRC_DIR)\stl_helper_functions.cpp $(TESTS_DIR)\test_main.cpp
+SRCS=$(TESTS_DIR)\test_main.cpp
 HEADERS=$(SRC_DIR)\stl_helper_functions.hpp
-OBJS=$(subst .cc,.o,$(SRCS))
+OBJS=$(subst .cpp,.o,$(SRCS))
 
 all: test
 
 test: $(OBJS)
 	$(CXX) $(CPPFLAGS) -o $(BUILD_DIR)/test.exe $(OBJS) 
 
-
-$(SRC_DIR)\stl_helper_functions.o: $(SRC_DIR)/stl_helper_functions.cpp $(SRC_DIR)/stl_helper_functions.hpp
 
 $(TESTS_DIR)\test_main.o: $(TESTS_DIR)/test_main.cpp
 
@@ -30,5 +28,5 @@ run:
 	
 
 clean:
-	$(RM) $(BUILD_DIR)/test.exe $(BUILD_DIR)/*.o $(BUILD_DIR)/*.obj
+	$(RM) $(BUILD_DIR)/test.exe $(TESTS_DIR)/*.o
 	
