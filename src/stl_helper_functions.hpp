@@ -51,7 +51,8 @@ namespace stl::helper {
 
 constexpr const char* __stl_helper_utility_library_version__{"0.0.1-devel"};
 
-enum class string_type { cstr, wstr, u16_str, u32_str };
+template <typename... Args>
+constexpr void unused_args(Args&&...) {}
 
 template <typename T>
 constexpr const std::type_info& get_type_id(T&& t) {
@@ -791,8 +792,12 @@ template <typename T,
 constexpr size_t len(T (&arr)[ARRAY_SIZE]) {
   size_t length{};
 
-  while (arr[length])
+  while (arr[length]) {
     length++;
+
+    if (ARRAY_SIZE == length)
+      return ARRAY_SIZE;
+  }
 
   return length;
 }
@@ -803,8 +808,12 @@ template <typename T,
 constexpr size_t len(const std::array<T, ARRAY_SIZE>& arr) {
   size_t length{};
 
-  while (arr[length])
+  while (arr[length]) {
     length++;
+
+    if (ARRAY_SIZE == length)
+      return ARRAY_SIZE;
+  }
 
   return length;
 }
@@ -814,8 +823,10 @@ template <typename T,
                                       is_valid_string_view_type_v<T> ||
                                       is_valid_char_type_v<T>>>
 constexpr size_t len(T src) {
-  if constexpr (is_valid_char_type_v<T>)
+  if constexpr (is_valid_char_type_v<T>) {
+    unused_args(src);
     return 1U;
+  }
 
   else if constexpr (is_valid_string_view_type_v<T>)
     return src.length();
@@ -1985,9 +1996,6 @@ bool str_ends_with(const T& src,
     return true;
   }
 }
-
-template <typename... Args>
-void unused_args(Args&&...) {}
 
 template <typename T, typename... Args>
 struct is_container_adapter_type {
