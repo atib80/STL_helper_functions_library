@@ -224,6 +224,9 @@ TEST_CASE(
   const char* src1 = "Hello World!\n";
   REQUIRE(len(src1) == strlen(src1));
 
+  array<char, len("Hello World!\n") + 1> char_buffer{"Hello World!\n"};
+  REQUIRE(len(char_buffer) == 13);
+
   const wchar_t* src2 = L"\tHello there, my friend!\n";
   REQUIRE(len(src2) == wcslen(src2));
 
@@ -641,16 +644,16 @@ function char16_t* u16_strcpy(char16_t* dst, const size_t
 dst_capacity_in_number_of_characters, const char16_t* src)"
 )
 {
-                char16_t src[128];
+        char16_t src[128];
 
-                char16_t dst[64] = u"\tHello World!\n";
+        char16_t dst[64] = u"\tHello World!\n";
 
-                REQUIRE(trim(dst));
+        REQUIRE(trim(dst));
 
-                REQUIRE(str_copy(src, sizeof(src)/sizeof(src[0]), dst) !=
+        REQUIRE(str_copy(src, sizeof(src)/sizeof(src[0]), dst) !=
 nullptr);
 
-                REQUIRE(str_compare(src, u"Hello World!") == 0);
+        REQUIRE(str_compare(src, u"Hello World!") == 0);
 }
 
 TEST_CASE("char32_t* u32_strcpy(char32_t* dst, const size_t
@@ -659,60 +662,60 @@ function char32_t* u32_strcpy(char32_t* dst, const size_t
 dst_capacity_in_number_of_characters, const char32_t* src)"
 )
 {
-                char32_t src[128];
+        char32_t src[128];
 
-                char32_t dst[64] = U"\tHello World!\n";
+        char32_t dst[64] = U"\tHello World!\n";
 
-                REQUIRE(trim(dst));
+        REQUIRE(trim(dst));
 
-                REQUIRE(u32_strcpy(src, sizeof(src) / sizeof(src[0]), dst) !=
+        REQUIRE(u32_strcpy(src, sizeof(src) / sizeof(src[0]), dst) !=
 nullptr);
 
-                REQUIRE(u32_strcmp(src, U"Hello World!") == 0);
+        REQUIRE(u32_strcmp(src, U"Hello World!") == 0);
 }
 
 TEST_CASE(
-                "char16_t* u16_strncpy(char16_t* dst, const size_t
+        "char16_t* u16_strncpy(char16_t* dst, const size_t
 dst_capacity_in_number_of_characters, const char16_t* src, const size_t
 number_of_characters_to_copy)"
-                ,
-                "Testing global function char16_t* u16_strncpy(char16_t* dst,
+        ,
+        "Testing global function char16_t* u16_strncpy(char16_t* dst,
 const size_t dst_capacity_in_number_of_characters, const char16_t* src, const
 size_t number_of_characters_to_copy)"
 )
 {
-                char16_t src[128];
+        char16_t src[128];
 
-                char16_t dst[64] = u"\tHello World!\n";
+        char16_t dst[64] = u"\tHello World!\n";
 
-                REQUIRE(trim(dst));
+        REQUIRE(trim(dst));
 
-                REQUIRE(u16_strncpy(src, sizeof(src) / sizeof(src[0]), dst, 5)
+        REQUIRE(u16_strncpy(src, sizeof(src) / sizeof(src[0]), dst, 5)
 != nullptr);
 
-                REQUIRE(u16_strncmp(src, u"Hello World!", 5) == 0);
+        REQUIRE(u16_strncmp(src, u"Hello World!", 5) == 0);
 }
 
 TEST_CASE(
-                "char32_t* u32_strncpy(char32_t* dst, const size_t
+        "char32_t* u32_strncpy(char32_t* dst, const size_t
 dst_capacity_in_number_of_characters, const char32_t* src, const size_t
 number_of_characters_to_copy)"
-                ,
-                "Testing global function char32_t* u32_strncpy(char32_t* dst,
+        ,
+        "Testing global function char32_t* u32_strncpy(char32_t* dst,
 const size_t dst_capacity_in_number_of_characters, const char32_t* src, const
 size_t number_of_characters_to_copy)"
 )
 {
-                char32_t src[128];
+        char32_t src[128];
 
-                char32_t dst[64] = U"\tHello World!\n";
+        char32_t dst[64] = U"\tHello World!\n";
 
-                REQUIRE(trim(dst));
+        REQUIRE(trim(dst));
 
-                REQUIRE(u32_strncpy(src, sizeof(src) / sizeof(src[0]), dst, 5)
+        REQUIRE(u32_strncpy(src, sizeof(src) / sizeof(src[0]), dst, 5)
 != nullptr);
 
-                REQUIRE(u32_strncmp(src, U"Hello World!", 5) == 0);
+        REQUIRE(u32_strncmp(src, U"Hello World!", 5) == 0);
 }
 
 TEST_CASE("char16_t* u16_strcat(char16_t* dst, const size_t
@@ -721,16 +724,16 @@ function char16_t* u16_strcat(char16_t* dst, const size_t
 dst_capacity_in_number_of_characters, const char16_t* src)"
 )
 {
-                char16_t src[512] = u" \t Hello World!\t \n";
+        char16_t src[512] = u" \t Hello World!\t \n";
 
-                const char16_t* dst = u" How are you today?";
+        const char16_t* dst = u" How are you today?";
 
-                REQUIRE(trim(src));
+        REQUIRE(trim(src));
 
-                REQUIRE(u16_strcat(src, sizeof(src) / sizeof(src[0]), dst) !=
+        REQUIRE(u16_strcat(src, sizeof(src) / sizeof(src[0]), dst) !=
 nullptr);
 
-                REQUIRE(u16_strcmp(src, u"Hello World! How are you today?") ==
+        REQUIRE(u16_strcmp(src, u"Hello World! How are you today?") ==
 0);
 }
 
@@ -740,137 +743,137 @@ function char32_t* u32_strcat(char32_t* dst, const size_t
 dst_capacity_in_number_of_characters, const char32_t* src)"
 )
 {
-                char32_t src[512] = U" \t Hello World!\t \n";
+        char32_t src[512] = U" \t Hello World!\t \n";
 
-                const char32_t* dst = U" How are you today?";
+        const char32_t* dst = U" How are you today?";
 
-                REQUIRE(trim(src));
+        REQUIRE(trim(src));
 
-                REQUIRE(u32_strcat(src, sizeof(src) / sizeof(src[0]), dst) !=
+        REQUIRE(u32_strcat(src, sizeof(src) / sizeof(src[0]), dst) !=
 nullptr);
 
-                REQUIRE(u32_strcmp(src, U"Hello World! How are you today?") ==
+        REQUIRE(u32_strcmp(src, U"Hello World! How are you today?") ==
 0);
 }
 
 TEST_CASE(
-                "char16_t* u16_strncat(char16_t* dst, const size_t
+        "char16_t* u16_strncat(char16_t* dst, const size_t
 dst_capacity_in_number_of_characters, const char16_t* src, const size_t
 number_of_characters_to_concatenate)"
-                ,
-                "Testing global function char16_t* u16_strncat(char16_t* dst,
+        ,
+        "Testing global function char16_t* u16_strncat(char16_t* dst,
 const size_t dst_capacity_in_number_of_characters, const char16_t* src, const
 size_t number_of_characters_to_concatenate)"
 )
 {
-                char16_t src[512] = u" \t Hello World!\t \n";
+        char16_t src[512] = u" \t Hello World!\t \n";
 
-                const char16_t* dst = u" How are you today?";
+        const char16_t* dst = u" How are you today?";
 
-                REQUIRE(trim(src));
+        REQUIRE(trim(src));
 
-                REQUIRE(u16_strncat(src, sizeof(src) / sizeof(src[0]), dst, 4)
+        REQUIRE(u16_strncat(src, sizeof(src) / sizeof(src[0]), dst, 4)
 != nullptr);
 
-                REQUIRE(u16_strcmp(src, u"Hello World! How") == 0);
+        REQUIRE(u16_strcmp(src, u"Hello World! How") == 0);
 }
 
 TEST_CASE(
-                "char32_t* u32_strncat(char32_t* dst, const size_t
+        "char32_t* u32_strncat(char32_t* dst, const size_t
 dst_capacity_in_number_of_characters, const char32_t* src, const size_t
 number_of_characters_to_concatenate)"
-                ,
-                "Testing global function char32_t* u32_strncat(char32_t* dst,
+        ,
+        "Testing global function char32_t* u32_strncat(char32_t* dst,
 const size_t dst_capacity_in_number_of_characters, const char32_t* src, const
 size_t number_of_characters_to_concatenate)"
 )
 {
-                char32_t src[512] = U" \t Hello World!\t \n";
+        char32_t src[512] = U" \t Hello World!\t \n";
 
-                const char32_t* dst = U" How are you today?";
+        const char32_t* dst = U" How are you today?";
 
-                REQUIRE(trim(src));
+        REQUIRE(trim(src));
 
-                REQUIRE(u32_strncat(src, sizeof(src) / sizeof(src[0]), dst, 4)
+        REQUIRE(u32_strncat(src, sizeof(src) / sizeof(src[0]), dst, 4)
 != nullptr);
 
-                REQUIRE(u32_strcmp(src, U"Hello World! How") == 0);
+        REQUIRE(u32_strcmp(src, U"Hello World! How") == 0);
 }
 
 TEST_CASE("const char16_t* u16_strstr(const char16_t* src, const char16_t*
 needle)", "Testing global function const char16_t* u16_strstr(const char16_t*
 src, const char16_t* needle)")
 {
-                const char16_t* src = u"Hello World! How are you today?";
+        const char16_t* src = u"Hello World! How are you today?";
 
-                const char16_t* needle = u"today";
+        const char16_t* needle = u"today";
 
-                REQUIRE(u16_strstr(src, needle) != nullptr);
+        REQUIRE(u16_strstr(src, needle) != nullptr);
 }
 
 TEST_CASE("const char32_t* u32_strstr(const char32_t* src, const char32_t*
 needle)", "Testing global function const char32_t* u32_strstr(const char32_t*
 src, const char32_t* needle)")
 {
-                const char32_t* src = U"Hello World! How are you today?";
+        const char32_t* src = U"Hello World! How are you today?";
 
-                const char32_t* needle = U"today";
+        const char32_t* needle = U"today";
 
-                REQUIRE(u32_strstr(src, needle) != nullptr);
+        REQUIRE(u32_strstr(src, needle) != nullptr);
 }
 
 TEST_CASE("char16_t* u16_strstr(char16_t* src, const char16_t* needle)",
-                "Testing global function char16_t* u16_strstr(char16_t* src,
+        "Testing global function char16_t* u16_strstr(char16_t* src,
 const char16_t* needle)")
 {
-                char16_t src[512] = u" \t Hello World!\t \n";
+        char16_t src[512] = u" \t Hello World!\t \n";
 
-                const char16_t* dst = u"World";
+        const char16_t* dst = u"World";
 
-                REQUIRE(trim(src));
+        REQUIRE(trim(src));
 
-                REQUIRE(u16_strstr(src, dst) != nullptr);
+        REQUIRE(u16_strstr(src, dst) != nullptr);
 }
 
 TEST_CASE("char32_t* u32_strstr(char32_t* src, const char32_t* needle)",
-                "Testing global function char32_t* u32_strstr(char32_t* src,
+        "Testing global function char32_t* u32_strstr(char32_t* src,
 const char32_t* needle)")
 {
-                char32_t src[512] = U" \t Hello World!\t \n";
+        char32_t src[512] = U" \t Hello World!\t \n";
 
-                const char32_t* dst = U"World";
+        const char32_t* dst = U"World";
 
-                REQUIRE(trim(src));
+        REQUIRE(trim(src));
 
-                REQUIRE(u32_strstr(src, dst) != nullptr);
+        REQUIRE(u32_strstr(src, dst) != nullptr);
 }
 
 TEST_CASE(
-                "const char16_t* u16_strstri(const char16_t* src, const
+        "const char16_t* u16_strstri(const char16_t* src, const
 char16_t* needle, const std::locale& loc = std::locale{})", "Testing global
 function const char16_t* u16_strstri(const char16_t* src, const char16_t*
 needle, const std::locale& loc = std::locale{})"
 )
 {
-                const char16_t* src = u"Hello World! How are you TODAY?";
+        const char16_t* src = u"Hello World! How are you TODAY?";
 
-                const char16_t* needle = u"today";
+        const char16_t* needle = u"today";
 
-                REQUIRE(u16_strstri(src, needle) != nullptr);
+        REQUIRE(u16_strstri(src, needle) != nullptr);
 }
 
 TEST_CASE(
-                "const char32_t* u32_strstri(const char32_t* src, const
+        "const char32_t* u32_strstri(const char32_t* src, const
 char32_t* needle, const std::locale& loc = std::locale{})", "Testing global
 function const char32_t* u32_strstri(const char32_t* src, const char32_t*
 needle, const std::locale& loc = std::locale{})"
 )
 {
-                const char32_t* src = U"Hello World! How are you TODAY?";
+        const char32_t* src = U"Hello World! How are you TODAY?";
 
-                const char32_t* needle = U"today";
+        const char32_t* needle = U"today";
 
-                REQUIRE(u32_strstri(src, needle) != nullptr);
+        REQUIRE(u32_strstri(src, needle) != nullptr);
 }
 
 TEST_CASE("char16_t* u16_strstri(char16_t* src, const char16_t* needle, const
@@ -879,13 +882,13 @@ u16_strstri(char16_t* src, const char16_t* needle, const std::locale& loc =
 std::locale{})"
 )
 {
-                char16_t src[512] = u" \t Hello World!\t \n";
+        char16_t src[512] = u" \t Hello World!\t \n";
 
-                const char16_t* dst = u"Hello World!";
+        const char16_t* dst = u"Hello World!";
 
-                REQUIRE(trim(src));
+        REQUIRE(trim(src));
 
-                REQUIRE(u16_strstri(src, dst) != nullptr);
+        REQUIRE(u16_strstri(src, dst) != nullptr);
 }
 
 TEST_CASE("char32_t* u32_strstri(char32_t* src, const char32_t* needle, const
@@ -894,46 +897,46 @@ u32_strstri(char32_t* src, const char32_t* needle, const std::locale& loc =
 std::locale{})"
 )
 {
-                char32_t src[512] = U" \t Hello World!\t \n";
+        char32_t src[512] = U" \t Hello World!\t \n";
 
-                const char32_t* dst = U"Hello World!";
+        const char32_t* dst = U"Hello World!";
 
-                REQUIRE(trim(src));
+        REQUIRE(trim(src));
 
-                REQUIRE(u32_strstri(src, dst) != nullptr);
+        REQUIRE(u32_strstri(src, dst) != nullptr);
 }
 
 TEST_CASE("StringType trim(const StringType& str)",
-                "Testing global template function StringType trim(const
+        "Testing global template function StringType trim(const
 StringType& str)")
 {
-                const string src{"\t Hello World!\t \n"};
+        const string src{"\t Hello World!\t \n"};
 
-                const string dst{trim(src)};
+        const string dst{trim(src)};
 
-                REQUIRE(dst == string{ "Hello World!" });
+        REQUIRE(dst == string{ "Hello World!" });
 }
 
 TEST_CASE("StringType ltrim(const StringType& str)",
-                "Testing global template function StringType ltrim(const
+        "Testing global template function StringType ltrim(const
 StringType& str)")
 {
-                const wstring src{L"\t Hello World!\t \n"};
+        const wstring src{L"\t Hello World!\t \n"};
 
-                const wstring dst{ltrim(src)};
+        const wstring dst{ltrim(src)};
 
-                REQUIRE(dst == wstring{ L"Hello World!\t \n" });
+        REQUIRE(dst == wstring{ L"Hello World!\t \n" });
 }
 
 TEST_CASE("StringType rtrim(const StringType& str)",
-                "Testing global template function StringType rtrim(const
+        "Testing global template function StringType rtrim(const
 StringType& str)")
 {
-                const u32string src{U"\t Hello World!\t \n"};
+        const u32string src{U"\t Hello World!\t \n"};
 
-                const u32string dst{rtrim(src)};
+        const u32string dst{rtrim(src)};
 
-                REQUIRE(dst == u32string{ U"\t Hello World!" });
+        REQUIRE(dst == u32string{ U"\t Hello World!" });
 }
 
 TEST_CASE("vector<string> split(const char* source, const char needle_char, int
@@ -941,18 +944,18 @@ const max_count = -1)", "Testing global function vector<std::string> split(const
 char* source, const char needle_char, int const max_count = -1)"
 )
 {
-                const char*
+        const char*
 source{"apple|banana|cabbage|lemon|orange|pepper|plum"};
 
-                const char needle_char{'|'};
+        const char needle_char{'|'};
 
-                auto const parts{split(source, needle_char)};
+        auto const parts{split(source, needle_char)};
 
-                REQUIRE(parts.front() == "apple");
+        REQUIRE(parts.front() == "apple");
 
-                REQUIRE(parts[3] == "lemon");
+        REQUIRE(parts[3] == "lemon");
 
-                REQUIRE(parts.back() == "plum");
+        REQUIRE(parts.back() == "plum");
 }
 
 TEST_CASE("vector<wstring> split(const wchar_t* source, const wchar_t
@@ -961,18 +964,18 @@ vector<wstring> split(const wchar_t* source, const wchar_t needle_char, int
 const max_count = -1)"
 )
 {
-                const wchar_t*
+        const wchar_t*
 source{L"apple|banana|cabbage|lemon|orange|pepper|plum"};
 
-                const wchar_t needle_char{L'|'};
+        const wchar_t needle_char{L'|'};
 
-                auto const parts{split(source, needle_char)};
+        auto const parts{split(source, needle_char)};
 
-                REQUIRE(parts.front() == L"apple");
+        REQUIRE(parts.front() == L"apple");
 
-                REQUIRE(parts[3] == L"lemon");
+        REQUIRE(parts[3] == L"lemon");
 
-                REQUIRE(parts.back() == L"plum");
+        REQUIRE(parts.back() == L"plum");
 }
 
 TEST_CASE("vector<u16string> split(const char16_t* source, const char16_t
@@ -981,18 +984,18 @@ vector<u16string> split(const char16_t* source, const char16_t needle_char, int
 const max_count = -1)"
 )
 {
-                const char16_t*
+        const char16_t*
 source{u"apple|banana|cabbage|lemon|orange|pepper|plum"};
 
-                const char16_t needle_char{u'|'};
+        const char16_t needle_char{u'|'};
 
-                auto const parts{split(source, needle_char)};
+        auto const parts{split(source, needle_char)};
 
-                REQUIRE(parts.front() == u"apple");
+        REQUIRE(parts.front() == u"apple");
 
-                REQUIRE(parts[3] == u"lemon");
+        REQUIRE(parts[3] == u"lemon");
 
-                REQUIRE(parts.back() == u"plum");
+        REQUIRE(parts.back() == u"plum");
 }
 
 TEST_CASE("vector<u32string> split(const char32_t* source, const char32_t
@@ -1001,36 +1004,36 @@ vector<u32string> split(const char32_t* source, const char32_t needle_char, int
 const max_count = -1)"
 )
 {
-                const char32_t*
+        const char32_t*
 source{U"apple|banana|cabbage|lemon|orange|pepper|plum"};
 
-                const char32_t needle_char{U'|'};
+        const char32_t needle_char{U'|'};
 
-                auto const parts{split(source, needle_char)};
+        auto const parts{split(source, needle_char)};
 
-                REQUIRE(parts.front() == U"apple");
+        REQUIRE(parts.front() == U"apple");
 
-                REQUIRE(parts[3] == U"lemon");
+        REQUIRE(parts[3] == U"lemon");
 
-                REQUIRE(parts.back() == U"plum");
+        REQUIRE(parts.back() == U"plum");
 }
 
 TEST_CASE("vector<string> split(const char* source, const char* needle, const
 int max_count = -1)", "Testing global function vector<string> split(const char*
 source, const char* needle, const int max_count = -1)")
 {
-                const char*
+        const char*
 source{"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:plum"};
 
-                const char* needle_char{":|:"};
+        const char* needle_char{":|:"};
 
-                auto const parts{split(source, needle_char)};
+        auto const parts{split(source, needle_char)};
 
-                REQUIRE(parts.front() == "apple");
+        REQUIRE(parts.front() == "apple");
 
-                REQUIRE(parts[3] == "lemon");
+        REQUIRE(parts[3] == "lemon");
 
-                REQUIRE(parts.back() == "plum");
+        REQUIRE(parts.back() == "plum");
 }
 
 TEST_CASE("vector<wstring> split(const wchar_t* source, const wchar_t* needle,
@@ -1038,18 +1041,18 @@ const int max_count = -1)", "Testing global function vector<wstring> split(const
 wchar_t* source, const wchar_t* needle, const int max_count = -1)"
 )
 {
-                const wchar_t*
+        const wchar_t*
 source{L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:plum"};
 
-                const wchar_t* needle_char{L":|:"};
+        const wchar_t* needle_char{L":|:"};
 
-                auto const parts{split(source, needle_char)};
+        auto const parts{split(source, needle_char)};
 
-                REQUIRE(parts.front() == L"apple");
+        REQUIRE(parts.front() == L"apple");
 
-                REQUIRE(parts[3] == L"lemon");
+        REQUIRE(parts[3] == L"lemon");
 
-                REQUIRE(parts.back() == L"plum");
+        REQUIRE(parts.back() == L"plum");
 }
 
 TEST_CASE("vector<u16string> split(const char16_t* source, const char16_t*
@@ -1057,18 +1060,18 @@ needle, const int max_count = -1)", "Testing global function vector<u16string>
 split(const char16_t* source, const char16_t* needle, const int max_count = -1)"
 )
 {
-                const char16_t*
+        const char16_t*
 source{u"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:plum"};
 
-                const char16_t* needle_char{u":|:"};
+        const char16_t* needle_char{u":|:"};
 
-                auto const parts{split(source, needle_char)};
+        auto const parts{split(source, needle_char)};
 
-                REQUIRE(parts.front() == u"apple");
+        REQUIRE(parts.front() == u"apple");
 
-                REQUIRE(parts[3] == u"lemon");
+        REQUIRE(parts[3] == u"lemon");
 
-                REQUIRE(parts.back() == u"plum");
+        REQUIRE(parts.back() == u"plum");
 }
 
 TEST_CASE("vector<u32string> split(const char32_t* source, const char32_t*
@@ -1076,87 +1079,87 @@ needle, const int max_count = -1)", "Testing global function vector<u32string>
 split(const char32_t* source, const char32_t* needle, const int max_count = -1)"
 )
 {
-                const char32_t*
+        const char32_t*
 source{U"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:plum"};
 
-                const char32_t* needle_char{U":|:"};
+        const char32_t* needle_char{U":|:"};
 
-                auto const parts{split(source, needle_char)};
+        auto const parts{split(source, needle_char)};
 
-                REQUIRE(parts.front() == U"apple");
+        REQUIRE(parts.front() == U"apple");
 
-                REQUIRE(parts[3] == U"lemon");
+        REQUIRE(parts[3] == U"lemon");
 
-                REQUIRE(parts.back() == U"plum");
+        REQUIRE(parts.back() == U"plum");
 }
 
 TEST_CASE(
-                "vector<StringType> split(const StringType& source, const
+        "vector<StringType> split(const StringType& source, const
 typename StringType::value_type needle_char, size_t const max_count =
 StringType::npos)"
-                ,
-                "Testing global template function vector<StringType> split(const
+        ,
+        "Testing global template function vector<StringType> split(const
 StringType& source, const typename StringType::value_type needle_char, size_t
 const max_count = StringType::npos)"
 )
 {
-                const wstring src{L"apple | banana | cabbage | lemon | orange |
+        const wstring src{L"apple | banana | cabbage | lemon | orange |
 pepper | plum"};
 
-                auto parts{split(src, L'|')};
+        auto parts{split(src, L'|')};
 
-                for (auto& part : parts) part = trim(part);
+        for (auto& part : parts) part = trim(part);
 
-                REQUIRE(parts.front() == L"apple");
+        REQUIRE(parts.front() == L"apple");
 
-                REQUIRE(parts[3] == L"lemon");
+        REQUIRE(parts[3] == L"lemon");
 
-                REQUIRE(parts.back() == L"plum");
+        REQUIRE(parts.back() == L"plum");
 }
 
 TEST_CASE(
-                "vector<StringType> split(const StringType& source, const
+        "vector<StringType> split(const StringType& source, const
 typename StringType::const_pointer_type needle, size_t const max_count =
 StringType::npos)"
-                ,
-                "Testing global template function vector<StringType> split(const
+        ,
+        "Testing global template function vector<StringType> split(const
 StringType& source, const typename StringType::const_pointer_type needle, size_t
 const max_count = StringType::npos)"
 )
 {
-                const u16string
+        const u16string
 src{u"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:plum"};
 
-                auto parts{split(src, u":|:")};
+        auto parts{split(src, u":|:")};
 
-                REQUIRE(parts.front() == u"apple");
+        REQUIRE(parts.front() == u"apple");
 
-                REQUIRE(parts[3] == u"lemon");
+        REQUIRE(parts[3] == u"lemon");
 
-                REQUIRE(parts.back() == u"plum");
+        REQUIRE(parts.back() == u"plum");
 }
 
 TEST_CASE(
-                "vector<StringType> split(const StringType& source, const
+        "vector<StringType> split(const StringType& source, const
 StringType& needle, size_t const max_count = StringType::npos)"
-                ,
-                "Testing global template function vector<StringType> split(const
+        ,
+        "Testing global template function vector<StringType> split(const
 StringType& source, const StringType& needle, size_t const max_count =
 StringType::npos)"
 )
 {
-                const u32string
+        const u32string
 src{U"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:plum"};
 
-                const u32string needle{U":|:"};
+        const u32string needle{U":|:"};
 
-                auto parts{split(src, needle)};
+        auto parts{split(src, needle)};
 
-                REQUIRE(parts.front() == U"apple");
+        REQUIRE(parts.front() == U"apple");
 
-                REQUIRE(parts[3] == U"lemon");
+        REQUIRE(parts[3] == U"lemon");
 
-                REQUIRE(parts.back() == U"plum");
+        REQUIRE(parts.back() == U"plum");
 }
 */
 

@@ -374,8 +374,12 @@ class run_at_scope_exit {
 
  public:
   template <typename RunnableObject>
-  run_at_scope_exit(RunnableObject&& callable_object)
+  explicit run_at_scope_exit(RunnableObject&& callable_object)
       : callable{std::forward<RunnableObject>(callable_object)} {}
+  run_at_scope_exit(const run_at_scope_exit&) = delete;
+  run_at_scope_exit(run_at_scope_exit&&) = delete;
+  run_at_scope_exit& operator=(const run_at_scope_exit&) = delete;
+  run_at_scope_exit& operator=(run_at_scope_exit&&) = delete;
   ~run_at_scope_exit() { callable(); }
 };
 
@@ -398,8 +402,12 @@ class run_task_at_scope_exit {
 
  public:
   template <typename... RunnableObjects>
-  run_task_at_scope_exit(RunnableObjects&&... callable_objects)
+  explicit run_task_at_scope_exit(RunnableObjects&&... callable_objects)
       : callable_tasks{std::forward<RunnableObjects>(callable_objects)...} {}
+  run_task_at_scope_exit(const run_task_at_scope_exit&) = delete;
+  run_task_at_scope_exit(run_task_at_scope_exit&&) = delete;
+  run_task_at_scope_exit& operator=(const run_task_at_scope_exit&) = delete;
+  run_task_at_scope_exit& operator=(run_task_at_scope_exit&&) = delete;
   ~run_task_at_scope_exit() {
     for (auto& task : callable_tasks)
       task();
@@ -545,7 +553,11 @@ constexpr inline void swap(T& first, T& second, std::false_type) noexcept(
 }
 
 template <typename T>
-constexpr inline void swap(T& first, T& second) {
+constexpr inline void swap(T& first, T& second) noexcept(
+    (std::is_nothrow_move_constructible_v<T> &&
+     std::is_nothrow_move_assignable_v<T>) ||
+    (std::is_nothrow_copy_constructible_v<T> &&
+     std::is_nothrow_copy_assignable_v<T>)) {
   swap(first, second,
        std::conditional_t < std::is_nothrow_move_constructible_v<T> &&
            std::is_nothrow_move_assignable_v<T>,
@@ -641,7 +653,7 @@ constexpr const bool is_const_char_pointer_type_v =
 
 template <typename T>
 struct is_non_const_char_array_type {
-  static constexpr bool value = 1u == std::rank_v<T> &&
+  static constexpr bool value = 1U == std::rank_v<T> &&
                                 is_valid_char_type_v<std::remove_extent_t<T>> &&
                                 !std::is_const_v<std::remove_extent_t<T>>;
 };
@@ -652,7 +664,7 @@ constexpr const bool is_non_const_char_array_type_v =
 
 template <typename T>
 struct is_const_char_array_type {
-  static constexpr bool value = 1u == std::rank_v<T> &&
+  static constexpr bool value = 1U == std::rank_v<T> &&
                                 is_valid_char_type_v<std::remove_extent_t<T>> &&
                                 std::is_const_v<std::remove_extent_t<T>>;
 };
@@ -786,6 +798,18 @@ constexpr size_t len(T (&arr)[ARRAY_SIZE]) {
 }
 
 template <typename T,
+          size_t ARRAY_SIZE,
+          typename = std::enable_if_t<is_valid_char_type_v<T>>>
+constexpr size_t len(const std::array<T, ARRAY_SIZE>& arr) {
+  size_t length{};
+
+  while (arr[length])
+    length++;
+
+  return length;
+}
+
+template <typename T,
           typename = std::enable_if_t<is_char_pointer_type_v<T> ||
                                       is_valid_string_view_type_v<T> ||
                                       is_valid_char_type_v<T>>>
@@ -816,19 +840,15 @@ size_t len(const T& src) {
 }
 
 struct char_buffer_deleter {
-  using pointer_type = char*;
+  using pointer_type = const char*;
 
-  void operator()(const pointer_type pointer) const noexcept {
-    delete[] pointer;
-  }
+  void operator()(pointer_type pointer) const noexcept { delete[] pointer; }
 };
 
 struct wchar_t_buffer_deleter {
-  using pointer_type = wchar_t*;
+  using pointer_type = const wchar_t*;
 
-  void operator()(const pointer_type pointer) const noexcept {
-    delete[] pointer;
-  }
+  void operator()(pointer_type pointer) const noexcept { delete[] pointer; }
 };
 
 template <typename... Args>
@@ -1510,9 +1530,14 @@ typename std::basic_string<get_char_type_t<T>>::size_type str_index_of(
   const size_t needle_len{len(needle)};
 
   if (0U == src_len || 0U == needle_len || needle_len > src_len)
-    return not_found_index;
+    return std::basic_string<char_type>::npos;
 
-  std::basic_string_view<char_type> src_sv{src};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_char_pointer_type_v<T> || is_char_array_type_v<T>)
+    src_sv = {src, src_len};
+  else
+    src_sv = src;
 
   if constexpr (is_valid_char_type_v<U>) {
     if (!ignore_case)
@@ -1540,7 +1565,11 @@ typename std::basic_string<get_char_type_t<T>>::size_type str_index_of(
     return src_lc.find(needle_lc, start_pos);
 
   } else {
-    std::basic_string_view<char_type> needle_sv{needle};
+    std::basic_string_view<char_type> needle_sv{};
+    if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
+      needle_sv = {needle, needle_len};
+    else
+      needle_sv = needle;
 
     if (!ignore_case)
       return src_sv.find(needle_sv, start_pos);
@@ -1600,8 +1629,8 @@ constexpr SrcIterType find_last_any_of(SrcIterType src_first,
 
   if constexpr (is_anyone_of_v<typename std::iterator_traits<
                                    SrcIterType>::iterator_category,
-                               typename std::bidirectional_iterator_tag,
-                               typename std::random_access_iterator_tag>) {
+                               std::bidirectional_iterator_tag,
+                               std::random_access_iterator_tag>) {
     const auto src_rfirst = std::make_reverse_iterator(src_last);
     const auto src_rlast = std::make_reverse_iterator(src_first);
     const auto found_iter =
@@ -1649,7 +1678,12 @@ typename std::basic_string<get_char_type_t<T>>::size_type str_last_index_of(
   if (0U == src_len || 0U == needle_len || needle_len > src_len)
     return not_found_index;
 
-  std::basic_string_view<char_type> src_sv{src};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_char_pointer_type_v<T> || is_char_array_type_v<T>)
+    src_sv = {src, src_len};
+  else
+    src_sv = src;
 
   if constexpr (is_valid_char_type_v<U>) {
     if (!ignore_case)
@@ -1677,7 +1711,11 @@ typename std::basic_string<get_char_type_t<T>>::size_type str_last_index_of(
     return src_lc.rfind(needle_lc, start_pos);
 
   } else {
-    std::basic_string_view<char_type> needle_sv{needle};
+    std::basic_string_view<char_type> needle_sv{};
+    if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
+      needle_sv = {needle, needle_len};
+    else
+      needle_sv = needle;
 
     if (!ignore_case)
       return src_sv.rfind(needle_sv, start_pos);
@@ -1763,7 +1801,12 @@ bool str_contains(const T& src,
   if (0U == src_len || 0U == needle_len || needle_len > src_len)
     return false;
 
-  std::basic_string_view<char_type> src_sv{src};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_char_pointer_type_v<T> || is_char_array_type_v<T>)
+    src_sv = {src, src_len};
+  else
+    src_sv = src;
 
   if constexpr (is_valid_char_type_v<U>) {
     if (!ignore_case)
@@ -1790,7 +1833,11 @@ bool str_contains(const T& src,
     return not_found_index != src_lc.find(needle_lc, start_pos);
 
   } else {
-    std::basic_string_view<char_type> needle_sv{needle};
+    std::basic_string_view<char_type> needle_sv{};
+    if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
+      needle_sv = {needle, needle_len};
+    else
+      needle_sv = needle;
 
     if (!ignore_case)
       return not_found_index != src_sv.find(needle_sv, start_pos);
@@ -1981,20 +2028,15 @@ template <
                                 (has_key_type_v<ContainerType> ||
                                  has_value_type_v<ContainerType> ||
                                  has_mapped_type_v<ContainerType>)>>
-bool has_value(const ContainerType& container, ValueType&& value) {
+bool has_value(const ContainerType& container, const ValueType& value) {
   if constexpr (has_mapped_type_v<ContainerType>) {
-    for (const auto& p : container) {
-      if (p.second == value)
-        return true;
-    }
-
-    return false;
+    return std::any_of(std::cbegin(container), std::cend(container),
+                       [&value](const auto& p) { return p.second == value; });
 
   }
 
   else if constexpr (has_key_type_v<ContainerType>) {
-    return std::cend(container) !=
-           container.find(std::forward<ValueType>(value));
+    return std::cend(container) != container.find(value);
 
   } else if constexpr (has_value_type_v<ContainerType> &&
                        check_equality_v<typename ContainerType::value_type,
@@ -2003,11 +2045,11 @@ bool has_value(const ContainerType& container, ValueType&& value) {
                       typename ContainerType::value_type>) {
       if (std::is_sorted(std::cbegin(container), std::cend(container)))
         return std::binary_search(std::cbegin(container), std::cend(container),
-                                  std::forward<ValueType>(value));
+                                  value);
     }
 
-    return std::find(std::cbegin(container), std::cend(container),
-                     std::forward<ValueType>(value)) != std::cend(container);
+    return std::find(std::cbegin(container), std::cend(container), value) !=
+           std::cend(container);
   }
 }
 
@@ -2454,7 +2496,12 @@ size_t str_copy(T (&dst)[ARRAY_SIZE],
       ARRAY_SIZE < src_len + 1)
     return 0U;
 
-  std::basic_string_view<char_type> src_sv{src};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
+    src_sv = {src, src_len};
+  else
+    src_sv = src;
 
   const size_t no_of_chars_to_copy{std::min(ARRAY_SIZE - 1, src_len)};
   std::copy(std::cbegin(src_sv), std::cbegin(src_sv) + no_of_chars_to_copy,
@@ -2496,7 +2543,12 @@ size_t str_copy(
       dst_capacity_in_number_of_characters < src_len + 1)
     return 0U;
 
-  std::basic_string_view<char_type> src_sv{src};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
+    src_sv = {src, src_len};
+  else
+    src_sv = src;
 
   const size_t no_of_chars_to_copy{
       std::min(dst_capacity_in_number_of_characters - 1, src_len)};
@@ -2582,7 +2634,12 @@ size_t str_copy_n(T (&dst)[ARRAY_SIZE],
       ARRAY_SIZE < required_dst_buffer_size)
     return 0U;
 
-  std::basic_string_view<char_type> src_sv{src};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
+    src_sv = {src, src_len};
+  else
+    src_sv = src;
 
   const size_t no_chars_to_copy{
       std::min(ARRAY_SIZE - 1, number_of_characters_to_copy)};
@@ -2630,7 +2687,12 @@ size_t str_copy_n(
       dst_capacity_in_number_of_characters < required_dst_buffer_size)
     return 0U;
 
-  std::basic_string_view<char_type> src_sv{src};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
+    src_sv = {src, src_len};
+  else
+    src_sv = src;
 
   const size_t no_chars_to_copy{std::min(
       dst_capacity_in_number_of_characters - 1, number_of_characters_to_copy)};
@@ -2666,9 +2728,15 @@ size_t str_copy_n(T& dst,
   if (0U == src_len)
     return 0U;
 
-  std::basic_string_view<char_type> sv{src};
+  std::basic_string_view<char_type> src_sv{};
 
-  dst.assign(std::cbegin(sv), std::cbegin(sv) + number_of_characters_to_copy);
+  if constexpr (is_char_pointer_type_v<U>)
+    src_sv = {src, src_len};
+  else
+    src_sv = src;
+
+  dst.assign(std::cbegin(src_sv),
+             std::cbegin(src_sv) + number_of_characters_to_copy);
 
   return number_of_characters_to_copy;
 }
@@ -2739,7 +2807,12 @@ size_t str_append(T (&dst)[ARRAY_SIZE],
       ARRAY_SIZE < required_dst_buffer_size)
     return 0U;
 
-  std::basic_string_view<char_type> src_sv{src};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
+    src_sv = {src, src_len};
+  else
+    src_sv = src;
 
   const size_t no_of_chars_to_copy{std::min(ARRAY_SIZE - dst_len - 1, src_len)};
 
@@ -2786,7 +2859,12 @@ size_t str_append(T dst,
       dst_capacity_in_number_of_characters < required_dst_buffer_size)
     return 0U;
 
-  std::basic_string_view<char_type> src_sv{src};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
+    src_sv = {src, src_len};
+  else
+    src_sv = src;
 
   const size_t no_of_chars_to_copy{
       std::min(dst_capacity_in_number_of_characters - dst_len - 1, src_len)};
@@ -2826,7 +2904,19 @@ std::basic_string<get_char_type_t<T>> str_append(
   if (0U == dst_len)
     return std::basic_string<char_type>{src};
 
-  std::basic_string_view<char_type> dst_sv{dst}, src_sv{src};
+  std::basic_string_view<char_type> dst_sv{};
+
+  if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
+    dst_sv = dst;
+  else
+    dst_sv = {dst, dst_len};
+
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    src_sv = src;
+  else
+    src_sv = {src, src_len};
 
   std::basic_string<char_type> final_str{std::cbegin(dst_sv),
                                          std::cend(dst_sv)};
@@ -2856,7 +2946,12 @@ size_t str_append(T& dst,
   if (0U == src_len)
     return 0U;
 
-  std::basic_string_view<char_type> src_sv{src};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
+    src_sv = {src, src_len};
+  else
+    src_sv = src;
 
   dst.append(std::cbegin(src_sv), std::cend(src_sv));
 
@@ -2904,7 +2999,12 @@ size_t str_append_n(T (&dst)[ARRAY_SIZE],
       required_dst_buffer_size > ARRAY_SIZE)
     return 0U;
 
-  std::basic_string_view<char_type> src_sv{src};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
+    src_sv = {src, src_len};
+  else
+    src_sv = src;
 
   number_of_characters_to_append =
       std::min(ARRAY_SIZE - dst_len - 1, number_of_characters_to_append);
@@ -2963,7 +3063,12 @@ size_t str_append_n(T dst,
       dst_capacity_in_number_of_characters < required_dst_buffer_size)
     return 0U;
 
-  std::basic_string_view<char_type> src_sv{src};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
+    src_sv = {src, src_len};
+  else
+    src_sv = src;
 
   number_of_characters_to_append =
       std::min(dst_capacity_in_number_of_characters - dst_len - 1,
@@ -3007,14 +3112,24 @@ std::basic_string<get_char_type<T>> str_append_n(
     return 0U == dst_len ? std::basic_string<char_type>{}
                          : std::basic_string<char_type>{dst};
 
-  std::basic_string_view<char_type> src_sv{src};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    src_sv = src;
+  else
+    src_sv = {src, src_len};
 
   if (0U == dst_len)
     return std::basic_string<char_type>{
         std::cbegin(src_sv),
         std::cbegin(src_sv) + number_of_characters_to_append};
 
-  std::basic_string_view<char_type> dst_sv{dst};
+  std::basic_string_view<char_type> dst_sv{};
+
+  if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
+    dst_sv = dst;
+  else
+    dst_sv = {dst, dst_len};
 
   std::basic_string<char_type> final_str{std::cbegin(dst_sv),
                                          std::cend(dst_sv)};
@@ -3048,7 +3163,12 @@ size_t str_append_n(T& dst,
   if (0U == src_len)
     return 0U;
 
-  std::basic_string_view<char_type> src_sv{src};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
+    src_sv = {src, src_len};
+  else
+    src_sv = src;
 
   dst.append(std::cbegin(src_sv),
              std::cbegin(src_sv) + number_of_characters_to_append);
@@ -3098,7 +3218,12 @@ size_t str_prepend(T (&dst)[ARRAY_SIZE],
       ARRAY_SIZE < required_dst_buffer_size)
     return 0U;
 
-  std::basic_string_view<char_type> src_sv{src};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
+    src_sv = {src, src_len};
+  else
+    src_sv = src;
 
   const size_t no_of_chars_to_copy{std::min(ARRAY_SIZE - dst_len - 1, src_len)};
 
@@ -3147,7 +3272,12 @@ size_t str_prepend(T dst,
       dst_capacity_in_number_of_characters < required_dst_size)
     return 0U;
 
-  std::basic_string_view<char_type> src_sv{src};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
+    src_sv = {src, src_len};
+  else
+    src_sv = src;
 
   const size_t no_of_chars_to_copy{
       std::min(dst_capacity_in_number_of_characters - dst_len - 1, src_len)};
@@ -3191,7 +3321,19 @@ std::basic_string<get_char_type_t<T>> str_prepend(
   if (0U == dst_len)
     return std::basic_string<char_type>{src};
 
-  std::basic_string_view<char_type> src_sv{src}, dst_sv{dst};
+  std::basic_string_view<char_type> dst_sv{};
+
+  if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
+    dst_sv = dst;
+  else
+    dst_sv = {dst, dst_len};
+
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    src_sv = src;
+  else
+    src_sv = {src, src_len};
 
   std::basic_string<char_type> final_str{std::cbegin(src_sv),
                                          std::cend(src_sv)};
@@ -3221,7 +3363,12 @@ void str_prepend(T& dst,
   if (0U == src_len)
     return;
 
-  std::basic_string_view<char_type> src_sv{src};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
+    src_sv = {src, src_len};
+  else
+    src_sv = src;
 
   dst.insert(std::begin(dst), std::cbegin(src_sv), std::cend(src_sv));
 }
@@ -3266,7 +3413,12 @@ size_t str_prepend_n(T (&dst)[ARRAY_SIZE],
       ARRAY_SIZE < required_dst_buffer_size)
     return 0U;
 
-  std::basic_string_view<char_type> src_sv{src};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
+    src_sv = {src, src_len};
+  else
+    src_sv = src;
 
   number_of_characters_to_prepend =
       std::min(ARRAY_SIZE - dst_len - 1, number_of_characters_to_prepend);
@@ -3321,7 +3473,12 @@ size_t str_prepend_n(T dst,
       dst_capacity_in_number_of_characters < required_dst_buffer_size)
     return 0U;
 
-  std::basic_string_view<char_type> src_sv{src};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
+    src_sv = {src, src_len};
+  else
+    src_sv = src;
 
   number_of_characters_to_prepend =
       std::min(dst_capacity_in_number_of_characters - dst_len - 1,
@@ -3368,14 +3525,24 @@ std::basic_string<get_char_type_t<T>> str_prepend_n(
     return 0U == dst_len ? std::basic_string<char_type>{}
                          : std::basic_string<char_type>{dst};
 
-  std::basic_string_view<char_type> src_sv{src};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    src_sv = src;
+  else
+    src_sv = {src, src_len};
 
   if (0U == dst_len)
     return std::basic_string<char_type>{std::cbegin(src_sv) +
                                         std::cbegin(src_sv) +
                                         number_of_characters_to_prepend};
 
-  std::basic_string_view<char_type> dst_sv{dst};
+  std::basic_string_view<char_type> dst_sv{};
+
+  if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
+    dst_sv = dst;
+  else
+    dst_sv = {dst, dst_len};
 
   std::basic_string<char_type> final_str{
       std::cbegin(src_sv),
@@ -3410,7 +3577,12 @@ void str_prepend_n(T& dst,
   if (0U == src_len)
     return;
 
-  std::basic_string_view<char_type> src_sv{src};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
+    src_sv = {src, src_len};
+  else
+    src_sv = src;
 
   dst.insert(std::begin(dst), std::cbegin(src_sv),
              std::cbegin(src_sv) + number_of_characters_to_prepend);
@@ -3457,7 +3629,12 @@ size_t str_insert(T (&dst)[ARRAY_SIZE],
        ARRAY_SIZE < required_dst_buffer_size))
     return 0U;
 
-  std::basic_string_view<char_type> src_sv{src};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
+    src_sv = {src, src_len};
+  else
+    src_sv = src;
 
   const size_t nocti{std::min(ARRAY_SIZE - 1 - dst_len, src_len)};
 
@@ -3510,7 +3687,12 @@ size_t str_insert(T dst,
   const size_t nocti{
       std::min(dst_capacity_in_number_of_characters - 1 - dst_len, src_len)};
 
-  std::basic_string_view<char_type> src_sv{src};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
+    src_sv = {src, src_len};
+  else
+    src_sv = src;
 
   std::copy_backward(dst + position_index_in_dst, dst + dst_len,
                      dst + dst_len + nocti);
@@ -3554,7 +3736,19 @@ std::basic_string<get_char_type_t<T>> str_insert(
     return 0U != position_index_in_dst ? std::basic_string<char_type>{}
                                        : std::basic_string<char_type>{src};
 
-  std::basic_string_view<char_type> dst_sv{dst}, src_sv{src};
+  std::basic_string_view<char_type> dst_sv{};
+
+  if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
+    dst_sv = dst;
+  else
+    dst_sv = {dst, dst_len};
+
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    src_sv = src;
+  else
+    src_sv = {src, src_len};
 
   if (position_index_in_dst > dst_len)
     return {std::cbegin(dst_sv), std::cend(dst_sv)};
@@ -3591,7 +3785,12 @@ void str_insert(T& dst,
   if (position_index_in_dst > dst_len || 0U == src_len)
     return;
 
-  std::basic_string_view<char_type> src_sv{src};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
+    src_sv = {src, src_len};
+  else
+    src_sv = src;
 
   if (0U == dst_len && 0U == position_index_in_dst)
     dst.assign(std::cbegin(src_sv), std::cend(src_sv));
@@ -3639,7 +3838,12 @@ size_t str_insert_n(T (&dst)[ARRAY_SIZE],
        ARRAY_SIZE < required_dst_size))
     return 0U;
 
-  std::basic_string_view<char_type> src_sv{src};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
+    src_sv = {src, src_len};
+  else
+    src_sv = src;
 
   number_of_characters_to_insert =
       std::min(ARRAY_SIZE - dst_len - 1, number_of_characters_to_insert);
@@ -3699,7 +3903,12 @@ size_t str_insert_n(T dst,
       std::min(dst_capacity_in_number_of_characters - dst_len - 1,
                number_of_characters_to_insert);
 
-  std::basic_string_view<char_type> src_sv{src};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
+    src_sv = {src, src_len};
+  else
+    src_sv = src;
 
   std::copy_backward(dst + position_index_in_dst, dst + dst_len,
                      dst + dst_len + number_of_characters_to_insert);
@@ -3744,7 +3953,12 @@ std::basic_string<get_char_type_t<T>> str_insert_n(
     return 0U == dst_len ? std::basic_string<char_type>{}
                          : std::basic_string<char_type>{dst};
 
-  std::basic_string_view<char_type> src_sv{src};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
+    src_sv = src;
+  else
+    src_sv = {src, src_len};
 
   if (0U == dst_len)
     return 0U != position_index_in_dst
@@ -3753,7 +3967,12 @@ std::basic_string<get_char_type_t<T>> str_insert_n(
                      std::cbegin(src_sv),
                      std::cbegin(src_sv) + number_of_characters_to_insert};
 
-  std::basic_string_view<char_type> dst_sv{dst};
+  std::basic_string_view<char_type> dst_sv{};
+
+  if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
+    dst_sv = dst;
+  else
+    dst_sv = {dst, dst_len};
 
   if (position_index_in_dst > dst_len)
     return {std::cbegin(dst_sv), std::cend(dst_sv)};
@@ -3795,7 +4014,12 @@ void str_insert_n(T& dst,
   if (position_index_in_dst > dst_len || 0U == src_len)
     return;
 
-  std::basic_string_view<char_type> src_sv{src};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
+    src_sv = {src, src_len};
+  else
+    src_sv = src;
 
   if (0U == dst_len && 0U == position_index_in_dst)
     dst.assign(std::cbegin(src_sv),
@@ -3847,19 +4071,17 @@ bool str_replace_first(T (&dst)[ARRAY_SIZE],
   if (ARRAY_SIZE < required_dst_buffer_size)
     return false;
 
-  std::basic_string_view<char_type> dst_sv{dst, dst_len}, needle_sv{};
+  std::basic_string_view<char_type> dst_sv{dst, dst_len};
+  std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
 
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   const size_t start_pos =
       str_index_of(dst_sv, needle_sv, start_position_in_dst,
@@ -3871,23 +4093,20 @@ bool str_replace_first(T (&dst)[ARRAY_SIZE],
   std::basic_string_view<char_type> replace_sv{};
   std::basic_string<char_type> replace_str{};
 
-  if constexpr (is_valid_string_type_v<V> || is_valid_string_view_type_v<V>)
-    replace_sv.assign(replace);
-
   if constexpr (is_valid_char_type_v<V>) {
     replace_str.assign(1, replace);
-    replace_sv.assign(replace_str);
+    replace_sv = replace_str;
   }
 
-  if constexpr (is_char_pointer_type_v<V>) {
+  else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
     if (nullptr == replace)
-      replace_sv.assign(replace_str);
+      replace_sv = replace_str;
     else
-      replace_sv.assign(replace, replace_len);
+      replace_sv = {replace, replace_len};
   }
 
-  if constexpr (is_char_array_type_v<V>)
-    replace_sv.assign(replace, replace_len);
+  else
+    replace_sv = replace;
 
   if (needle_len < replace_len) {
     const size_t noctm{replace_len - needle_len};
@@ -3954,19 +4173,17 @@ bool str_replace_first(T dst,
   if (dst_capacity_in_number_of_characters < required_dst_buffer_size)
     return false;
 
-  std::basic_string_view<char_type> dst_sv{dst, dst_len}, needle_sv{};
+  std::basic_string_view<char_type> dst_sv{dst, dst_len};
+  std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
 
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   const size_t start_pos =
       str_index_of(dst_sv, needle_sv, start_position_in_dst,
@@ -3978,23 +4195,20 @@ bool str_replace_first(T dst,
   std::basic_string_view<char_type> replace_sv{};
   std::basic_string<char_type> replace_str{};
 
-  if constexpr (is_valid_string_type_v<V> || is_valid_string_view_type_v<V>)
-    replace_sv.assign(replace);
-
   if constexpr (is_valid_char_type_v<V>) {
     replace_str.assign(1, replace);
-    replace_sv.assign(replace_str);
+    replace_sv = replace_str;
   }
 
-  if constexpr (is_char_pointer_type_v<V>) {
+  else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
     if (nullptr == replace)
-      replace_sv.assign(replace_str);
+      replace_sv = replace_str;
     else
-      replace_sv.assign(replace, replace_len);
+      replace_sv = {replace, replace_len};
   }
 
-  if constexpr (is_char_array_type_v<V>)
-    replace_sv.assign(replace, replace_len);
+  else
+    replace_sv = replace;
 
   if (needle_len < replace_len) {
     const size_t noctm{replace_len - needle_len};
@@ -4048,24 +4262,19 @@ std::basic_string<get_char_type_t<T>> str_replace_first(
   using char_type = get_char_type_t<T>;
 
   const size_t dst_len{len(dst)};
+
+  if (0U == dst_len)
+    return {};
+
   const size_t needle_len{len(needle)};
   const size_t replace_len{len(replace)};
 
   std::basic_string_view<char_type> dst_sv{};
-  std::basic_string<char_type> dst_str{};
 
   if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
-    dst_sv.assign(dst);
-
-  if constexpr (is_char_pointer_type_v<T>) {
-    if (nullptr == dst)
-      dst_sv.assign(dst_str);
-    else
-      dst_sv.assign(dst, dst_len);
-  }
-
-  if constexpr (is_char_array_type_v<T>)
-    dst_sv.assign(dst, dst_len);
+    dst_sv = dst;
+  else
+    dst_sv = {dst, dst_len};
 
   std::basic_string<char_type> str{std::cbegin(dst_sv), std::cend(dst_sv)};
 
@@ -4085,16 +4294,13 @@ std::basic_string<get_char_type_t<T>> str_replace_first(
   std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
 
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
-
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   const size_t start_pos =
       str_index_of(dst_sv, needle_sv, start_position_in_dst,
@@ -4111,16 +4317,16 @@ std::basic_string<get_char_type_t<T>> str_replace_first(
   std::basic_string_view<char_type> replace_sv{};
   std::basic_string<char_type> replace_str{};
 
-  if constexpr (is_valid_string_type_v<V> || is_valid_string_view_type_v<V>)
-    replace_sv.assign(replace);
+  if constexpr (is_char_pointer_type_v<V> || is_const_char_array_type_v<V>)
+    replace_sv = {replace, replace_len};
 
-  if constexpr (is_valid_char_type_v<V>) {
+  else if constexpr (is_valid_char_type_v<V>) {
     replace_str.assign(1, replace);
-    replace_sv.assign(replace_str);
+    replace_sv = replace_str;
   }
 
-  if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>)
-    replace_sv.assign(replace, replace_len);
+  else
+    replace_sv = replace;
 
   str.replace(start_pos, needle_len, replace_sv);
 
@@ -4168,19 +4374,17 @@ bool str_replace_first(T& dst,
   if (required_dst_capacity)
     *required_dst_capacity = required_dst_buffer_size;
 
-  std::basic_string_view<char_type> dst_sv{dst}, needle_sv{};
+  std::basic_string_view<char_type> dst_sv{dst};
+  std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
 
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   const size_t start_pos =
       str_index_of(dst_sv, needle_sv, start_position_in_dst,
@@ -4197,16 +4401,16 @@ bool str_replace_first(T& dst,
   std::basic_string_view<char_type> replace_sv{};
   std::basic_string<char_type> replace_str{};
 
-  if constexpr (is_valid_string_type_v<V> || is_valid_string_view_type_v<V>)
-    replace_sv.assign(replace);
+  if constexpr (is_char_pointer_type_v<V> || is_const_char_array_type_v<V>)
+    replace_sv = {replace, replace_len};
 
-  if constexpr (is_valid_char_type_v<V>) {
+  else if constexpr (is_valid_char_type_v<V>) {
     replace_str.assign(1, replace);
-    replace_sv.assign(replace_str);
+    replace_sv = replace_str;
   }
 
-  if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>)
-    replace_sv.assign(replace, replace_len);
+  else
+    replace_sv = replace;
 
   dst.replace(start_pos, needle_len, replace_sv);
 
@@ -4256,19 +4460,17 @@ bool str_replace_nth(T (&dst)[ARRAY_SIZE],
   if (ARRAY_SIZE < required_dst_buffer_size)
     return false;
 
-  std::basic_string_view<char_type> dst_sv{dst, dst_len}, needle_sv{};
+  std::basic_string_view<char_type> dst_sv{dst, dst_len};
+  std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
 
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   size_t nth_needle_pos{start_position_in_dst}, found_needle_index{};
 
@@ -4286,23 +4488,20 @@ bool str_replace_nth(T (&dst)[ARRAY_SIZE],
   std::basic_string_view<char_type> replace_sv{};
   std::basic_string<char_type> replace_str{};
 
-  if constexpr (is_valid_string_type_v<V> || is_valid_string_view_type_v<V>)
-    replace_sv.assign(replace);
-
   if constexpr (is_valid_char_type_v<V>) {
     replace_str.assign(1, replace);
-    replace_sv.assign(replace_str);
+    replace_sv = replace_str;
   }
 
-  if constexpr (is_char_pointer_type_v<V>) {
+  else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
     if (nullptr == replace)
-      replace_sv.assign(replace_str);
+      replace_sv = replace_str;
     else
-      replace_sv.assign(replace, replace_len);
+      replace_sv = {replace, replace_len};
   }
 
-  if constexpr (is_char_array_type_v<V>)
-    replace_sv.assign(replace, replace_len);
+  else
+    replace_sv = replace;
 
   if (needle_len < replace_len) {
     const size_t noctm{replace_len - needle_len};
@@ -4371,19 +4570,17 @@ bool str_replace_nth(T dst,
   if (dst_capacity_in_number_of_characters < required_dst_buffer_size)
     return false;
 
-  std::basic_string_view<char_type> dst_sv{dst, dst_len}, needle_sv{};
+  std::basic_string_view<char_type> dst_sv{dst, dst_len};
+  std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
 
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   size_t nth_needle_pos{start_position_in_dst}, found_needle_index{};
 
@@ -4401,23 +4598,20 @@ bool str_replace_nth(T dst,
   std::basic_string_view<char_type> replace_sv{};
   std::basic_string<char_type> replace_str{};
 
-  if constexpr (is_valid_string_type_v<V> || is_valid_string_view_type_v<V>)
-    replace_sv.assign(replace);
-
   if constexpr (is_valid_char_type_v<V>) {
     replace_str.assign(1, replace);
-    replace_sv.assign(replace_str);
+    replace_sv = replace_str;
   }
 
-  if constexpr (is_char_pointer_type_v<V>) {
+  else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
     if (nullptr == replace)
-      replace_sv.assign(replace_str);
+      replace_sv = replace_str;
     else
-      replace_sv.assign(replace, replace_len);
+      replace_sv = {replace, replace_len};
   }
 
-  if constexpr (is_char_array_type_v<V>)
-    replace_sv.assign(replace, replace_len);
+  else
+    replace_sv = replace;
 
   if (needle_len < replace_len) {
     const size_t noctm{replace_len - needle_len};
@@ -4473,24 +4667,19 @@ std::basic_string<get_char_type_t<T>> str_replace_nth(
   using char_type = get_char_type_t<T>;
 
   const size_t dst_len{len(dst)};
+
+  if (0U == dst_len)
+    return {};
+
   const size_t needle_len{len(needle)};
   const size_t replace_len{len(replace)};
 
   std::basic_string_view<char_type> dst_sv{};
-  std::basic_string<char_type> dst_str{};
 
   if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
-    dst_sv.assign(dst);
-
-  if constexpr (is_char_pointer_type_v<T>) {
-    if (nullptr == dst)
-      dst_sv.assign(dst_str);
-    else
-      dst_sv.assign(dst, dst_len);
-  }
-
-  if constexpr (is_char_array_type_v<T>)
-    dst_sv.assign(dst, dst_len);
+    dst_sv = dst;
+  else
+    dst_sv = {dst, dst_len};
 
   std::basic_string<char_type> str{std::cbegin(dst_sv), std::cend(dst_sv)};
 
@@ -4510,16 +4699,13 @@ std::basic_string<get_char_type_t<T>> str_replace_nth(
   std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
 
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
-
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   size_t nth_needle_pos{start_position_in_dst}, found_needle_index{};
 
@@ -4542,16 +4728,16 @@ std::basic_string<get_char_type_t<T>> str_replace_nth(
   std::basic_string_view<char_type> replace_sv{};
   std::basic_string<char_type> replace_str{};
 
-  if constexpr (is_valid_string_type_v<V> || is_valid_string_view_type_v<V>)
-    replace_sv.assign(replace);
+  if constexpr (is_char_pointer_type_v<V> || is_const_char_array_type_v<V>)
+    replace_sv = {replace, replace_len};
 
-  if constexpr (is_valid_char_type_v<V>) {
+  else if constexpr (is_valid_char_type_v<V>) {
     replace_str.assign(1, replace);
-    replace_sv.assign(replace_str);
+    replace_sv = replace_str;
   }
 
-  if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>)
-    replace_sv.assign(replace, replace_len);
+  else
+    replace_sv = replace;
 
   str.replace(nth_needle_pos, needle_len, replace_sv);
 
@@ -4599,19 +4785,17 @@ bool str_replace_nth(T& dst,
   if (required_dst_capacity)
     *required_dst_capacity = required_dst_buffer_size;
 
-  std::basic_string_view<char_type> dst_sv{dst}, needle_sv{};
+  std::basic_string_view<char_type> dst_sv{dst};
+  std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
 
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   size_t nth_needle_pos{start_position_in_dst}, found_needle_index{};
 
@@ -4634,16 +4818,16 @@ bool str_replace_nth(T& dst,
   std::basic_string_view<char_type> replace_sv{};
   std::basic_string<char_type> replace_str{};
 
-  if constexpr (is_valid_string_type_v<V> || is_valid_string_view_type_v<V>)
-    replace_sv.assign(replace);
+  if constexpr (is_char_pointer_type_v<V> || is_const_char_array_type_v<V>)
+    replace_sv = {replace, replace_len};
 
-  if constexpr (is_valid_char_type_v<V>) {
+  else if constexpr (is_valid_char_type_v<V>) {
     replace_str.assign(1, replace);
-    replace_sv.assign(replace_str);
+    replace_sv = replace_str;
   }
 
-  if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>)
-    replace_sv.assign(replace, replace_len);
+  else
+    replace_sv = replace;
 
   dst.replace(nth_needle_pos, needle_len, replace_sv);
 
@@ -4693,19 +4877,17 @@ bool str_replace_last(T (&dst)[ARRAY_SIZE],
   if (ARRAY_SIZE < required_dst_buffer_size)
     return false;
 
-  std::basic_string_view<char_type> dst_sv{dst, dst_len}, needle_sv{};
+  std::basic_string_view<char_type> dst_sv{dst, dst_len};
+  std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
 
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   const size_t last_needle_pos{
       str_last_index_of(dst_sv, needle_sv, start_position_in_dst,
@@ -4717,23 +4899,20 @@ bool str_replace_last(T (&dst)[ARRAY_SIZE],
   std::basic_string_view<char_type> replace_sv{};
   std::basic_string<char_type> replace_str{};
 
-  if constexpr (is_valid_string_type_v<V> || is_valid_string_view_type_v<V>)
-    replace_sv.assign(replace);
-
   if constexpr (is_valid_char_type_v<V>) {
     replace_str.assign(1, replace);
-    replace_sv.assign(replace_str);
+    replace_sv = replace_str;
   }
 
-  if constexpr (is_char_pointer_type_v<V>) {
+  else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
     if (nullptr == replace)
-      replace_sv.assign(replace_str);
+      replace_sv = replace_str;
     else
-      replace_sv.assign(replace, replace_len);
+      replace_sv = {replace, replace_len};
   }
 
-  if constexpr (is_char_array_type_v<V>)
-    replace_sv.assign(replace, replace_len);
+  else
+    replace_sv = replace;
 
   if (needle_len < replace_len) {
     const size_t noctm{replace_len - needle_len};
@@ -4802,19 +4981,17 @@ bool str_replace_last(T dst,
   if (dst_capacity_in_number_of_characters < required_dst_buffer_size)
     return false;
 
-  std::basic_string_view<char_type> dst_sv{dst, dst_len}, needle_sv{};
+  std::basic_string_view<char_type> dst_sv{dst, dst_len};
+  std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
 
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   const size_t last_needle_pos{
       str_last_index_of(dst_sv, needle_sv, start_position_in_dst,
@@ -4826,23 +5003,20 @@ bool str_replace_last(T dst,
   std::basic_string_view<char_type> replace_sv{};
   std::basic_string<char_type> replace_str{};
 
-  if constexpr (is_valid_string_type_v<V> || is_valid_string_view_type_v<V>)
-    replace_sv.assign(replace);
-
   if constexpr (is_valid_char_type_v<V>) {
     replace_str.assign(1, replace);
-    replace_sv.assign(replace_str);
+    replace_sv = replace_str;
   }
 
-  if constexpr (is_char_pointer_type_v<V>) {
+  else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
     if (nullptr == replace)
-      replace_sv.assign(replace_str);
+      replace_sv = replace_str;
     else
-      replace_sv.assign(replace, replace_len);
+      replace_sv = {replace, replace_len};
   }
 
-  if constexpr (is_char_array_type_v<V>)
-    replace_sv.assign(replace, replace_len);
+  else
+    replace_sv = replace;
 
   if (needle_len < replace_len) {
     const size_t noctm{replace_len - needle_len};
@@ -4898,24 +5072,19 @@ std::basic_string<get_char_type_t<T>> str_replace_last(
   using char_type = get_char_type_t<T>;
 
   const size_t dst_len{len(dst)};
+
+  if (0U == dst_len)
+    return {};
+
   const size_t needle_len{len(needle)};
   const size_t replace_len{len(replace)};
 
   std::basic_string_view<char_type> dst_sv{};
-  std::basic_string<char_type> dst_str{};
 
   if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
-    dst_sv.assign(dst);
-
-  if constexpr (is_char_pointer_type_v<T>) {
-    if (nullptr == dst)
-      dst_sv.assign(dst_str);
-    else
-      dst_sv.assign(dst, dst_len);
-  }
-
-  if constexpr (is_char_array_type_v<T>)
-    dst_sv.assign(dst, dst_len);
+    dst_sv = dst;
+  else
+    dst_sv = {dst, dst_len};
 
   std::basic_string<char_type> str{std::cbegin(dst_sv), std::cend(dst_sv)};
 
@@ -4935,16 +5104,13 @@ std::basic_string<get_char_type_t<T>> str_replace_last(
   std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
 
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
-
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   const size_t last_needle_pos{
       str_last_index_of(dst_sv, needle_sv, start_position_in_dst,
@@ -4961,16 +5127,16 @@ std::basic_string<get_char_type_t<T>> str_replace_last(
   std::basic_string_view<char_type> replace_sv{};
   std::basic_string<char_type> replace_str{};
 
-  if constexpr (is_valid_string_type_v<V> || is_valid_string_view_type_v<V>)
-    replace_sv.assign(replace);
+  if constexpr (is_char_pointer_type_v<V> || is_const_char_array_type_v<V>)
+    replace_sv = {replace, replace_len};
 
-  if constexpr (is_valid_char_type_v<V>) {
+  else if constexpr (is_valid_char_type_v<V>) {
     replace_str.assign(1, replace);
-    replace_sv.assign(replace_str);
+    replace_sv = replace_str;
   }
 
-  if constexpr (is_char_array_type_v<V> || is_char_pointer_type_v<V>)
-    replace_sv.assign(replace, replace_len);
+  else
+    replace_sv = replace;
 
   str.replace(last_needle_pos, needle_len, replace_sv);
 
@@ -5022,16 +5188,13 @@ bool str_replace_last(T& dst,
   std::basic_string_view<char_type> dst_sv{dst}, needle_sv{};
   std::basic_string<char_type> needle_str{};
 
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
-
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   const size_t last_needle_pos{
       str_last_index_of(dst_sv, needle_sv, start_position_in_dst,
@@ -5048,16 +5211,16 @@ bool str_replace_last(T& dst,
   std::basic_string_view<char_type> replace_sv{};
   std::basic_string<char_type> replace_str{};
 
-  if constexpr (is_valid_string_type_v<V> || is_valid_string_view_type_v<V>)
-    replace_sv.assign(replace);
+  if constexpr (is_char_pointer_type_v<V> || is_const_char_array_type_v<V>)
+    replace_sv = {replace, replace_len};
 
-  if constexpr (is_valid_char_type_v<V>) {
+  else if constexpr (is_valid_char_type_v<V>) {
     replace_str.assign(1, replace);
-    replace_sv.assign(replace_str);
+    replace_sv = replace_str;
   }
 
-  if constexpr (is_char_array_type_v<V> || is_char_pointer_type_v<V>)
-    replace_sv.assign(replace, replace_len);
+  else
+    replace_sv = replace;
 
   dst.replace(last_needle_pos, needle_len, replace_sv);
 
@@ -5098,19 +5261,17 @@ bool str_replace_all(T (&dst)[ARRAY_SIZE],
     return false;
   }
 
-  std::basic_string_view<char_type> dst_sv{dst, dst_len}, needle_sv{};
+  std::basic_string_view<char_type> dst_sv{dst, dst_len};
+  std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
 
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   std::vector<size_t> needle_start_positions{};
 
@@ -5140,23 +5301,20 @@ bool str_replace_all(T (&dst)[ARRAY_SIZE],
   std::basic_string_view<char_type> replace_sv{};
   std::basic_string<char_type> replace_str{};
 
-  if constexpr (is_valid_string_type_v<V> || is_valid_string_view_type_v<V>)
-    replace_sv.assign(replace);
-
   if constexpr (is_valid_char_type_v<V>) {
     replace_str.assign(1, replace);
-    replace_sv.assign(replace_str);
+    replace_sv = replace_str;
   }
 
-  if constexpr (is_char_pointer_type_v<V>) {
+  else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
     if (nullptr == replace)
-      replace_sv.assign(replace_str);
+      replace_sv = replace_str;
     else
-      replace_sv.assign(replace, replace_len);
+      replace_sv = {replace, replace_len};
   }
 
-  if constexpr (is_char_array_type_v<V>)
-    replace_sv.assign(replace, replace_len);
+  else
+    replace_sv = replace;
 
   std::basic_string<char_type> buffer{};
   buffer.reserve(required_dst_buffer_size);
@@ -5213,19 +5371,17 @@ bool str_replace_all(T dst,
     return false;
   }
 
-  std::basic_string_view<char_type> dst_sv{dst, dst_len}, needle_sv{};
+  std::basic_string_view<char_type> dst_sv{dst, dst_len};
+  std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
 
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   std::vector<size_t> needle_start_positions{};
 
@@ -5255,23 +5411,20 @@ bool str_replace_all(T dst,
   std::basic_string_view<char_type> replace_sv{};
   std::basic_string<char_type> replace_str{};
 
-  if constexpr (is_valid_string_type_v<V> || is_valid_string_view_type_v<V>)
-    replace_sv.assign(replace);
-
   if constexpr (is_valid_char_type_v<V>) {
     replace_str.assign(1, replace);
-    replace_sv.assign(replace_str);
+    replace_sv = replace_str;
   }
 
-  if constexpr (is_char_pointer_type_v<V>) {
+  else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
     if (nullptr == replace)
-      replace_sv.assign(replace_str);
+      replace_sv = replace_str;
     else
-      replace_sv.assign(replace, replace_len);
+      replace_sv = {replace, replace_len};
   }
 
-  if constexpr (is_char_array_type_v<V>)
-    replace_sv.assign(replace, replace_len);
+  else
+    replace_sv = replace;
 
   std::basic_string<char_type> buffer{};
   buffer.reserve(required_dst_buffer_size);
@@ -5323,24 +5476,19 @@ std::basic_string<get_char_type_t<T>> str_replace_all(
   using char_type = get_char_type_t<T>;
 
   const size_t dst_len{len(dst)};
+
+  if (0U == dst_len)
+    return {};
+
   const size_t needle_len{len(needle)};
   const size_t replace_len{len(replace)};
 
   std::basic_string_view<char_type> dst_sv{};
-  std::basic_string<char_type> dst_str{};
 
   if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
-    dst_sv.assign(dst);
-
-  if constexpr (is_char_pointer_type_v<T>) {
-    if (nullptr == dst)
-      dst_sv.assign(dst_str);
-    else
-      dst_sv.assign(dst, dst_len);
-  }
-
-  if constexpr (is_char_array_type_v<T>)
-    dst_sv.assign(dst, dst_len);
+    dst_sv = dst;
+  else
+    dst_sv = {dst, dst_len};
 
   if (0U == needle_len || needle_len > dst_len) {
     if (required_dst_capacity)
@@ -5351,16 +5499,13 @@ std::basic_string<get_char_type_t<T>> str_replace_all(
   std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
 
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
-
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   std::vector<size_t> needle_start_positions{};
 
@@ -5387,23 +5532,20 @@ std::basic_string<get_char_type_t<T>> str_replace_all(
   std::basic_string_view<char_type> replace_sv{};
   std::basic_string<char_type> replace_str{};
 
-  if constexpr (is_valid_string_type_v<V> || is_valid_string_view_type_v<V>)
-    replace_sv.assign(replace);
-
   if constexpr (is_valid_char_type_v<V>) {
     replace_str.assign(1, replace);
-    replace_sv.assign(replace_str);
+    replace_sv = replace_str;
   }
 
-  if constexpr (is_char_pointer_type_v<V>) {
+  else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
     if (nullptr == replace)
-      replace_sv.assign(replace_str);
+      replace_sv = replace_str;
     else
-      replace_sv.assign(replace, replace_len);
+      replace_sv = {replace, replace_len};
   }
 
-  if constexpr (is_char_array_type_v<V>)
-    replace_sv.assign(replace, replace_len);
+  else
+    replace_sv = replace;
 
   std::basic_string<char_type> buffer{};
   buffer.reserve(required_dst_buffer_size);
@@ -5460,16 +5602,13 @@ bool str_replace_all(T& dst,
   std::basic_string_view<char_type> dst_sv{dst}, needle_sv{};
   std::basic_string<char_type> needle_str{};
 
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
-
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   std::vector<size_t> needle_start_positions{};
 
@@ -5496,23 +5635,20 @@ bool str_replace_all(T& dst,
   std::basic_string_view<char_type> replace_sv{};
   std::basic_string<char_type> replace_str{};
 
-  if constexpr (is_valid_string_type_v<V> || is_valid_string_view_type_v<V>)
-    replace_sv.assign(replace);
-
   if constexpr (is_valid_char_type_v<V>) {
     replace_str.assign(1, replace);
-    replace_sv.assign(replace_str);
+    replace_sv = replace_str;
   }
 
-  if constexpr (is_char_pointer_type_v<V>) {
+  else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
     if (nullptr == replace)
-      replace_sv.assign(replace_str);
+      replace_sv = replace_str;
     else
-      replace_sv.assign(replace, replace_len);
+      replace_sv = {replace, replace_len};
   }
 
-  if constexpr (is_char_array_type_v<V>)
-    replace_sv.assign(replace, replace_len);
+  else
+    replace_sv = replace;
 
   std::basic_string<char_type> buffer{};
   buffer.reserve(required_dst_buffer_size);
@@ -5572,19 +5708,17 @@ bool str_replace_first_n(
     return false;
   }
 
-  std::basic_string_view<char_type> dst_sv{dst, dst_len}, needle_sv{};
+  std::basic_string_view<char_type> dst_sv{dst, dst_len};
+  std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
 
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   std::vector<size_t> needle_start_positions{};
 
@@ -5614,23 +5748,20 @@ bool str_replace_first_n(
   std::basic_string_view<char_type> replace_sv{};
   std::basic_string<char_type> replace_str{};
 
-  if constexpr (is_valid_string_type_v<V> || is_valid_string_view_type_v<V>)
-    replace_sv.assign(replace);
-
   if constexpr (is_valid_char_type_v<V>) {
     replace_str.assign(1, replace);
-    replace_sv.assign(replace_str);
+    replace_sv = replace_str;
   }
 
-  if constexpr (is_char_pointer_type_v<V>) {
+  else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
     if (nullptr == replace)
-      replace_sv.assign(replace_str);
+      replace_sv = replace_str;
     else
-      replace_sv.assign(replace, replace_len);
+      replace_sv = {replace, replace_len};
   }
 
-  if constexpr (is_char_array_type_v<V>)
-    replace_sv.assign(replace, replace_len);
+  else
+    replace_sv = replace;
 
   std::basic_string<char_type> buffer{};
   buffer.reserve(required_dst_buffer_size);
@@ -5689,19 +5820,17 @@ bool str_replace_first_n(
     return false;
   }
 
-  std::basic_string_view<char_type> dst_sv{dst, dst_len}, needle_sv{};
+  std::basic_string_view<char_type> dst_sv{dst, dst_len};
+  std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
 
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   std::vector<size_t> needle_start_positions{};
 
@@ -5731,23 +5860,20 @@ bool str_replace_first_n(
   std::basic_string_view<char_type> replace_sv{};
   std::basic_string<char_type> replace_str{};
 
-  if constexpr (is_valid_string_type_v<V> || is_valid_string_view_type_v<V>)
-    replace_sv.assign(replace);
-
   if constexpr (is_valid_char_type_v<V>) {
     replace_str.assign(1, replace);
-    replace_sv.assign(replace_str);
+    replace_sv = replace_str;
   }
 
-  if constexpr (is_char_pointer_type_v<V>) {
+  else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
     if (nullptr == replace)
-      replace_sv.assign(replace_str);
+      replace_sv = replace_str;
     else
-      replace_sv.assign(replace, replace_len);
+      replace_sv = {replace, replace_len};
   }
 
-  if constexpr (is_char_array_type_v<V>)
-    replace_sv.assign(replace, replace_len);
+  else
+    replace_sv = replace;
 
   std::basic_string<char_type> buffer{};
   buffer.reserve(required_dst_buffer_size);
@@ -5800,24 +5926,19 @@ std::basic_string<get_char_type_t<T>> str_replace_first_n(
   using char_type = get_char_type_t<T>;
 
   const size_t dst_len{len(dst)};
+
+  if (0U == dst_len)
+    return {};
+
   const size_t needle_len{len(needle)};
   const size_t replace_len{len(replace)};
 
   std::basic_string_view<char_type> dst_sv{};
-  std::basic_string<char_type> dst_str{};
 
   if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
-    dst_sv.assign(dst);
-
-  if constexpr (is_char_pointer_type_v<T>) {
-    if (nullptr == dst)
-      dst_sv.assign(dst_str);
-    else
-      dst_sv.assign(dst, dst_len);
-  }
-
-  if constexpr (is_char_array_type_v<T>)
-    dst_sv.assign(dst, dst_len);
+    dst_sv = dst;
+  else
+    dst_sv = {dst, dst_len};
 
   if (0U == needle_len || needle_len > dst_len) {
     if (required_dst_capacity)
@@ -5828,16 +5949,13 @@ std::basic_string<get_char_type_t<T>> str_replace_first_n(
   std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
 
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
-
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   std::vector<size_t> needle_start_positions{};
 
@@ -5864,23 +5982,20 @@ std::basic_string<get_char_type_t<T>> str_replace_first_n(
   std::basic_string_view<char_type> replace_sv{};
   std::basic_string<char_type> replace_str{};
 
-  if constexpr (is_valid_string_type_v<V> || is_valid_string_view_type_v<V>)
-    replace_sv.assign(replace);
-
   if constexpr (is_valid_char_type_v<V>) {
     replace_str.assign(1, replace);
-    replace_sv.assign(replace_str);
+    replace_sv = replace_str;
   }
 
-  if constexpr (is_char_pointer_type_v<V>) {
+  else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
     if (nullptr == replace)
-      replace_sv.assign(replace_str);
+      replace_sv = replace_str;
     else
-      replace_sv.assign(replace, replace_len);
+      replace_sv = {replace, replace_len};
   }
 
-  if constexpr (is_char_array_type_v<V>)
-    replace_sv.assign(replace, replace_len);
+  else
+    replace_sv = replace;
 
   std::basic_string<char_type> buffer{};
   buffer.reserve(required_dst_buffer_size);
@@ -5936,19 +6051,18 @@ bool str_replace_first_n(
       *required_dst_capacity = dst_len + 1;
     return false;
   }
-  std::basic_string_view<char_type> dst_sv{dst}, needle_sv{};
-  std::basic_string<char_type> needle_str{};
 
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
+  std::basic_string_view<char_type> dst_sv{dst};
+  std::basic_string_view<char_type> needle_sv{};
+  std::basic_string<char_type> needle_str{};
 
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   std::vector<size_t> needle_start_positions{};
 
@@ -5975,23 +6089,20 @@ bool str_replace_first_n(
   std::basic_string_view<char_type> replace_sv{};
   std::basic_string<char_type> replace_str{};
 
-  if constexpr (is_valid_string_type_v<V> || is_valid_string_view_type_v<V>)
-    replace_sv.assign(replace);
-
   if constexpr (is_valid_char_type_v<V>) {
     replace_str.assign(1, replace);
-    replace_sv.assign(replace_str);
+    replace_sv = replace_str;
   }
 
-  if constexpr (is_char_pointer_type_v<V>) {
+  else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
     if (nullptr == replace)
-      replace_sv.assign(replace_str);
+      replace_sv = replace_str;
     else
-      replace_sv.assign(replace, replace_len);
+      replace_sv = {replace, replace_len};
   }
 
-  if constexpr (is_char_array_type_v<V>)
-    replace_sv.assign(replace, replace_len);
+  else
+    replace_sv = replace;
 
   std::basic_string<char_type> buffer{};
   buffer.reserve(required_dst_buffer_size);
@@ -6051,19 +6162,17 @@ bool str_replace_last_n(
     return false;
   }
 
-  std::basic_string_view<char_type> dst_sv{dst, dst_len}, needle_sv{};
+  std::basic_string_view<char_type> dst_sv{dst, dst_len};
+  std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
 
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   std::vector<size_t> needle_start_positions{};
 
@@ -6096,23 +6205,20 @@ bool str_replace_last_n(
   std::basic_string_view<char_type> replace_sv{};
   std::basic_string<char_type> replace_str{};
 
-  if constexpr (is_valid_string_type_v<V> || is_valid_string_view_type_v<V>)
-    replace_sv.assign(replace);
-
   if constexpr (is_valid_char_type_v<V>) {
     replace_str.assign(1, replace);
-    replace_sv.assign(replace_str);
+    replace_sv = replace_str;
   }
 
-  if constexpr (is_char_pointer_type_v<V>) {
+  else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
     if (nullptr == replace)
-      replace_sv.assign(replace_str);
+      replace_sv = replace_str;
     else
-      replace_sv.assign(replace, replace_len);
+      replace_sv = {replace, replace_len};
   }
 
-  if constexpr (is_char_array_type_v<V>)
-    replace_sv.assign(replace, replace_len);
+  else
+    replace_sv = replace;
 
   std::basic_string<char_type> buffer{};
   buffer.reserve(required_dst_buffer_size);
@@ -6170,19 +6276,17 @@ bool str_replace_last_n(
     return false;
   }
 
-  std::basic_string_view<char_type> dst_sv{dst, dst_len}, needle_sv{};
+  std::basic_string_view<char_type> dst_sv{dst, dst_len};
+  std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
 
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   std::vector<size_t> needle_start_positions{};
 
@@ -6215,23 +6319,20 @@ bool str_replace_last_n(
   std::basic_string_view<char_type> replace_sv{};
   std::basic_string<char_type> replace_str{};
 
-  if constexpr (is_valid_string_type_v<V> || is_valid_string_view_type_v<V>)
-    replace_sv.assign(replace);
-
   if constexpr (is_valid_char_type_v<V>) {
     replace_str.assign(1, replace);
-    replace_sv.assign(replace_str);
+    replace_sv = replace_str;
   }
 
-  if constexpr (is_char_pointer_type_v<V>) {
+  else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
     if (nullptr == replace)
-      replace_sv.assign(replace_str);
+      replace_sv = replace_str;
     else
-      replace_sv.assign(replace, replace_len);
+      replace_sv = {replace, replace_len};
   }
 
-  if constexpr (is_char_array_type_v<V>)
-    replace_sv.assign(replace, replace_len);
+  else
+    replace_sv = replace;
 
   std::basic_string<char_type> buffer{};
   buffer.reserve(required_dst_buffer_size);
@@ -6284,24 +6385,18 @@ std::basic_string<get_char_type_t<T>> str_replace_last_n(
   using char_type = get_char_type_t<T>;
 
   const size_t dst_len{len(dst)};
+
+  if (0U == dst_len)
+    return {};
   const size_t needle_len{len(needle)};
   const size_t replace_len{len(replace)};
 
   std::basic_string_view<char_type> dst_sv{};
-  std::basic_string<char_type> dst_str{};
 
   if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
-    dst_sv.assign(dst);
-
-  if constexpr (is_char_pointer_type_v<T>) {
-    if (nullptr == dst)
-      dst_sv.assign(dst_str);
-    else
-      dst_sv.assign(dst, dst_len);
-  }
-
-  if constexpr (is_char_array_type_v<T>)
-    dst_sv.assign(dst, dst_len);
+    dst_sv = dst;
+  else
+    dst_sv = {dst, dst_len};
 
   if (0U == needle_len || needle_len > dst_len) {
     if (required_dst_capacity)
@@ -6312,16 +6407,13 @@ std::basic_string<get_char_type_t<T>> str_replace_last_n(
   std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
 
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
-
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   std::vector<size_t> needle_start_positions{};
 
@@ -6351,23 +6443,20 @@ std::basic_string<get_char_type_t<T>> str_replace_last_n(
   std::basic_string_view<char_type> replace_sv{};
   std::basic_string<char_type> replace_str{};
 
-  if constexpr (is_valid_string_type_v<V> || is_valid_string_view_type_v<V>)
-    replace_sv.assign(replace);
-
   if constexpr (is_valid_char_type_v<V>) {
     replace_str.assign(1, replace);
-    replace_sv.assign(replace_str);
+    replace_sv = replace_str;
   }
 
-  if constexpr (is_char_pointer_type_v<V>) {
+  else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
     if (nullptr == replace)
-      replace_sv.assign(replace_str);
+      replace_sv = replace_str;
     else
-      replace_sv.assign(replace, replace_len);
+      replace_sv = {replace, replace_len};
   }
 
-  if constexpr (is_char_array_type_v<V>)
-    replace_sv.assign(replace, replace_len);
+  else
+    replace_sv = replace;
 
   std::basic_string<char_type> buffer{};
   buffer.reserve(required_dst_buffer_size);
@@ -6423,19 +6512,17 @@ bool str_replace_last_n(
       *required_dst_capacity = dst_len + 1;
     return false;
   }
-  std::basic_string_view<char_type> dst_sv{dst}, needle_sv{};
+  std::basic_string_view<char_type> dst_sv{dst};
+  std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
 
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   std::vector<size_t> needle_start_positions{};
 
@@ -6465,23 +6552,20 @@ bool str_replace_last_n(
   std::basic_string_view<char_type> replace_sv{};
   std::basic_string<char_type> replace_str{};
 
-  if constexpr (is_valid_string_type_v<V> || is_valid_string_view_type_v<V>)
-    replace_sv.assign(replace);
-
   if constexpr (is_valid_char_type_v<V>) {
     replace_str.assign(1, replace);
-    replace_sv.assign(replace_str);
+    replace_sv = replace_str;
   }
 
-  if constexpr (is_char_pointer_type_v<V>) {
+  else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
     if (nullptr == replace)
-      replace_sv.assign(replace_str);
+      replace_sv = replace_str;
     else
-      replace_sv.assign(replace, replace_len);
+      replace_sv = {replace, replace_len};
   }
 
-  if constexpr (is_char_array_type_v<V>)
-    replace_sv.assign(replace, replace_len);
+  else
+    replace_sv = replace;
 
   std::basic_string<char_type> buffer{};
   buffer.reserve(required_dst_buffer_size);
@@ -6533,19 +6617,17 @@ bool str_erase_first(T (&dst)[ARRAY_SIZE],
   if (required_dst_capacity)
     *required_dst_capacity = dst_len - needle_len + 1;
 
-  std::basic_string_view<char_type> dst_sv{dst, dst_len}, needle_sv{};
+  std::basic_string_view<char_type> dst_sv{dst, dst_len};
+  std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
 
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   const size_t start_pos =
       str_index_of(dst_sv, needle_sv, start_position_in_dst,
@@ -6588,19 +6670,17 @@ bool str_erase_first(T dst,
   if (required_dst_capacity)
     *required_dst_capacity = dst_len - needle_len + 1;
 
-  std::basic_string_view<char_type> dst_sv{dst, dst_len}, needle_sv{};
+  std::basic_string_view<char_type> dst_sv{dst, dst_len};
+  std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
 
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   const size_t start_pos =
       str_index_of(dst_sv, needle_sv, start_position_in_dst,
@@ -6636,23 +6716,18 @@ std::basic_string<get_char_type_t<T>> str_erase_first(
   using char_type = get_char_type_t<T>;
 
   const size_t dst_len{len(dst)};
+
+  if (0U == dst_len)
+    return {};
+
   const size_t needle_len{len(needle)};
 
   std::basic_string_view<char_type> dst_sv{};
-  std::basic_string<char_type> dst_str{};
 
   if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
-    dst_sv.assign(dst);
-
-  if constexpr (is_char_pointer_type_v<T>) {
-    if (nullptr == dst)
-      dst_sv.assign(dst_str);
-    else
-      dst_sv.assign(dst, dst_len);
-  }
-
-  if constexpr (is_char_array_type_v<T>)
-    dst_sv.assign(dst, dst_len);
+    dst_sv = dst;
+  else
+    dst_sv = {dst, dst_len};
 
   std::basic_string<char_type> str{std::cbegin(dst_sv), std::cend(dst_sv)};
 
@@ -6668,16 +6743,13 @@ std::basic_string<get_char_type_t<T>> str_erase_first(
   std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
 
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
-
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   const size_t start_pos =
       str_index_of(dst_sv, needle_sv, start_position_in_dst,
@@ -6718,19 +6790,17 @@ bool str_erase_first(T& dst,
   if (required_dst_capacity)
     *required_dst_capacity = dst_len - needle_len + 1;
 
-  std::basic_string_view<char_type> dst_sv{dst}, needle_sv{};
+  std::basic_string_view<char_type> dst_sv{dst};
+  std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
 
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   const size_t start_pos =
       str_index_of(dst_sv, needle_sv, start_position_in_dst,
@@ -6773,19 +6843,17 @@ bool str_erase_nth(T (&dst)[ARRAY_SIZE],
   if (required_dst_capacity)
     *required_dst_capacity = dst_len - needle_len + 1;
 
-  std::basic_string_view<char_type> dst_sv{dst, dst_len}, needle_sv{};
+  std::basic_string_view<char_type> dst_sv{dst, dst_len};
+  std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
 
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   size_t nth_needle_pos{start_position_in_dst}, found_needle_index{};
 
@@ -6834,19 +6902,17 @@ bool str_erase_nth(T dst,
   if (required_dst_capacity)
     *required_dst_capacity = dst_len - needle_len + 1;
 
-  std::basic_string_view<char_type> dst_sv{dst, dst_len}, needle_sv{};
+  std::basic_string_view<char_type> dst_sv{dst, dst_len};
+  std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
 
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   size_t nth_needle_pos{start_position_in_dst}, found_needle_index{};
 
@@ -6890,23 +6956,18 @@ std::basic_string<get_char_type_t<T>> str_erase_nth(
   using char_type = get_char_type_t<T>;
 
   const size_t dst_len{len(dst)};
+
+  if (0U == dst_len)
+    return {};
+
   const size_t needle_len{len(needle)};
 
   std::basic_string_view<char_type> dst_sv{};
-  std::basic_string<char_type> dst_str{};
 
   if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
-    dst_sv.assign(dst);
-
-  if constexpr (is_char_pointer_type_v<T>) {
-    if (nullptr == dst)
-      dst_sv.assign(dst_str);
-    else
-      dst_sv.assign(dst, dst_len);
-  }
-
-  if constexpr (is_char_array_type_v<T>)
-    dst_sv.assign(dst, dst_len);
+    dst_sv = dst;
+  else
+    dst_sv = {dst, dst_len};
 
   std::basic_string<char_type> str{std::cbegin(dst_sv), std::cend(dst_sv)};
 
@@ -6922,16 +6983,13 @@ std::basic_string<get_char_type_t<T>> str_erase_nth(
   std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
 
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
-
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   size_t nth_needle_pos{start_position_in_dst}, found_needle_index{};
 
@@ -6979,19 +7037,17 @@ bool str_erase_nth(T& dst,
   if (required_dst_capacity)
     *required_dst_capacity = dst_len - needle_len + 1;
 
-  std::basic_string_view<char_type> dst_sv{dst}, needle_sv{};
+  std::basic_string_view<char_type> dst_sv{dst};
+  std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
 
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   size_t nth_needle_pos{start_position_in_dst}, found_needle_index{};
 
@@ -7039,19 +7095,17 @@ bool str_erase_last(T (&dst)[ARRAY_SIZE],
   if (required_dst_capacity)
     *required_dst_capacity = dst_len - needle_len + 1;
 
-  std::basic_string_view<char_type> dst_sv{dst, dst_len}, needle_sv{};
+  std::basic_string_view<char_type> dst_sv{dst, dst_len};
+  std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
 
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   const size_t last_needle_pos{
       str_last_index_of(dst_sv, needle_sv, start_position_in_dst,
@@ -7096,19 +7150,17 @@ bool str_erase_last(T dst,
   if (required_dst_capacity)
     *required_dst_capacity = dst_len - needle_len + 1;
 
-  std::basic_string_view<char_type> dst_sv{dst, dst_len}, needle_sv{};
+  std::basic_string_view<char_type> dst_sv{dst, dst_len};
+  std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
 
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   const size_t last_needle_pos{
       str_last_index_of(dst_sv, needle_sv, start_position_in_dst,
@@ -7146,23 +7198,17 @@ std::basic_string<get_char_type_t<T>> str_erase_last(
   using char_type = get_char_type_t<T>;
 
   const size_t dst_len{len(dst)};
+
+  if (0U == dst_len)
+    return {};
   const size_t needle_len{len(needle)};
 
   std::basic_string_view<char_type> dst_sv{};
-  std::basic_string<char_type> dst_str{};
 
   if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
-    dst_sv.assign(dst);
-
-  if constexpr (is_char_pointer_type_v<T>) {
-    if (nullptr == dst)
-      dst_sv.assign(dst_str);
-    else
-      dst_sv.assign(dst, dst_len);
-  }
-
-  if constexpr (is_char_array_type_v<T>)
-    dst_sv.assign(dst, dst_len);
+    dst_sv = dst;
+  else
+    dst_sv = {dst, dst_len};
 
   std::basic_string<char_type> str{std::cbegin(dst_sv), std::cend(dst_sv)};
 
@@ -7178,16 +7224,13 @@ std::basic_string<get_char_type_t<T>> str_erase_last(
   std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
 
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
-
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   const size_t last_needle_pos{
       str_last_index_of(dst_sv, needle_sv, start_position_in_dst,
@@ -7229,19 +7272,17 @@ bool str_erase_last(T& dst,
   if (required_dst_capacity)
     *required_dst_capacity = dst_len - needle_len + 1;
 
-  std::basic_string_view<char_type> dst_sv{dst}, needle_sv{};
+  std::basic_string_view<char_type> dst_sv{dst};
+  std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
 
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   const size_t last_needle_pos{
       str_last_index_of(dst_sv, needle_sv, start_position_in_dst,
@@ -7280,19 +7321,17 @@ bool str_erase_all(T (&dst)[ARRAY_SIZE],
     return false;
   }
 
-  std::basic_string_view<char_type> dst_sv{dst, dst_len}, needle_sv{};
+  std::basic_string_view<char_type> dst_sv{dst, dst_len};
+  std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
 
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   std::vector<size_t> needle_start_positions{};
 
@@ -7356,19 +7395,17 @@ bool str_erase_all(T dst,
     return false;
   }
 
-  std::basic_string_view<char_type> dst_sv{dst, dst_len}, needle_sv{};
+  std::basic_string_view<char_type> dst_sv{dst, dst_len};
+  std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
 
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   std::vector<size_t> needle_start_positions{};
 
@@ -7428,23 +7465,16 @@ std::basic_string<get_char_type_t<T>> str_erase_all(
   using char_type = get_char_type_t<T>;
 
   const size_t dst_len{len(dst)};
+  if (0U == dst_len)
+    return {};
   const size_t needle_len{len(needle)};
 
   std::basic_string_view<char_type> dst_sv{};
-  std::basic_string<char_type> dst_str{};
 
   if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
-    dst_sv.assign(dst);
-
-  if constexpr (is_char_pointer_type_v<T>) {
-    if (nullptr == dst)
-      dst_sv.assign(dst_str);
-    else
-      dst_sv.assign(dst, dst_len);
-  }
-
-  if constexpr (is_char_array_type_v<T>)
-    dst_sv.assign(dst, dst_len);
+    dst_sv = dst;
+  else
+    dst_sv = {dst, dst_len};
 
   if (0U == needle_len || needle_len > dst_len) {
     if (required_dst_capacity)
@@ -7455,16 +7485,13 @@ std::basic_string<get_char_type_t<T>> str_erase_all(
   std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
 
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
-
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   std::vector<size_t> needle_start_positions{};
 
@@ -7526,19 +7553,17 @@ bool str_erase_all(T& dst,
       *required_dst_capacity = dst_len + 1;
     return false;
   }
-  std::basic_string_view<char_type> dst_sv{dst}, needle_sv{};
+  std::basic_string_view<char_type> dst_sv{dst};
+  std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
 
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   std::vector<size_t> needle_start_positions{};
 
@@ -7604,19 +7629,17 @@ bool str_replace_first_n(
     return false;
   }
 
-  std::basic_string_view<char_type> dst_sv{dst, dst_len}, needle_sv{};
+  std::basic_string_view<char_type> dst_sv{dst, dst_len};
+  std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
 
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   std::vector<size_t> needle_start_positions{};
 
@@ -7682,19 +7705,17 @@ bool str_replace_first_n(
     return false;
   }
 
-  std::basic_string_view<char_type> dst_sv{dst, dst_len}, needle_sv{};
+  std::basic_string_view<char_type> dst_sv{dst, dst_len};
+  std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
 
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   std::vector<size_t> needle_start_positions{};
 
@@ -7755,23 +7776,16 @@ std::basic_string<get_char_type_t<T>> str_replace_first_n(
   using char_type = get_char_type_t<T>;
 
   const size_t dst_len{len(dst)};
+  if (0U == dst_len)
+    return {};
   const size_t needle_len{len(needle)};
 
   std::basic_string_view<char_type> dst_sv{};
-  std::basic_string<char_type> dst_str{};
 
   if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
-    dst_sv.assign(dst);
-
-  if constexpr (is_char_pointer_type_v<T>) {
-    if (nullptr == dst)
-      dst_sv.assign(dst_str);
-    else
-      dst_sv.assign(dst, dst_len);
-  }
-
-  if constexpr (is_char_array_type_v<T>)
-    dst_sv.assign(dst, dst_len);
+    dst_sv = dst;
+  else
+    dst_sv = {dst, dst_len};
 
   if (0U == needle_len || needle_len > dst_len) {
     if (required_dst_capacity)
@@ -7782,16 +7796,13 @@ std::basic_string<get_char_type_t<T>> str_replace_first_n(
   std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
 
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
-
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   std::vector<size_t> needle_start_positions{};
 
@@ -7854,19 +7865,17 @@ bool str_replace_first_n(
       *required_dst_capacity = dst_len + 1;
     return false;
   }
-  std::basic_string_view<char_type> dst_sv{dst}, needle_sv{};
+  std::basic_string_view<char_type> dst_sv{dst};
+  std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
 
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   std::vector<size_t> needle_start_positions{};
 
@@ -7932,19 +7941,17 @@ bool str_replace_last_n(
     return false;
   }
 
-  std::basic_string_view<char_type> dst_sv{dst, dst_len}, needle_sv{};
+  std::basic_string_view<char_type> dst_sv{dst, dst_len};
+  std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
 
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   std::vector<size_t> needle_start_positions{};
 
@@ -8012,19 +8019,17 @@ bool str_replace_last_n(
     return false;
   }
 
-  std::basic_string_view<char_type> dst_sv{dst, dst_len}, needle_sv{};
+  std::basic_string_view<char_type> dst_sv{dst, dst_len};
+  std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
 
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   std::vector<size_t> needle_start_positions{};
 
@@ -8087,23 +8092,16 @@ std::basic_string<get_char_type_t<T>> str_replace_last_n(
   using char_type = get_char_type_t<T>;
 
   const size_t dst_len{len(dst)};
+  if (0U == dst_len)
+    return {};
   const size_t needle_len{len(needle)};
 
   std::basic_string_view<char_type> dst_sv{};
-  std::basic_string<char_type> dst_str{};
 
   if constexpr (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)
-    dst_sv.assign(dst);
-
-  if constexpr (is_char_pointer_type_v<T>) {
-    if (nullptr == dst)
-      dst_sv.assign(dst_str);
-    else
-      dst_sv.assign(dst, dst_len);
-  }
-
-  if constexpr (is_char_array_type_v<T>)
-    dst_sv.assign(dst, dst_len);
+    dst_sv = dst;
+  else
+    dst_sv = {dst, dst_len};
 
   if (0U == needle_len || needle_len > dst_len) {
     if (required_dst_capacity)
@@ -8114,16 +8112,13 @@ std::basic_string<get_char_type_t<T>> str_replace_last_n(
   std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
 
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
-
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   std::vector<size_t> needle_start_positions{};
 
@@ -8189,19 +8184,17 @@ bool str_replace_last_n(
       *required_dst_capacity = dst_len + 1;
     return false;
   }
-  std::basic_string_view<char_type> dst_sv{dst}, needle_sv{};
+  std::basic_string_view<char_type> dst_sv{dst};
+  std::basic_string_view<char_type> needle_sv{};
   std::basic_string<char_type> needle_str{};
-
-  if constexpr (is_valid_string_type_v<U> || is_valid_string_view_type_v<U>)
-    needle_sv.assign(needle);
 
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
-    needle_sv.assign(needle_str);
-  }
-
-  if constexpr (is_char_array_type_v<U> || is_char_pointer_type_v<U>)
-    needle_sv.assign(needle, needle_len);
+    needle_sv = needle_str;
+  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
 
   std::vector<size_t> needle_start_positions{};
 
@@ -8280,11 +8273,10 @@ template <
             is_valid_string_type_v<U> ||
             is_valid_string_view_type_v<
                 U>)&&(std::is_same_v<get_char_type_t<T>, get_char_type_t<U>>)>>
-auto strstr(const T& src, const U& needle) {
+const get_char_type_t<T>* strstr(const T& src, const U& needle) {
   using char_type = get_char_type_t<T>;
   const size_t pos = src.find(needle);
-  return std::basic_string<char_type>::npos != pos ? std::cbegin(src) + pos
-                                                   : std::cend(src);
+  return std::basic_string<char_type>::npos != pos ? src.data() + pos : nullptr;
 }
 
 template <
@@ -8344,9 +8336,9 @@ template <
             is_valid_string_type_v<U> ||
             is_valid_string_view_type_v<
                 U>)&&(std::is_same_v<get_char_type_t<T>, get_char_type_t<U>>)>>
-auto strstri(const T& src,
-             const U& needle,
-             const std::locale& loc = std::locale{}) {
+const get_char_type_t<T>* strstri(const T& src,
+                                  const U& needle,
+                                  const std::locale& loc = std::locale{}) {
   using char_type = get_char_type_t<T>;
   std::basic_string<char_type> src_lc{src};
   std::basic_string<char_type> needle_lc{needle};
@@ -8372,8 +8364,7 @@ auto strstri(const T& src,
   }
 
   const size_t pos = src_lc.find(needle_lc);
-  return std::basic_string<char_type>::npos != pos ? std::cbegin(src) + pos
-                                                   : std::cend(src);
+  return std::basic_string<char_type>::npos != pos ? src.data() + pos : nullptr;
 }
 
 template <typename T,
@@ -8602,12 +8593,12 @@ std::string num_to_str(const T& data, const char* format_string = nullptr) {
       SNPRINTF(buffer, buffer_size, "%Lf", data);
 
   } else {
-    static char buffer[128];
-    SNPRINTF(buffer, 128,
+    static char msg[128];
+    SNPRINTF(msg, 128,
              "Provided data type [%s] is not a valid primitive integral or "
              "floating point number type!",
              typeid(data_type).name());
-    throw std::invalid_argument{buffer};
+    throw std::invalid_argument{msg};
   }
 
   return buffer;
@@ -8651,12 +8642,12 @@ std::wstring num_to_wstr(const T& data,
       SNWPRINTF(buffer, buffer_size, L"%Lf", data);
 
   } else {
-    static char buffer[128];
-    SNPRINTF(buffer, 128,
+    static char msg[128];
+    SNPRINTF(msg, 128,
              "Provided data type [%s] is not a valid primitive integral or "
              "floating point number type!",
              typeid(data_type).name());
-    throw std::invalid_argument{buffer};
+    throw std::invalid_argument{msg};
   }
 
   return buffer;
@@ -8836,12 +8827,13 @@ std::u16string to_u16string(
 
   constexpr const size_t buffer_size{32U};
 
-  wchar_t format_str_buffer[buffer_size]{L"%."}, buffer[buffer_size];
+  wchar_t buffer[buffer_size];
 
   if (nullptr != format_str) {
     SNWPRINTF(buffer, buffer_size, format_str, number);
 
   } else {
+    wchar_t format_str_buffer[buffer_size]{L"%."};
     number_of_decimal_digits = std::min(
         number_of_decimal_digits, std::numeric_limits<floating_type>::digits10);
 
@@ -8851,10 +8843,10 @@ std::u16string to_u16string(
     if constexpr (std::is_same_v<floating_type, float>)
       str_append(format_str_buffer, L"f");
 
-    if constexpr (std::is_same_v<floating_type, double>)
+    else if constexpr (std::is_same_v<floating_type, double>)
       str_append(format_str_buffer, L"lf");
 
-    if constexpr (std::is_same_v<floating_type, long double>)
+    else if constexpr (std::is_same_v<floating_type, long double>)
       str_append(format_str_buffer, L"Lf");
 
     SNWPRINTF(buffer, buffer_size, format_str_buffer, number);
@@ -9035,12 +9027,14 @@ std::u32string to_u32string(
 
   constexpr const size_t buffer_size{32U};
 
-  wchar_t format_str_buffer[buffer_size]{L"%."}, buffer[buffer_size];
+  wchar_t buffer[buffer_size];
 
   if (nullptr != format_str) {
     SNWPRINTF(buffer, buffer_size, format_str, number);
 
   } else {
+    wchar_t format_str_buffer[buffer_size]{L"%."};
+
     number_of_decimal_digits = std::min(
         number_of_decimal_digits, std::numeric_limits<floating_type>::digits10);
 
@@ -9050,10 +9044,10 @@ std::u32string to_u32string(
     if constexpr (std::is_same_v<floating_type, float>)
       str_append(format_str_buffer, L"f");
 
-    if constexpr (std::is_same_v<floating_type, double>)
+    else if constexpr (std::is_same_v<floating_type, double>)
       str_append(format_str_buffer, L"lf");
 
-    if constexpr (std::is_same_v<floating_type, long double>)
+    else if constexpr (std::is_same_v<floating_type, long double>)
       str_append(format_str_buffer, L"Lf");
 
     SNWPRINTF(buffer, buffer_size, format_str_buffer, number);
@@ -9109,7 +9103,7 @@ int stoi(const T& src,
 
   if (ignore_leading_white_space_characters) {
     temp_src = ltrim(src_sv);
-    src_sv.assign(temp_src);
+    src_sv = temp_src;
   }
 
   auto itr = std::cbegin(src_sv);
@@ -9244,7 +9238,7 @@ long stol(const T& src,
 
   if (ignore_leading_white_space_characters) {
     temp_src = ltrim(src_sv);
-    src_sv.assign(temp_src);
+    src_sv = temp_src;
   }
 
   auto itr = std::cbegin(src_sv);
@@ -9379,7 +9373,7 @@ unsigned long stoul(const T& src,
 
   if (ignore_leading_white_space_characters) {
     temp_src = ltrim(src_sv);
-    src_sv.assign(temp_src);
+    src_sv = temp_src;
   }
 
   auto itr = std::cbegin(src_sv);
@@ -9518,7 +9512,7 @@ long long stoll(const T& src,
 
   if (ignore_leading_white_space_characters) {
     temp_src = ltrim(src_sv);
-    src_sv.assign(temp_src);
+    src_sv = temp_src;
   }
 
   auto itr = std::cbegin(src_sv);
@@ -9657,7 +9651,7 @@ unsigned long long stoull(const T& src,
 
   if (ignore_leading_white_space_characters) {
     temp_src = ltrim(src_sv);
-    src_sv.assign(temp_src);
+    src_sv = temp_src;
   }
 
   auto itr = std::cbegin(src_sv);
@@ -9808,7 +9802,7 @@ float stof(const T& src,
 
   if (ignore_leading_white_space_characters) {
     temp_src = ltrim(src_sv);
-    src_sv.assign(temp_src);
+    src_sv = temp_src;
   }
 
   auto itr = std::cbegin(src_sv);
@@ -10257,7 +10251,7 @@ double stod(const T& src,
 
   if (ignore_leading_white_space_characters) {
     temp_src = ltrim(src_sv);
-    src_sv.assign(temp_src);
+    src_sv = temp_src;
   }
 
   auto itr = std::cbegin(src_sv);
@@ -10707,7 +10701,7 @@ long double stold(const T& src,
 
   if (ignore_leading_white_space_characters) {
     temp_src = ltrim(src_sv);
-    src_sv.assign(temp_src);
+    src_sv = temp_src;
   }
 
   auto itr = std::cbegin(src_sv);
@@ -11201,16 +11195,15 @@ split(IteratorType first,
       const bool ignore_empty_string = true,
       const size_t max_count = std::numeric_limits<size_t>::max()) {
   using char_type = typename std::iterator_traits<IteratorType>::value_type;
-  std::vector<std::basic_string<char_type>> parts{};
 
   if (first == last)
-    return parts;
+    return {};
 
   const size_t source_len{std::distance(first, last)};
   size_t needle_len{len(needle)};
 
   if (0U == source_len)
-    return parts;
+    return {};
 
   std::basic_string<char_type> needle_str{};
   std::basic_string_view<char_type> sv{first, source_len}, nv{};
@@ -11238,6 +11231,7 @@ split(IteratorType first,
   if (!split_on_whole_needle)
     needle_len = 1U;
 
+  std::vector<std::basic_string<char_type>> parts{};
   size_t number_of_parts{}, prev{};
 
   while (true) {
@@ -11340,10 +11334,8 @@ std::vector<std::pair<SrcIterType, SrcIterType>> split(
   }
 
   if ((std::distance(prev, src_last) > 0 || !ignore_empty_sequence) &&
-      (number_of_parts < max_count)) {
+      number_of_parts < max_count)
     parts.emplace_back(prev, src_last);
-    number_of_parts++;
-  }
 
   return parts;
 }
