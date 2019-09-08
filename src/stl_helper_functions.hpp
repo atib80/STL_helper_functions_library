@@ -11120,49 +11120,71 @@ long double stold(const T& src,
 template <
     typename T,
     typename U,
-    typename = std::enable_if_t<
-        (is_valid_string_type_v<T> || is_valid_string_view_type_v<T> ||
-         is_char_array_type_v<T> ||
-         is_char_pointer_type_v<
-             T>)&&(is_valid_string_type_v<U> ||
-                   is_valid_string_view_type_v<U> || is_char_array_type_v<U> ||
-                   is_char_pointer_type_v<
-                       U>)&&(std::is_same_v<get_char_type_t<T>,
-                                            get_char_type_t<U>>)>>
+    typename = std::enable_if_t<(
+        is_valid_string_type_v<T> || is_valid_string_view_type_v<T> ||
+        is_char_array_type_v<T> ||
+        is_char_pointer_type_v<
+            T>)&&(is_valid_string_type_v<U> || is_valid_string_view_type_v<U> ||
+                  is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
+                  is_valid_char_type_v<
+                      U>)&&(std::is_same_v<get_char_type_t<T>,
+                                           get_char_type_t<U>>)>>
 std::vector<std::basic_string<get_char_type_t<T>>> split(
-    const T& source,
+    const T& src,
     const U& needle,
     const bool split_on_whole_needle = true,
     const bool ignore_empty_string = true,
     size_t const max_count = std::basic_string<get_char_type_t<T>>::npos) {
   using char_type = get_char_type_t<T>;
-  if constexpr (is_char_pointer_type_v<T>) {
-    if (nullptr == source)
-      return {};
-  }
-  const std::basic_string_view<char_type> sv{source};
-  const size_t source_len{sv.length()};
-  if (0U == source_len)
+
+  const size_t src_len{len(src)};
+
+  if (0U == src_len)
     return {};
 
-  const std::basic_string_view<char_type> nv{needle};
-  const size_t needle_len{split_on_whole_needle ? nv.length() : 1U};
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_char_pointer_type_v<T> || is_char_array_type_v<T>)
+    src_sv = {src, src_len};
+  else
+    src_sv = src;
+
+  if constexpr (is_char_pointer_type_v<U>) {
+    if (nullptr == needle)
+      return {};
+  }
+
+  size_t needle_len{len(needle)};
 
   if (0U == needle_len) {
-    const size_t upper_limit{max_count < source_len ? max_count : source_len};
+    const size_t upper_limit{max_count < src_len ? max_count : src_len};
     std::vector<std::basic_string<char_type>> parts(upper_limit);
     for (size_t i{}; i < upper_limit; i++)
-      parts[i].assign({1, sv[i]});
+      parts[i].assign({1, src_sv[i]});
     return parts;
   }
+
+  std::basic_string<char_type> needle_str{};
+  std::basic_string_view<char_type> needle_sv{};
+
+  if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else if constexpr (is_valid_char_type_v<U>) {
+    needle_str.assign(1U, needle);
+    needle_sv = needle_str;
+  } else
+    needle_sv = needle;
+
+  if (!split_on_whole_needle)
+    needle_len = 1U;
 
   std::vector<std::basic_string<char_type>> parts{};
   size_t number_of_parts{}, prev{};
 
   while (true) {
     const size_t current = split_on_whole_needle
-                               ? sv.find(nv.data(), prev)
-                               : sv.find_first_of(nv.data(), prev);
+                               ? src_sv.find(needle_sv.data(), prev)
+                               : src_sv.find_first_of(needle_sv.data(), prev);
 
     if (std::basic_string<char_type>::npos == current)
       break;
@@ -11172,7 +11194,8 @@ std::vector<std::basic_string<get_char_type_t<T>>> split(
 
     if (current - prev > 0 || !ignore_empty_string) {
       if (current - prev > 0)
-        parts.emplace_back(std::cbegin(sv) + prev, std::cbegin(sv) + current);
+        parts.emplace_back(std::cbegin(src_sv) + prev,
+                           std::cbegin(src_sv) + current);
       else if (!ignore_empty_string)
         parts.emplace_back();
 
@@ -11181,13 +11204,13 @@ std::vector<std::basic_string<get_char_type_t<T>>> split(
 
     prev = current + needle_len;
 
-    if (prev >= source_len)
+    if (prev >= src_len)
       break;
   }
 
   if (parts.size() < max_count) {
-    if (prev < source_len)
-      parts.emplace_back(std::cbegin(sv) + prev, std::cend(sv));
+    if (prev < src_len)
+      parts.emplace_back(std::cbegin(src_sv) + prev, std::cend(src_sv));
     else if (!ignore_empty_string)
       parts.emplace_back();
   }
@@ -11216,34 +11239,34 @@ split(IteratorType first,
   if (first == last)
     return {};
 
-  const size_t source_len{std::distance(first, last)};
+  const size_t src_len = std::distance(first, last);
   size_t needle_len{len(needle)};
 
-  if (0U == source_len)
+  if (0U == src_len)
     return {};
 
-  std::basic_string<char_type> needle_str{};
-  std::basic_string_view<char_type> sv{first, source_len}, nv{};
+  std::basic_string<char_type> src_str{first, last};
+  std::basic_string_view<char_type> src_sv{src_str};
 
   if (0U == needle_len) {
-    const size_t upper_limit{max_count < source_len ? max_count : source_len};
+    const size_t upper_limit{max_count < src_len ? max_count : src_len};
     std::vector<std::basic_string<char_type>> parts(upper_limit);
     for (size_t i{}; i < upper_limit; i++)
-      parts[i].assign({1, sv[i]});
+      parts[i].assign({1, src_sv[i]});
     return parts;
   }
 
-  if constexpr (is_char_array_type_v<NeedleType> ||
-                is_char_pointer_type_v<NeedleType>) {
-    nv = {needle, needle_len};
-  } else if constexpr (is_valid_string_type_v<NeedleType> ||
-                       is_valid_string_view_type_v<NeedleType>) {
-    nv = needle;
+  std::basic_string<char_type> needle_str{};
+  std::basic_string_view<char_type> needle_sv{};
 
-  } else if constexpr (is_valid_char_type_v<NeedleType>) {
+  if constexpr (is_char_array_type_v<NeedleType> ||
+                is_char_pointer_type_v<NeedleType>)
+    needle_sv = {needle, needle_len};
+  else if constexpr (is_valid_char_type_v<NeedleType>) {
     needle_str.assign(1, needle);
-    nv = needle_str;
-  }
+    needle_sv = needle_str;
+  } else
+    needle_sv = needle;
 
   if (!split_on_whole_needle)
     needle_len = 1U;
@@ -11253,8 +11276,8 @@ split(IteratorType first,
 
   while (true) {
     const size_t current = split_on_whole_needle
-                               ? sv.find(nv.data(), prev)
-                               : sv.find_first_of(nv.data(), prev);
+                               ? src_sv.find(needle_sv.data(), prev)
+                               : src_sv.find_first_of(needle_sv.data(), prev);
 
     if (std::basic_string<char_type>::npos == current)
       break;
@@ -11264,7 +11287,8 @@ split(IteratorType first,
 
     if (current - prev > 0 || !ignore_empty_string) {
       if (current - prev > 0)
-        parts.emplace_back(std::cbegin(sv) + prev, std::cbegin(sv) + current);
+        parts.emplace_back(std::cbegin(src_sv) + prev,
+                           std::cbegin(src_sv) + current);
       else if (!ignore_empty_string)
         parts.emplace_back();
 
@@ -11273,13 +11297,13 @@ split(IteratorType first,
 
     prev = current + needle_len;
 
-    if (prev >= source_len)
+    if (prev >= src_len)
       break;
   }
 
   if (parts.size() < max_count) {
-    if (prev < source_len)
-      parts.emplace_back(std::cbegin(sv) + prev, std::cend(sv));
+    if (prev < src_len)
+      parts.emplace_back(std::cbegin(src_sv) + prev, std::cend(src_sv));
     else if (!ignore_empty_string)
       parts.emplace_back();
   }

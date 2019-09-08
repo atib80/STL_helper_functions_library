@@ -959,230 +959,58 @@ StringType& str)")
 
         REQUIRE(dst == u32string{ U"\t Hello World!" });
 }
-
-TEST_CASE("vector<string> split(const char* source, const char needle_char, int
-const max_count = -1)", "Testing global function vector<std::string> split(const
-char* source, const char needle_char, int const max_count = -1)"
-)
-{
-        const char*
-source{"apple|banana|cabbage|lemon|orange|pepper|plum"};
-
-        const char needle_char{'|'};
-
-        auto const parts{split(source, needle_char)};
-
-        REQUIRE(parts.front() == "apple");
-
-        REQUIRE(parts[3] == "lemon");
-
-        REQUIRE(parts.back() == "plum");
-}
-
-TEST_CASE("vector<wstring> split(const wchar_t* source, const wchar_t
-needle_char, int const max_count = -1)", "Testing global function
-vector<wstring> split(const wchar_t* source, const wchar_t needle_char, int
-const max_count = -1)"
-)
-{
-        const wchar_t*
-source{L"apple|banana|cabbage|lemon|orange|pepper|plum"};
-
-        const wchar_t needle_char{L'|'};
-
-        auto const parts{split(source, needle_char)};
-
-        REQUIRE(parts.front() == L"apple");
-
-        REQUIRE(parts[3] == L"lemon");
-
-        REQUIRE(parts.back() == L"plum");
-}
-
-TEST_CASE("vector<u16string> split(const char16_t* source, const char16_t
-needle_char, int const max_count = -1)", "Testing global function
-vector<u16string> split(const char16_t* source, const char16_t needle_char, int
-const max_count = -1)"
-)
-{
-        const char16_t*
-source{u"apple|banana|cabbage|lemon|orange|pepper|plum"};
-
-        const char16_t needle_char{u'|'};
-
-        auto const parts{split(source, needle_char)};
-
-        REQUIRE(parts.front() == u"apple");
-
-        REQUIRE(parts[3] == u"lemon");
-
-        REQUIRE(parts.back() == u"plum");
-}
-
-TEST_CASE("vector<u32string> split(const char32_t* source, const char32_t
-needle_char, int const max_count = -1)", "Testing global function
-vector<u32string> split(const char32_t* source, const char32_t needle_char, int
-const max_count = -1)"
-)
-{
-        const char32_t*
-source{U"apple|banana|cabbage|lemon|orange|pepper|plum"};
-
-        const char32_t needle_char{U'|'};
-
-        auto const parts{split(source, needle_char)};
-
-        REQUIRE(parts.front() == U"apple");
-
-        REQUIRE(parts[3] == U"lemon");
-
-        REQUIRE(parts.back() == U"plum");
-}
-
-TEST_CASE("vector<string> split(const char* source, const char* needle, const
-int max_count = -1)", "Testing global function vector<string> split(const char*
-source, const char* needle, const int max_count = -1)")
-{
-        const char*
-source{"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:plum"};
-
-        const char* needle_char{":|:"};
-
-        auto const parts{split(source, needle_char)};
-
-        REQUIRE(parts.front() == "apple");
-
-        REQUIRE(parts[3] == "lemon");
-
-        REQUIRE(parts.back() == "plum");
-}
-
-TEST_CASE("vector<wstring> split(const wchar_t* source, const wchar_t* needle,
-const int max_count = -1)", "Testing global function vector<wstring> split(const
-wchar_t* source, const wchar_t* needle, const int max_count = -1)"
-)
-{
-        const wchar_t*
-source{L"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:plum"};
-
-        const wchar_t* needle_char{L":|:"};
-
-        auto const parts{split(source, needle_char)};
-
-        REQUIRE(parts.front() == L"apple");
-
-        REQUIRE(parts[3] == L"lemon");
-
-        REQUIRE(parts.back() == L"plum");
-}
-
-TEST_CASE("vector<u16string> split(const char16_t* source, const char16_t*
-needle, const int max_count = -1)", "Testing global function vector<u16string>
-split(const char16_t* source, const char16_t* needle, const int max_count = -1)"
-)
-{
-        const char16_t*
-source{u"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:plum"};
-
-        const char16_t* needle_char{u":|:"};
-
-        auto const parts{split(source, needle_char)};
-
-        REQUIRE(parts.front() == u"apple");
-
-        REQUIRE(parts[3] == u"lemon");
-
-        REQUIRE(parts.back() == u"plum");
-}
-
-TEST_CASE("vector<u32string> split(const char32_t* source, const char32_t*
-needle, const int max_count = -1)", "Testing global function vector<u32string>
-split(const char32_t* source, const char32_t* needle, const int max_count = -1)"
-)
-{
-        const char32_t*
-source{U"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:plum"};
-
-        const char32_t* needle_char{U":|:"};
-
-        auto const parts{split(source, needle_char)};
-
-        REQUIRE(parts.front() == U"apple");
-
-        REQUIRE(parts[3] == U"lemon");
-
-        REQUIRE(parts.back() == U"plum");
-}
-
-TEST_CASE(
-        "vector<StringType> split(const StringType& source, const
-typename StringType::value_type needle_char, size_t const max_count =
-StringType::npos)"
-        ,
-        "Testing global template function vector<StringType> split(const
-StringType& source, const typename StringType::value_type needle_char, size_t
-const max_count = StringType::npos)"
-)
-{
-        const wstring src{L"apple | banana | cabbage | lemon | orange |
-pepper | plum"};
-
-        auto parts{split(src, L'|')};
-
-        for (auto& part : parts) part = trim(part);
-
-        REQUIRE(parts.front() == L"apple");
-
-        REQUIRE(parts[3] == L"lemon");
-
-        REQUIRE(parts.back() == L"plum");
-}
-
-TEST_CASE(
-        "vector<StringType> split(const StringType& source, const
-typename StringType::const_pointer_type needle, size_t const max_count =
-StringType::npos)"
-        ,
-        "Testing global template function vector<StringType> split(const
-StringType& source, const typename StringType::const_pointer_type needle, size_t
-const max_count = StringType::npos)"
-)
-{
-        const u16string
-src{u"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:plum"};
-
-        auto parts{split(src, u":|:")};
-
-        REQUIRE(parts.front() == u"apple");
-
-        REQUIRE(parts[3] == u"lemon");
-
-        REQUIRE(parts.back() == u"plum");
-}
-
-TEST_CASE(
-        "vector<StringType> split(const StringType& source, const
-StringType& needle, size_t const max_count = StringType::npos)"
-        ,
-        "Testing global template function vector<StringType> split(const
-StringType& source, const StringType& needle, size_t const max_count =
-StringType::npos)"
-)
-{
-        const u32string
-src{U"apple:|:banana:|:cabbage:|:lemon:|:orange:|:pepper:|:plum"};
-
-        const u32string needle{U":|:"};
-
-        auto parts{split(src, needle)};
-
-        REQUIRE(parts.front() == U"apple");
-
-        REQUIRE(parts[3] == U"lemon");
-
-        REQUIRE(parts.back() == U"plum");
-}
 */
+TEST_CASE("1. split function template",
+          "std::vector<std::basic_string<char_type>> split(const T& src, const "
+          "U& needle, const bool split_on_whole_needle = true, const bool "
+          "ignore_empty_string = true, const size_t max_count = "
+          "std::basic_string<char_type>::npos)") {
+  const char* source{"apple|banana|cabbage|lemon|orange|pepper|plum"};
+  const auto parts{split(source, '|', true)};
+
+  REQUIRE(parts.front() == "apple");
+
+  REQUIRE(parts[3] == "lemon");
+
+  REQUIRE(parts.back() == "plum");
+}
+
+TEST_CASE("2. split function template",
+          "std::vector<std::basic_string<typename "
+          "std::iterator_traits<IteratorType>::value_type>> split(IteratorType "
+          "first,teratorType last, const NeedleType& needle, const bool "
+          "split_on_whole_needle = true, const bool ignore_empty_string = "
+          "true, const size_t max_count = std::numeric_limits<size_t>::max()") {
+  const wstring source{L"apple|banana|cabbage|lemon|orange|pepper|plum"};
+  const auto parts{split(cbegin(source), cend(source), L'|', true)};
+
+  REQUIRE(parts.front() == L"apple");
+
+  REQUIRE(parts[3] == L"lemon");
+
+  REQUIRE(parts.back() == L"plum");
+}
+
+TEST_CASE(
+    "3. split function template",
+    "std::vector<std::pair<SrcIterType, SrcIterType>> split(const SrcIterType "
+    "src_first, const SrcIterType src_last, const DstIterType needle_first, "
+    "const DstIterType needle_last, const bool split_on_whole_sequence = true, "
+    "const bool ignore_empty_sequence = true, const size_t max_count = "
+    "std::numeric_limits<size_t>::max())") {
+  const u32string source{
+      U"apple|-|banana|-|cabbage|-|lemon|-|orange|-|pepper|-|plum"};
+  const char32_t needle[]{U"|-|"};
+
+  const auto parts{
+      split(cbegin(source), cend(source), cbegin(needle), cend(needle), true)};
+
+  REQUIRE(parts.front() == U"apple");
+
+  REQUIRE(parts[3] == U"lemon");
+
+  REQUIRE(parts.back() == U"plum");
+}
 
 TEST_CASE(
     "bool str_starts_with(T, const U, const bool = false, const std::locale& = "

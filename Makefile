@@ -3,7 +3,7 @@ CXX=g++
 CODE_FORMAT=clang-format
 CODE_FORMAT_PARAMS=-i -style=Chromium
 RM=rm -f
-CPPFLAGS=-Wall -Wextra -Wpedantic -Wno-implicit-conversion -std=c++17 -O3 -Ofast -fexceptions
+CPPFLAGS=-Wall -Wextra -Wpedantic -std=c++17 -O3 -Ofast -fexceptions
 SRC_DIR=src
 TESTS_DIR=tests
 BUILD_DIR=build
