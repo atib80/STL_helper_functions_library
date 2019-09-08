@@ -69,7 +69,8 @@ TEST_CASE(
     "size_t time_delay_in_ms, const wchar_t* format_string, Args... args)") {
   constexpr size_t buffer_size{256U};
   static wchar_t buffer[buffer_size];
-  const wchar_t* printed_message = L"The word 'apple' consists of 5 characters.\n";
+  const wchar_t* printed_message =
+      L"The word 'apple' consists of 5 characters.\n";
 
   const auto length1 = wcslen(printed_message);
   const auto length2 = len(printed_message);
@@ -79,7 +80,8 @@ TEST_CASE(
                  L"The word '%ls' consists of %d characters.\n", L"apple", 5);
   std::wostringstream woss{};
 
-  const auto ret_val = say_slow(woss, 5U, L"The word '%ls' consists of %d characters.\n", L"apple", 5);
+  const auto ret_val = say_slow(
+      woss, 5U, L"The word '%ls' consists of %d characters.\n", L"apple", 5);
 
   REQUIRE(length1 == length2);
 

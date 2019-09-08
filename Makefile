@@ -28,5 +28,4 @@ run:
 	
 
 clean:
-	$(RM) $(BUILD_DIR)/test $(BUILD_DIR)/test.exe $(TESTS_DIR)/*.o $(TESTS_DIR)/*.obj 
-	
+	$(RM) $(BUILD_DIR)/test $(BUILD_DIR)/test.exe $(TESTS_DIR)/*.o $(TESTS_DIR)/*.obj	

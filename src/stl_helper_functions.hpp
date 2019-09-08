@@ -865,7 +865,8 @@ size_t say_slow(std::ostream& os,
                 const size_t time_delay_in_ms,
                 const char* format_string,
                 Args&&... args) {
-  auto const buffer_size = _scprintf(format_string, std::forward<Args>(args)...) + 1;
+  auto const buffer_size =
+      _scprintf(format_string, std::forward<Args>(args)...) + 1;
 
   std::unique_ptr<char[], char_buffer_deleter> output_buffer_sp(
       new char[buffer_size], char_buffer_deleter{});
@@ -873,7 +874,8 @@ size_t say_slow(std::ostream& os,
   if (!output_buffer_sp)
     return std::string::npos;
 
-  SNPRINTF(output_buffer_sp.get(), buffer_size, format_string, std::forward<Args>(args)...);
+  SNPRINTF(output_buffer_sp.get(), buffer_size, format_string,
+           std::forward<Args>(args)...);
 
   size_t ch_count{};
 
@@ -893,7 +895,8 @@ size_t say_slow(std::wostream& os,
                 const size_t time_delay_in_ms,
                 const wchar_t* format_string,
                 Args&&... args) {
-  auto const buffer_size = _scwprintf(format_string, std::forward<Args>(args)...) + 1;
+  auto const buffer_size =
+      _scwprintf(format_string, std::forward<Args>(args)...) + 1;
 
   std::unique_ptr<wchar_t[], wchar_t_buffer_deleter> output_buffer_sp(
       new wchar_t[buffer_size], wchar_t_buffer_deleter{});
@@ -901,7 +904,8 @@ size_t say_slow(std::wostream& os,
   if (!output_buffer_sp)
     return std::wstring::npos;
 
-  SNWPRINTF(output_buffer_sp.get(), buffer_size, format_string, std::forward<Args>(args)...);
+  SNWPRINTF(output_buffer_sp.get(), buffer_size, format_string,
+            std::forward<Args>(args)...);
 
   size_t ch_count{};
 
@@ -919,7 +923,8 @@ size_t say_slow(std::wostream& os,
 
 template <typename... Args>
 size_t say(std::ostream& os, const char* format_string, Args&&... args) {
-  auto const buffer_size = _scprintf(format_string, std::forward<Args>(args)...) + 1;
+  auto const buffer_size =
+      _scprintf(format_string, std::forward<Args>(args)...) + 1;
 
   std::unique_ptr<char[], char_buffer_deleter> output_buffer_sp(
       new char[buffer_size], char_buffer_deleter{});
@@ -927,8 +932,8 @@ size_t say(std::ostream& os, const char* format_string, Args&&... args) {
   if (!output_buffer_sp)
     return std::string::npos;
 
-  const auto ch_count =
-      SNPRINTF(output_buffer_sp.get(), buffer_size, format_string, std::forward<Args>(args)...);
+  const auto ch_count = SNPRINTF(output_buffer_sp.get(), buffer_size,
+                                 format_string, std::forward<Args>(args)...);
 
   return (os << output_buffer_sp.get()) ? len(output_buffer_sp.get())
                                         : std::string::npos;
@@ -936,7 +941,8 @@ size_t say(std::ostream& os, const char* format_string, Args&&... args) {
 
 template <typename... Args>
 size_t say(std::wostream& os, const wchar_t* format_string, Args&&... args) {
-  auto const buffer_size = _scwprintf(format_string, std::forward<Args>(args)...) + 1;
+  auto const buffer_size =
+      _scwprintf(format_string, std::forward<Args>(args)...) + 1;
 
   std::unique_ptr<wchar_t[], wchar_t_buffer_deleter> output_buffer_sp(
       new wchar_t[buffer_size], wchar_t_buffer_deleter{});
@@ -944,7 +950,8 @@ size_t say(std::wostream& os, const wchar_t* format_string, Args&&... args) {
   if (!output_buffer_sp)
     return std::wstring::npos;
 
-  SNWPRINTF(output_buffer_sp.get(), buffer_size, format_string, std::forward<Args>(args)...);
+  SNWPRINTF(output_buffer_sp.get(), buffer_size, format_string,
+            std::forward<Args>(args)...);
 
   return (os << output_buffer_sp.get()) ? len(output_buffer_sp.get())
                                         : std::wstring::npos;
@@ -11469,11 +11476,24 @@ template <typename ForwardIterType1,
                   typename std::iterator_traits<ForwardIterType2>::value_type>,
               std::add_lvalue_reference_t<const typename std::iterator_traits<
                   ForwardIterType1>::value_type>>>>
-std::pair<ForwardIterType1, ForwardIterType2> copy_while(
+constexpr std::pair<ForwardIterType1, ForwardIterType2> copy_while(
     ForwardIterType1 src_first,
     const ForwardIterType1 src_last,
     ForwardIterType2 dst_first,
-    Predicate p) {
+    Predicate p) noexcept(std::
+                              is_nothrow_assignable_v<
+                                  std::add_lvalue_reference_t<
+                                      typename std::iterator_traits<
+                                          ForwardIterType2>::value_type>,
+                                  std::add_lvalue_reference_t<
+                                      const typename std::iterator_traits<
+                                          ForwardIterType1>::value_type>>&&
+                                  std::is_nothrow_invocable_r_v<
+                                      bool,
+                                      Predicate,
+                                      std::add_lvalue_reference_t<
+                                          const typename std::iterator_traits<
+                                              ForwardIterType1>::value_type>>) {
   while (src_first != src_last && p(*src_first)) {
     *dst_first = *src_first;
     ++src_first;
@@ -11491,11 +11511,24 @@ template <typename ForwardIterType1,
                   typename std::iterator_traits<ForwardIterType2>::value_type>,
               std::add_lvalue_reference_t<const typename std::iterator_traits<
                   ForwardIterType1>::value_type>>>>
-std::pair<ForwardIterType1, ForwardIterType2> copy_until(
+constexpr std::pair<ForwardIterType1, ForwardIterType2> copy_until(
     ForwardIterType1 src_first,
     const ForwardIterType1 src_last,
     ForwardIterType2 dst_first,
-    Predicate p) {
+    Predicate p) noexcept(std::
+                              is_nothrow_assignable_v<
+                                  std::add_lvalue_reference_t<
+                                      typename std::iterator_traits<
+                                          ForwardIterType2>::value_type>,
+                                  std::add_lvalue_reference_t<
+                                      const typename std::iterator_traits<
+                                          ForwardIterType1>::value_type>>&&
+                                  std::is_nothrow_invocable_r_v<
+                                      bool,
+                                      Predicate,
+                                      std::add_lvalue_reference_t<
+                                          const typename std::iterator_traits<
+                                              ForwardIterType1>::value_type>>) {
   while (src_first != src_last && !p(*src_first)) {
     *dst_first = *src_first;
     ++src_first;
@@ -11520,11 +11553,31 @@ template <
                 typename std::iterator_traits<ForwardIterType2>::value_type>,
             std::add_lvalue_reference_t<const typename std::iterator_traits<
                 ForwardIterType1>::value_type>>>>
-std::pair<ForwardIterType1, ForwardIterType2> move_while(
+constexpr std::pair<ForwardIterType1, ForwardIterType2> move_while(
     ForwardIterType1 src_first,
     const ForwardIterType1 src_last,
     ForwardIterType2 dst_first,
-    Predicate p) {
+    Predicate p) noexcept((std::
+                               is_nothrow_move_assignable_v<
+                                   std::add_lvalue_reference_t<
+                                       typename std::iterator_traits<
+                                           ForwardIterType2>::value_type>,
+                                   std::add_lvalue_reference_t<
+                                       const typename std::iterator_traits<
+                                           ForwardIterType1>::value_type>> ||
+                           std::is_nothrow_assignable_v<
+                               std::add_lvalue_reference_t<
+                                   typename std::iterator_traits<
+                                       ForwardIterType2>::value_type>,
+                               std::add_lvalue_reference_t<
+                                   const typename std::iterator_traits<
+                                       ForwardIterType1>::value_type>>)&&std::
+                              is_nothrow_invocable_r_v<
+                                  bool,
+                                  Predicate,
+                                  std::add_lvalue_reference_t<
+                                      const typename std::iterator_traits<
+                                          ForwardIterType1>::value_type>>) {
   while (src_first != src_last && p(*src_first)) {
     *dst_first = std::move(*src_first);
     ++src_first;
@@ -11549,11 +11602,31 @@ template <
                 typename std::iterator_traits<ForwardIterType2>::value_type>,
             std::add_lvalue_reference_t<const typename std::iterator_traits<
                 ForwardIterType1>::value_type>>>>
-std::pair<ForwardIterType1, ForwardIterType2> move_until(
+constexpr std::pair<ForwardIterType1, ForwardIterType2> move_until(
     ForwardIterType1 src_first,
     const ForwardIterType1 src_last,
     ForwardIterType2 dst_first,
-    Predicate p) {
+    Predicate p) noexcept((std::
+                               is_nothrow_move_assignable_v<
+                                   std::add_lvalue_reference_t<
+                                       typename std::iterator_traits<
+                                           ForwardIterType2>::value_type>,
+                                   std::add_lvalue_reference_t<
+                                       const typename std::iterator_traits<
+                                           ForwardIterType1>::value_type>> ||
+                           std::is_nothrow_assignable_v<
+                               std::add_lvalue_reference_t<
+                                   typename std::iterator_traits<
+                                       ForwardIterType2>::value_type>,
+                               std::add_lvalue_reference_t<
+                                   const typename std::iterator_traits<
+                                       ForwardIterType1>::value_type>>)&&std::
+                              is_nothrow_invocable_r_v<
+                                  bool,
+                                  Predicate,
+                                  std::add_lvalue_reference_t<
+                                      const typename std::iterator_traits<
+                                          ForwardIterType1>::value_type>>) {
   while (src_first != src_last && !p(*src_first)) {
     *dst_first = std::move(*src_first);
     ++src_first;
