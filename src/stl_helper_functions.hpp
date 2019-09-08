@@ -784,8 +784,6 @@ template <typename T>
 using add_const_pointer_to_char_type_t =
     typename add_const_pointer_to_char_type<T>::type;
 
-static constexpr auto not_found_index{std::string::npos};
-
 template <typename T,
           size_t ARRAY_SIZE,
           typename = std::enable_if_t<is_valid_char_type_v<T>>>
@@ -866,8 +864,8 @@ template <typename... Args>
 size_t say_slow(std::ostream& os,
                 const size_t time_delay_in_ms,
                 const char* format_string,
-                Args... args) {
-  auto const buffer_size = _scprintf(format_string, args...) + 1;
+                Args&&... args) {
+  auto const buffer_size = _scprintf(format_string, std::forward<Args>(args)...) + 1;
 
   std::unique_ptr<char[], char_buffer_deleter> output_buffer_sp(
       new char[buffer_size], char_buffer_deleter{});
@@ -875,7 +873,7 @@ size_t say_slow(std::ostream& os,
   if (!output_buffer_sp)
     return std::string::npos;
 
-  SNPRINTF(output_buffer_sp.get(), buffer_size, format_string, args...);
+  SNPRINTF(output_buffer_sp.get(), buffer_size, format_string, std::forward<Args>(args)...);
 
   size_t ch_count{};
 
@@ -891,11 +889,11 @@ size_t say_slow(std::ostream& os,
 }
 
 template <typename... Args>
-size_t say_slow(std::ostream& os,
+size_t say_slow(std::wostream& os,
                 const size_t time_delay_in_ms,
                 const wchar_t* format_string,
-                Args... args) {
-  auto const buffer_size = _scwprintf(format_string, args...) + 1;
+                Args&&... args) {
+  auto const buffer_size = _scwprintf(format_string, std::forward<Args>(args)...) + 1;
 
   std::unique_ptr<wchar_t[], wchar_t_buffer_deleter> output_buffer_sp(
       new wchar_t[buffer_size], wchar_t_buffer_deleter{});
@@ -903,7 +901,7 @@ size_t say_slow(std::ostream& os,
   if (!output_buffer_sp)
     return std::wstring::npos;
 
-  SNWPRINTF(output_buffer_sp.get(), buffer_size, format_string, args...);
+  SNWPRINTF(output_buffer_sp.get(), buffer_size, format_string, std::forward<Args>(args)...);
 
   size_t ch_count{};
 
@@ -920,8 +918,8 @@ size_t say_slow(std::ostream& os,
 }
 
 template <typename... Args>
-size_t say(std::ostream& os, const char* format_string, Args... args) {
-  auto const buffer_size = _scprintf(format_string, args...) + 1;
+size_t say(std::ostream& os, const char* format_string, Args&&... args) {
+  auto const buffer_size = _scprintf(format_string, std::forward<Args>(args)...) + 1;
 
   std::unique_ptr<char[], char_buffer_deleter> output_buffer_sp(
       new char[buffer_size], char_buffer_deleter{});
@@ -930,15 +928,15 @@ size_t say(std::ostream& os, const char* format_string, Args... args) {
     return std::string::npos;
 
   const auto ch_count =
-      SNPRINTF(output_buffer_sp.get(), buffer_size, format_string, args...);
+      SNPRINTF(output_buffer_sp.get(), buffer_size, format_string, std::forward<Args>(args)...);
 
   return (os << output_buffer_sp.get()) ? len(output_buffer_sp.get())
                                         : std::string::npos;
 }
 
 template <typename... Args>
-size_t say(std::ostream& os, const wchar_t* format_string, Args... args) {
-  auto const buffer_size = _scwprintf(format_string, args...) + 1;
+size_t say(std::wostream& os, const wchar_t* format_string, Args&&... args) {
+  auto const buffer_size = _scwprintf(format_string, std::forward<Args>(args)...) + 1;
 
   std::unique_ptr<wchar_t[], wchar_t_buffer_deleter> output_buffer_sp(
       new wchar_t[buffer_size], wchar_t_buffer_deleter{});
@@ -946,7 +944,7 @@ size_t say(std::ostream& os, const wchar_t* format_string, Args... args) {
   if (!output_buffer_sp)
     return std::wstring::npos;
 
-  SNWPRINTF(output_buffer_sp.get(), buffer_size, format_string, args...);
+  SNWPRINTF(output_buffer_sp.get(), buffer_size, format_string, std::forward<Args>(args)...);
 
   return (os << output_buffer_sp.get()) ? len(output_buffer_sp.get())
                                         : std::wstring::npos;
@@ -1678,7 +1676,7 @@ template <
 typename std::basic_string<get_char_type_t<T>>::size_type str_last_index_of(
     const T& src,
     const U& needle,
-    const size_t start_pos = not_found_index,
+    const size_t start_pos = std::basic_string<get_char_type_t<T>>::npos,
     const bool ignore_case = false,
     const std::locale& loc = std::locale{}) {
   using char_type = get_char_type_t<T>;
@@ -1687,7 +1685,7 @@ typename std::basic_string<get_char_type_t<T>>::size_type str_last_index_of(
   const size_t needle_len{len(needle)};
 
   if (0U == src_len || 0U == needle_len || needle_len > src_len)
-    return not_found_index;
+    return std::basic_string<char_type>::npos;
 
   std::basic_string_view<char_type> src_sv{};
 
@@ -1821,7 +1819,8 @@ bool str_contains(const T& src,
 
   if constexpr (is_valid_char_type_v<U>) {
     if (!ignore_case)
-      return not_found_index != src_sv.find(needle, start_pos);
+      return std::basic_string_view<char_type>::npos !=
+             src_sv.find(needle, start_pos);
 
     std::basic_string<char_type> src_lc{src_sv};
     char_type needle_lc{needle};
@@ -1841,7 +1840,8 @@ bool str_contains(const T& src,
       needle_lc = static_cast<char_type>(std::tolower(needle));
     }
 
-    return not_found_index != src_lc.find(needle_lc, start_pos);
+    return std::basic_string<char_type>::npos !=
+           src_lc.find(needle_lc, start_pos);
 
   } else {
     std::basic_string_view<char_type> needle_sv{};
@@ -1851,7 +1851,8 @@ bool str_contains(const T& src,
       needle_sv = needle;
 
     if (!ignore_case)
-      return not_found_index != src_sv.find(needle_sv, start_pos);
+      return std::basic_string_view<char_type>::npos !=
+             src_sv.find(needle_sv, start_pos);
 
     std::basic_string<char_type> src_lc{src_sv};
     std::basic_string<char_type> needle_lc{needle_sv};
@@ -1878,7 +1879,8 @@ bool str_contains(const T& src,
                      });
     }
 
-    return not_found_index != src_lc.find(needle_lc, start_pos);
+    return std::basic_string<char_type>::npos !=
+           src_lc.find(needle_lc, start_pos);
   }
 }
 
@@ -4095,7 +4097,7 @@ bool str_replace_first(T (&dst)[ARRAY_SIZE],
       str_index_of(dst_sv, needle_sv, start_position_in_dst,
                    ignore_case_when_searching_for_needle);
 
-  if (not_found_index == start_pos)
+  if (std::basic_string_view<char_type>::npos == start_pos)
     return false;
 
   std::basic_string_view<char_type> replace_sv{};
@@ -4197,7 +4199,7 @@ bool str_replace_first(T dst,
       str_index_of(dst_sv, needle_sv, start_position_in_dst,
                    ignore_case_when_searching_for_needle);
 
-  if (not_found_index == start_pos)
+  if (std::basic_string_view<char_type>::npos == start_pos)
     return false;
 
   std::basic_string_view<char_type> replace_sv{};
@@ -4314,7 +4316,7 @@ std::basic_string<get_char_type_t<T>> str_replace_first(
       str_index_of(dst_sv, needle_sv, start_position_in_dst,
                    ignore_case_when_searching_for_needle);
 
-  if (not_found_index == start_pos)
+  if (std::basic_string_view<char_type>::npos == start_pos)
     return str;
 
   if (0U == replace_len) {
@@ -4398,7 +4400,7 @@ bool str_replace_first(T& dst,
       str_index_of(dst_sv, needle_sv, start_position_in_dst,
                    ignore_case_when_searching_for_needle);
 
-  if (not_found_index == start_pos)
+  if (std::basic_string_view<char_type>::npos == start_pos)
     return false;
 
   if (0U == replace_len) {
@@ -4485,7 +4487,7 @@ bool str_replace_nth(T (&dst)[ARRAY_SIZE],
   do {
     const size_t next_pos{str_index_of(dst_sv, needle_sv, nth_needle_pos,
                                        ignore_case_when_searching_for_needle)};
-    if (not_found_index == next_pos)
+    if (std::basic_string_view<char_type>::npos == next_pos)
       return false;
     nth_needle_pos = next_pos;
     if (++found_needle_index == nth_needle_index)
@@ -4595,7 +4597,7 @@ bool str_replace_nth(T dst,
   do {
     const size_t next_pos{str_index_of(dst_sv, needle_sv, nth_needle_pos,
                                        ignore_case_when_searching_for_needle)};
-    if (not_found_index == next_pos)
+    if (std::basic_string_view<char_type>::npos == next_pos)
       return false;
     nth_needle_pos = next_pos;
     if (++found_needle_index == nth_needle_index)
@@ -4720,7 +4722,7 @@ std::basic_string<get_char_type_t<T>> str_replace_nth(
   do {
     const size_t next_pos{str_index_of(dst_sv, needle_sv, nth_needle_pos,
                                        ignore_case_when_searching_for_needle)};
-    if (not_found_index == next_pos)
+    if (std::basic_string_view<char_type>::npos == next_pos)
       return str;
     nth_needle_pos = next_pos;
     if (++found_needle_index == nth_needle_index)
@@ -4810,7 +4812,7 @@ bool str_replace_nth(T& dst,
   do {
     const size_t next_pos{str_index_of(dst_sv, needle_sv, nth_needle_pos,
                                        ignore_case_when_searching_for_needle)};
-    if (not_found_index == next_pos)
+    if (std::basic_string_view<char_type>::npos == next_pos)
       return false;
     nth_needle_pos = next_pos;
     if (++found_needle_index == nth_needle_index)
@@ -4901,7 +4903,7 @@ bool str_replace_last(T (&dst)[ARRAY_SIZE],
       str_last_index_of(dst_sv, needle_sv, start_position_in_dst,
                         ignore_case_when_searching_for_needle)};
 
-  if (not_found_index == last_needle_pos)
+  if (std::basic_string_view<char_type>::npos == last_needle_pos)
     return false;
 
   std::basic_string_view<char_type> replace_sv{};
@@ -5005,7 +5007,7 @@ bool str_replace_last(T dst,
       str_last_index_of(dst_sv, needle_sv, start_position_in_dst,
                         ignore_case_when_searching_for_needle)};
 
-  if (not_found_index == last_needle_pos)
+  if (std::basic_string_view<char_type>::npos == last_needle_pos)
     return false;
 
   std::basic_string_view<char_type> replace_sv{};
@@ -5124,7 +5126,7 @@ std::basic_string<get_char_type_t<T>> str_replace_last(
       str_last_index_of(dst_sv, needle_sv, start_position_in_dst,
                         ignore_case_when_searching_for_needle)};
 
-  if (not_found_index == last_needle_pos)
+  if (std::basic_string_view<char_type>::npos == last_needle_pos)
     return str;
 
   if (0U == replace_len) {
@@ -5208,7 +5210,7 @@ bool str_replace_last(T& dst,
       str_last_index_of(dst_sv, needle_sv, start_position_in_dst,
                         ignore_case_when_searching_for_needle)};
 
-  if (not_found_index == last_needle_pos)
+  if (std::basic_string_view<char_type>::npos == last_needle_pos)
     return false;
 
   if (0U == replace_len) {
@@ -5287,7 +5289,7 @@ bool str_replace_all(T (&dst)[ARRAY_SIZE],
     const size_t needle_start_pos{
         str_index_of(dst_sv, needle_sv, start_position_in_dst,
                      ignore_case_when_searching_for_needle)};
-    if (not_found_index == needle_start_pos)
+    if (std::basic_string_view<char_type>::npos == needle_start_pos)
       break;
 
     needle_start_positions.emplace_back(needle_start_pos);
@@ -5397,7 +5399,7 @@ bool str_replace_all(T dst,
     const size_t needle_start_pos{
         str_index_of(dst_sv, needle_sv, start_position_in_dst,
                      ignore_case_when_searching_for_needle)};
-    if (not_found_index == needle_start_pos)
+    if (std::basic_string_view<char_type>::npos == needle_start_pos)
       break;
 
     needle_start_positions.emplace_back(needle_start_pos);
@@ -5521,7 +5523,7 @@ std::basic_string<get_char_type_t<T>> str_replace_all(
     const size_t needle_start_pos{
         str_index_of(dst_sv, needle_sv, start_position_in_dst,
                      ignore_case_when_searching_for_needle)};
-    if (not_found_index == needle_start_pos)
+    if (std::basic_string_view<char_type>::npos == needle_start_pos)
       break;
 
     needle_start_positions.emplace_back(needle_start_pos);
@@ -5624,7 +5626,7 @@ bool str_replace_all(T& dst,
     const size_t needle_start_pos{
         str_index_of(dst_sv, needle_sv, start_position_in_dst,
                      ignore_case_when_searching_for_needle)};
-    if (not_found_index == needle_start_pos)
+    if (std::basic_string_view<char_type>::npos == needle_start_pos)
       break;
 
     needle_start_positions.emplace_back(needle_start_pos);
@@ -5734,7 +5736,7 @@ bool str_replace_first_n(
     const size_t needle_start_pos{
         str_index_of(dst_sv, needle_sv, start_position_in_dst,
                      ignore_case_when_searching_for_needle)};
-    if (not_found_index == needle_start_pos)
+    if (std::basic_string_view<char_type>::npos == needle_start_pos)
       break;
 
     needle_start_positions.emplace_back(needle_start_pos);
@@ -5846,7 +5848,7 @@ bool str_replace_first_n(
     const size_t needle_start_pos{
         str_index_of(dst_sv, needle_sv, start_position_in_dst,
                      ignore_case_when_searching_for_needle)};
-    if (not_found_index == needle_start_pos)
+    if (std::basic_string_view<char_type>::npos == needle_start_pos)
       break;
 
     needle_start_positions.emplace_back(needle_start_pos);
@@ -5971,7 +5973,7 @@ std::basic_string<get_char_type_t<T>> str_replace_first_n(
     const size_t needle_start_pos{
         str_index_of(dst_sv, needle_sv, start_position_in_dst,
                      ignore_case_when_searching_for_needle)};
-    if (not_found_index == needle_start_pos)
+    if (std::basic_string_view<char_type>::npos == needle_start_pos)
       break;
 
     needle_start_positions.emplace_back(needle_start_pos);
@@ -6078,7 +6080,7 @@ bool str_replace_first_n(
     const size_t needle_start_pos{
         str_index_of(dst_sv, needle_sv, start_position_in_dst,
                      ignore_case_when_searching_for_needle)};
-    if (not_found_index == needle_start_pos)
+    if (std::basic_string_view<char_type>::npos == needle_start_pos)
       break;
 
     needle_start_positions.emplace_back(needle_start_pos);
@@ -6188,7 +6190,7 @@ bool str_replace_last_n(
     const size_t needle_start_pos{
         str_last_index_of(dst_sv, needle_sv, start_position_in_dst,
                           ignore_case_when_searching_for_needle)};
-    if (not_found_index == needle_start_pos)
+    if (std::basic_string_view<char_type>::npos == needle_start_pos)
       break;
 
     needle_start_positions.emplace_back(needle_start_pos);
@@ -6302,7 +6304,7 @@ bool str_replace_last_n(
     const size_t needle_start_pos{
         str_last_index_of(dst_sv, needle_sv, start_position_in_dst,
                           ignore_case_when_searching_for_needle)};
-    if (not_found_index == needle_start_pos)
+    if (std::basic_string_view<char_type>::npos == needle_start_pos)
       break;
 
     needle_start_positions.emplace_back(needle_start_pos);
@@ -6429,7 +6431,7 @@ std::basic_string<get_char_type_t<T>> str_replace_last_n(
     const size_t needle_start_pos{
         str_last_index_of(dst_sv, needle_sv, start_position_in_dst,
                           ignore_case_when_searching_for_needle)};
-    if (not_found_index == needle_start_pos)
+    if (std::basic_string_view<char_type>::npos == needle_start_pos)
       break;
 
     needle_start_positions.emplace_back(needle_start_pos);
@@ -6538,7 +6540,7 @@ bool str_replace_last_n(
     const size_t needle_start_pos{
         str_last_index_of(dst_sv, needle_sv, start_position_in_dst,
                           ignore_case_when_searching_for_needle)};
-    if (not_found_index == needle_start_pos)
+    if (std::basic_string_view<char_type>::npos == needle_start_pos)
       break;
 
     needle_start_positions.emplace_back(needle_start_pos);
@@ -6641,7 +6643,7 @@ bool str_erase_first(T (&dst)[ARRAY_SIZE],
       str_index_of(dst_sv, needle_sv, start_position_in_dst,
                    ignore_case_when_searching_for_needle);
 
-  if (not_found_index == start_pos)
+  if (std::basic_string_view<char_type>::npos == start_pos)
     return false;
 
   std::copy(dst + start_pos + needle_len, dst + dst_len, dst + start_pos);
@@ -6694,7 +6696,7 @@ bool str_erase_first(T dst,
       str_index_of(dst_sv, needle_sv, start_position_in_dst,
                    ignore_case_when_searching_for_needle);
 
-  if (not_found_index == start_pos)
+  if (std::basic_string_view<char_type>::npos == start_pos)
     return false;
 
   std::copy(dst + start_pos + needle_len, dst + dst_len, dst + start_pos);
@@ -6763,7 +6765,7 @@ std::basic_string<get_char_type_t<T>> str_erase_first(
       str_index_of(dst_sv, needle_sv, start_position_in_dst,
                    ignore_case_when_searching_for_needle);
 
-  if (not_found_index == start_pos)
+  if (std::basic_string_view<char_type>::npos == start_pos)
     return str;
 
   str.erase(start_pos, needle_len);
@@ -6814,7 +6816,7 @@ bool str_erase_first(T& dst,
       str_index_of(dst_sv, needle_sv, start_position_in_dst,
                    ignore_case_when_searching_for_needle);
 
-  if (not_found_index == start_pos)
+  if (std::basic_string_view<char_type>::npos == start_pos)
     return false;
 
   dst.replace(start_pos, needle_len);
@@ -6868,7 +6870,7 @@ bool str_erase_nth(T (&dst)[ARRAY_SIZE],
   do {
     const size_t next_pos{str_index_of(dst_sv, needle_sv, nth_needle_pos,
                                        ignore_case_when_searching_for_needle)};
-    if (not_found_index == next_pos)
+    if (std::basic_string_view<char_type>::npos == next_pos)
       return false;
     nth_needle_pos = next_pos;
     if (++found_needle_index == nth_needle_index)
@@ -6927,7 +6929,7 @@ bool str_erase_nth(T dst,
   do {
     const size_t next_pos{str_index_of(dst_sv, needle_sv, nth_needle_pos,
                                        ignore_case_when_searching_for_needle)};
-    if (not_found_index == next_pos)
+    if (std::basic_string_view<char_type>::npos == next_pos)
       return false;
     nth_needle_pos = next_pos;
     if (++found_needle_index == nth_needle_index)
@@ -7004,7 +7006,7 @@ std::basic_string<get_char_type_t<T>> str_erase_nth(
   do {
     const size_t next_pos{str_index_of(dst_sv, needle_sv, nth_needle_pos,
                                        ignore_case_when_searching_for_needle)};
-    if (not_found_index == next_pos)
+    if (std::basic_string_view<char_type>::npos == next_pos)
       return str;
     nth_needle_pos = next_pos;
     if (++found_needle_index == nth_needle_index)
@@ -7062,7 +7064,7 @@ bool str_erase_nth(T& dst,
   do {
     const size_t next_pos{str_index_of(dst_sv, needle_sv, nth_needle_pos,
                                        ignore_case_when_searching_for_needle)};
-    if (not_found_index == next_pos)
+    if (std::basic_string_view<char_type>::npos == next_pos)
       return false;
     nth_needle_pos = next_pos;
     if (++found_needle_index == nth_needle_index)
@@ -7119,7 +7121,7 @@ bool str_erase_last(T (&dst)[ARRAY_SIZE],
       str_last_index_of(dst_sv, needle_sv, start_position_in_dst,
                         ignore_case_when_searching_for_needle)};
 
-  if (not_found_index == last_needle_pos)
+  if (std::basic_string_view<char_type>::npos == last_needle_pos)
     return false;
 
   std::copy(dst + last_needle_pos + needle_len, dst + dst_len,
@@ -7174,7 +7176,7 @@ bool str_erase_last(T dst,
       str_last_index_of(dst_sv, needle_sv, start_position_in_dst,
                         ignore_case_when_searching_for_needle)};
 
-  if (not_found_index == last_needle_pos)
+  if (std::basic_string_view<char_type>::npos == last_needle_pos)
     return false;
 
   std::copy(dst + last_needle_pos + needle_len, dst + dst_len,
@@ -7244,7 +7246,7 @@ std::basic_string<get_char_type_t<T>> str_erase_last(
       str_last_index_of(dst_sv, needle_sv, start_position_in_dst,
                         ignore_case_when_searching_for_needle)};
 
-  if (not_found_index == last_needle_pos)
+  if (std::basic_string_view<char_type>::npos == last_needle_pos)
     return str;
 
   str.erase(last_needle_pos, needle_len);
@@ -7296,7 +7298,7 @@ bool str_erase_last(T& dst,
       str_last_index_of(dst_sv, needle_sv, start_position_in_dst,
                         ignore_case_when_searching_for_needle)};
 
-  if (not_found_index == last_needle_pos)
+  if (std::basic_string_view<char_type>::npos == last_needle_pos)
     return false;
 
   dst.erase(last_needle_pos, needle_len);
@@ -7347,7 +7349,7 @@ bool str_erase_all(T (&dst)[ARRAY_SIZE],
     const size_t needle_start_pos{
         str_index_of(dst_sv, needle_sv, start_position_in_dst,
                      ignore_case_when_searching_for_needle)};
-    if (not_found_index == needle_start_pos)
+    if (std::basic_string_view<char_type>::npos == needle_start_pos)
       break;
 
     needle_start_positions.emplace_back(needle_start_pos);
@@ -7421,7 +7423,7 @@ bool str_erase_all(T dst,
     const size_t needle_start_pos{
         str_index_of(dst_sv, needle_sv, start_position_in_dst,
                      ignore_case_when_searching_for_needle)};
-    if (not_found_index == needle_start_pos)
+    if (std::basic_string_view<char_type>::npos == needle_start_pos)
       break;
 
     needle_start_positions.emplace_back(needle_start_pos);
@@ -7507,7 +7509,7 @@ std::basic_string<get_char_type_t<T>> str_erase_all(
     const size_t needle_start_pos{
         str_index_of(dst_sv, needle_sv, start_position_in_dst,
                      ignore_case_when_searching_for_needle)};
-    if (not_found_index == needle_start_pos)
+    if (std::basic_string_view<char_type>::npos == needle_start_pos)
       break;
 
     needle_start_positions.emplace_back(needle_start_pos);
@@ -7579,7 +7581,7 @@ bool str_erase_all(T& dst,
     const size_t needle_start_pos{
         str_index_of(dst_sv, needle_sv, start_position_in_dst,
                      ignore_case_when_searching_for_needle)};
-    if (not_found_index == needle_start_pos)
+    if (std::basic_string_view<char_type>::npos == needle_start_pos)
       break;
 
     needle_start_positions.emplace_back(needle_start_pos);
@@ -7655,7 +7657,7 @@ bool str_replace_first_n(
     const size_t needle_start_pos{
         str_index_of(dst_sv, needle_sv, start_position_in_dst,
                      ignore_case_when_searching_for_needle)};
-    if (not_found_index == needle_start_pos)
+    if (std::basic_string_view<char_type>::npos == needle_start_pos)
       break;
 
     needle_start_positions.emplace_back(needle_start_pos);
@@ -7731,7 +7733,7 @@ bool str_replace_first_n(
     const size_t needle_start_pos{
         str_index_of(dst_sv, needle_sv, start_position_in_dst,
                      ignore_case_when_searching_for_needle)};
-    if (not_found_index == needle_start_pos)
+    if (std::basic_string_view<char_type>::npos == needle_start_pos)
       break;
 
     needle_start_positions.emplace_back(needle_start_pos);
@@ -7818,7 +7820,7 @@ std::basic_string<get_char_type_t<T>> str_replace_first_n(
     const size_t needle_start_pos{
         str_index_of(dst_sv, needle_sv, start_position_in_dst,
                      ignore_case_when_searching_for_needle)};
-    if (not_found_index == needle_start_pos)
+    if (std::basic_string_view<char_type>::npos == needle_start_pos)
       break;
 
     needle_start_positions.emplace_back(needle_start_pos);
@@ -7891,7 +7893,7 @@ bool str_replace_first_n(
     const size_t needle_start_pos{
         str_index_of(dst_sv, needle_sv, start_position_in_dst,
                      ignore_case_when_searching_for_needle)};
-    if (not_found_index == needle_start_pos)
+    if (std::basic_string_view<char_type>::npos == needle_start_pos)
       break;
 
     needle_start_positions.emplace_back(needle_start_pos);
@@ -7967,7 +7969,7 @@ bool str_replace_last_n(
     const size_t needle_start_pos{
         str_last_index_of(dst_sv, needle_sv, start_position_in_dst,
                           ignore_case_when_searching_for_needle)};
-    if (not_found_index == needle_start_pos)
+    if (std::basic_string_view<char_type>::npos == needle_start_pos)
       break;
 
     needle_start_positions.emplace_back(needle_start_pos);
@@ -8045,7 +8047,7 @@ bool str_replace_last_n(
     const size_t needle_start_pos{
         str_last_index_of(dst_sv, needle_sv, start_position_in_dst,
                           ignore_case_when_searching_for_needle)};
-    if (not_found_index == needle_start_pos)
+    if (std::basic_string_view<char_type>::npos == needle_start_pos)
       break;
 
     needle_start_positions.emplace_back(needle_start_pos);
@@ -8134,7 +8136,7 @@ std::basic_string<get_char_type_t<T>> str_replace_last_n(
     const size_t needle_start_pos{
         str_last_index_of(dst_sv, needle_sv, start_position_in_dst,
                           ignore_case_when_searching_for_needle)};
-    if (not_found_index == needle_start_pos)
+    if (std::basic_string_view<char_type>::npos == needle_start_pos)
       break;
 
     needle_start_positions.emplace_back(needle_start_pos);
@@ -8210,7 +8212,7 @@ bool str_replace_last_n(
     const size_t needle_start_pos{
         str_last_index_of(dst_sv, needle_sv, start_position_in_dst,
                           ignore_case_when_searching_for_needle)};
-    if (not_found_index == needle_start_pos)
+    if (std::basic_string_view<char_type>::npos == needle_start_pos)
       break;
 
     needle_start_positions.emplace_back(needle_start_pos);
@@ -11457,6 +11459,108 @@ str_join(FwIterType first, const FwIterType last, const NeedleType& needle) {
   result.erase(result.length() - needle_len, needle_len);
 
   return result;
+}
+
+template <typename ForwardIterType1,
+          typename ForwardIterType2,
+          typename Predicate,
+          typename = std::enable_if_t<std::is_assignable_v<
+              std::add_lvalue_reference_t<
+                  typename std::iterator_traits<ForwardIterType2>::value_type>,
+              std::add_lvalue_reference_t<const typename std::iterator_traits<
+                  ForwardIterType1>::value_type>>>>
+std::pair<ForwardIterType1, ForwardIterType2> copy_while(
+    ForwardIterType1 src_first,
+    const ForwardIterType1 src_last,
+    ForwardIterType2 dst_first,
+    Predicate p) {
+  while (src_first != src_last && p(*src_first)) {
+    *dst_first = *src_first;
+    ++src_first;
+    ++dst_first;
+  }
+
+  return std::make_pair(src_first, dst_first);
+}
+
+template <typename ForwardIterType1,
+          typename ForwardIterType2,
+          typename Predicate,
+          typename = std::enable_if_t<std::is_assignable_v<
+              std::add_lvalue_reference_t<
+                  typename std::iterator_traits<ForwardIterType2>::value_type>,
+              std::add_lvalue_reference_t<const typename std::iterator_traits<
+                  ForwardIterType1>::value_type>>>>
+std::pair<ForwardIterType1, ForwardIterType2> copy_until(
+    ForwardIterType1 src_first,
+    const ForwardIterType1 src_last,
+    ForwardIterType2 dst_first,
+    Predicate p) {
+  while (src_first != src_last && !p(*src_first)) {
+    *dst_first = *src_first;
+    ++src_first;
+    ++dst_first;
+  }
+
+  return std::make_pair(src_first, dst_first);
+}
+
+template <
+    typename ForwardIterType1,
+    typename ForwardIterType2,
+    typename Predicate,
+    typename = std::enable_if_t<
+        std::is_assignable_v<
+            std::add_lvalue_reference_t<
+                typename std::iterator_traits<ForwardIterType2>::value_type>,
+            std::add_rvalue_reference_t<
+                typename std::iterator_traits<ForwardIterType1>::value_type>> ||
+        std::is_assignable_v<
+            std::add_lvalue_reference_t<
+                typename std::iterator_traits<ForwardIterType2>::value_type>,
+            std::add_lvalue_reference_t<const typename std::iterator_traits<
+                ForwardIterType1>::value_type>>>>
+std::pair<ForwardIterType1, ForwardIterType2> move_while(
+    ForwardIterType1 src_first,
+    const ForwardIterType1 src_last,
+    ForwardIterType2 dst_first,
+    Predicate p) {
+  while (src_first != src_last && p(*src_first)) {
+    *dst_first = std::move(*src_first);
+    ++src_first;
+    ++dst_first;
+  }
+
+  return std::make_pair(src_first, dst_first);
+}
+
+template <
+    typename ForwardIterType1,
+    typename ForwardIterType2,
+    typename Predicate,
+    typename = std::enable_if_t<
+        std::is_assignable_v<
+            std::add_lvalue_reference_t<
+                typename std::iterator_traits<ForwardIterType2>::value_type>,
+            std::add_rvalue_reference_t<
+                typename std::iterator_traits<ForwardIterType1>::value_type>> ||
+        std::is_assignable_v<
+            std::add_lvalue_reference_t<
+                typename std::iterator_traits<ForwardIterType2>::value_type>,
+            std::add_lvalue_reference_t<const typename std::iterator_traits<
+                ForwardIterType1>::value_type>>>>
+std::pair<ForwardIterType1, ForwardIterType2> move_until(
+    ForwardIterType1 src_first,
+    const ForwardIterType1 src_last,
+    ForwardIterType2 dst_first,
+    Predicate p) {
+  while (src_first != src_last && !p(*src_first)) {
+    *dst_first = std::move(*src_first);
+    ++src_first;
+    ++dst_first;
+  }
+
+  return std::make_pair(src_first, dst_first);
 }
 
 }  // namespace stl::helper

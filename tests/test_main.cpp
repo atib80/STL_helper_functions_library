@@ -35,99 +35,115 @@ long long get_random_number(const long long lower_bound,
   return num_distr(rand_engine);
 }
 
-// TEST_CASE("int say_slow(const size_t, const char*, Args...)",
-//  "Testing correct work of global template function int say_slow(const
-// size_t time_delay_in_ms, const char* format_string, Args... args)"
-//)
-//{
-//  const char* printed_message = "The word 'apple' consists of 5
-// characters.\n";
-//
-//  auto const length = strlen(printed_message);
-//
-//  char buffer[512];
-//
-//  auto const formatted_string_length = snprintf(buffer, sizeof(buffer) /
-// sizeof(buffer[0]),                                                 "The word
-// '%s' consists of %d characters.\n", "apple", 5);
-//
-//  auto const ret_val = say_slow(5, "The word '%s' consists of %d
-// characters.\n", "apple", 5);
-//
-//  REQUIRE(length == formatted_string_length);
-//
-//  REQUIRE(length == ret_val);
-//}
-//
-// TEST_CASE("int say_slow(const size_t, const wchar_t*, Args...)",
-//  "Testing correct work of global template function int say_slow(const
-// size_t time_delay_in_ms, const wchar_t* format_string, Args... args)"
-//)
-//{
-//  const wchar_t* printed_message = L"The word 'apple' consists of 5
-// characters.\n";
-//
-//  auto const length = wcslen(printed_message);
-//
-//  wchar_t buffer[512];
-//
-//  auto const formatted_string_length = _snwprintf(buffer, sizeof(buffer) /
-// sizeof(buffer[0]),                                                   L"The
-// word '%s' consists of %d characters.\n", L"apple", 5);
-//
-//  auto const ret_val = say_slow(5, L"The word '%s' consists of %d
-// characters.\n", L"apple", 5);
-//
-//  REQUIRE(length == formatted_string_length);
-//
-//  REQUIRE(length == ret_val);
-//}
-//
-// TEST_CASE("int say(const char* format_string, Args... args)",
-//  "Testing correct work of global template function int say(const char*
-// format_string, Args... args)")
-//{
-//  const char* printed_message = "The word 'apple' consists of 5
-// characters.\n";
-//
-//  auto const length = strlen(printed_message);
-//
-//  char buffer[512];
-//
-//  auto const formatted_string_length = snprintf(buffer, sizeof(buffer) /
-// sizeof(buffer[0]),                                                 "The word
-// '%s' consists of %d characters.\n", "apple", 5);
-//
-//  auto const ret_val = say("The word '%s' consists of %d characters.\n",
-//"apple", 5);
-//
-//  REQUIRE(length == formatted_string_length);
-//
-//  REQUIRE(length == ret_val);
-//}
-//
-// TEST_CASE("int say(const wchar_t* format_string, Args... args)",
-//  "Testing correct work of global template function int say(const wchar_t*
-// format_string, Args... args)")
-//{
-//  const wchar_t* printed_message = L"The word 'apple' consists of 5
-// characters.\n";
-//
-//  auto const length = wcslen(printed_message);
-//
-//  wchar_t buffer[512];
-//
-//  auto const formatted_string_length = _snwprintf(buffer, sizeof(buffer) /
-// sizeof(buffer[0]),                                                   L"The
-// word '%s' consists of %d characters.\n", L"apple", 5);
-//
-//  auto const ret_val = say(L"The word '%s' consists of %d characters.\n",
-// L"apple", 5);
-//
-//  REQUIRE(length == formatted_string_length);
-//
-//  REQUIRE(length == ret_val);
-//}
+TEST_CASE("int say_slow(std::ostream&, const size_t, const char*, Args...)",
+          "Testing correct work of global template function int say_slow(const "
+          "size_t time_delay_in_ms, const char* format_string, Args... args)") {
+  constexpr size_t buffer_size{256U};
+  static char buffer[buffer_size];
+  const char* printed_message = "The word 'apple' consists of 5 characters.\n";
+
+  const auto length1 = strlen(printed_message);
+  const auto length2 = len(printed_message);
+
+  const auto formatted_string_length =
+      snprintf(buffer, buffer_size,
+               "The word '%s' consists of %d characters.\n", "apple", 5);
+  std::ostringstream oss{};
+  const auto ret_val = say_slow(
+      oss, 5U, "The word '%s' consists of %d characters.\n", "apple", 5);
+
+  REQUIRE(length1 == length2);
+
+  REQUIRE(length1 == formatted_string_length);
+  REQUIRE(length1 == ret_val);
+  REQUIRE(length1 == oss.str().length());
+
+  REQUIRE(length2 == formatted_string_length);
+  REQUIRE(length2 == ret_val);
+  REQUIRE(length1 == oss.str().length());
+}
+
+TEST_CASE(
+    "int say_slow(std::wostream&, const size_t, const wchar_t*, Args...)",
+    "Testing correct work of global template function int say_slow(const "
+    "size_t time_delay_in_ms, const wchar_t* format_string, Args... args)") {
+  constexpr size_t buffer_size{256U};
+  static wchar_t buffer[buffer_size];
+  const wchar_t* printed_message = L"The word 'apple' consists of 5 characters.\n";
+
+  const auto length1 = wcslen(printed_message);
+  const auto length2 = len(printed_message);
+
+  const auto formatted_string_length =
+      _snwprintf(buffer, buffer_size,
+                 L"The word '%ls' consists of %d characters.\n", L"apple", 5);
+  std::wostringstream woss{};
+
+  const auto ret_val = say_slow(woss, 5U, L"The word '%ls' consists of %d characters.\n", L"apple", 5);
+
+  REQUIRE(length1 == length2);
+
+  REQUIRE(length1 == formatted_string_length);
+  REQUIRE(length1 == ret_val);
+  REQUIRE(length1 == woss.str().length());
+
+  REQUIRE(length2 == formatted_string_length);
+  REQUIRE(length2 == ret_val);
+  REQUIRE(length2 == woss.str().length());
+}
+
+TEST_CASE("int say(std::ostream&, const char* format_string, Args... args)",
+          "Testing correct work of global template function int say(const "
+          "char* format_string, Args... args)") {
+  constexpr size_t buffer_size{256U};
+  static char buffer[buffer_size];
+  const char* printed_message = "The word 'apple' consists of 5 characters.\n";
+  const auto length1 = strlen(printed_message);
+  const auto length2 = len(printed_message);
+
+  const auto formatted_string_length =
+      snprintf(buffer, buffer_size,
+               "The word '%s' consists of %d characters.\n", "apple", 5);
+  std::ostringstream oss{};
+  const auto ret_val =
+      say(oss, "The word '%s' consists of %d characters.\n", "apple", 5);
+
+  REQUIRE(length1 == length2);
+
+  REQUIRE(length1 == formatted_string_length);
+  REQUIRE(length1 == ret_val);
+  REQUIRE(length1 == oss.str().length());
+
+  REQUIRE(length2 == formatted_string_length);
+  REQUIRE(length2 == ret_val);
+  REQUIRE(length2 == oss.str().length());
+}
+
+TEST_CASE("int say(std::wostream&, const wchar_t* format_string, Args... args)",
+          "Testing correct work of global template function int say(const "
+          "wchar_t* format_string, Args... args)") {
+  constexpr size_t buffer_size{256U};
+  static wchar_t buffer[buffer_size];
+  const wchar_t* printed_message =
+      L"The word 'apple' consists of 5 characters.\n";
+  const auto length1 = wcslen(printed_message);
+  const auto length2 = len(printed_message);
+
+  const auto formatted_string_length =
+      _snwprintf(buffer, buffer_size,
+                 L"The word '%ls' consists of %d characters.\n", L"apple", 5);
+  std::wostringstream woss{};
+  const auto ret_val =
+      say(woss, L"The word '%ls' consists of %d characters.\n", L"apple", 5);
+
+  REQUIRE(length1 == formatted_string_length);
+  REQUIRE(length1 == ret_val);
+  REQUIRE(length1 == woss.str().length());
+
+  REQUIRE(length2 == formatted_string_length);
+  REQUIRE(length2 == ret_val);
+  REQUIRE(length2 == woss.str().length());
+}
 
 TEST_CASE("void swap(T& first, T& second)",
           "Testing global function template void swap(T& first, T& second)") {
@@ -224,8 +240,11 @@ TEST_CASE(
   const char* src1 = "Hello World!\n";
   REQUIRE(len(src1) == strlen(src1));
 
-  array<char, len("Hello World!\n") + 1> char_buffer{"Hello World!\n"};
+  char char_buffer[]{"Hello World!\n"};
   REQUIRE(len(char_buffer) == 13);
+
+  array<char, len("Hello World!\n") + 1> char_array{"Hello World!\n"};
+  REQUIRE(len(char_array) == 13);
 
   const wchar_t* src2 = L"\tHello there, my friend!\n";
   REQUIRE(len(src2) == wcslen(src2));

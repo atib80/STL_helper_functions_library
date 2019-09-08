@@ -8,25 +8,25 @@ SRC_DIR=src
 TESTS_DIR=tests
 BUILD_DIR=build
 
-SRCS=$(TESTS_DIR)\test_main.cpp
-HEADERS=$(SRC_DIR)\stl_helper_functions.hpp
+SRCS=$(TESTS_DIR)/test_main.cpp
+HEADERS=$(SRC_DIR)/stl_helper_functions.hpp
 OBJS=$(subst .cpp,.o,$(SRCS))
 
 all: test
 
 test: $(OBJS)
-	$(CXX) $(CPPFLAGS) -o $(BUILD_DIR)/test.exe $(OBJS) 
+	$(CXX) $(CPPFLAGS) $(OBJS) -o $(BUILD_DIR)/test.exe
 
 
-$(TESTS_DIR)\test_main.o: $(TESTS_DIR)/test_main.cpp
+$(TESTS_DIR)/test_main.o: $(TESTS_DIR)/test_main.cpp
 
 format:
 	$(CODE_FORMAT) $(CODE_FORMAT_PARAMS) $(HEADERS) $(SRCS)
 
 run:	
-	$(BUILD_DIR)/test
+	$(BUILD_DIR)/test.exe
 	
 
 clean:
-	$(RM) $(BUILD_DIR)/test.exe $(TESTS_DIR)/*.o
+	$(RM) $(BUILD_DIR)/test $(BUILD_DIR)/test.exe $(TESTS_DIR)/*.o $(TESTS_DIR)/*.obj 
 	
