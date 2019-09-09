@@ -2549,7 +2549,7 @@ size_t str_copy(
   if (required_dst_capacity)
     *required_dst_capacity = ret_val;
 
-  if (0U == src_len || nullptr == dst)
+  if (nullptr == dst || 0U == src_len)
     return 0U;
 
   if (copy_options ==
@@ -4113,16 +4113,10 @@ bool str_replace_first(T (&dst)[ARRAY_SIZE],
   if constexpr (is_valid_char_type_v<V>) {
     replace_str.assign(1, replace);
     replace_sv = replace_str;
-  }
-
-  else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-    if (nullptr == replace)
-      replace_sv = replace_str;
-    else
+  } else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
+    if (nullptr != replace)
       replace_sv = {replace, replace_len};
-  }
-
-  else
+  } else
     replace_sv = replace;
 
   if (needle_len < replace_len) {
@@ -4215,16 +4209,10 @@ bool str_replace_first(T dst,
   if constexpr (is_valid_char_type_v<V>) {
     replace_str.assign(1, replace);
     replace_sv = replace_str;
-  }
-
-  else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-    if (nullptr == replace)
-      replace_sv = replace_str;
-    else
+  } else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
+    if (nullptr != replace)
       replace_sv = {replace, replace_len};
-  }
-
-  else
+  } else
     replace_sv = replace;
 
   if (needle_len < replace_len) {
@@ -4511,9 +4499,7 @@ bool str_replace_nth(T (&dst)[ARRAY_SIZE],
   }
 
   else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-    if (nullptr == replace)
-      replace_sv = replace_str;
-    else
+    if (nullptr != replace)
       replace_sv = {replace, replace_len};
   }
 
@@ -4621,9 +4607,7 @@ bool str_replace_nth(T dst,
   }
 
   else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-    if (nullptr == replace)
-      replace_sv = replace_str;
-    else
+    if (nullptr != replace)
       replace_sv = {replace, replace_len};
   }
 
@@ -4922,9 +4906,7 @@ bool str_replace_last(T (&dst)[ARRAY_SIZE],
   }
 
   else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-    if (nullptr == replace)
-      replace_sv = replace_str;
-    else
+    if (nullptr != replace)
       replace_sv = {replace, replace_len};
   }
 
@@ -5026,9 +5008,7 @@ bool str_replace_last(T dst,
   }
 
   else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-    if (nullptr == replace)
-      replace_sv = replace_str;
-    else
+    if (nullptr != replace)
       replace_sv = {replace, replace_len};
   }
 
@@ -5324,9 +5304,7 @@ bool str_replace_all(T (&dst)[ARRAY_SIZE],
   }
 
   else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-    if (nullptr == replace)
-      replace_sv = replace_str;
-    else
+    if (nullptr != replace)
       replace_sv = {replace, replace_len};
   }
 
@@ -5434,9 +5412,7 @@ bool str_replace_all(T dst,
   }
 
   else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-    if (nullptr == replace)
-      replace_sv = replace_str;
-    else
+    if (nullptr != replace)
       replace_sv = {replace, replace_len};
   }
 
@@ -5555,9 +5531,7 @@ std::basic_string<get_char_type_t<T>> str_replace_all(
   }
 
   else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-    if (nullptr == replace)
-      replace_sv = replace_str;
-    else
+    if (nullptr != replace)
       replace_sv = {replace, replace_len};
   }
 
@@ -5658,9 +5632,7 @@ bool str_replace_all(T& dst,
   }
 
   else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-    if (nullptr == replace)
-      replace_sv = replace_str;
-    else
+    if (nullptr != replace)
       replace_sv = {replace, replace_len};
   }
 
@@ -5771,9 +5743,7 @@ bool str_replace_first_n(
   }
 
   else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-    if (nullptr == replace)
-      replace_sv = replace_str;
-    else
+    if (nullptr != replace)
       replace_sv = {replace, replace_len};
   }
 
@@ -5883,9 +5853,7 @@ bool str_replace_first_n(
   }
 
   else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-    if (nullptr == replace)
-      replace_sv = replace_str;
-    else
+    if (nullptr != replace)
       replace_sv = {replace, replace_len};
   }
 
@@ -6005,9 +5973,7 @@ std::basic_string<get_char_type_t<T>> str_replace_first_n(
   }
 
   else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-    if (nullptr == replace)
-      replace_sv = replace_str;
-    else
+    if (nullptr != replace)
       replace_sv = {replace, replace_len};
   }
 
@@ -6112,9 +6078,7 @@ bool str_replace_first_n(
   }
 
   else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-    if (nullptr == replace)
-      replace_sv = replace_str;
-    else
+    if (nullptr != replace)
       replace_sv = {replace, replace_len};
   }
 
@@ -6228,9 +6192,7 @@ bool str_replace_last_n(
   }
 
   else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-    if (nullptr == replace)
-      replace_sv = replace_str;
-    else
+    if (nullptr != replace)
       replace_sv = {replace, replace_len};
   }
 
@@ -6342,9 +6304,7 @@ bool str_replace_last_n(
   }
 
   else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-    if (nullptr == replace)
-      replace_sv = replace_str;
-    else
+    if (nullptr != replace)
       replace_sv = {replace, replace_len};
   }
 
@@ -6466,9 +6426,7 @@ std::basic_string<get_char_type_t<T>> str_replace_last_n(
   }
 
   else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-    if (nullptr == replace)
-      replace_sv = replace_str;
-    else
+    if (nullptr != replace)
       replace_sv = {replace, replace_len};
   }
 
@@ -6575,9 +6533,7 @@ bool str_replace_last_n(
   }
 
   else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-    if (nullptr == replace)
-      replace_sv = replace_str;
-    else
+    if (nullptr != replace)
       replace_sv = {replace, replace_len};
   }
 
@@ -11239,14 +11195,14 @@ split(IteratorType first,
   if (first == last)
     return {};
 
-  const size_t src_len = std::distance(first, last);
+  const size_t src_len{static_cast<size_t>(std::distance(first, last))};
   size_t needle_len{len(needle)};
 
   if (0U == src_len)
     return {};
 
-  std::basic_string<char_type> src_str{first, last};
-  std::basic_string_view<char_type> src_sv{src_str};
+  std::basic_string_view<char_type> src_sv{
+      reinterpret_cast<const char_type*>(&(*first)), src_len};
 
   if (0U == needle_len) {
     const size_t upper_limit{max_count < src_len ? max_count : src_len};

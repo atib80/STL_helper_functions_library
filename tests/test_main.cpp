@@ -27,10 +27,10 @@ using namespace stl::helper;
 
 long long get_random_number(const long long lower_bound,
                             const long long upper_bound) {
-  static random_device rd{};
-  static mt19937 rand_engine{rd()};
-
-  uniform_int_distribution<long long> num_distr(lower_bound, upper_bound);
+  static mt19937 rand_engine{static_cast<unsigned>(
+      high_resolution_clock::now().time_since_epoch().count())};
+  static uniform_int_distribution<long long> num_distr{lower_bound,
+                                                       upper_bound};
 
   return num_distr(rand_engine);
 }
@@ -41,6 +41,9 @@ TEST_CASE("int say_slow(std::ostream&, const size_t, const char*, Args...)",
   constexpr size_t buffer_size{256U};
   static char buffer[buffer_size];
   const char* printed_message = "The word 'apple' consists of 5 characters.\n";
+
+  const auto rand_number = get_random_number(1, 100);
+  cout << "rand_number -> " << rand_number << endl;
 
   const auto length1 = strlen(printed_message);
   const auto length2 = len(printed_message);
