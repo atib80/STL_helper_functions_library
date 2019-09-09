@@ -42,9 +42,6 @@ TEST_CASE("int say_slow(std::ostream&, const size_t, const char*, Args...)",
   static char buffer[buffer_size];
   const char* printed_message = "The word 'apple' consists of 5 characters.\n";
 
-  const auto rand_number = get_random_number(1, 100);
-  cout << "rand_number -> " << rand_number << endl;
-
   const auto length1 = strlen(printed_message);
   const auto length2 = len(printed_message);
 

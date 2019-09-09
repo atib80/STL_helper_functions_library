@@ -1,5 +1,10 @@
 #pragma once
 
+#if defined(__cplusplus) && __cplusplus < 201703L
+#error \
+    "You need a modern compiler that is fully compliant with the c++17 language standard or a newer one in order to use this header-only library!"
+#endif
+
 #define _CRT_SECURE_NO_WARNINGS
 #define _SCL_SECURE_NO_WARNINGS
 
@@ -11192,17 +11197,14 @@ split(IteratorType first,
       const size_t max_count = std::numeric_limits<size_t>::max()) {
   using char_type = typename std::iterator_traits<IteratorType>::value_type;
 
-  if (first == last)
+  const auto src_distance = std::distance(first, last);
+  if (src_distance <= 0)
     return {};
-
-  const size_t src_len{static_cast<size_t>(std::distance(first, last))};
+  const size_t src_len{static_cast<size_t>(src_distance)};
   size_t needle_len{len(needle)};
 
-  if (0U == src_len)
-    return {};
-
   std::basic_string_view<char_type> src_sv{
-      reinterpret_cast<const char_type*>(&(*first)), src_len};
+      static_cast<const char_type*>(&(*first)), src_len};
 
   if (0U == needle_len) {
     const size_t upper_limit{max_count < src_len ? max_count : src_len};
@@ -11280,7 +11282,12 @@ std::vector<std::pair<SrcIterType, SrcIterType>> split(
     const bool split_on_whole_sequence = true,
     const bool ignore_empty_sequence = true,
     const size_t max_count = std::numeric_limits<size_t>::max()) {
-  if (src_first == src_last)
+  const auto src_distance = std::distance(src_first, src_last);
+  if (src_distance <= 0)
+    return {};
+
+  const auto needle_distance = std::distance(needle_first, needle_last);
+  if (needle_distance < 0)
     return {};
 
   std::vector<std::pair<SrcIterType, SrcIterType>> parts{};
@@ -11288,8 +11295,7 @@ std::vector<std::pair<SrcIterType, SrcIterType>> split(
   size_t number_of_parts{};
 
   if (needle_first == needle_last) {
-    const size_t source_len{
-        static_cast<size_t>(std::distance(src_first, src_last))};
+    const size_t source_len{static_cast<size_t>(src_distance)};
     const size_t upper_limit{max_count < source_len ? max_count : source_len};
     parts.reserve(upper_limit);
     SrcIterType last_element{prev};
@@ -11305,9 +11311,7 @@ std::vector<std::pair<SrcIterType, SrcIterType>> split(
   }
 
   const size_t needle_sequence_len{
-      split_on_whole_sequence
-          ? static_cast<size_t>(std::distance(needle_first, needle_last))
-          : 1U};
+      split_on_whole_sequence ? static_cast<size_t>(needle_distance) : 1U};
 
   SrcIterType next;
 
