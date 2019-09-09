@@ -937,8 +937,8 @@ size_t say(std::ostream& os, const char* format_string, Args&&... args) {
   if (!output_buffer_sp)
     return std::string::npos;
 
-  const auto ch_count = SNPRINTF(output_buffer_sp.get(), buffer_size,
-                                 format_string, std::forward<Args>(args)...);
+  SNPRINTF(output_buffer_sp.get(), buffer_size, format_string,
+           std::forward<Args>(args)...);
 
   return (os << output_buffer_sp.get()) ? len(output_buffer_sp.get())
                                         : std::string::npos;
@@ -1908,8 +1908,10 @@ constexpr bool ends_with_all_of(const SrcIterType src_first,
   if (src_first == src_last || dst_first == dst_last)
     return false;
 
-  const auto src_seq_len{std::distance(src_first, src_last)};
-  const auto needle_seq_len{std::distance(dst_first, dst_last)};
+  const typename std::iterator_traits<SrcIterType>::difference_type src_seq_len{
+      std::distance(src_first, src_last)};
+  const typename std::iterator_traits<DstIterType>::difference_type
+      needle_seq_len{std::distance(dst_first, dst_last)};
 
   if (needle_seq_len > src_seq_len ||
       (needle_seq_len == src_seq_len && *src_first != *dst_first))
@@ -2183,19 +2185,30 @@ int str_compare(FwIterType1 first1,
                 FwIterType1 last1,
                 FwIterType2 first2,
                 FwIterType2 last2) {
-  const size_t src1_len{static_cast<size_t>(std::distance(first1, last1))};
-  const size_t src2_len{static_cast<size_t>(std::distance(first2, last2))};
+  const typename std::iterator_traits<FwIterType1>::difference_type src1_len{
+      std::distance(first1, last1)};
+  const typename std::iterator_traits<FwIterType2>::difference_type src2_len{
+      std::distance(first2, last2)};
 
-  if (0U == src1_len)
-    return 0U == src2_len ? 0 : -static_cast<int>(*first2);
-  if (0U == src2_len)
-    return 0U == src1_len ? 0 : static_cast<int>(*first1);
+  if (src1_len < 0)
+    src1_len = 0;
+  if (src2_len < 0)
+    src2_len = 0;
 
-  size_t const number_of_characters_to_compare{std::min(src1_len, src2_len)};
+  if (0 == src1_len)
+    return 0 == src2_len ? 0 : -static_cast<int>(*first2);
+  if (0 == src2_len)
+    return 0 == src1_len ? 0 : static_cast<int>(*first1);
 
-  size_t i{};
+  const std::common_type_t<
+      typename std::iterator_traits<FwIterType1>::difference_type,
+      typename std::iterator_traits<FwIterType2>::difference_type>
+      number_of_characters_to_compare{std::min(src1_len, src2_len)};
 
-  for (; i < number_of_characters_to_compare; ++i, ++first1, ++first2) {
+  for (std::common_type_t<
+           typename std::iterator_traits<FwIterType1>::difference_type,
+           typename std::iterator_traits<FwIterType2>::difference_type> i{};
+       i < number_of_characters_to_compare; ++i, ++first1, ++first2) {
     if (*first1 != *first2)
       return static_cast<int>(*first1 - *first2);
   }
@@ -2245,26 +2258,38 @@ template <
         get_char_type_t<typename std::iterator_traits<FwIterType1>::value_type>,
         get_char_type_t<
             typename std::iterator_traits<FwIterType2>::value_type>>>>
-int str_compare_n(FwIterType1 first1,
-                  FwIterType1 last1,
-                  FwIterType2 first2,
-                  FwIterType2 last2,
-                  size_t number_of_characters_to_compare) {
-  const size_t src1_len{static_cast<size_t>(std::distance(first1, last1))};
-  const size_t src2_len{static_cast<size_t>(std::distance(first2, last2))};
+int str_compare_n(
+    FwIterType1 first1,
+    FwIterType1 last1,
+    FwIterType2 first2,
+    FwIterType2 last2,
+    std::common_type_t<
+        typename std::iterator_traits<FwIterType1>::difference_type,
+        typename std::iterator_traits<FwIterType2>::difference_type>
+        number_of_characters_to_compare) {
+  const typename std::iterator_traits<FwIterType1>::difference_type src1_len{
+      std::distance(first1, last1)};
+  const typename std::iterator_traits<FwIterType2>::difference_type src2_len{
+      std::distance(first2, last2)};
 
-  if (0U == src1_len)
-    return 0U == src2_len ? 0 : -static_cast<int>(*first2);
-  if (0U == src2_len)
-    return 0U == src1_len ? 0 : static_cast<int>(*first1);
+  if (src1_len < 0)
+    src1_len = 0;
+  if (src2_len < 0)
+    src2_len = 0;
+
+  if (0 == src1_len)
+    return 0 == src2_len ? 0 : -static_cast<int>(*first2);
+  if (0 == src2_len)
+    return 0 == src1_len ? 0 : static_cast<int>(*first1);
 
   if (src1_len < number_of_characters_to_compare ||
       src2_len < number_of_characters_to_compare)
     number_of_characters_to_compare = std::min(src1_len, src2_len);
 
-  size_t i{};
-
-  for (; i < number_of_characters_to_compare; ++i, ++first1, ++first2) {
+  for (std::common_type_t<
+           typename std::iterator_traits<FwIterType1>::difference_type,
+           typename std::iterator_traits<FwIterType2>::difference_type> i{};
+       i < number_of_characters_to_compare; ++i, ++first1, ++first2) {
     if (*first1 != *first2)
       return static_cast<int>(*first1 - *first2);
   }
@@ -2339,22 +2364,33 @@ int str_compare_i(FwIterType1 first1,
   using char_type =
       get_char_type_t<typename std::iterator_traits<FwIterType1>::value_type>;
 
-  const size_t src1_len{static_cast<size_t>(std::distance(first1, last1))};
-  const size_t src2_len{static_cast<size_t>(std::distance(first2, last2))};
+  const typename std::iterator_traits<FwIterType1>::difference_type src1_len{
+      std::distance(first1, last1)};
+  const typename std::iterator_traits<FwIterType2>::difference_type src2_len{
+      std::distance(first2, last2)};
 
-  if (0U == src1_len)
-    return 0U == src2_len ? 0 : -static_cast<int>(*first2);
-  if (0U == src2_len)
-    return 0U == src1_len ? 0 : static_cast<int>(*first1);
+  if (src1_len < 0)
+    src1_len = 0;
+  if (src2_len < 0)
+    src2_len = 0;
 
-  const size_t number_of_characters_to_compare{std::min(src1_len, src2_len)};
+  if (0 == src1_len)
+    return 0 == src2_len ? 0 : -static_cast<int>(*first2);
+  if (0 == src2_len)
+    return 0 == src1_len ? 0 : static_cast<int>(*first1);
+
+  const std::common_type_t<
+      typename std::iterator_traits<FwIterType1>::difference_type,
+      typename std::iterator_traits<FwIterType2>::difference_type>
+      number_of_characters_to_compare{std::min(src1_len, src2_len)};
 
   if (std::has_facet<std::ctype<char_type>>(loc)) {
     const auto& f = std::use_facet<std::ctype<char_type>>(loc);
 
-    size_t i{};
-
-    for (; i < number_of_characters_to_compare; ++i, ++first1, ++first2) {
+    for (std::common_type_t<
+             typename std::iterator_traits<FwIterType1>::difference_type,
+             typename std::iterator_traits<FwIterType2>::difference_type> i{};
+         i < number_of_characters_to_compare; ++i, ++first1, ++first2) {
       const auto ch1{f.tolower(*first1)};
       const auto ch2{f.tolower(*first2)};
       if (ch1 != ch2)
@@ -2364,9 +2400,10 @@ int str_compare_i(FwIterType1 first1,
     return static_cast<int>(f.tolower(*first1) - f.tolower(*first2));
   }
 
-  size_t i{};
-
-  for (; i < number_of_characters_to_compare; ++i, ++first1, ++first2) {
+  for (std::common_type_t<
+           typename std::iterator_traits<FwIterType1>::difference_type,
+           typename std::iterator_traits<FwIterType2>::difference_type> i{};
+       i < number_of_characters_to_compare; ++i, ++first1, ++first2) {
     const auto ch1{std::tolower(*first1)};
     const auto ch2{std::tolower(*first2)};
     if (ch1 != ch2)
@@ -2433,31 +2470,40 @@ template <
         get_char_type_t<typename std::iterator_traits<FwIterType1>::value_type>,
         get_char_type_t<
             typename std::iterator_traits<FwIterType2>::value_type>>>>
-int str_compare_n_i(FwIterType1 first1,
-                    FwIterType1 last1,
-                    FwIterType2 first2,
-                    FwIterType2 last2,
-                    size_t number_of_characters_to_compare,
-                    const std::locale& loc = std::locale{}) {
+int str_compare_n_i(
+    FwIterType1 first1,
+    FwIterType1 last1,
+    FwIterType2 first2,
+    FwIterType2 last2,
+    std::common_type_t<
+        typename std::iterator_traits<FwIterType1>::difference_type,
+        typename std::iterator_traits<FwIterType2>::difference_type>
+        number_of_characters_to_compare,
+    const std::locale& loc = std::locale{}) {
   using char_type =
       get_char_type_t<typename std::iterator_traits<FwIterType1>::value_type>;
 
-  const size_t src1_len{static_cast<size_t>(std::distance(first1, last1))};
-  const size_t src2_len{static_cast<size_t>(std::distance(first2, last2))};
+  const typename std::iterator_traits<FwIterType1>::difference_type src1_len{
+      std::distance(first1, last1)};
+  const typename std::iterator_traits<FwIterType2>::difference_type src2_len{
+      std::distance(first2, last2)};
 
-  if (0U == src1_len)
-    return 0U == src2_len ? 0 : -static_cast<int>(*first2);
-  if (0U == src2_len)
-    return 0U == src1_len ? 0 : static_cast<int>(*first1);
+  if (0 == src1_len)
+    return 0 == src2_len ? 0 : -static_cast<int>(*first2);
+  if (0 == src2_len)
+    return 0 == src1_len ? 0 : static_cast<int>(*first1);
 
-  number_of_characters_to_compare =
-      std::min(number_of_characters_to_compare, std::min(src1_len, src2_len));
+  if (src1_len < number_of_characters_to_compare ||
+      src2_len < number_of_characters_to_compare)
+    number_of_characters_to_compare = std::min(src1_len, src2_len);
 
   if (std::has_facet<std::ctype<char_type>>(loc)) {
     const auto& f = std::use_facet<std::ctype<char_type>>(loc);
 
-    for (size_t i{}; i < number_of_characters_to_compare;
-         ++i, ++first1, ++first2) {
+    for (std::common_type_t<
+             typename std::iterator_traits<FwIterType1>::difference_type,
+             typename std::iterator_traits<FwIterType2>::difference_type> i{};
+         i < number_of_characters_to_compare; ++i, ++first1, ++first2) {
       const auto ch1{f.tolower(*first1)};
       const auto ch2{f.tolower(*first2)};
       if (ch1 != ch2)
@@ -2467,8 +2513,10 @@ int str_compare_n_i(FwIterType1 first1,
     return 0;
   }
 
-  for (size_t i{}; i < number_of_characters_to_compare;
-       ++i, ++first1, ++first2) {
+  for (std::common_type_t<
+           typename std::iterator_traits<FwIterType1>::difference_type,
+           typename std::iterator_traits<FwIterType2>::difference_type> i{};
+       i < number_of_characters_to_compare; ++i, ++first1, ++first2) {
     const auto ch1{std::tolower(*first1)};
     const auto ch2{std::tolower(*first2)};
     if (ch1 != ch2)
@@ -8507,7 +8555,6 @@ void to_title_case_in_place(T& src, const std::locale& loc = std::locale{}) {
   size_t src_len{len(src)};
   if (0U == src_len)
     return;
-  char_type* first{&src[0]};
   bool is_new_sentence{true};
 
   std::optional<decltype(
@@ -9730,7 +9777,6 @@ unsigned long long stoull(const T& src,
 }
 
 template <typename T,
-          typename U,
           typename = std::enable_if_t<
               is_char_array_type_v<T> || is_char_pointer_type_v<T> ||
               is_valid_string_type_v<T> || is_valid_string_view_type_v<T>>>
@@ -10179,7 +10225,6 @@ float stof(const T& src,
 }
 
 template <typename T,
-          typename U,
           typename = std::enable_if_t<
               is_char_array_type_v<T> || is_char_pointer_type_v<T> ||
               is_valid_string_type_v<T> || is_valid_string_view_type_v<T>>>
@@ -10629,7 +10674,6 @@ double stod(const T& src,
 }
 
 template <typename T,
-          typename U,
           typename = std::enable_if_t<
               is_char_array_type_v<T> || is_char_pointer_type_v<T> ||
               is_valid_string_type_v<T> || is_valid_string_view_type_v<T>>>
@@ -11119,9 +11163,10 @@ std::vector<std::basic_string<get_char_type_t<T>>> split(
 
   if (0U == needle_len) {
     const size_t upper_limit{max_count < src_len ? max_count : src_len};
-    std::vector<std::basic_string<char_type>> parts(upper_limit);
+    std::vector<std::basic_string<char_type>> parts{};
+    parts.reserve(upper_limit);
     for (size_t i{}; i < upper_limit; i++)
-      parts[i].assign({1, src_sv[i]});
+      parts.emplace_back(1, src_sv[i]);
     return parts;
   }
 
@@ -11197,7 +11242,8 @@ split(IteratorType first,
       const size_t max_count = std::numeric_limits<size_t>::max()) {
   using char_type = typename std::iterator_traits<IteratorType>::value_type;
 
-  const auto src_distance = std::distance(first, last);
+  const typename std::iterator_traits<IteratorType>::difference_type
+      src_distance{std::distance(first, last)};
   if (src_distance <= 0)
     return {};
   const size_t src_len{static_cast<size_t>(src_distance)};
@@ -11208,9 +11254,10 @@ split(IteratorType first,
 
   if (0U == needle_len) {
     const size_t upper_limit{max_count < src_len ? max_count : src_len};
-    std::vector<std::basic_string<char_type>> parts(upper_limit);
-    for (size_t i{}; i < upper_limit; i++)
-      parts[i].assign({1, src_sv[i]});
+    std::vector<std::basic_string<char_type>> parts{};
+    parts.reserve(upper_limit);
+    for (size_t i{}; i < upper_limit; ++i)
+      parts.emplace_back(1, src_sv[i]);
     return parts;
   }
 
@@ -11282,11 +11329,13 @@ std::vector<std::pair<SrcIterType, SrcIterType>> split(
     const bool split_on_whole_sequence = true,
     const bool ignore_empty_sequence = true,
     const size_t max_count = std::numeric_limits<size_t>::max()) {
-  const auto src_distance = std::distance(src_first, src_last);
+  const typename std::iterator_traits<SrcIterType>::difference_type
+      src_distance{std::distance(src_first, src_last)};
   if (src_distance <= 0)
     return {};
 
-  const auto needle_distance = std::distance(needle_first, needle_last);
+  const typename std::iterator_traits<DstIterType>::difference_type
+      needle_distance{std::distance(needle_first, needle_last)};
   if (needle_distance < 0)
     return {};
 
@@ -11325,7 +11374,7 @@ std::vector<std::pair<SrcIterType, SrcIterType>> split(
       break;
 
     if ((std::distance(prev, next) > 0 || !ignore_empty_sequence) &&
-        (number_of_parts < max_count)) {
+        number_of_parts < max_count) {
       parts.emplace_back(prev, next);
       number_of_parts++;
     }
