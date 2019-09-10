@@ -1,6 +1,12 @@
-#pragma once
+#ifndef _STL_HELPER_FUNCTIONS_HPP_
+#define _STL_HELPER_FUNCTIONS_HPP_
 
-#if defined(__cplusplus) && __cplusplus < 201703L
+#if defined(_MSC_VER)
+#if defined(_MSVC_LANG) && _MSVC_LANG < 201703L
+#error \
+    "You need a modern compiler that is fully compliant with the c++17 language standard or a newer one in order to use this header-only library!"
+#endif
+#elif defined(__cplusplus) && __cplusplus < 201703L
 #error \
     "You need a modern compiler that is fully compliant with the c++17 language standard or a newer one in order to use this header-only library!"
 #endif
@@ -11670,3 +11676,5 @@ constexpr std::pair<ForwardIterType1, ForwardIterType2> move_until(
 }
 
 }  // namespace stl::helper
+
+#endif
