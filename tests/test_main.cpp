@@ -668,16 +668,16 @@ function char16_t* u16_strcpy(char16_t* dst, const size_t
 dst_capacity_in_number_of_characters, const char16_t* src)"
 )
 {
-    char16_t src[128];
+  char16_t src[128];
 
-    char16_t dst[64] = u"\tHello World!\n";
+  char16_t dst[64] = u"\tHello World!\n";
 
-    REQUIRE(trim(dst));
+  REQUIRE(trim(dst));
 
-    REQUIRE(str_copy(src, sizeof(src)/sizeof(src[0]), dst) !=
+  REQUIRE(str_copy(src, sizeof(src)/sizeof(src[0]), dst) !=
 nullptr);
 
-    REQUIRE(str_compare(src, u"Hello World!") == 0);
+  REQUIRE(str_compare(src, u"Hello World!") == 0);
 }
 
 TEST_CASE("char32_t* u32_strcpy(char32_t* dst, const size_t
@@ -686,60 +686,60 @@ function char32_t* u32_strcpy(char32_t* dst, const size_t
 dst_capacity_in_number_of_characters, const char32_t* src)"
 )
 {
-    char32_t src[128];
+  char32_t src[128];
 
-    char32_t dst[64] = U"\tHello World!\n";
+  char32_t dst[64] = U"\tHello World!\n";
 
-    REQUIRE(trim(dst));
+  REQUIRE(trim(dst));
 
-    REQUIRE(u32_strcpy(src, sizeof(src) / sizeof(src[0]), dst) !=
+  REQUIRE(u32_strcpy(src, sizeof(src) / sizeof(src[0]), dst) !=
 nullptr);
 
-    REQUIRE(u32_strcmp(src, U"Hello World!") == 0);
+  REQUIRE(u32_strcmp(src, U"Hello World!") == 0);
 }
 
 TEST_CASE(
-    "char16_t* u16_strncpy(char16_t* dst, const size_t
+  "char16_t* u16_strncpy(char16_t* dst, const size_t
 dst_capacity_in_number_of_characters, const char16_t* src, const size_t
 number_of_characters_to_copy)"
-    ,
-    "Testing global function char16_t* u16_strncpy(char16_t* dst,
+  ,
+  "Testing global function char16_t* u16_strncpy(char16_t* dst,
 const size_t dst_capacity_in_number_of_characters, const char16_t* src, const
 size_t number_of_characters_to_copy)"
 )
 {
-    char16_t src[128];
+  char16_t src[128];
 
-    char16_t dst[64] = u"\tHello World!\n";
+  char16_t dst[64] = u"\tHello World!\n";
 
-    REQUIRE(trim(dst));
+  REQUIRE(trim(dst));
 
-    REQUIRE(u16_strncpy(src, sizeof(src) / sizeof(src[0]), dst, 5)
+  REQUIRE(u16_strncpy(src, sizeof(src) / sizeof(src[0]), dst, 5)
 != nullptr);
 
-    REQUIRE(u16_strncmp(src, u"Hello World!", 5) == 0);
+  REQUIRE(u16_strncmp(src, u"Hello World!", 5) == 0);
 }
 
 TEST_CASE(
-    "char32_t* u32_strncpy(char32_t* dst, const size_t
+  "char32_t* u32_strncpy(char32_t* dst, const size_t
 dst_capacity_in_number_of_characters, const char32_t* src, const size_t
 number_of_characters_to_copy)"
-    ,
-    "Testing global function char32_t* u32_strncpy(char32_t* dst,
+  ,
+  "Testing global function char32_t* u32_strncpy(char32_t* dst,
 const size_t dst_capacity_in_number_of_characters, const char32_t* src, const
 size_t number_of_characters_to_copy)"
 )
 {
-    char32_t src[128];
+  char32_t src[128];
 
-    char32_t dst[64] = U"\tHello World!\n";
+  char32_t dst[64] = U"\tHello World!\n";
 
-    REQUIRE(trim(dst));
+  REQUIRE(trim(dst));
 
-    REQUIRE(u32_strncpy(src, sizeof(src) / sizeof(src[0]), dst, 5)
+  REQUIRE(u32_strncpy(src, sizeof(src) / sizeof(src[0]), dst, 5)
 != nullptr);
 
-    REQUIRE(u32_strncmp(src, U"Hello World!", 5) == 0);
+  REQUIRE(u32_strncmp(src, U"Hello World!", 5) == 0);
 }
 
 TEST_CASE("char16_t* u16_strcat(char16_t* dst, const size_t
@@ -748,16 +748,16 @@ function char16_t* u16_strcat(char16_t* dst, const size_t
 dst_capacity_in_number_of_characters, const char16_t* src)"
 )
 {
-    char16_t src[512] = u" \t Hello World!\t \n";
+  char16_t src[512] = u" \t Hello World!\t \n";
 
-    const char16_t* dst = u" How are you today?";
+  const char16_t* dst = u" How are you today?";
 
-    REQUIRE(trim(src));
+  REQUIRE(trim(src));
 
-    REQUIRE(u16_strcat(src, sizeof(src) / sizeof(src[0]), dst) !=
+  REQUIRE(u16_strcat(src, sizeof(src) / sizeof(src[0]), dst) !=
 nullptr);
 
-    REQUIRE(u16_strcmp(src, u"Hello World! How are you today?") ==
+  REQUIRE(u16_strcmp(src, u"Hello World! How are you today?") ==
 0);
 }
 
@@ -767,137 +767,137 @@ function char32_t* u32_strcat(char32_t* dst, const size_t
 dst_capacity_in_number_of_characters, const char32_t* src)"
 )
 {
-    char32_t src[512] = U" \t Hello World!\t \n";
+  char32_t src[512] = U" \t Hello World!\t \n";
 
-    const char32_t* dst = U" How are you today?";
+  const char32_t* dst = U" How are you today?";
 
-    REQUIRE(trim(src));
+  REQUIRE(trim(src));
 
-    REQUIRE(u32_strcat(src, sizeof(src) / sizeof(src[0]), dst) !=
+  REQUIRE(u32_strcat(src, sizeof(src) / sizeof(src[0]), dst) !=
 nullptr);
 
-    REQUIRE(u32_strcmp(src, U"Hello World! How are you today?") ==
+  REQUIRE(u32_strcmp(src, U"Hello World! How are you today?") ==
 0);
 }
 
 TEST_CASE(
-    "char16_t* u16_strncat(char16_t* dst, const size_t
+  "char16_t* u16_strncat(char16_t* dst, const size_t
 dst_capacity_in_number_of_characters, const char16_t* src, const size_t
 number_of_characters_to_concatenate)"
-    ,
-    "Testing global function char16_t* u16_strncat(char16_t* dst,
+  ,
+  "Testing global function char16_t* u16_strncat(char16_t* dst,
 const size_t dst_capacity_in_number_of_characters, const char16_t* src, const
 size_t number_of_characters_to_concatenate)"
 )
 {
-    char16_t src[512] = u" \t Hello World!\t \n";
+  char16_t src[512] = u" \t Hello World!\t \n";
 
-    const char16_t* dst = u" How are you today?";
+  const char16_t* dst = u" How are you today?";
 
-    REQUIRE(trim(src));
+  REQUIRE(trim(src));
 
-    REQUIRE(u16_strncat(src, sizeof(src) / sizeof(src[0]), dst, 4)
+  REQUIRE(u16_strncat(src, sizeof(src) / sizeof(src[0]), dst, 4)
 != nullptr);
 
-    REQUIRE(u16_strcmp(src, u"Hello World! How") == 0);
+  REQUIRE(u16_strcmp(src, u"Hello World! How") == 0);
 }
 
 TEST_CASE(
-    "char32_t* u32_strncat(char32_t* dst, const size_t
+  "char32_t* u32_strncat(char32_t* dst, const size_t
 dst_capacity_in_number_of_characters, const char32_t* src, const size_t
 number_of_characters_to_concatenate)"
-    ,
-    "Testing global function char32_t* u32_strncat(char32_t* dst,
+  ,
+  "Testing global function char32_t* u32_strncat(char32_t* dst,
 const size_t dst_capacity_in_number_of_characters, const char32_t* src, const
 size_t number_of_characters_to_concatenate)"
 )
 {
-    char32_t src[512] = U" \t Hello World!\t \n";
+  char32_t src[512] = U" \t Hello World!\t \n";
 
-    const char32_t* dst = U" How are you today?";
+  const char32_t* dst = U" How are you today?";
 
-    REQUIRE(trim(src));
+  REQUIRE(trim(src));
 
-    REQUIRE(u32_strncat(src, sizeof(src) / sizeof(src[0]), dst, 4)
+  REQUIRE(u32_strncat(src, sizeof(src) / sizeof(src[0]), dst, 4)
 != nullptr);
 
-    REQUIRE(u32_strcmp(src, U"Hello World! How") == 0);
+  REQUIRE(u32_strcmp(src, U"Hello World! How") == 0);
 }
 
 TEST_CASE("const char16_t* u16_strstr(const char16_t* src, const char16_t*
 needle)", "Testing global function const char16_t* u16_strstr(const char16_t*
 src, const char16_t* needle)")
 {
-    const char16_t* src = u"Hello World! How are you today?";
+  const char16_t* src = u"Hello World! How are you today?";
 
-    const char16_t* needle = u"today";
+  const char16_t* needle = u"today";
 
-    REQUIRE(u16_strstr(src, needle) != nullptr);
+  REQUIRE(u16_strstr(src, needle) != nullptr);
 }
 
 TEST_CASE("const char32_t* u32_strstr(const char32_t* src, const char32_t*
 needle)", "Testing global function const char32_t* u32_strstr(const char32_t*
 src, const char32_t* needle)")
 {
-    const char32_t* src = U"Hello World! How are you today?";
+  const char32_t* src = U"Hello World! How are you today?";
 
-    const char32_t* needle = U"today";
+  const char32_t* needle = U"today";
 
-    REQUIRE(u32_strstr(src, needle) != nullptr);
+  REQUIRE(u32_strstr(src, needle) != nullptr);
 }
 
 TEST_CASE("char16_t* u16_strstr(char16_t* src, const char16_t* needle)",
-    "Testing global function char16_t* u16_strstr(char16_t* src,
+  "Testing global function char16_t* u16_strstr(char16_t* src,
 const char16_t* needle)")
 {
-    char16_t src[512] = u" \t Hello World!\t \n";
+  char16_t src[512] = u" \t Hello World!\t \n";
 
-    const char16_t* dst = u"World";
+  const char16_t* dst = u"World";
 
-    REQUIRE(trim(src));
+  REQUIRE(trim(src));
 
-    REQUIRE(u16_strstr(src, dst) != nullptr);
+  REQUIRE(u16_strstr(src, dst) != nullptr);
 }
 
 TEST_CASE("char32_t* u32_strstr(char32_t* src, const char32_t* needle)",
-    "Testing global function char32_t* u32_strstr(char32_t* src,
+  "Testing global function char32_t* u32_strstr(char32_t* src,
 const char32_t* needle)")
 {
-    char32_t src[512] = U" \t Hello World!\t \n";
+  char32_t src[512] = U" \t Hello World!\t \n";
 
-    const char32_t* dst = U"World";
+  const char32_t* dst = U"World";
 
-    REQUIRE(trim(src));
+  REQUIRE(trim(src));
 
-    REQUIRE(u32_strstr(src, dst) != nullptr);
+  REQUIRE(u32_strstr(src, dst) != nullptr);
 }
 
 TEST_CASE(
-    "const char16_t* u16_strstri(const char16_t* src, const
+  "const char16_t* u16_strstri(const char16_t* src, const
 char16_t* needle, const std::locale& loc = std::locale{})", "Testing global
 function const char16_t* u16_strstri(const char16_t* src, const char16_t*
 needle, const std::locale& loc = std::locale{})"
 )
 {
-    const char16_t* src = u"Hello World! How are you TODAY?";
+  const char16_t* src = u"Hello World! How are you TODAY?";
 
-    const char16_t* needle = u"today";
+  const char16_t* needle = u"today";
 
-    REQUIRE(u16_strstri(src, needle) != nullptr);
+  REQUIRE(u16_strstri(src, needle) != nullptr);
 }
 
 TEST_CASE(
-    "const char32_t* u32_strstri(const char32_t* src, const
+  "const char32_t* u32_strstri(const char32_t* src, const
 char32_t* needle, const std::locale& loc = std::locale{})", "Testing global
 function const char32_t* u32_strstri(const char32_t* src, const char32_t*
 needle, const std::locale& loc = std::locale{})"
 )
 {
-    const char32_t* src = U"Hello World! How are you TODAY?";
+  const char32_t* src = U"Hello World! How are you TODAY?";
 
-    const char32_t* needle = U"today";
+  const char32_t* needle = U"today";
 
-    REQUIRE(u32_strstri(src, needle) != nullptr);
+  REQUIRE(u32_strstri(src, needle) != nullptr);
 }
 
 TEST_CASE("char16_t* u16_strstri(char16_t* src, const char16_t* needle, const
@@ -906,13 +906,13 @@ u16_strstri(char16_t* src, const char16_t* needle, const std::locale& loc =
 std::locale{})"
 )
 {
-    char16_t src[512] = u" \t Hello World!\t \n";
+  char16_t src[512] = u" \t Hello World!\t \n";
 
-    const char16_t* dst = u"Hello World!";
+  const char16_t* dst = u"Hello World!";
 
-    REQUIRE(trim(src));
+  REQUIRE(trim(src));
 
-    REQUIRE(u16_strstri(src, dst) != nullptr);
+  REQUIRE(u16_strstri(src, dst) != nullptr);
 }
 
 TEST_CASE("char32_t* u32_strstri(char32_t* src, const char32_t* needle, const
@@ -921,46 +921,46 @@ u32_strstri(char32_t* src, const char32_t* needle, const std::locale& loc =
 std::locale{})"
 )
 {
-    char32_t src[512] = U" \t Hello World!\t \n";
+  char32_t src[512] = U" \t Hello World!\t \n";
 
-    const char32_t* dst = U"Hello World!";
+  const char32_t* dst = U"Hello World!";
 
-    REQUIRE(trim(src));
+  REQUIRE(trim(src));
 
-    REQUIRE(u32_strstri(src, dst) != nullptr);
+  REQUIRE(u32_strstri(src, dst) != nullptr);
 }
 
 TEST_CASE("StringType trim(const StringType& str)",
-    "Testing global template function StringType trim(const
+  "Testing global template function StringType trim(const
 StringType& str)")
 {
-    const string src{"\t Hello World!\t \n"};
+  const string src{"\t Hello World!\t \n"};
 
-    const string dst{trim(src)};
+  const string dst{trim(src)};
 
-    REQUIRE(dst == string{ "Hello World!" });
+  REQUIRE(dst == string{ "Hello World!" });
 }
 
 TEST_CASE("StringType ltrim(const StringType& str)",
-    "Testing global template function StringType ltrim(const
+  "Testing global template function StringType ltrim(const
 StringType& str)")
 {
-    const wstring src{L"\t Hello World!\t \n"};
+  const wstring src{L"\t Hello World!\t \n"};
 
-    const wstring dst{ltrim(src)};
+  const wstring dst{ltrim(src)};
 
-    REQUIRE(dst == wstring{ L"Hello World!\t \n" });
+  REQUIRE(dst == wstring{ L"Hello World!\t \n" });
 }
 
 TEST_CASE("StringType rtrim(const StringType& str)",
-    "Testing global template function StringType rtrim(const
+  "Testing global template function StringType rtrim(const
 StringType& str)")
 {
-    const u32string src{U"\t Hello World!\t \n"};
+  const u32string src{U"\t Hello World!\t \n"};
 
-    const u32string dst{rtrim(src)};
+  const u32string dst{rtrim(src)};
 
-    REQUIRE(dst == u32string{ U"\t Hello World!" });
+  REQUIRE(dst == u32string{ U"\t Hello World!" });
 }
 */
 TEST_CASE("1. split function template",
@@ -1015,224 +1015,351 @@ TEST_CASE(
   REQUIRE(parts.back() == U"plum");
 }
 
-TEST_CASE(
-    "bool str_starts_with(T, const U, const bool = false, const std::locale& = "
-    "std::locale{})",
-    "Testing global function template bool str_starts_with(T src, const U "
-    "needle, const bool ignore_case = false, const std::locale& loc = "
-    "std::locale{})") {
-  const char* src_cstr{"Apple is one my favorite, most beloved fruits."};
+TEST_CASE("str_starts_with function templates",
+          "bool str_starts_with(const T& src, const U& needle, const bool "
+          "ignore_case = false, const std::locale& loc = std::locale{})") {
+  const char* src_cstr{"Apple is one of my favorite fruits."};
+  const char cstr_buffer[]{"Apple is one of my favorite fruits."};
+  const string src_string{src_cstr};
+  const string_view src_sv{src_string};
+
+  REQUIRE(str_starts_with(cstr_buffer, "Apple"));
+  REQUIRE(str_starts_with(cstr_buffer, "apPLE", true));
+  REQUIRE(str_starts_with(cstr_buffer, 'A'));
+  REQUIRE(str_starts_with(cstr_buffer, 'a', true));
+  REQUIRE(str_starts_with(cstr_buffer, "Apple"s));
+  REQUIRE(str_starts_with(cstr_buffer, "applE"s, true));
+  REQUIRE(str_starts_with(cstr_buffer, "Apple"sv));
+  REQUIRE(str_starts_with(cstr_buffer, "applE"sv, true));
 
   REQUIRE(str_starts_with(src_cstr, "Apple"));
-
   REQUIRE(str_starts_with(src_cstr, "apPLE", true));
-
   REQUIRE(str_starts_with(src_cstr, 'A'));
-
   REQUIRE(str_starts_with(src_cstr, 'a', true));
-
-  const wchar_t* src_wcstr{L"Apple is one my favorite, most beloved fruits."};
-
-  REQUIRE(str_starts_with(src_wcstr, L"Apple"));
-
-  REQUIRE(str_starts_with(src_wcstr, L"apPLE", true));
-
-  REQUIRE(str_starts_with(src_wcstr, L'A'));
-
-  REQUIRE(str_starts_with(src_wcstr, L'a', true));
-
-  const char16_t* src_u16cstr{
-      u"Apple is one my favorite, most beloved fruits."};
-
-  REQUIRE(str_starts_with(src_u16cstr, u"Apple"));
-
-  REQUIRE(str_starts_with(src_u16cstr, u"apPLE", true));
-
-  REQUIRE(str_starts_with(src_u16cstr, u'A'));
-
-  REQUIRE(str_starts_with(src_u16cstr, u'a', true));
-
-  const char32_t* src_u32cstr{
-      U"Apple is one my favorite, most beloved fruits."};
-
-  REQUIRE(str_starts_with(src_u32cstr, U"Apple"));
-
-  REQUIRE(str_starts_with(src_u32cstr, U"apPLE", true));
-
-  REQUIRE(str_starts_with(src_u32cstr, U'A'));
-
-  REQUIRE(str_starts_with(src_u32cstr, U'a', true));
-}
-
-TEST_CASE(
-    "bool str_starts_with(const StringType&, const typename "
-    "StringType::value_type, const bool = false, const std::locale& = "
-    "std::locale{})",
-    "Testing global function template bool str_starts_with(const StringType& src, const typename StringType::value_type start_char,\
-                         const bool ignore_case = false,\
-                         const std::locale& loc = std::locale{})") {
-  const string src_string{"Apple is one my favorite, most beloved fruits."};
-
-  REQUIRE(str_starts_with(src_string, 'A'));
-
-  REQUIRE(str_starts_with(src_string, 'a', true));
-
-  const wstring src_wstring{L"Apple is one my favorite, most beloved fruits."};
-
-  REQUIRE(str_starts_with(src_wstring, L'A'));
-
-  REQUIRE(str_starts_with(src_wstring, L'a', true));
-
-  const u16string src_u16string{
-      u"Apple is one my favorite, most beloved fruits."};
-
-  REQUIRE(str_starts_with(src_u16string, u'A'));
-
-  REQUIRE(str_starts_with(src_u16string, u'a', true));
-
-  const u32string src_u32string{
-      U"Apple is one my favorite, most beloved fruits."};
-
-  REQUIRE(str_starts_with(src_u32string, U'A'));
-
-  REQUIRE(str_starts_with(src_u32string, U'a', true));
-}
-
-TEST_CASE(
-    "bool str_starts_with(const StringType&, typename "
-    "StringType::const_pointer, const bool = false, const std::locale& = "
-    "std::locale{})",
-    "Testing global function template bool str_starts_with(const StringType& "
-    "src, typename StringType::const_pointer start_tag, const bool ignore_case "
-    "= false, const std::locale& loc = std::locale{})") {
-  const string src_string{"Apple is one my favorite, most beloved fruits."};
+  REQUIRE(str_starts_with(src_cstr, "Apple"s));
+  REQUIRE(str_starts_with(src_cstr, "applE"s, true));
+  REQUIRE(str_starts_with(src_cstr, "Apple"sv));
+  REQUIRE(str_starts_with(src_cstr, "applE"sv, true));
 
   REQUIRE(str_starts_with(src_string, "Apple"));
+  REQUIRE(str_starts_with(src_string, "applE", true));
+  REQUIRE(str_starts_with(src_string, 'A'));
+  REQUIRE(str_starts_with(src_string, 'a', true));
+  REQUIRE(str_starts_with(src_string, "Apple"s));
+  REQUIRE(str_starts_with(src_string, "applE"s, true));
+  REQUIRE(str_starts_with(src_string, "Apple"sv));
+  REQUIRE(str_starts_with(src_string, "applE"sv, true));
 
-  REQUIRE(str_starts_with(src_string, "aPPLE", true));
+  REQUIRE(str_starts_with(src_sv, "Apple"));
+  REQUIRE(str_starts_with(src_sv, "applE", true));
+  REQUIRE(str_starts_with(src_sv, 'A'));
+  REQUIRE(str_starts_with(src_sv, 'a', true));
+  REQUIRE(str_starts_with(src_sv, "Apple"s));
+  REQUIRE(str_starts_with(src_sv, "applE"s, true));
+  REQUIRE(str_starts_with(src_sv, "Apple"sv));
+  REQUIRE(str_starts_with(src_sv, "applE"sv, true));
 
-  const wstring src_wstring{L"Apple is one my favorite, most beloved fruits."};
+  const wchar_t* src_wcstr{L"Apple is one of my favorite fruits."};
+  const wchar_t wstr_buffer[]{L"Apple is one of my favorite fruits."};
+  const wstring src_wstring{src_wcstr};
+  const wstring_view src_wsv{src_wstring};
+
+  REQUIRE(str_starts_with(wstr_buffer, L"Apple"));
+  REQUIRE(str_starts_with(wstr_buffer, L"apPLE", true));
+  REQUIRE(str_starts_with(wstr_buffer, L'A'));
+  REQUIRE(str_starts_with(wstr_buffer, L'a', true));
+  REQUIRE(str_starts_with(wstr_buffer, L"Apple"s));
+  REQUIRE(str_starts_with(wstr_buffer, L"applE"s, true));
+  REQUIRE(str_starts_with(wstr_buffer, L"Apple"sv));
+  REQUIRE(str_starts_with(wstr_buffer, L"applE"sv, true));
+
+  REQUIRE(str_starts_with(src_wcstr, L"Apple"));
+  REQUIRE(str_starts_with(src_wcstr, L"apPLE", true));
+  REQUIRE(str_starts_with(src_wcstr, L'A'));
+  REQUIRE(str_starts_with(src_wcstr, L'a', true));
+  REQUIRE(str_starts_with(src_wcstr, L"Apple"s));
+  REQUIRE(str_starts_with(src_wcstr, L"applE"s, true));
+  REQUIRE(str_starts_with(src_wcstr, L"Apple"sv));
+  REQUIRE(str_starts_with(src_wcstr, L"applE"sv, true));
 
   REQUIRE(str_starts_with(src_wstring, L"Apple"));
+  REQUIRE(str_starts_with(src_wstring, L"applE", true));
+  REQUIRE(str_starts_with(src_wstring, L'A'));
+  REQUIRE(str_starts_with(src_wstring, L'a', true));
+  REQUIRE(str_starts_with(src_wstring, L"Apple"s));
+  REQUIRE(str_starts_with(src_wstring, L"applE"s, true));
+  REQUIRE(str_starts_with(src_wstring, L"Apple"sv));
+  REQUIRE(str_starts_with(src_wstring, L"applE"sv, true));
 
-  REQUIRE(str_starts_with(src_wstring, L"aPPLE", true));
-
-  const u16string src_u16string{
-      u"Apple is one my favorite, most beloved fruits."};
-
-  REQUIRE(str_starts_with(src_u16string, u"Apple"));
-
-  REQUIRE(str_starts_with(src_u16string, u"aPPLE", true));
-
-  const u32string src_u32string{
-      U"Apple is one my favorite, most beloved fruits."};
-
-  REQUIRE(str_starts_with(src_u32string, U"Apple"));
-
-  REQUIRE(str_starts_with(src_u32string, U"aPPLE", true));
+  REQUIRE(str_starts_with(src_wsv, L"Apple"));
+  REQUIRE(str_starts_with(src_wsv, L"applE", true));
+  REQUIRE(str_starts_with(src_wsv, L'A'));
+  REQUIRE(str_starts_with(src_wsv, L'a', true));
+  REQUIRE(str_starts_with(src_wsv, L"Apple"s));
+  REQUIRE(str_starts_with(src_wsv, L"applE"s, true));
+  REQUIRE(str_starts_with(src_wsv, L"Apple"sv));
+  REQUIRE(str_starts_with(src_wsv, L"applE"sv, true));
 }
 
 TEST_CASE(
-    "bool str_starts_with(const StringType&, const StringType&, const bool = "
-    "false, const std::locale& = std::locale{})",
-    "bool str_starts_with(const StringType& src, const StringType& start_tag, "
-    "const bool ignore_case = false, const std::locale& loc = std::locale{})") {
-  const string src_string{"Apple is one my favorite, most beloved fruits."};
+    "str_contains function template",
+    "bool str_contains(const T& src, const U& needle, size_t start_pos = 0U, "
+    "bool ignore_case = false, const std::locale & loc = std::locale{})") {
+  const char* src_cstr{"Apple is one of my favorite fruits."};
+  const char cstr_buffer[]{"Apple is one of my favorite fruits."};
+  const string src_string{src_cstr};
+  const string_view src_sv{src_string};
 
-  const string needle_string{"Apple"};
+  REQUIRE(str_contains(cstr_buffer, "Apple", 0U));
+  REQUIRE(str_contains(cstr_buffer, "apPLE", 0U, true));
+  REQUIRE(str_contains(cstr_buffer, 'f', 5U));
+  REQUIRE(str_contains(cstr_buffer, 'F', 5U, true));
+  REQUIRE(str_contains(cstr_buffer, "Apple"s, 0U));
+  REQUIRE(str_contains(cstr_buffer, "applE"s, 0U, true));
+  REQUIRE(str_contains(cstr_buffer, "Apple"sv, 0U));
+  REQUIRE(str_contains(cstr_buffer, "applE"sv, 0U, true));
 
-  REQUIRE(str_starts_with(src_string, needle_string));
+  REQUIRE(str_contains(src_cstr, "Apple", 0U));
+  REQUIRE(str_contains(src_cstr, "apPLE", 0U, true));
+  REQUIRE(str_contains(src_cstr, 'f', 5U));
+  REQUIRE(str_contains(src_cstr, 'F', 5U, true));
+  REQUIRE(str_contains(src_cstr, "Apple"s, 0U));
+  REQUIRE(str_contains(src_cstr, "applE"s, 0U, true));
+  REQUIRE(str_contains(src_cstr, "Apple"sv, 0U));
+  REQUIRE(str_contains(src_cstr, "applE"sv, 0U, true));
 
-  REQUIRE(str_starts_with(src_string, string{"aPPLE"}, true));
+  REQUIRE(str_contains(src_string, "Apple", 0U));
+  REQUIRE(str_contains(src_string, "apPLE", 0U, true));
+  REQUIRE(str_contains(src_string, 'f', 5U));
+  REQUIRE(str_contains(src_string, 'F', 5U, true));
+  REQUIRE(str_contains(src_string, "Apple"s, 0U));
+  REQUIRE(str_contains(src_string, "applE"s, 0U, true));
+  REQUIRE(str_contains(src_string, "Apple"sv, 0U));
+  REQUIRE(str_contains(src_string, "applE"sv, 0U, true));
 
-  const wstring src_wstring{L"Apple is one my favorite, most beloved fruits."};
+  REQUIRE(str_contains(src_sv, "Apple", 0U));
+  REQUIRE(str_contains(src_sv, "apPLE", 0U, true));
+  REQUIRE(str_contains(src_sv, 'f', 5U));
+  REQUIRE(str_contains(src_sv, 'F', 5U, true));
+  REQUIRE(str_contains(src_sv, "Apple"s, 0U));
+  REQUIRE(str_contains(src_sv, "applE"s, 0U, true));
+  REQUIRE(str_contains(src_sv, "Apple"sv, 0U));
+  REQUIRE(str_contains(src_sv, "applE"sv, 0U, true));
 
-  const wstring needle_wstring{L"Apple"};
+  const wchar_t* src_wcstr{L"Apple is one of my favorite fruits."};
+  const wchar_t wstr_buffer[]{L"Apple is one of my favorite fruits."};
+  const wstring src_wstring{src_wcstr};
+  const wstring_view src_wsv{src_wstring};
 
-  REQUIRE(str_starts_with(src_wstring, needle_wstring));
+  REQUIRE(str_contains(wstr_buffer, L"Apple", 0U));
+  REQUIRE(str_contains(wstr_buffer, L"apPLE", 0U, true));
+  REQUIRE(str_contains(wstr_buffer, L'f', 5U));
+  REQUIRE(str_contains(wstr_buffer, L'F', 5U, true));
+  REQUIRE(str_contains(wstr_buffer, L"Apple"s, 0U));
+  REQUIRE(str_contains(wstr_buffer, L"applE"s, 0U, true));
+  REQUIRE(str_contains(wstr_buffer, L"Apple"sv, 0U));
+  REQUIRE(str_contains(wstr_buffer, L"applE"sv, 0U, true));
 
-  REQUIRE(str_starts_with(src_wstring, wstring{L"aPPLE"}, true));
+  REQUIRE(str_contains(src_wcstr, L"Apple", 0U));
+  REQUIRE(str_contains(src_wcstr, L"apPLE", 0U, true));
+  REQUIRE(str_contains(src_wcstr, L'f', 5U));
+  REQUIRE(str_contains(src_wcstr, L'F', 5U, true));
+  REQUIRE(str_contains(src_wcstr, L"Apple"s, 0U));
+  REQUIRE(str_contains(src_wcstr, L"applE"s, 0U, true));
+  REQUIRE(str_contains(src_wcstr, L"Apple"sv, 0U));
+  REQUIRE(str_contains(src_wcstr, L"applE"sv, 0U, true));
 
-  const u16string src_u16string{
-      u"Apple is one my favorite, most beloved fruits."};
+  REQUIRE(str_contains(src_wstring, L"Apple", 0U));
+  REQUIRE(str_contains(src_wstring, L"apPLE", 0U, true));
+  REQUIRE(str_contains(src_wstring, L'f', 5U));
+  REQUIRE(str_contains(src_wstring, L'F', 5U, true));
+  REQUIRE(str_contains(src_wstring, L"Apple"s, 0U));
+  REQUIRE(str_contains(src_wstring, L"applE"s, 0U, true));
+  REQUIRE(str_contains(src_wstring, L"Apple"sv, 0U));
+  REQUIRE(str_contains(src_wstring, L"applE"sv, 0U, true));
 
-  const u16string needle_u16string{u"Apple"};
-
-  REQUIRE(str_starts_with(src_u16string, needle_u16string));
-
-  REQUIRE(str_starts_with(src_u16string, u16string{u"aPPLE"}, true));
-
-  const u32string src_u32string{
-      U"Apple is one my favorite, most beloved fruits."};
-
-  const u32string needle_u32string{U"Apple"};
-
-  REQUIRE(str_starts_with(src_u32string, needle_u32string));
-
-  REQUIRE(str_starts_with(src_u32string, u32string{U"aPPLE"}, true));
+  REQUIRE(str_contains(src_wsv, L"Apple", 0U));
+  REQUIRE(str_contains(src_wsv, L"apPLE", 0U, true));
+  REQUIRE(str_contains(src_wsv, L'f', 5U));
+  REQUIRE(str_contains(src_wsv, L'F', 5U, true));
+  REQUIRE(str_contains(src_wsv, L"Apple"s, 0U));
+  REQUIRE(str_contains(src_wsv, L"applE"s, 0U, true));
+  REQUIRE(str_contains(src_wsv, L"Apple"sv, 0U));
+  REQUIRE(str_contains(src_wsv, L"applE"sv, 0U, true));
 }
 
-TEST_CASE(
-    "auto str_index_of(T, const U, const size_t = 0u, const bool = false, "
-    "const std::locale& = std::locale{})",
-    "Testing global function template auto str_index_of(T src, const U needle, "
-    "const size_t start_pos = 0u, const bool ignore_case = false, const "
-    "std::locale& loc = std::locale{})") {
+TEST_CASE("str_index_of function template",
+          "typename std::basic_string<get_char_type_t<T>>::size_type "
+          "str_index_of(const T& src, const U& needle, const size_t start_pos "
+          "= 0U, const bool ignore_case = false, const std::locale & loc = "
+          "std::locale{})") {
   const char* src_cstr{"Hello World!"};
+  const char cstr_buffer[]{"Hello World!"};
+  const string src_string{src_cstr};
+  const string_view src_sv{src_string};
 
-  REQUIRE(6u == str_index_of(src_cstr, "World"));
+  REQUIRE(0U == str_index_of(cstr_buffer, "Hello", 0U));
+  REQUIRE(0U == str_index_of(cstr_buffer, "heLlO", 0U, true));
+  REQUIRE(6U == str_index_of(cstr_buffer, 'W', 5U));
+  REQUIRE(6U == str_index_of(cstr_buffer, 'w', 5U, true));
+  REQUIRE(0U == str_index_of(cstr_buffer, "Hello"s, 0U));
+  REQUIRE(0U == str_index_of(cstr_buffer, "heLlO"s, 0U, true));
+  REQUIRE(0U == str_index_of(cstr_buffer, "Hello"sv, 0U));
+  REQUIRE(0U == str_index_of(cstr_buffer, "heLlO"sv, 0U, true));
 
-  REQUIRE(6u == str_index_of(src_cstr, "world", 0u, true));
+  REQUIRE(0U == str_index_of(src_cstr, "Hello", 0U));
+  REQUIRE(0U == str_index_of(src_cstr, "heLlO", 0U, true));
+  REQUIRE(6U == str_index_of(src_cstr, 'W', 5U));
+  REQUIRE(6U == str_index_of(src_cstr, 'w', 5U, true));
+  REQUIRE(0U == str_index_of(src_cstr, "Hello"s, 0U));
+  REQUIRE(0U == str_index_of(src_cstr, "heLlO"s, 0U, true));
+  REQUIRE(0U == str_index_of(src_cstr, "Hello"sv, 0U));
+  REQUIRE(0U == str_index_of(src_cstr, "heLlO"sv, 0U, true));
 
-  REQUIRE(6u == str_index_of("Hello World!", "World"));
+  REQUIRE(0U == str_index_of(src_string, "Hello", 0U));
+  REQUIRE(0U == str_index_of(src_string, "heLlO", 0U, true));
+  REQUIRE(6U == str_index_of(src_string, 'W', 5U));
+  REQUIRE(6U == str_index_of(src_string, 'w', 5U, true));
+  REQUIRE(0U == str_index_of(src_string, "Hello"s, 0U));
+  REQUIRE(0U == str_index_of(src_string, "heLlO"s, 0U, true));
+  REQUIRE(0U == str_index_of(src_string, "Hello"sv, 0U));
+  REQUIRE(0U == str_index_of(src_string, "heLlO"sv, 0U, true));
 
-  REQUIRE(6u == str_index_of("Hello World!", "world", 0u, true));
-
-  REQUIRE(6u == str_index_of(src_cstr, 'W'));
-
-  REQUIRE(6u == str_index_of(src_cstr, 'w', 0u, true));
+  REQUIRE(0U == str_index_of(src_sv, "Hello", 0U));
+  REQUIRE(0U == str_index_of(src_sv, "heLlO", 0U, true));
+  REQUIRE(6U == str_index_of(src_sv, 'W', 5U));
+  REQUIRE(6U == str_index_of(src_sv, 'w', 5U, true));
+  REQUIRE(0U == str_index_of(src_sv, "Hello"s, 0U));
+  REQUIRE(0U == str_index_of(src_sv, "heLlO"s, 0U, true));
+  REQUIRE(0U == str_index_of(src_sv, "Hello"sv, 0U));
+  REQUIRE(0U == str_index_of(src_sv, "heLlO"sv, 0U, true));
 
   const wchar_t* src_wcstr{L"Hello World!"};
+  const wchar_t wstr_buffer[]{L"Hello World!"};
+  const wstring src_wstring{src_wcstr};
+  const wstring_view src_wsv{src_wstring};
 
-  REQUIRE(6u == str_index_of(src_wcstr, L"World"));
+  REQUIRE(0U == str_index_of(wstr_buffer, L"Hello", 0U));
+  REQUIRE(0U == str_index_of(wstr_buffer, L"heLlO", 0U, true));
+  REQUIRE(6U == str_index_of(wstr_buffer, L'W', 5U));
+  REQUIRE(6U == str_index_of(wstr_buffer, L'w', 5U, true));
+  REQUIRE(0U == str_index_of(wstr_buffer, L"Hello"s, 0U));
+  REQUIRE(0U == str_index_of(wstr_buffer, L"heLlO"s, 0U, true));
+  REQUIRE(0U == str_index_of(wstr_buffer, L"Hello"sv, 0U));
+  REQUIRE(0U == str_index_of(wstr_buffer, L"heLlO"sv, 0U, true));
 
-  REQUIRE(6u == str_index_of(src_wcstr, L"world", 0u, true));
+  REQUIRE(0U == str_index_of(src_wcstr, L"Hello", 0U));
+  REQUIRE(0U == str_index_of(src_wcstr, L"heLlO", 0U, true));
+  REQUIRE(6U == str_index_of(src_wcstr, L'W', 5U));
+  REQUIRE(6U == str_index_of(src_wcstr, L'w', 5U, true));
+  REQUIRE(0U == str_index_of(src_wcstr, L"Hello"s, 0U));
+  REQUIRE(0U == str_index_of(src_wcstr, L"heLlO"s, 0U, true));
+  REQUIRE(0U == str_index_of(src_wcstr, L"Hello"sv, 0U));
+  REQUIRE(0U == str_index_of(src_wcstr, L"heLlO"sv, 0U, true));
 
-  REQUIRE(6u == str_index_of(L"Hello World!", L"World"));
+  REQUIRE(0U == str_index_of(src_wstring, L"Hello", 0U));
+  REQUIRE(0U == str_index_of(src_wstring, L"heLlO", 0U, true));
+  REQUIRE(6U == str_index_of(src_wstring, L'W', 5U));
+  REQUIRE(6U == str_index_of(src_wstring, L'w', 5U, true));
+  REQUIRE(0U == str_index_of(src_wstring, L"Hello"s, 0U));
+  REQUIRE(0U == str_index_of(src_wstring, L"heLlO"s, 0U, true));
+  REQUIRE(0U == str_index_of(src_wstring, L"Hello"sv, 0U));
+  REQUIRE(0U == str_index_of(src_wstring, L"heLlO"sv, 0U, true));
 
-  REQUIRE(6u == str_index_of(L"Hello World!", L"world", 0u, true));
+  REQUIRE(0U == str_index_of(src_wsv, L"Hello", 0U));
+  REQUIRE(0U == str_index_of(src_wsv, L"heLlO", 0U, true));
+  REQUIRE(6U == str_index_of(src_wsv, L'W', 5U));
+  REQUIRE(6U == str_index_of(src_wsv, L'w', 5U, true));
+  REQUIRE(0U == str_index_of(src_wsv, L"Hello"s, 0U));
+  REQUIRE(0U == str_index_of(src_wsv, L"heLlO"s, 0U, true));
+  REQUIRE(0U == str_index_of(src_wsv, L"Hello"sv, 0U));
+  REQUIRE(0U == str_index_of(src_wsv, L"heLlO"sv, 0U, true));
+}
 
-  REQUIRE(6u == str_index_of(src_wcstr, L'W'));
+TEST_CASE("str_ends_with function template",
+          "bool str_ends_with(const T & src, const U& needle, bool ignore_case "
+          "= false, const std::locale& loc = std::locale{}") {
+  const char* src_cstr{"Hello World"};
+  const char cstr_buffer[]{"Hello World"};
+  const string src_string{src_cstr};
+  const string_view src_sv{src_string};
 
-  REQUIRE(6u == str_index_of(src_wcstr, L'w', 0u, true));
+  REQUIRE(str_ends_with(cstr_buffer, "World"));
+  REQUIRE(str_ends_with(cstr_buffer, "woRlD", true));
+  REQUIRE(str_ends_with(cstr_buffer, 'd'));
+  REQUIRE(str_ends_with(cstr_buffer, 'D', true));
+  REQUIRE(str_ends_with(cstr_buffer, "World"s));
+  REQUIRE(str_ends_with(cstr_buffer, "woRlD"s, true));
+  REQUIRE(str_ends_with(cstr_buffer, "World"sv));
+  REQUIRE(str_ends_with(cstr_buffer, "woRlD"sv, true));
 
-  const char16_t* src_u16cstr{u"Hello World!"};
+  REQUIRE(str_ends_with(src_cstr, "World"));
+  REQUIRE(str_ends_with(src_cstr, "woRlD", true));
+  REQUIRE(str_ends_with(src_cstr, 'd'));
+  REQUIRE(str_ends_with(src_cstr, 'D', true));
+  REQUIRE(str_ends_with(src_cstr, "World"s));
+  REQUIRE(str_ends_with(src_cstr, "woRlD"s, true));
+  REQUIRE(str_ends_with(src_cstr, "World"sv));
+  REQUIRE(str_ends_with(src_cstr, "woRlD"sv, true));
 
-  REQUIRE(6u == str_index_of(src_u16cstr, u"World"));
+  REQUIRE(str_ends_with(src_string, "World"));
+  REQUIRE(str_ends_with(src_string, "woRlD", true));
+  REQUIRE(str_ends_with(src_string, 'd'));
+  REQUIRE(str_ends_with(src_string, 'D', true));
+  REQUIRE(str_ends_with(src_string, "World"s));
+  REQUIRE(str_ends_with(src_string, "woRlD"s, true));
+  REQUIRE(str_ends_with(src_string, "World"sv));
+  REQUIRE(str_ends_with(src_string, "woRlD"sv, true));
 
-  REQUIRE(6u == str_index_of(src_u16cstr, u"world", 0u, true));
+  REQUIRE(str_ends_with(src_sv, "World"));
+  REQUIRE(str_ends_with(src_sv, "woRlD", true));
+  REQUIRE(str_ends_with(src_sv, 'd'));
+  REQUIRE(str_ends_with(src_sv, 'D', true));
+  REQUIRE(str_ends_with(src_sv, "World"s));
+  REQUIRE(str_ends_with(src_sv, "woRlD"s, true));
+  REQUIRE(str_ends_with(src_sv, "World"sv));
+  REQUIRE(str_ends_with(src_sv, "woRlD"sv, true));
 
-  REQUIRE(6u == str_index_of(u"Hello World!", u"World"));
+  const wchar_t* src_wcstr{L"Hello World"};
+  const wchar_t wstr_buffer[]{L"Hello World"};
+  const wstring src_wstring{src_wcstr};
+  const wstring_view src_wsv{src_wstring};
 
-  REQUIRE(6u == str_index_of(u"Hello World!", u"world", 0u, true));
+  REQUIRE(str_ends_with(wstr_buffer, L"World"));
+  REQUIRE(str_ends_with(wstr_buffer, L"woRlD", true));
+  REQUIRE(str_ends_with(wstr_buffer, L'd'));
+  REQUIRE(str_ends_with(wstr_buffer, L'D', true));
+  REQUIRE(str_ends_with(wstr_buffer, L"World"s));
+  REQUIRE(str_ends_with(wstr_buffer, L"woRlD"s, true));
+  REQUIRE(str_ends_with(wstr_buffer, L"World"sv));
+  REQUIRE(str_ends_with(wstr_buffer, L"woRlD"sv, true));
 
-  REQUIRE(6u == str_index_of(src_u16cstr, u'W'));
+  REQUIRE(str_ends_with(src_wcstr, L"World"));
+  REQUIRE(str_ends_with(src_wcstr, L"woRlD", true));
+  REQUIRE(str_ends_with(src_wcstr, L'd'));
+  REQUIRE(str_ends_with(src_wcstr, L'D', true));
+  REQUIRE(str_ends_with(src_wcstr, L"World"s));
+  REQUIRE(str_ends_with(src_wcstr, L"woRlD"s, true));
+  REQUIRE(str_ends_with(src_wcstr, L"World"sv));
+  REQUIRE(str_ends_with(src_wcstr, L"woRlD"sv, true));
 
-  REQUIRE(6u == str_index_of(src_u16cstr, u'w', 0u, true));
+  REQUIRE(str_ends_with(src_wstring, L"World"));
+  REQUIRE(str_ends_with(src_wstring, L"woRlD", true));
+  REQUIRE(str_ends_with(src_wstring, L'd'));
+  REQUIRE(str_ends_with(src_wstring, L'D', true));
+  REQUIRE(str_ends_with(src_wstring, L"World"s));
+  REQUIRE(str_ends_with(src_wstring, L"woRlD"s, true));
+  REQUIRE(str_ends_with(src_wstring, L"World"sv));
+  REQUIRE(str_ends_with(src_wstring, L"woRlD"sv, true));
 
-  const char32_t* src_u32cstr{U"Hello World!"};
-
-  REQUIRE(6u == str_index_of(src_u32cstr, U"World"));
-
-  REQUIRE(6u == str_index_of(src_u32cstr, U"world", 0u, true));
-
-  REQUIRE(6u == str_index_of(U"Hello World!", U"World"));
-
-  REQUIRE(6u == str_index_of(U"Hello World!", U"world", 0u, true));
-
-  REQUIRE(6u == str_index_of(src_u32cstr, U'W'));
-
-  REQUIRE(6u == str_index_of(src_u32cstr, U'w', 0u, true));
+  REQUIRE(str_ends_with(src_wsv, L"World"));
+  REQUIRE(str_ends_with(src_wsv, L"woRlD", true));
+  REQUIRE(str_ends_with(src_wsv, L'd'));
+  REQUIRE(str_ends_with(src_wsv, L'D', true));
+  REQUIRE(str_ends_with(src_wsv, L"World"s));
+  REQUIRE(str_ends_with(src_wsv, L"woRlD"s, true));
+  REQUIRE(str_ends_with(src_wsv, L"World"sv));
+  REQUIRE(str_ends_with(src_wsv, L"woRlD"sv, true));
 }
 
 TEST_CASE("bool has_key(const ContainerType& container,const KeyType& key)",
