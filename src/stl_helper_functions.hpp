@@ -4154,7 +4154,7 @@ bool str_replace_first(T (&dst)[ARRAY_SIZE],
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -4250,7 +4250,7 @@ bool str_replace_first(T dst,
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -4361,7 +4361,7 @@ std::basic_string<get_char_type_t<T>> str_replace_first(
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -4445,7 +4445,7 @@ bool str_replace_first(T& dst,
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -4531,7 +4531,7 @@ bool str_replace_nth(T (&dst)[ARRAY_SIZE],
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -4639,7 +4639,7 @@ bool str_replace_nth(T dst,
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -4762,7 +4762,7 @@ std::basic_string<get_char_type_t<T>> str_replace_nth(
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -4852,7 +4852,7 @@ bool str_replace_nth(T& dst,
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -4944,7 +4944,7 @@ bool str_replace_last(T (&dst)[ARRAY_SIZE],
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -5046,7 +5046,7 @@ bool str_replace_last(T dst,
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -5163,7 +5163,7 @@ std::basic_string<get_char_type_t<T>> str_replace_last(
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -5247,7 +5247,7 @@ bool str_replace_last(T& dst,
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -5324,7 +5324,7 @@ bool str_replace_all(T (&dst)[ARRAY_SIZE],
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -5432,7 +5432,7 @@ bool str_replace_all(T dst,
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -5554,7 +5554,7 @@ std::basic_string<get_char_type_t<T>> str_replace_all(
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -5655,7 +5655,7 @@ bool str_replace_all(T& dst,
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -5763,7 +5763,7 @@ bool str_replace_first_n(
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -5873,7 +5873,7 @@ bool str_replace_first_n(
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -5996,7 +5996,7 @@ std::basic_string<get_char_type_t<T>> str_replace_first_n(
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -6101,7 +6101,7 @@ bool str_replace_first_n(
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -6209,7 +6209,7 @@ bool str_replace_last_n(
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -6321,7 +6321,7 @@ bool str_replace_last_n(
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -6446,7 +6446,7 @@ std::basic_string<get_char_type_t<T>> str_replace_last_n(
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -6553,7 +6553,7 @@ bool str_replace_last_n(
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -6656,7 +6656,7 @@ bool str_erase_first(T (&dst)[ARRAY_SIZE],
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -6709,7 +6709,7 @@ bool str_erase_first(T dst,
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -6778,7 +6778,7 @@ std::basic_string<get_char_type_t<T>> str_erase_first(
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -6829,7 +6829,7 @@ bool str_erase_first(T& dst,
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -6882,7 +6882,7 @@ bool str_erase_nth(T (&dst)[ARRAY_SIZE],
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -6941,7 +6941,7 @@ bool str_erase_nth(T dst,
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -7018,7 +7018,7 @@ std::basic_string<get_char_type_t<T>> str_erase_nth(
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -7076,7 +7076,7 @@ bool str_erase_nth(T& dst,
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -7134,7 +7134,7 @@ bool str_erase_last(T (&dst)[ARRAY_SIZE],
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -7189,7 +7189,7 @@ bool str_erase_last(T dst,
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -7259,7 +7259,7 @@ std::basic_string<get_char_type_t<T>> str_erase_last(
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -7311,7 +7311,7 @@ bool str_erase_last(T& dst,
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -7360,7 +7360,7 @@ bool str_erase_all(T (&dst)[ARRAY_SIZE],
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -7434,7 +7434,7 @@ bool str_erase_all(T dst,
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -7520,7 +7520,7 @@ std::basic_string<get_char_type_t<T>> str_erase_all(
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -7592,7 +7592,7 @@ bool str_erase_all(T& dst,
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -7668,7 +7668,7 @@ bool str_replace_first_n(
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -7744,7 +7744,7 @@ bool str_replace_first_n(
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -7831,7 +7831,7 @@ std::basic_string<get_char_type_t<T>> str_replace_first_n(
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -7904,7 +7904,7 @@ bool str_replace_first_n(
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -7980,7 +7980,7 @@ bool str_replace_last_n(
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -8058,7 +8058,7 @@ bool str_replace_last_n(
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -8147,7 +8147,7 @@ std::basic_string<get_char_type_t<T>> str_replace_last_n(
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
@@ -8223,7 +8223,7 @@ bool str_replace_last_n(
   if constexpr (is_valid_char_type_v<U>) {
     needle_str.assign(1, needle);
     needle_sv = needle_str;
-  } else if constexpr (is_valid_char_type_v<U> || is_char_array_type_v<U>)
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
     needle_sv = needle;
