@@ -75,6 +75,18 @@ std::string get_type_name(T&& t) {
   return std::string{get_type_id(std::forward<T>(t)).name()};
 }
 
+#if defined(__cpp_char8_t) && __cpp_char8_t >= 201811L
+template <typename T>
+std::u8string get_type_name_wstr(T&& t) {
+  const std::string cstr{get_type_id(std::forward<T>(t)).name()};
+  std::u8string u8str{};
+  u8str.reserve(cstr.length() + 1);
+  std::transform(std::cbegin(cstr), std::cend(cstr), std::begin(u8str),
+                 [](const auto ch) { return static_cast<char8_t>(ch); });
+  return u8str;
+}
+#endif
+
 template <typename T>
 std::wstring get_type_name_wstr(T&& t) {
   const std::string cstr{get_type_id(std::forward<T>(t)).name()};
@@ -578,8 +590,16 @@ constexpr inline void swap(T& first, T& second) noexcept(
 
 template <typename T>
 struct is_valid_char_type {
-  static constexpr const bool value =
-      is_anyone_of_v<std::remove_cv_t<T>, char, wchar_t, char16_t, char32_t>;
+  static constexpr const bool value = is_anyone_of_v<std::remove_cv_t<T>,
+                                                     char,
+                                                     wchar_t,
+                                                     char16_t,
+                                                     char32_t
+#if defined(__cpp_char8_t) && __cpp_char8_t >= 201811L
+                                                     ,
+                                                     char8_t
+#endif
+                                                     >;
 };
 
 template <typename T>
@@ -608,6 +628,13 @@ struct default_whitespace_chars<char32_t> {
   static constexpr const char32_t* value = U" \t\n\f\v\r";
 };
 
+#if defined(__cpp_char8_t) && __cpp_char8_t >= 201811L
+template <>
+struct default_whitespace_chars<char8_t> {
+  static constexpr const char8_t* value = u8" \t\n\f\v\r";
+};
+#endif
+
 template <typename CharType>
 constexpr const CharType* default_whitespace_chars_v =
     default_whitespace_chars<CharType>::value;
@@ -633,6 +660,10 @@ template <typename T>
 struct is_non_const_char_pointer_type {
   static constexpr const bool value = is_anyone_of_v<T,
                                                      char*,
+#if defined(__cpp_char8_t) && __cpp_char8_t >= 201811L
+                                                     char8_t*,
+                                                     char8_t* const,
+#endif
                                                      wchar_t*,
                                                      char16_t*,
                                                      char32_t*,
@@ -650,6 +681,10 @@ template <typename T>
 struct is_const_char_pointer_type {
   static constexpr const bool value = is_anyone_of_v<T,
                                                      const char*,
+#if defined(__cpp_char8_t) && __cpp_char8_t >= 201811L
+                                                     const char8_t*,
+                                                     const char8_t* const,
+#endif
                                                      const wchar_t*,
                                                      const char16_t*,
                                                      const char32_t*,
@@ -746,7 +781,12 @@ struct is_valid_string_type {
                      std::string,
                      std::wstring,
                      std::u16string,
-                     std::u32string>;
+                     std::u32string
+#if defined(__cpp_char8_t) && __cpp_char8_t >= 201811L
+                     ,
+                     std::u8string
+#endif
+                     >;
 };
 
 template <typename T>
@@ -759,7 +799,12 @@ struct is_valid_string_view_type {
                      std::string_view,
                      std::wstring_view,
                      std::u16string_view,
-                     std::u32string_view>;
+                     std::u32string_view
+#if defined(__cpp_char8_t) && __cpp_char8_t >= 201811L
+                     ,
+                     std::u8string_view
+#endif
+                     >;
 };
 
 template <typename T>
