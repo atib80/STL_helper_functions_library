@@ -1,7 +1,7 @@
 #define CATCH_CONFIG_MAIN
 
-#include "..\includes\catch.hpp"
-#include "..\src\stl_helper_functions.hpp"
+#include "..\include\catch.hpp"
+#include "..\include\stl_helper_functions.hpp"
 
 #if defined(_MSC_VER)
 #include <crtdbg.h>

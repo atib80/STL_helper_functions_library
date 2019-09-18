@@ -76,7 +76,8 @@
                 "-Ofast"
             ],
             "cppStandard": "c++17",
-            "cStandard": "c11"
+            "cStandard": "c11",
+            "configurationProvider": "vector-of-bool.cmake-tools"
         }
     ],
     "version": 4
