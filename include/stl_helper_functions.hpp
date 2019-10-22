@@ -11,8 +11,8 @@
     "You need a modern compiler that is fully compliant with the c++17 language standard or a newer one in order to use this header-only library!"
 #endif
 
-#define _CRT_SECURE_NO_WARNINGS
-#define _SCL_SECURE_NO_WARNINGS
+// #define _CRT_SECURE_NO_WARNINGS
+// #define _SCL_SECURE_NO_WARNINGS
 
 #include <algorithm>
 #include <array>
@@ -4166,12 +4166,13 @@ template <
                        V>)&&is_all_of_v<std::remove_cv_t<T>,
                                         get_char_type_t<U>,
                                         get_char_type_t<V>>>>
-bool str_replace_first(T (&dst)[ARRAY_SIZE],
-                       const U& needle,
-                       const V& replace,
-                       const size_t start_position_in_dst = 0U,
-                       const bool ignore_case_when_searching_for_needle = false,
-                       size_t* required_dst_capacity = nullptr) {
+size_t str_replace_first(
+    T (&dst)[ARRAY_SIZE],
+    const U& needle,
+    const V& replace,
+    const size_t start_position_in_dst = 0U,
+    const bool ignore_case_when_searching_for_needle = false,
+    size_t* required_dst_capacity = nullptr) {
   using char_type = std::remove_cv_t<T>;
 
   const size_t dst_len{len(dst)};
@@ -4181,7 +4182,7 @@ bool str_replace_first(T (&dst)[ARRAY_SIZE],
   if (0U == dst_len || 0U == needle_len || needle_len > dst_len) {
     if (required_dst_capacity)
       *required_dst_capacity = dst_len + 1;
-    return false;
+    return 0U;
   }
 
   const size_t required_dst_buffer_size{dst_len - needle_len + replace_len + 1};
@@ -4190,15 +4191,20 @@ bool str_replace_first(T (&dst)[ARRAY_SIZE],
     *required_dst_capacity = required_dst_buffer_size;
 
   if (ARRAY_SIZE < required_dst_buffer_size)
-    return false;
+    return 0U;
+
+  if constexpr (is_char_pointer_type_v<V>) {
+    if (nullptr == replace)
+      return 0U;
+  }
 
   std::basic_string_view<char_type> dst_sv{dst, dst_len};
-  std::basic_string_view<char_type> needle_sv{};
-  std::basic_string<char_type> needle_str{};
+  char_type needle_buffer[2]{};
+  std::basic_string_view<char_type> needle_sv{needle_buffer, 0U};
 
   if constexpr (is_valid_char_type_v<U>) {
-    needle_str.assign(1, needle);
-    needle_sv = needle_str;
+    needle_buffer[0] = needle;
+    needle_sv = {needle_buffer, 1U};
   } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
@@ -4209,18 +4215,17 @@ bool str_replace_first(T (&dst)[ARRAY_SIZE],
                    ignore_case_when_searching_for_needle);
 
   if (std::basic_string_view<char_type>::npos == start_pos)
-    return false;
+    return 0U;
 
-  std::basic_string_view<char_type> replace_sv{};
-  std::basic_string<char_type> replace_str{};
+  char_type replace_buffer[2]{};
+  std::basic_string_view<char_type> replace_sv{replace_buffer, 0U};
 
   if constexpr (is_valid_char_type_v<V>) {
-    replace_str.assign(1, replace);
-    replace_sv = replace_str;
-  } else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-    if (nullptr != replace)
-      replace_sv = {replace, replace_len};
-  } else
+    replace_buffer[0] = replace;
+    replace_sv = {replace_buffer, 1U};
+  } else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>)
+    replace_sv = {replace, replace_len};
+  else
     replace_sv = replace;
 
   if (needle_len < replace_len) {
@@ -4243,7 +4248,7 @@ bool str_replace_first(T (&dst)[ARRAY_SIZE],
   if (0 != replace_len)
     std::copy(std::cbegin(replace_sv), std::cend(replace_sv), dst + start_pos);
 
-  return true;
+  return 1U;
 }
 
 template <
@@ -4261,13 +4266,14 @@ template <
                        V>)&&is_all_of_v<get_char_type_t<T>,
                                         get_char_type_t<U>,
                                         get_char_type_t<V>>>>
-bool str_replace_first(T dst,
-                       const size_t dst_capacity_in_number_of_characters,
-                       const U& needle,
-                       const V& replace,
-                       const size_t start_position_in_dst = 0U,
-                       const bool ignore_case_when_searching_for_needle = false,
-                       size_t* required_dst_capacity = nullptr) {
+size_t str_replace_first(
+    T dst,
+    const size_t dst_capacity_in_number_of_characters,
+    const U& needle,
+    const V& replace,
+    const size_t start_position_in_dst = 0U,
+    const bool ignore_case_when_searching_for_needle = false,
+    size_t* required_dst_capacity = nullptr) {
   using char_type = get_char_type_t<T>;
 
   const size_t dst_len{len(dst)};
@@ -4277,7 +4283,7 @@ bool str_replace_first(T dst,
   if (0U == dst_len || 0U == needle_len || needle_len > dst_len) {
     if (required_dst_capacity)
       *required_dst_capacity = dst_len + 1;
-    return false;
+    return 0U;
   }
 
   const size_t required_dst_buffer_size{dst_len - needle_len + replace_len + 1};
@@ -4286,15 +4292,20 @@ bool str_replace_first(T dst,
     *required_dst_capacity = required_dst_buffer_size;
 
   if (dst_capacity_in_number_of_characters < required_dst_buffer_size)
-    return false;
+    return 0U;
+
+  if constexpr (is_char_pointer_type_v<V>) {
+    if (nullptr == replace)
+      return 0U;
+  }
 
   std::basic_string_view<char_type> dst_sv{dst, dst_len};
-  std::basic_string_view<char_type> needle_sv{};
-  std::basic_string<char_type> needle_str{};
+  char_type needle_buffer[2]{};
+  std::basic_string_view<char_type> needle_sv{needle_buffer, 0U};
 
   if constexpr (is_valid_char_type_v<U>) {
-    needle_str.assign(1, needle);
-    needle_sv = needle_str;
+    needle_buffer[0] = needle;
+    needle_sv = {needle_buffer, 1U};
   } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
@@ -4305,18 +4316,17 @@ bool str_replace_first(T dst,
                    ignore_case_when_searching_for_needle);
 
   if (std::basic_string_view<char_type>::npos == start_pos)
-    return false;
+    return 0U;
 
-  std::basic_string_view<char_type> replace_sv{};
-  std::basic_string<char_type> replace_str{};
+  char_type replace_buffer[2]{};
+  std::basic_string_view<char_type> replace_sv{replace_buffer, 0U};
 
   if constexpr (is_valid_char_type_v<V>) {
-    replace_str.assign(1, replace);
-    replace_sv = replace_str;
-  } else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-    if (nullptr != replace)
-      replace_sv = {replace, replace_len};
-  } else
+    replace_buffer[0] = replace;
+    replace_sv = {replace_buffer, 1U};
+  } else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>)
+    replace_sv = {replace, replace_len};
+  else
     replace_sv = replace;
 
   if (needle_len < replace_len) {
@@ -4339,7 +4349,7 @@ bool str_replace_first(T dst,
   if (0 != replace_len)
     std::copy(std::cbegin(replace_sv), std::cend(replace_sv), dst + start_pos);
 
-  return true;
+  return 1U;
 }
 
 template <
@@ -4367,6 +4377,7 @@ std::basic_string<get_char_type_t<T>> str_replace_first(
     const V& replace,
     const size_t start_position_in_dst = 0U,
     const bool ignore_case_when_searching_for_needle = false,
+    size_t* count_of_replaced_needles = nullptr,
     size_t* required_dst_capacity = nullptr) {
   using char_type = get_char_type_t<T>;
 
@@ -4394,18 +4405,27 @@ std::basic_string<get_char_type_t<T>> str_replace_first(
   }
 
   const size_t required_dst_buffer_size{dst_len - needle_len + replace_len + 1};
+
   if (required_dst_buffer_size > str.length())
     str.reserve(required_dst_buffer_size);
 
   if (required_dst_capacity)
     *required_dst_capacity = required_dst_buffer_size;
 
-  std::basic_string_view<char_type> needle_sv{};
-  std::basic_string<char_type> needle_str{};
+  if (count_of_replaced_needles)
+    *count_of_replaced_needles = 0U;
+
+  if constexpr (is_char_pointer_type_v<V>) {
+    if (nullptr == replace)
+      return str;
+  }
+
+  char_type needle_buffer[2]{};
+  std::basic_string_view<char_type> needle_sv{needle_buffer, 0U};
 
   if constexpr (is_valid_char_type_v<U>) {
-    needle_str.assign(1, needle);
-    needle_sv = needle_str;
+    needle_buffer[0] = needle;
+    needle_sv = {needle_buffer, 1U};
   } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
@@ -4423,21 +4443,24 @@ std::basic_string<get_char_type_t<T>> str_replace_first(
     return str;
   }
 
-  std::basic_string_view<char_type> replace_sv{};
-  std::basic_string<char_type> replace_str{};
+  char_type replace_buffer[2]{};
+  std::basic_string_view<char_type> replace_sv{replace_buffer, 0U};
 
   if constexpr (is_char_pointer_type_v<V> || is_const_char_array_type_v<V>)
     replace_sv = {replace, replace_len};
 
   else if constexpr (is_valid_char_type_v<V>) {
-    replace_str.assign(1, replace);
-    replace_sv = replace_str;
+    replace_buffer[0] = replace;
+    replace_sv = {replace_buffer, 1U};
   }
 
   else
     replace_sv = replace;
 
   str.replace(start_pos, needle_len, replace_sv);
+
+  if (count_of_replaced_needles)
+    *count_of_replaced_needles = 1U;
 
   return str;
 }
@@ -4457,23 +4480,23 @@ template <
                    is_char_array_type_v<V>)&&is_all_of_v<get_char_type_t<T>,
                                                          get_char_type_t<U>,
                                                          get_char_type_t<V>>>>
-bool str_replace_first(T& dst,
-                       const U& needle,
-                       const V& replace,
-                       const size_t start_position_in_dst = 0U,
-                       const bool ignore_case_when_searching_for_needle = false,
-                       size_t* required_dst_capacity = nullptr) {
+size_t str_replace_first(
+    T& dst,
+    const U& needle,
+    const V& replace,
+    const size_t start_position_in_dst = 0U,
+    const bool ignore_case_when_searching_for_needle = false,
+    size_t* required_dst_capacity = nullptr) {
   using char_type = get_char_type_t<T>;
 
   const size_t dst_len{dst.length()};
   const size_t needle_len{len(needle)};
   const size_t replace_len{len(replace)};
 
-  if (0U == dst_len || 0U == needle_len || needle_len > dst_len ||
-      0U == replace_len) {
+  if (0U == dst_len || 0U == needle_len || needle_len > dst_len) {
     if (required_dst_capacity)
       *required_dst_capacity = dst_len + 1;
-    return false;
+    return 0U;
   }
 
   const size_t required_dst_buffer_size{dst_len - needle_len + replace_len + 1};
@@ -4483,13 +4506,18 @@ bool str_replace_first(T& dst,
   if (required_dst_capacity)
     *required_dst_capacity = required_dst_buffer_size;
 
+  if constexpr (is_char_pointer_type_v<V>) {
+    if (nullptr == replace)
+      return 0U;
+  }
+
   std::basic_string_view<char_type> dst_sv{dst};
-  std::basic_string_view<char_type> needle_sv{};
-  std::basic_string<char_type> needle_str{};
+  char_type needle_buffer[2]{};
+  std::basic_string_view<char_type> needle_sv{needle_buffer, 0U};
 
   if constexpr (is_valid_char_type_v<U>) {
-    needle_str.assign(1, needle);
-    needle_sv = needle_str;
+    needle_buffer[0] = needle;
+    needle_sv = {needle_buffer, 1U};
   } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
@@ -4500,22 +4528,22 @@ bool str_replace_first(T& dst,
                    ignore_case_when_searching_for_needle);
 
   if (std::basic_string_view<char_type>::npos == start_pos)
-    return false;
+    return 0U;
 
   if (0U == replace_len) {
     dst.erase(start_pos, needle_len);
-    return true;
+    return 1U;
   }
 
-  std::basic_string_view<char_type> replace_sv{};
-  std::basic_string<char_type> replace_str{};
+  char_type replace_buffer[2]{};
+  std::basic_string_view<char_type> replace_sv{replace_buffer, 0U};
 
   if constexpr (is_char_pointer_type_v<V> || is_const_char_array_type_v<V>)
     replace_sv = {replace, replace_len};
 
   else if constexpr (is_valid_char_type_v<V>) {
-    replace_str.assign(1, replace);
-    replace_sv = replace_str;
+    replace_buffer[0] = replace;
+    replace_sv = {replace_buffer, 1U};
   }
 
   else
@@ -4523,7 +4551,7 @@ bool str_replace_first(T& dst,
 
   dst.replace(start_pos, needle_len, replace_sv);
 
-  return true;
+  return 1U;
 }
 
 template <
@@ -4542,13 +4570,13 @@ template <
                        V>)&&is_all_of_v<std::remove_cv_t<T>,
                                         get_char_type_t<U>,
                                         get_char_type_t<V>>>>
-bool str_replace_nth(T (&dst)[ARRAY_SIZE],
-                     const U& needle,
-                     const V& replace,
-                     const size_t nth_needle_index = 1,
-                     const size_t start_position_in_dst = 0U,
-                     const bool ignore_case_when_searching_for_needle = false,
-                     size_t* required_dst_capacity = nullptr) {
+size_t str_replace_nth(T (&dst)[ARRAY_SIZE],
+                       const U& needle,
+                       const V& replace,
+                       const size_t nth_needle_index = 1,
+                       const size_t start_position_in_dst = 0U,
+                       const bool ignore_case_when_searching_for_needle = false,
+                       size_t* required_dst_capacity = nullptr) {
   using char_type = std::remove_cv_t<T>;
 
   const size_t dst_len{len(dst)};
@@ -4558,7 +4586,7 @@ bool str_replace_nth(T (&dst)[ARRAY_SIZE],
   if (0U == dst_len || 0U == needle_len || needle_len > dst_len) {
     if (required_dst_capacity)
       *required_dst_capacity = dst_len + 1;
-    return false;
+    return 0U;
   }
 
   const size_t required_dst_buffer_size{dst_len - needle_len + replace_len + 1};
@@ -4567,15 +4595,20 @@ bool str_replace_nth(T (&dst)[ARRAY_SIZE],
     *required_dst_capacity = required_dst_buffer_size;
 
   if (ARRAY_SIZE < required_dst_buffer_size)
-    return false;
+    return 0U;
+
+  if constexpr (is_char_pointer_type_v<V>) {
+    if (nullptr == replace)
+      return 0U;
+  }
 
   std::basic_string_view<char_type> dst_sv{dst, dst_len};
-  std::basic_string_view<char_type> needle_sv{};
-  std::basic_string<char_type> needle_str{};
+  char_type needle_buffer[2]{};
+  std::basic_string_view<char_type> needle_sv{needle_buffer, 0U};
 
   if constexpr (is_valid_char_type_v<U>) {
-    needle_str.assign(1, needle);
-    needle_sv = needle_str;
+    needle_buffer[0] = needle;
+    needle_sv = {needle_buffer, 1U};
   } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
@@ -4587,26 +4620,21 @@ bool str_replace_nth(T (&dst)[ARRAY_SIZE],
     const size_t next_pos{str_index_of(dst_sv, needle_sv, nth_needle_pos,
                                        ignore_case_when_searching_for_needle)};
     if (std::basic_string_view<char_type>::npos == next_pos)
-      return false;
+      return 0U;
     nth_needle_pos = next_pos;
     if (++found_needle_index == nth_needle_index)
       break;
     nth_needle_pos += needle_len;
   } while (true);
 
-  std::basic_string_view<char_type> replace_sv{};
-  std::basic_string<char_type> replace_str{};
+  char_type replace_buffer[2]{};
+  std::basic_string_view<char_type> replace_sv{replace_buffer, 0U};
 
   if constexpr (is_valid_char_type_v<V>) {
-    replace_str.assign(1, replace);
-    replace_sv = replace_str;
-  }
-
-  else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-    if (nullptr != replace)
-      replace_sv = {replace, replace_len};
-  }
-
+    replace_buffer[0] = replace;
+    replace_sv = {replace_buffer, 1U};
+  } else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>)
+    replace_sv = {replace, replace_len};
   else
     replace_sv = replace;
 
@@ -4631,7 +4659,7 @@ bool str_replace_nth(T (&dst)[ARRAY_SIZE],
     std::copy(std::cbegin(replace_sv), std::cend(replace_sv),
               dst + nth_needle_pos);
 
-  return true;
+  return 1U;
 }
 
 template <
@@ -4649,14 +4677,14 @@ template <
                        V>)&&is_all_of_v<get_char_type_t<T>,
                                         get_char_type_t<U>,
                                         get_char_type_t<V>>>>
-bool str_replace_nth(T dst,
-                     const size_t dst_capacity_in_number_of_characters,
-                     const U& needle,
-                     const V& replace,
-                     const size_t nth_needle_index = 1,
-                     const size_t start_position_in_dst = 0U,
-                     const bool ignore_case_when_searching_for_needle = false,
-                     size_t* required_dst_capacity = nullptr) {
+size_t str_replace_nth(T dst,
+                       const size_t dst_capacity_in_number_of_characters,
+                       const U& needle,
+                       const V& replace,
+                       const size_t nth_needle_index = 1,
+                       const size_t start_position_in_dst = 0U,
+                       const bool ignore_case_when_searching_for_needle = false,
+                       size_t* required_dst_capacity = nullptr) {
   using char_type = get_char_type_t<T>;
 
   const size_t dst_len{len(dst)};
@@ -4666,7 +4694,7 @@ bool str_replace_nth(T dst,
   if (0U == dst_len || 0U == needle_len || needle_len > dst_len) {
     if (required_dst_capacity)
       *required_dst_capacity = dst_len + 1;
-    return false;
+    return 0U;
   }
 
   const size_t required_dst_buffer_size{dst_len - needle_len + replace_len + 1};
@@ -4675,15 +4703,20 @@ bool str_replace_nth(T dst,
     *required_dst_capacity = required_dst_buffer_size;
 
   if (dst_capacity_in_number_of_characters < required_dst_buffer_size)
-    return false;
+    return 0U;
+
+  if constexpr (is_char_pointer_type_v<V>) {
+    if (nullptr == replace)
+      return 0U;
+  }
 
   std::basic_string_view<char_type> dst_sv{dst, dst_len};
-  std::basic_string_view<char_type> needle_sv{};
-  std::basic_string<char_type> needle_str{};
+  char_type needle_buffer[2]{};
+  std::basic_string_view<char_type> needle_sv{needle_buffer, 0U};
 
   if constexpr (is_valid_char_type_v<U>) {
-    needle_str.assign(1, needle);
-    needle_sv = needle_str;
+    needle_buffer[0] = needle;
+    needle_sv = {needle_buffer, 1U};
   } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
@@ -4695,26 +4728,21 @@ bool str_replace_nth(T dst,
     const size_t next_pos{str_index_of(dst_sv, needle_sv, nth_needle_pos,
                                        ignore_case_when_searching_for_needle)};
     if (std::basic_string_view<char_type>::npos == next_pos)
-      return false;
+      return 0U;
     nth_needle_pos = next_pos;
     if (++found_needle_index == nth_needle_index)
       break;
     nth_needle_pos += needle_len;
   } while (true);
 
-  std::basic_string_view<char_type> replace_sv{};
-  std::basic_string<char_type> replace_str{};
+  char_type replace_buffer[2]{};
+  std::basic_string_view<char_type> replace_sv{replace_buffer, 0U};
 
   if constexpr (is_valid_char_type_v<V>) {
-    replace_str.assign(1, replace);
-    replace_sv = replace_str;
-  }
-
-  else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-    if (nullptr != replace)
-      replace_sv = {replace, replace_len};
-  }
-
+    replace_buffer[0] = replace;
+    replace_sv = {replace_buffer, 1U};
+  } else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>)
+    replace_sv = {replace, replace_len};
   else
     replace_sv = replace;
 
@@ -4739,7 +4767,7 @@ bool str_replace_nth(T dst,
     std::copy(std::cbegin(replace_sv), std::cend(replace_sv),
               dst + nth_needle_pos);
 
-  return true;
+  return 1U;
 }
 
 template <
@@ -4801,12 +4829,17 @@ std::basic_string<get_char_type_t<T>> str_replace_nth(
   if (required_dst_capacity)
     *required_dst_capacity = required_dst_buffer_size;
 
-  std::basic_string_view<char_type> needle_sv{};
-  std::basic_string<char_type> needle_str{};
+  if constexpr (is_char_pointer_type_v<V>) {
+    if (nullptr == replace)
+      return str;
+  }
+
+  char_type needle_buffer[2]{};
+  std::basic_string_view<char_type> needle_sv{needle_buffer, 0U};
 
   if constexpr (is_valid_char_type_v<U>) {
-    needle_str.assign(1, needle);
-    needle_sv = needle_str;
+    needle_buffer[0] = needle;
+    needle_sv = {needle_buffer, 1U};
   } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
@@ -4830,15 +4863,15 @@ std::basic_string<get_char_type_t<T>> str_replace_nth(
     return str;
   }
 
-  std::basic_string_view<char_type> replace_sv{};
-  std::basic_string<char_type> replace_str{};
+  char_type replace_buffer[2]{};
+  std::basic_string_view<char_type> replace_sv{replace_buffer, 0U};
 
   if constexpr (is_char_pointer_type_v<V> || is_const_char_array_type_v<V>)
     replace_sv = {replace, replace_len};
 
   else if constexpr (is_valid_char_type_v<V>) {
-    replace_str.assign(1, replace);
-    replace_sv = replace_str;
+    replace_buffer[0] = replace;
+    replace_sv = {replace_buffer, 1U};
   }
 
   else
@@ -4864,13 +4897,13 @@ template <
                    is_char_array_type_v<V>)&&is_all_of_v<get_char_type_t<T>,
                                                          get_char_type_t<U>,
                                                          get_char_type_t<V>>>>
-bool str_replace_nth(T& dst,
-                     const U& needle,
-                     const V& replace,
-                     const size_t nth_needle_index = 1,
-                     const size_t start_position_in_dst = 0U,
-                     const bool ignore_case_when_searching_for_needle = false,
-                     size_t* required_dst_capacity = nullptr) {
+size_t str_replace_nth(T& dst,
+                       const U& needle,
+                       const V& replace,
+                       const size_t nth_needle_index = 1,
+                       const size_t start_position_in_dst = 0U,
+                       const bool ignore_case_when_searching_for_needle = false,
+                       size_t* required_dst_capacity = nullptr) {
   using char_type = get_char_type_t<T>;
 
   const size_t dst_len{dst.length()};
@@ -4880,7 +4913,7 @@ bool str_replace_nth(T& dst,
   if (0U == dst_len || 0U == needle_len || needle_len > dst_len) {
     if (required_dst_capacity)
       *required_dst_capacity = dst_len + 1;
-    return false;
+    return 0U;
   }
 
   const size_t required_dst_buffer_size{dst_len - needle_len + replace_len + 1};
@@ -4890,13 +4923,18 @@ bool str_replace_nth(T& dst,
   if (required_dst_capacity)
     *required_dst_capacity = required_dst_buffer_size;
 
+  if constexpr (is_char_pointer_type_v<V>) {
+    if (nullptr == replace)
+      return 0U;
+  }
+
   std::basic_string_view<char_type> dst_sv{dst};
-  std::basic_string_view<char_type> needle_sv{};
-  std::basic_string<char_type> needle_str{};
+  char_type needle_buffer[2]{};
+  std::basic_string_view<char_type> needle_sv{needle_buffer, 0U};
 
   if constexpr (is_valid_char_type_v<U>) {
-    needle_str.assign(1, needle);
-    needle_sv = needle_str;
+    needle_buffer[0] = needle;
+    needle_sv = {needle_buffer, 1U};
   } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
@@ -4908,7 +4946,7 @@ bool str_replace_nth(T& dst,
     const size_t next_pos{str_index_of(dst_sv, needle_sv, nth_needle_pos,
                                        ignore_case_when_searching_for_needle)};
     if (std::basic_string_view<char_type>::npos == next_pos)
-      return false;
+      return 0U;
     nth_needle_pos = next_pos;
     if (++found_needle_index == nth_needle_index)
       break;
@@ -4917,18 +4955,18 @@ bool str_replace_nth(T& dst,
 
   if (0U == replace_len) {
     dst.erase(nth_needle_pos, needle_len);
-    return true;
+    return 1U;
   }
 
-  std::basic_string_view<char_type> replace_sv{};
-  std::basic_string<char_type> replace_str{};
+  char_type replace_buffer[2]{};
+  std::basic_string_view<char_type> replace_sv{replace_buffer, 0U};
 
   if constexpr (is_char_pointer_type_v<V> || is_const_char_array_type_v<V>)
     replace_sv = {replace, replace_len};
 
   else if constexpr (is_valid_char_type_v<V>) {
-    replace_str.assign(1, replace);
-    replace_sv = replace_str;
+    replace_buffer[0] = replace;
+    replace_sv = {replace_buffer, 1U};
   }
 
   else
@@ -4936,7 +4974,7 @@ bool str_replace_nth(T& dst,
 
   dst.replace(nth_needle_pos, needle_len, replace_sv);
 
-  return true;
+  return 1U;
 }
 
 template <
@@ -4955,13 +4993,14 @@ template <
                        V>)&&is_all_of_v<std::remove_cv_t<T>,
                                         get_char_type_t<U>,
                                         get_char_type_t<V>>>>
-bool str_replace_last(T (&dst)[ARRAY_SIZE],
-                      const U& needle,
-                      const V& replace,
-                      const size_t start_position_in_dst =
-                          std::basic_string<std::remove_cv_t<T>>::npos,
-                      const bool ignore_case_when_searching_for_needle = false,
-                      size_t* required_dst_capacity = nullptr) {
+size_t str_replace_last(
+    T (&dst)[ARRAY_SIZE],
+    const U& needle,
+    const V& replace,
+    const size_t start_position_in_dst =
+        std::basic_string<std::remove_cv_t<T>>::npos,
+    const bool ignore_case_when_searching_for_needle = false,
+    size_t* required_dst_capacity = nullptr) {
   using char_type = std::remove_cv_t<T>;
 
   const size_t dst_len{len(dst)};
@@ -4971,7 +5010,7 @@ bool str_replace_last(T (&dst)[ARRAY_SIZE],
   if (0U == dst_len || 0U == needle_len || needle_len > dst_len) {
     if (required_dst_capacity)
       *required_dst_capacity = dst_len + 1;
-    return false;
+    return 0U;
   }
 
   const size_t required_dst_buffer_size{dst_len - needle_len + replace_len + 1};
@@ -4980,15 +5019,20 @@ bool str_replace_last(T (&dst)[ARRAY_SIZE],
     *required_dst_capacity = required_dst_buffer_size;
 
   if (ARRAY_SIZE < required_dst_buffer_size)
-    return false;
+    return 0U;
+
+  if constexpr (is_char_pointer_type_v<V>) {
+    if (nullptr == replace)
+      return 0U;
+  }
 
   std::basic_string_view<char_type> dst_sv{dst, dst_len};
-  std::basic_string_view<char_type> needle_sv{};
-  std::basic_string<char_type> needle_str{};
+  char_type needle_buffer[2]{};
+  std::basic_string_view<char_type> needle_sv{needle_buffer, 0U};
 
   if constexpr (is_valid_char_type_v<U>) {
-    needle_str.assign(1, needle);
-    needle_sv = needle_str;
+    needle_buffer[0] = needle;
+    needle_sv = {needle_buffer, 1U};
   } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
@@ -4999,21 +5043,16 @@ bool str_replace_last(T (&dst)[ARRAY_SIZE],
                         ignore_case_when_searching_for_needle)};
 
   if (std::basic_string_view<char_type>::npos == last_needle_pos)
-    return false;
+    return 0U;
 
-  std::basic_string_view<char_type> replace_sv{};
-  std::basic_string<char_type> replace_str{};
+  char_type replace_buffer[2]{};
+  std::basic_string_view<char_type> replace_sv{replace_buffer, 0U};
 
   if constexpr (is_valid_char_type_v<V>) {
-    replace_str.assign(1, replace);
-    replace_sv = replace_str;
-  }
-
-  else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-    if (nullptr != replace)
-      replace_sv = {replace, replace_len};
-  }
-
+    replace_buffer[0] = replace;
+    replace_sv = {replace_buffer, 1U};
+  } else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>)
+    replace_sv = {replace, replace_len};
   else
     replace_sv = replace;
 
@@ -5034,11 +5073,11 @@ bool str_replace_last(T (&dst)[ARRAY_SIZE],
     dst[dst_len - noctm] = static_cast<char_type>('\0');
   }
 
-  if (0 != replace_len)
+  if (0U != replace_len)
     std::copy(std::cbegin(replace_sv), std::cend(replace_sv),
               dst + last_needle_pos);
 
-  return true;
+  return 1U;
 }
 
 template <
@@ -5056,14 +5095,15 @@ template <
                        V>)&&is_all_of_v<get_char_type_t<T>,
                                         get_char_type_t<U>,
                                         get_char_type_t<V>>>>
-bool str_replace_last(T dst,
-                      const size_t dst_capacity_in_number_of_characters,
-                      const U& needle,
-                      const V& replace,
-                      const size_t start_position_in_dst =
-                          std::basic_string<get_char_type_t<T>>::npos,
-                      const bool ignore_case_when_searching_for_needle = false,
-                      size_t* required_dst_capacity = nullptr) {
+size_t str_replace_last(
+    T dst,
+    const size_t dst_capacity_in_number_of_characters,
+    const U& needle,
+    const V& replace,
+    const size_t start_position_in_dst =
+        std::basic_string<get_char_type_t<T>>::npos,
+    const bool ignore_case_when_searching_for_needle = false,
+    size_t* required_dst_capacity = nullptr) {
   using char_type = get_char_type_t<T>;
 
   const size_t dst_len{len(dst)};
@@ -5073,7 +5113,7 @@ bool str_replace_last(T dst,
   if (0U == dst_len || 0U == needle_len || needle_len > dst_len) {
     if (required_dst_capacity)
       *required_dst_capacity = dst_len + 1;
-    return false;
+    return 0U;
   }
 
   const size_t required_dst_buffer_size{dst_len - needle_len + replace_len + 1};
@@ -5082,15 +5122,20 @@ bool str_replace_last(T dst,
     *required_dst_capacity = required_dst_buffer_size;
 
   if (dst_capacity_in_number_of_characters < required_dst_buffer_size)
-    return false;
+    return 0U;
+
+  if constexpr (is_char_pointer_type_v<V>) {
+    if (nullptr == replace)
+      return 0U;
+  }
 
   std::basic_string_view<char_type> dst_sv{dst, dst_len};
-  std::basic_string_view<char_type> needle_sv{};
-  std::basic_string<char_type> needle_str{};
+  char_type needle_buffer[2]{};
+  std::basic_string_view<char_type> needle_sv{needle_buffer, 0U};
 
   if constexpr (is_valid_char_type_v<U>) {
-    needle_str.assign(1, needle);
-    needle_sv = needle_str;
+    needle_buffer[0] = needle;
+    needle_sv = {needle_buffer, 1U};
   } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
@@ -5101,21 +5146,16 @@ bool str_replace_last(T dst,
                         ignore_case_when_searching_for_needle)};
 
   if (std::basic_string_view<char_type>::npos == last_needle_pos)
-    return false;
+    return 0U;
 
-  std::basic_string_view<char_type> replace_sv{};
-  std::basic_string<char_type> replace_str{};
+  char_type replace_buffer[2]{};
+  std::basic_string_view<char_type> replace_sv{replace_buffer, 0U};
 
   if constexpr (is_valid_char_type_v<V>) {
-    replace_str.assign(1, replace);
-    replace_sv = replace_str;
-  }
-
-  else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-    if (nullptr != replace)
-      replace_sv = {replace, replace_len};
-  }
-
+    replace_buffer[0] = replace;
+    replace_sv = {replace_buffer, 1U};
+  } else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>)
+    replace_sv = {replace, replace_len};
   else
     replace_sv = replace;
 
@@ -5136,11 +5176,11 @@ bool str_replace_last(T dst,
     dst[dst_len - noctm] = static_cast<char_type>('\0');
   }
 
-  if (0 != replace_len)
+  if (0U != replace_len)
     std::copy(std::cbegin(replace_sv), std::cend(replace_sv),
               dst + last_needle_pos);
 
-  return true;
+  return 1U;
 }
 
 template <
@@ -5202,12 +5242,17 @@ std::basic_string<get_char_type_t<T>> str_replace_last(
   if (required_dst_capacity)
     *required_dst_capacity = required_dst_buffer_size;
 
-  std::basic_string_view<char_type> needle_sv{};
-  std::basic_string<char_type> needle_str{};
+  if constexpr (is_char_pointer_type_v<V>) {
+    if (nullptr == replace)
+      return str;
+  }
+
+  char_type needle_buffer[2]{};
+  std::basic_string_view<char_type> needle_sv{needle_buffer, 0U};
 
   if constexpr (is_valid_char_type_v<U>) {
-    needle_str.assign(1, needle);
-    needle_sv = needle_str;
+    needle_buffer[0] = needle;
+    needle_sv = {needle_buffer, 1U};
   } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
@@ -5225,15 +5270,15 @@ std::basic_string<get_char_type_t<T>> str_replace_last(
     return str;
   }
 
-  std::basic_string_view<char_type> replace_sv{};
-  std::basic_string<char_type> replace_str{};
+  char_type replace_buffer[2]{};
+  std::basic_string_view<char_type> replace_sv{replace_buffer, 0U};
 
   if constexpr (is_char_pointer_type_v<V> || is_const_char_array_type_v<V>)
     replace_sv = {replace, replace_len};
 
   else if constexpr (is_valid_char_type_v<V>) {
-    replace_str.assign(1, replace);
-    replace_sv = replace_str;
+    replace_buffer[0] = replace;
+    replace_sv = {replace_buffer, 1U};
   }
 
   else
@@ -5259,13 +5304,14 @@ template <
                    is_char_array_type_v<V>)&&is_all_of_v<get_char_type_t<T>,
                                                          get_char_type_t<U>,
                                                          get_char_type_t<V>>>>
-bool str_replace_last(T& dst,
-                      const U& needle,
-                      const V& replace,
-                      const size_t start_position_in_dst =
-                          std::basic_string<get_char_type_t<T>>::npos,
-                      const bool ignore_case_when_searching_for_needle = false,
-                      size_t* required_dst_capacity = nullptr) {
+size_t str_replace_last(
+    T& dst,
+    const U& needle,
+    const V& replace,
+    const size_t start_position_in_dst =
+        std::basic_string<get_char_type_t<T>>::npos,
+    const bool ignore_case_when_searching_for_needle = false,
+    size_t* required_dst_capacity = nullptr) {
   using char_type = get_char_type_t<T>;
 
   const size_t dst_len{dst.length()};
@@ -5275,7 +5321,7 @@ bool str_replace_last(T& dst,
   if (0U == dst_len || 0U == needle_len || needle_len > dst_len) {
     if (required_dst_capacity)
       *required_dst_capacity = dst_len + 1;
-    return false;
+    return 0U;
   }
 
   const size_t required_dst_buffer_size{dst_len - needle_len + replace_len + 1};
@@ -5286,12 +5332,18 @@ bool str_replace_last(T& dst,
   if (required_dst_capacity)
     *required_dst_capacity = required_dst_buffer_size;
 
-  std::basic_string_view<char_type> dst_sv{dst}, needle_sv{};
-  std::basic_string<char_type> needle_str{};
+  if constexpr (is_char_pointer_type_v<V>) {
+    if (nullptr == replace)
+      return 0U;
+  }
+
+  std::basic_string_view<char_type> dst_sv{dst};
+  char_type needle_buffer[2]{};
+  std::basic_string_view<char_type> needle_sv{needle_buffer, 0U};
 
   if constexpr (is_valid_char_type_v<U>) {
-    needle_str.assign(1, needle);
-    needle_sv = needle_str;
+    needle_buffer[0] = needle;
+    needle_sv = {needle_buffer, 1U};
   } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
@@ -5302,30 +5354,28 @@ bool str_replace_last(T& dst,
                         ignore_case_when_searching_for_needle)};
 
   if (std::basic_string_view<char_type>::npos == last_needle_pos)
-    return false;
+    return 0U;
 
   if (0U == replace_len) {
     dst.erase(last_needle_pos, needle_len);
-    return true;
+    return 1U;
   }
 
-  std::basic_string_view<char_type> replace_sv{};
-  std::basic_string<char_type> replace_str{};
+  char_type replace_buffer[2]{};
+  std::basic_string_view<char_type> replace_sv{replace_buffer, 0U};
 
   if constexpr (is_char_pointer_type_v<V> || is_const_char_array_type_v<V>)
     replace_sv = {replace, replace_len};
 
   else if constexpr (is_valid_char_type_v<V>) {
-    replace_str.assign(1, replace);
-    replace_sv = replace_str;
-  }
-
-  else
+    replace_buffer[0] = replace;
+    replace_sv = {replace_buffer, 1U};
+  } else
     replace_sv = replace;
 
   dst.replace(last_needle_pos, needle_len, replace_sv);
 
-  return true;
+  return 1U;
 }
 
 template <
@@ -5344,12 +5394,12 @@ template <
                        V>)&&is_all_of_v<std::remove_cv_t<T>,
                                         get_char_type_t<U>,
                                         get_char_type_t<V>>>>
-bool str_replace_all(T (&dst)[ARRAY_SIZE],
-                     const U& needle,
-                     const V& replace,
-                     size_t start_position_in_dst = 0U,
-                     const bool ignore_case_when_searching_for_needle = false,
-                     size_t* required_dst_capacity = nullptr) {
+size_t str_replace_all(T (&dst)[ARRAY_SIZE],
+                       const U& needle,
+                       const V& replace,
+                       size_t start_position_in_dst = 0U,
+                       const bool ignore_case_when_searching_for_needle = false,
+                       size_t* required_dst_capacity = nullptr) {
   using char_type = std::remove_cv_t<T>;
 
   const size_t dst_len{len(dst)};
@@ -5359,16 +5409,16 @@ bool str_replace_all(T (&dst)[ARRAY_SIZE],
   if (0U == dst_len || 0U == needle_len || needle_len > dst_len) {
     if (required_dst_capacity)
       *required_dst_capacity = dst_len + 1;
-    return false;
+    return 0U;
   }
 
   std::basic_string_view<char_type> dst_sv{dst, dst_len};
-  std::basic_string_view<char_type> needle_sv{};
-  std::basic_string<char_type> needle_str{};
+  char_type needle_buffer[2]{};
+  std::basic_string_view<char_type> needle_sv{needle_buffer, 0U};
 
   if constexpr (is_valid_char_type_v<U>) {
-    needle_str.assign(1, needle);
-    needle_sv = needle_str;
+    needle_buffer[0] = needle;
+    needle_sv = {needle_buffer, 1U};
   } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
@@ -5396,23 +5446,24 @@ bool str_replace_all(T (&dst)[ARRAY_SIZE],
   if (required_dst_capacity)
     *required_dst_capacity = required_dst_buffer_size;
 
+  if constexpr (is_char_pointer_type_v<V>) {
+    if (nullptr == replace)
+      return 0U;
+  }
+
   if (ARRAY_SIZE < required_dst_buffer_size)
-    return false;
+    return 0U;
 
-  std::basic_string_view<char_type> replace_sv{};
-  std::basic_string<char_type> replace_str{};
+  char_type replace_buffer[2]{};
+  std::basic_string_view<char_type> replace_sv{replace_buffer, 0U};
 
-  if constexpr (is_valid_char_type_v<V>) {
-    replace_str.assign(1, replace);
-    replace_sv = replace_str;
-  }
+  if constexpr (is_char_pointer_type_v<V> || is_const_char_array_type_v<V>)
+    replace_sv = {replace, replace_len};
 
-  else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-    if (nullptr != replace)
-      replace_sv = {replace, replace_len};
-  }
-
-  else
+  else if constexpr (is_valid_char_type_v<V>) {
+    replace_buffer[0] = replace;
+    replace_sv = {replace_buffer, 1U};
+  } else
     replace_sv = replace;
 
   std::basic_string<char_type> buffer{};
@@ -5433,7 +5484,7 @@ bool str_replace_all(T (&dst)[ARRAY_SIZE],
   buffer.copy(dst, buffer.length());
   dst[buffer.length()] = static_cast<char_type>('\0');
 
-  return true;
+  return needle_start_positions.size();
 }
 
 template <
@@ -5451,13 +5502,13 @@ template <
                        V>)&&is_all_of_v<get_char_type_t<T>,
                                         get_char_type_t<U>,
                                         get_char_type_t<V>>>>
-bool str_replace_all(T dst,
-                     const size_t dst_capacity_in_number_of_characters,
-                     const U& needle,
-                     const V& replace,
-                     size_t start_position_in_dst = 0U,
-                     const bool ignore_case_when_searching_for_needle = false,
-                     size_t* required_dst_capacity = nullptr) {
+size_t str_replace_all(T dst,
+                       const size_t dst_capacity_in_number_of_characters,
+                       const U& needle,
+                       const V& replace,
+                       size_t start_position_in_dst = 0U,
+                       const bool ignore_case_when_searching_for_needle = false,
+                       size_t* required_dst_capacity = nullptr) {
   using char_type = get_char_type_t<T>;
 
   const size_t dst_len{len(dst)};
@@ -5467,16 +5518,16 @@ bool str_replace_all(T dst,
   if (0U == dst_len || 0U == needle_len || needle_len > dst_len) {
     if (required_dst_capacity)
       *required_dst_capacity = dst_len + 1;
-    return false;
+    return 0U;
   }
 
   std::basic_string_view<char_type> dst_sv{dst, dst_len};
-  std::basic_string_view<char_type> needle_sv{};
-  std::basic_string<char_type> needle_str{};
+  char_type needle_buffer[2]{};
+  std::basic_string_view<char_type> needle_sv{needle_buffer, 0U};
 
   if constexpr (is_valid_char_type_v<U>) {
-    needle_str.assign(1, needle);
-    needle_sv = needle_str;
+    needle_buffer[0] = needle;
+    needle_sv = {needle_buffer, 1U};
   } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
@@ -5504,20 +5555,23 @@ bool str_replace_all(T dst,
   if (required_dst_capacity)
     *required_dst_capacity = required_dst_buffer_size;
 
-  if (dst_capacity_in_number_of_characters < required_dst_buffer_size)
-    return false;
-
-  std::basic_string_view<char_type> replace_sv{};
-  std::basic_string<char_type> replace_str{};
-
-  if constexpr (is_valid_char_type_v<V>) {
-    replace_str.assign(1, replace);
-    replace_sv = replace_str;
+  if constexpr (is_char_pointer_type_v<V>) {
+    if (nullptr == replace)
+      return 0U;
   }
 
-  else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-    if (nullptr != replace)
-      replace_sv = {replace, replace_len};
+  if (dst_capacity_in_number_of_characters < required_dst_buffer_size)
+    return 0U;
+
+  char_type replace_buffer[2]{};
+  std::basic_string_view<char_type> replace_sv{replace_buffer, 0U};
+
+  if constexpr (is_char_pointer_type_v<V> || is_const_char_array_type_v<V>)
+    replace_sv = {replace, replace_len};
+
+  else if constexpr (is_valid_char_type_v<V>) {
+    replace_buffer[0] = replace;
+    replace_sv = {replace_buffer, 1U};
   }
 
   else
@@ -5541,7 +5595,7 @@ bool str_replace_all(T dst,
   buffer.copy(dst, buffer.length());
   dst[buffer.length()] = static_cast<char_type>('\0');
 
-  return true;
+  return needle_start_positions.size();
 }
 
 template <
@@ -5593,12 +5647,12 @@ std::basic_string<get_char_type_t<T>> str_replace_all(
     return std::basic_string<char_type>{std::cbegin(dst_sv), std::cend(dst_sv)};
   }
 
-  std::basic_string_view<char_type> needle_sv{};
-  std::basic_string<char_type> needle_str{};
+  char_type needle_buffer[2]{};
+  std::basic_string_view<char_type> needle_sv{needle_buffer, 0U};
 
   if constexpr (is_valid_char_type_v<U>) {
-    needle_str.assign(1, needle);
-    needle_sv = needle_str;
+    needle_buffer[0] = needle;
+    needle_sv = {needle_buffer, 1U};
   } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
@@ -5626,17 +5680,21 @@ std::basic_string<get_char_type_t<T>> str_replace_all(
   if (required_dst_capacity)
     *required_dst_capacity = required_dst_buffer_size;
 
-  std::basic_string_view<char_type> replace_sv{};
-  std::basic_string<char_type> replace_str{};
-
-  if constexpr (is_valid_char_type_v<V>) {
-    replace_str.assign(1, replace);
-    replace_sv = replace_str;
+  if constexpr (is_char_pointer_type_v<V>) {
+    if (nullptr == replace)
+      return std::basic_string<char_type>{std::cbegin(dst_sv),
+                                          std::cend(dst_sv)};
   }
 
-  else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-    if (nullptr != replace)
-      replace_sv = {replace, replace_len};
+  char_type replace_buffer[2]{};
+  std::basic_string_view<char_type> replace_sv{replace_buffer, 0U};
+
+  if constexpr (is_char_pointer_type_v<V> || is_const_char_array_type_v<V>)
+    replace_sv = {replace, replace_len};
+
+  else if constexpr (is_valid_char_type_v<V>) {
+    replace_buffer[0] = replace;
+    replace_sv = {replace_buffer, 1U};
   }
 
   else
@@ -5677,12 +5735,12 @@ template <
                    is_char_array_type_v<V>)&&is_all_of_v<get_char_type_t<T>,
                                                          get_char_type_t<U>,
                                                          get_char_type_t<V>>>>
-bool str_replace_all(T& dst,
-                     const U& needle,
-                     const V& replace,
-                     size_t start_position_in_dst = 0U,
-                     const bool ignore_case_when_searching_for_needle = false,
-                     size_t* required_dst_capacity = nullptr) {
+size_t str_replace_all(T& dst,
+                       const U& needle,
+                       const V& replace,
+                       size_t start_position_in_dst = 0U,
+                       const bool ignore_case_when_searching_for_needle = false,
+                       size_t* required_dst_capacity = nullptr) {
   using char_type = get_char_type_t<T>;
 
   const size_t dst_len{dst.length()};
@@ -5692,14 +5750,16 @@ bool str_replace_all(T& dst,
   if (0U == dst_len || 0U == needle_len || needle_len > dst_len) {
     if (required_dst_capacity)
       *required_dst_capacity = dst_len + 1;
-    return false;
+    return 0U;
   }
-  std::basic_string_view<char_type> dst_sv{dst}, needle_sv{};
-  std::basic_string<char_type> needle_str{};
+
+  std::basic_string_view<char_type> dst_sv{dst};
+  char_type needle_buffer[2]{};
+  std::basic_string_view<char_type> needle_sv{needle_buffer, 0U};
 
   if constexpr (is_valid_char_type_v<U>) {
-    needle_str.assign(1, needle);
-    needle_sv = needle_str;
+    needle_buffer[0] = needle;
+    needle_sv = {needle_buffer, 1U};
   } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
@@ -5727,17 +5787,20 @@ bool str_replace_all(T& dst,
   if (required_dst_capacity)
     *required_dst_capacity = required_dst_buffer_size;
 
-  std::basic_string_view<char_type> replace_sv{};
-  std::basic_string<char_type> replace_str{};
-
-  if constexpr (is_valid_char_type_v<V>) {
-    replace_str.assign(1, replace);
-    replace_sv = replace_str;
+  if constexpr (is_char_pointer_type_v<V>) {
+    if (nullptr == replace)
+      return 0U;
   }
 
-  else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-    if (nullptr != replace)
-      replace_sv = {replace, replace_len};
+  char_type replace_buffer[2]{};
+  std::basic_string_view<char_type> replace_sv{replace_buffer, 0U};
+
+  if constexpr (is_char_pointer_type_v<V> || is_const_char_array_type_v<V>)
+    replace_sv = {replace, replace_len};
+
+  else if constexpr (is_valid_char_type_v<V>) {
+    replace_buffer[0] = replace;
+    replace_sv = {replace_buffer, 1U};
   }
 
   else
@@ -5762,7 +5825,7 @@ bool str_replace_all(T& dst,
 
   dst = std::move(buffer);
 
-  return true;
+  return needle_start_positions.size();
 }
 
 template <
@@ -5781,7 +5844,7 @@ template <
                        V>)&&is_all_of_v<std::remove_cv_t<T>,
                                         get_char_type_t<U>,
                                         get_char_type_t<V>>>>
-bool str_replace_first_n(
+size_t str_replace_first_n(
     T (&dst)[ARRAY_SIZE],
     const U& needle,
     const V& replace,
@@ -5798,16 +5861,16 @@ bool str_replace_first_n(
   if (0U == dst_len || 0U == needle_len || needle_len > dst_len) {
     if (required_dst_capacity)
       *required_dst_capacity = dst_len + 1;
-    return false;
+    return 0U;
   }
 
   std::basic_string_view<char_type> dst_sv{dst, dst_len};
-  std::basic_string_view<char_type> needle_sv{};
-  std::basic_string<char_type> needle_str{};
+  char_type needle_buffer[2]{};
+  std::basic_string_view<char_type> needle_sv{needle_buffer, 0U};
 
   if constexpr (is_valid_char_type_v<U>) {
-    needle_str.assign(1, needle);
-    needle_sv = needle_str;
+    needle_buffer[0] = needle;
+    needle_sv = {needle_buffer, 1U};
   } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
@@ -5835,20 +5898,23 @@ bool str_replace_first_n(
   if (required_dst_capacity)
     *required_dst_capacity = required_dst_buffer_size;
 
-  if (ARRAY_SIZE < required_dst_buffer_size)
-    return false;
-
-  std::basic_string_view<char_type> replace_sv{};
-  std::basic_string<char_type> replace_str{};
-
-  if constexpr (is_valid_char_type_v<V>) {
-    replace_str.assign(1, replace);
-    replace_sv = replace_str;
+  if constexpr (is_char_pointer_type_v<V>) {
+    if (nullptr == replace)
+      return 0U;
   }
 
-  else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-    if (nullptr != replace)
-      replace_sv = {replace, replace_len};
+  if (ARRAY_SIZE < required_dst_buffer_size)
+    return 0U;
+
+  char_type replace_buffer[2]{};
+  std::basic_string_view<char_type> replace_sv{replace_buffer, 0U};
+
+  if constexpr (is_char_pointer_type_v<V> || is_const_char_array_type_v<V>)
+    replace_sv = {replace, replace_len};
+
+  else if constexpr (is_valid_char_type_v<V>) {
+    replace_buffer[0] = replace;
+    replace_sv = {replace_buffer, 1U};
   }
 
   else
@@ -5872,7 +5938,7 @@ bool str_replace_first_n(
   buffer.copy(dst, buffer.length());
   dst[buffer.length()] = static_cast<char_type>('\0');
 
-  return true;
+  return needle_start_positions.size();
 }
 
 template <
@@ -5890,7 +5956,7 @@ template <
                        V>)&&is_all_of_v<get_char_type_t<T>,
                                         get_char_type_t<U>,
                                         get_char_type_t<V>>>>
-bool str_replace_first_n(
+size_t str_replace_first_n(
     T dst,
     const size_t dst_capacity_in_number_of_characters,
     const U& needle,
@@ -5908,16 +5974,16 @@ bool str_replace_first_n(
   if (0U == dst_len || 0U == needle_len || needle_len > dst_len) {
     if (required_dst_capacity)
       *required_dst_capacity = dst_len + 1;
-    return false;
+    return 0U;
   }
 
   std::basic_string_view<char_type> dst_sv{dst, dst_len};
-  std::basic_string_view<char_type> needle_sv{};
-  std::basic_string<char_type> needle_str{};
+  char_type needle_buffer[2]{};
+  std::basic_string_view<char_type> needle_sv{needle_buffer, 0U};
 
   if constexpr (is_valid_char_type_v<U>) {
-    needle_str.assign(1, needle);
-    needle_sv = needle_str;
+    needle_buffer[0] = needle;
+    needle_sv = {needle_buffer, 1U};
   } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
@@ -5945,20 +6011,23 @@ bool str_replace_first_n(
   if (required_dst_capacity)
     *required_dst_capacity = required_dst_buffer_size;
 
-  if (dst_capacity_in_number_of_characters < required_dst_buffer_size)
-    return false;
-
-  std::basic_string_view<char_type> replace_sv{};
-  std::basic_string<char_type> replace_str{};
-
-  if constexpr (is_valid_char_type_v<V>) {
-    replace_str.assign(1, replace);
-    replace_sv = replace_str;
+  if constexpr (is_char_pointer_type_v<V>) {
+    if (nullptr == replace)
+      return 0U;
   }
 
-  else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-    if (nullptr != replace)
-      replace_sv = {replace, replace_len};
+  if (dst_capacity_in_number_of_characters < required_dst_buffer_size)
+    return 0U;
+
+  char_type replace_buffer[2]{};
+  std::basic_string_view<char_type> replace_sv{replace_buffer, 0U};
+
+  if constexpr (is_char_pointer_type_v<V> || is_const_char_array_type_v<V>)
+    replace_sv = {replace, replace_len};
+
+  else if constexpr (is_valid_char_type_v<V>) {
+    replace_buffer[0] = replace;
+    replace_sv = {replace_buffer, 1U};
   }
 
   else
@@ -5982,7 +6051,7 @@ bool str_replace_first_n(
   buffer.copy(dst, buffer.length());
   dst[buffer.length()] = static_cast<char_type>('\0');
 
-  return true;
+  return needle_start_positions.size();
 }
 
 template <
@@ -6035,12 +6104,12 @@ std::basic_string<get_char_type_t<T>> str_replace_first_n(
     return std::basic_string<char_type>{std::cbegin(dst_sv), std::cend(dst_sv)};
   }
 
-  std::basic_string_view<char_type> needle_sv{};
-  std::basic_string<char_type> needle_str{};
+  char_type needle_buffer[2]{};
+  std::basic_string_view<char_type> needle_sv{needle_buffer, 0U};
 
   if constexpr (is_valid_char_type_v<U>) {
-    needle_str.assign(1, needle);
-    needle_sv = needle_str;
+    needle_buffer[0] = needle;
+    needle_sv = {needle_buffer, 1U};
   } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
@@ -6068,17 +6137,21 @@ std::basic_string<get_char_type_t<T>> str_replace_first_n(
   if (required_dst_capacity)
     *required_dst_capacity = required_dst_buffer_size;
 
-  std::basic_string_view<char_type> replace_sv{};
-  std::basic_string<char_type> replace_str{};
-
-  if constexpr (is_valid_char_type_v<V>) {
-    replace_str.assign(1, replace);
-    replace_sv = replace_str;
+  if constexpr (is_char_pointer_type_v<V>) {
+    if (nullptr == replace)
+      return std::basic_string<char_type>{std::cbegin(dst_sv),
+                                          std::cend(dst_sv)};
   }
 
-  else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-    if (nullptr != replace)
-      replace_sv = {replace, replace_len};
+  char_type replace_buffer[2]{};
+  std::basic_string_view<char_type> replace_sv{replace_buffer, 0U};
+
+  if constexpr (is_char_pointer_type_v<V> || is_const_char_array_type_v<V>)
+    replace_sv = {replace, replace_len};
+
+  else if constexpr (is_valid_char_type_v<V>) {
+    replace_buffer[0] = replace;
+    replace_sv = {replace_buffer, 1U};
   }
 
   else
@@ -6119,7 +6192,7 @@ template <
                    is_char_array_type_v<V>)&&is_all_of_v<get_char_type_t<T>,
                                                          get_char_type_t<U>,
                                                          get_char_type_t<V>>>>
-bool str_replace_first_n(
+size_t str_replace_first_n(
     T& dst,
     const U& needle,
     const V& replace,
@@ -6136,16 +6209,16 @@ bool str_replace_first_n(
   if (0U == dst_len || 0U == needle_len || needle_len > dst_len) {
     if (required_dst_capacity)
       *required_dst_capacity = dst_len + 1;
-    return false;
+    return 0U;
   }
 
   std::basic_string_view<char_type> dst_sv{dst};
-  std::basic_string_view<char_type> needle_sv{};
-  std::basic_string<char_type> needle_str{};
+  char_type needle_buffer[2]{};
+  std::basic_string_view<char_type> needle_sv{needle_buffer, 0U};
 
   if constexpr (is_valid_char_type_v<U>) {
-    needle_str.assign(1, needle);
-    needle_sv = needle_str;
+    needle_buffer[0] = needle;
+    needle_sv = {needle_buffer, 1U};
   } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
@@ -6173,17 +6246,20 @@ bool str_replace_first_n(
   if (required_dst_capacity)
     *required_dst_capacity = required_dst_buffer_size;
 
-  std::basic_string_view<char_type> replace_sv{};
-  std::basic_string<char_type> replace_str{};
-
-  if constexpr (is_valid_char_type_v<V>) {
-    replace_str.assign(1, replace);
-    replace_sv = replace_str;
+  if constexpr (is_char_pointer_type_v<V>) {
+    if (nullptr == replace)
+      return 0U;
   }
 
-  else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-    if (nullptr != replace)
-      replace_sv = {replace, replace_len};
+  char_type replace_buffer[2]{};
+  std::basic_string_view<char_type> replace_sv{replace_buffer, 0U};
+
+  if constexpr (is_char_pointer_type_v<V> || is_const_char_array_type_v<V>)
+    replace_sv = {replace, replace_len};
+
+  else if constexpr (is_valid_char_type_v<V>) {
+    replace_buffer[0] = replace;
+    replace_sv = {replace_buffer, 1U};
   }
 
   else
@@ -6208,7 +6284,7 @@ bool str_replace_first_n(
 
   dst = std::move(buffer);
 
-  return true;
+  return needle_start_positions.size();
 }
 
 template <
@@ -6227,7 +6303,7 @@ template <
                        V>)&&is_all_of_v<std::remove_cv_t<T>,
                                         get_char_type_t<U>,
                                         get_char_type_t<V>>>>
-bool str_replace_last_n(
+size_t str_replace_last_n(
     T (&dst)[ARRAY_SIZE],
     const U& needle,
     const V& replace,
@@ -6244,16 +6320,16 @@ bool str_replace_last_n(
   if (0U == dst_len || 0U == needle_len || needle_len > dst_len) {
     if (required_dst_capacity)
       *required_dst_capacity = dst_len + 1;
-    return false;
+    return 0U;
   }
 
   std::basic_string_view<char_type> dst_sv{dst, dst_len};
-  std::basic_string_view<char_type> needle_sv{};
-  std::basic_string<char_type> needle_str{};
+  char_type needle_buffer[2]{};
+  std::basic_string_view<char_type> needle_sv{needle_buffer, 0U};
 
   if constexpr (is_valid_char_type_v<U>) {
-    needle_str.assign(1, needle);
-    needle_sv = needle_str;
+    needle_buffer[0] = needle;
+    needle_sv = {needle_buffer, 1U};
   } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
@@ -6284,20 +6360,23 @@ bool str_replace_last_n(
   if (required_dst_capacity)
     *required_dst_capacity = required_dst_buffer_size;
 
-  if (ARRAY_SIZE < required_dst_buffer_size)
-    return false;
-
-  std::basic_string_view<char_type> replace_sv{};
-  std::basic_string<char_type> replace_str{};
-
-  if constexpr (is_valid_char_type_v<V>) {
-    replace_str.assign(1, replace);
-    replace_sv = replace_str;
+  if constexpr (is_char_pointer_type_v<V>) {
+    if (nullptr == replace)
+      return 0U;
   }
 
-  else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-    if (nullptr != replace)
-      replace_sv = {replace, replace_len};
+  if (ARRAY_SIZE < required_dst_buffer_size)
+    return 0U;
+
+  char_type replace_buffer[2]{};
+  std::basic_string_view<char_type> replace_sv{replace_buffer, 0U};
+
+  if constexpr (is_char_pointer_type_v<V> || is_const_char_array_type_v<V>)
+    replace_sv = {replace, replace_len};
+
+  else if constexpr (is_valid_char_type_v<V>) {
+    replace_buffer[0] = replace;
+    replace_sv = {replace_buffer, 1U};
   }
 
   else
@@ -6320,7 +6399,7 @@ bool str_replace_last_n(
   buffer.append(dst + dst_index, dst + dst_len);
   buffer.copy(dst, buffer.length());
   dst[buffer.length()] = static_cast<char_type>('\0');
-  return true;
+  return needle_start_positions.size();
 }
 
 template <
@@ -6338,7 +6417,7 @@ template <
                        V>)&&is_all_of_v<get_char_type_t<T>,
                                         get_char_type_t<U>,
                                         get_char_type_t<V>>>>
-bool str_replace_last_n(
+size_t str_replace_last_n(
     T dst,
     const size_t dst_capacity_in_number_of_characters,
     const U& needle,
@@ -6356,16 +6435,17 @@ bool str_replace_last_n(
   if (0U == dst_len || 0U == needle_len || needle_len > dst_len) {
     if (required_dst_capacity)
       *required_dst_capacity = dst_len + 1;
-    return false;
+    return 0U;
   }
 
   std::basic_string_view<char_type> dst_sv{dst, dst_len};
-  std::basic_string_view<char_type> needle_sv{};
-  std::basic_string<char_type> needle_str{};
+
+  char_type needle_buffer[2]{};
+  std::basic_string_view<char_type> needle_sv{needle_buffer, 0U};
 
   if constexpr (is_valid_char_type_v<U>) {
-    needle_str.assign(1, needle);
-    needle_sv = needle_str;
+    needle_buffer[0] = needle;
+    needle_sv = {needle_buffer, 1U};
   } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
@@ -6396,20 +6476,23 @@ bool str_replace_last_n(
   if (required_dst_capacity)
     *required_dst_capacity = required_dst_buffer_size;
 
-  if (dst_capacity_in_number_of_characters < required_dst_buffer_size)
-    return false;
-
-  std::basic_string_view<char_type> replace_sv{};
-  std::basic_string<char_type> replace_str{};
-
-  if constexpr (is_valid_char_type_v<V>) {
-    replace_str.assign(1, replace);
-    replace_sv = replace_str;
+  if constexpr (is_char_pointer_type_v<V>) {
+    if (nullptr == replace)
+      return 0U;
   }
 
-  else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-    if (nullptr != replace)
-      replace_sv = {replace, replace_len};
+  if (dst_capacity_in_number_of_characters < required_dst_buffer_size)
+    return 0U;
+
+  char_type replace_buffer[2]{};
+  std::basic_string_view<char_type> replace_sv{replace_buffer, 0U};
+
+  if constexpr (is_char_pointer_type_v<V> || is_const_char_array_type_v<V>)
+    replace_sv = {replace, replace_len};
+
+  else if constexpr (is_valid_char_type_v<V>) {
+    replace_buffer[0] = replace;
+    replace_sv = {replace_buffer, 1U};
   }
 
   else
@@ -6433,7 +6516,7 @@ bool str_replace_last_n(
   buffer.copy(dst, buffer.length());
   dst[buffer.length()] = static_cast<char_type>('\0');
 
-  return true;
+  return needle_start_positions.size();
 }
 
 template <
@@ -6485,12 +6568,12 @@ std::basic_string<get_char_type_t<T>> str_replace_last_n(
     return std::basic_string<char_type>{std::cbegin(dst_sv), std::cend(dst_sv)};
   }
 
-  std::basic_string_view<char_type> needle_sv{};
-  std::basic_string<char_type> needle_str{};
+  char_type needle_buffer[2]{};
+  std::basic_string_view<char_type> needle_sv{needle_buffer, 0U};
 
   if constexpr (is_valid_char_type_v<U>) {
-    needle_str.assign(1, needle);
-    needle_sv = needle_str;
+    needle_buffer[0] = needle;
+    needle_sv = {needle_buffer, 1U};
   } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
@@ -6521,17 +6604,21 @@ std::basic_string<get_char_type_t<T>> str_replace_last_n(
   if (required_dst_capacity)
     *required_dst_capacity = required_dst_buffer_size;
 
-  std::basic_string_view<char_type> replace_sv{};
-  std::basic_string<char_type> replace_str{};
-
-  if constexpr (is_valid_char_type_v<V>) {
-    replace_str.assign(1, replace);
-    replace_sv = replace_str;
+  if constexpr (is_char_pointer_type_v<V>) {
+    if (nullptr == replace)
+      return std::basic_string<char_type>{std::cbegin(dst_sv),
+                                          std::cend(dst_sv)};
   }
 
-  else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-    if (nullptr != replace)
-      replace_sv = {replace, replace_len};
+  char_type replace_buffer[2]{};
+  std::basic_string_view<char_type> replace_sv{replace_buffer, 0U};
+
+  if constexpr (is_char_pointer_type_v<V> || is_const_char_array_type_v<V>)
+    replace_sv = {replace, replace_len};
+
+  else if constexpr (is_valid_char_type_v<V>) {
+    replace_buffer[0] = replace;
+    replace_sv = {replace_buffer, 1U};
   }
 
   else
@@ -6572,7 +6659,7 @@ template <
                    is_char_array_type_v<V>)&&is_all_of_v<get_char_type_t<T>,
                                                          get_char_type_t<U>,
                                                          get_char_type_t<V>>>>
-bool str_replace_last_n(
+size_t str_replace_last_n(
     T& dst,
     const U& needle,
     const V& replace,
@@ -6589,15 +6676,15 @@ bool str_replace_last_n(
   if (0U == dst_len || 0U == needle_len || needle_len > dst_len) {
     if (required_dst_capacity)
       *required_dst_capacity = dst_len + 1;
-    return false;
+    return 0U;
   }
   std::basic_string_view<char_type> dst_sv{dst};
-  std::basic_string_view<char_type> needle_sv{};
-  std::basic_string<char_type> needle_str{};
+  char_type needle_buffer[2]{};
+  std::basic_string_view<char_type> needle_sv{needle_buffer, 0U};
 
   if constexpr (is_valid_char_type_v<U>) {
-    needle_str.assign(1, needle);
-    needle_sv = needle_str;
+    needle_buffer[0] = needle;
+    needle_sv = {needle_buffer, 1U};
   } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else
@@ -6628,17 +6715,15 @@ bool str_replace_last_n(
   if (required_dst_capacity)
     *required_dst_capacity = required_dst_buffer_size;
 
-  std::basic_string_view<char_type> replace_sv{};
-  std::basic_string<char_type> replace_str{};
+  char_type replace_buffer[2]{};
+  std::basic_string_view<char_type> replace_sv{replace_buffer, 0U};
 
-  if constexpr (is_valid_char_type_v<V>) {
-    replace_str.assign(1, replace);
-    replace_sv = replace_str;
-  }
+  if constexpr (is_char_pointer_type_v<V> || is_const_char_array_type_v<V>)
+    replace_sv = {replace, replace_len};
 
-  else if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-    if (nullptr != replace)
-      replace_sv = {replace, replace_len};
+  else if constexpr (is_valid_char_type_v<V>) {
+    replace_buffer[0] = replace;
+    replace_sv = {replace_buffer, 1U};
   }
 
   else
@@ -6663,7 +6748,7 @@ bool str_replace_last_n(
 
   dst = std::move(buffer);
 
-  return true;
+  return needle_start_positions.size();
 }
 
 template <typename T,

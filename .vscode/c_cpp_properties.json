@@ -1,7 +1,7 @@
 {
     "configurations": [
         {
-            "name": "Win32",
+            "name": "MinGW",
             "intelliSenseMode": "gcc-x64",
             "includePath": [
                 "${workspaceRoot}/**}",
@@ -38,10 +38,11 @@
                 "-Ofast"
             ],
             "cppStandard": "c++17",
-            "cStandard": "c11"
+            "cStandard": "c11",
+            "configurationProvider": "vector-of-bool.cmake-tools"
         },
         {
-            "name": "MinGW",
+            "name": "MSYS64",
             "intelliSenseMode": "gcc-x64",
             "includePath": [
                 "${workspaceRoot}/**",
