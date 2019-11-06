@@ -1,7 +1,7 @@
 #define CATCH_CONFIG_MAIN
 
-#include "..\include\catch.hpp"
-#include "..\include\stl_helper_functions.hpp"
+#include "../include/catch.hpp"
+#include "../include/stl_helper_functions.hpp"
 
 #if defined(_MSC_VER)
 #include <crtdbg.h>
@@ -1569,29 +1569,31 @@ TEST_CASE(
                     pair<const string, int>{"fifteen"s, 15}));
 }
 
-// TEST_CASE(
-//    "typename StringType::size_type index_of(const StringType& text,
-// const typename StringType::value_type needle_char, const size_t start_pos =
-// 0u, bool ignore_case = false,\ const std::locale& loc = std::locale{})"
-//    ,
-//    "Testing global template function typename StringType::size_type
-// index_of(const StringType& text, const typename StringType::value_type
-// needle_char, const size_t start_pos = 0u, bool ignore_case = false,\ const
-// std::locale& loc = std::locale{})"
-//)
-//{
-//    const wstring
-// src{L"apple,banana,cabbage,lemon,orange,pepper,plum"};
-//
-//    wstring::size_type correct_index = src.find(L'b');
-//
-//    REQUIRE(index_of(src, L'b') == correct_index);
-//
-//    correct_index = src.find(L'b');
-//
-//    REQUIRE(index_of(src, L'B', 0, true) == correct_index);
-//}
-//
+TEST_CASE(
+    "std::basic_string<get_char_type<T>> substr(const T& src, const size_t "
+    "start_pos, size_t character_count = std::numeric_limits<size_t>::max())",
+    "Testing substr global function template") {
+  const string expected_result1{"World"};
+  const wstring expected_result2{L"World"};
+  const u16string expected_result3{u"World"};
+  const u32string expected_result4{U"World"};
+
+  string actual_result1 = substr("Hello World!", 6U, 5U);
+  REQUIRE(actual_result1 == expected_result1);
+
+  const wchar_t* wcstr = L"Hello World!";
+  wstring actual_result2 = substr(wcstr, 6U, 5U);
+  REQUIRE(actual_result2 == expected_result2);
+
+  const u16string u16src_str{u"Hello World!"};
+  u16string actual_result3 = substr(u16src_str, 6U, 5U);
+  REQUIRE(actual_result3 == expected_result3);
+
+  const u32string_view u32src_sv{U"Hello World!"};
+  u32string actual_result4 = substr(u32src_sv, 6U, 5U);
+  REQUIRE(actual_result4 == expected_result4);
+}
+
 // TEST_CASE(
 //    "typename StringType::size_type index_of(const StringType& text,
 // const typename StringType::const_pointer needle, const size_t start_pos = 0u,

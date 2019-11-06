@@ -1,6 +1,6 @@
 
 #include <gtest/gtest.h>
-#include "..\include\stl_helper_functions.hpp"
+#include "../include/stl_helper_functions.hpp"
 
 #if defined(_MSC_VER)
 #include <crtdbg.h>

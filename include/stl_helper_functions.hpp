@@ -3214,11 +3214,11 @@ template <typename T,
                                           is_char_pointer_type_v<U> ||
                                           is_char_array_type_v<U>)&&std::
                   is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
-std::basic_string<get_char_type<T>> str_append_n(
+std::basic_string<get_char_type_t<T>> str_append_n(
     const T& dst,
     const U& src,
     size_t number_of_characters_to_append =
-        std::basic_string<get_char_type<T>>::npos,
+        std::basic_string<get_char_type_t<T>>::npos,
     size_t* required_dst_capacity = nullptr) {
   using char_type = get_char_type_t<T>;
   const size_t dst_len{len(dst)};
@@ -3271,7 +3271,7 @@ template <typename T,
 size_t str_append_n(T& dst,
                     const U& src,
                     size_t number_of_characters_to_append =
-                        std::basic_string<get_char_type<T>>::npos,
+                        std::basic_string<get_char_type_t<T>>::npos,
                     size_t* required_dst_capacity = nullptr) {
   using char_type = get_char_type_t<T>;
   const size_t src_len{len(src)};
@@ -4148,6 +4148,33 @@ void str_insert_n(T& dst,
 
   dst.insert(std::begin(dst) + position_index_in_dst, std::cbegin(src_sv),
              std::cbegin(src_sv) + number_of_characters_to_insert);
+}
+
+template <typename T,
+          typename = std::enable_if_t<
+              is_valid_string_type_v<T> || is_valid_string_view_type_v<T> ||
+              is_char_pointer_type_v<T> || is_char_array_type_v<T>>>
+std::basic_string<get_char_type_t<T>> substr(
+    const T& src,
+    const size_t start_pos,
+    size_t character_count = std::numeric_limits<size_t>::max()) {
+  using char_type = get_char_type_t<T>;
+  const size_t src_len{len(src)};
+  if (start_pos >= src_len)
+    return {};
+
+  if (start_pos + character_count > src_len)
+    character_count = src_len - start_pos;
+
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_char_pointer_type_v<T> || is_char_array_type_v<T>)
+    src_sv = {src, src_len};
+  else
+    src_sv = src;
+
+  return {cbegin(src_sv) + start_pos,
+          cbegin(src_sv) + start_pos + character_count};
 }
 
 template <
