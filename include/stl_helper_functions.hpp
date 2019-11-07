@@ -1590,12 +1590,11 @@ template <
                   is_valid_string_type_v<U> || is_valid_string_view_type_v<U> ||
                   is_valid_char_type_v<U>)&&std::is_same_v<get_char_type_t<T>,
                                                            get_char_type_t<U>>>>
-typename std::basic_string<get_char_type_t<T>>::size_type str_index_of(
-    const T& src,
-    const U& needle,
-    const size_t start_pos = 0U,
-    const bool ignore_case = false,
-    const std::locale& loc = std::locale{}) {
+size_t str_index_of(const T& src,
+                    const U& needle,
+                    const size_t start_pos = 0U,
+                    const bool ignore_case = false,
+                    const std::locale& loc = std::locale{}) {
   using char_type = get_char_type_t<T>;
 
   const size_t src_len{len(src)};
@@ -1670,6 +1669,96 @@ typename std::basic_string<get_char_type_t<T>>::size_type str_index_of(
 
     return src_lc.find(needle_lc, start_pos);
   }
+}
+
+template <typename T, typename = std::enable_if_t<is_valid_char_type_v<T>>>
+std::vector<size_t> str_find_all_of_impl(std::basic_string_view<T> src_sv,
+                                         std::basic_string_view<T> needle_sv,
+                                         const size_t start_pos = 0U) {
+  std::vector<size_t> start_indices{};
+  size_t search_pos{start_pos};
+  const size_t not_found_index{std::basic_string_view<T>::npos};
+
+  while (search_pos <= src_sv.length() - needle_sv.length()) {
+    search_pos = src_sv.find(needle_sv, search_pos);
+    if (not_found_index == search_pos)
+      break;
+    start_indices.emplace_back(search_pos);
+    search_pos += needle_sv.length();
+  }
+
+  return start_indices;
+}
+
+template <
+    typename T,
+    typename U,
+    typename = std::enable_if_t<(
+        is_char_array_type_v<T> || is_char_pointer_type_v<T> ||
+        is_valid_string_type_v<T> ||
+        is_valid_string_view_type_v<
+            T>)&&(is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
+                  is_valid_string_type_v<U> || is_valid_string_view_type_v<U> ||
+                  is_valid_char_type_v<U>)&&std::is_same_v<get_char_type_t<T>,
+                                                           get_char_type_t<U>>>>
+std::vector<size_t> str_find_all_of(const T& src,
+                                    const U& needle,
+                                    const size_t start_pos = 0U,
+                                    const bool ignore_case = false,
+                                    const std::locale& loc = std::locale{}) {
+  using char_type = get_char_type_t<T>;
+
+  const size_t src_len{len(src)};
+  const size_t needle_len{len(needle)};
+
+  if (0U == src_len || 0U == needle_len || needle_len > src_len)
+    return {};
+
+  std::basic_string_view<char_type> src_sv{};
+
+  if constexpr (is_char_pointer_type_v<T> || is_char_array_type_v<T>)
+    src_sv = {src, src_len};
+  else
+    src_sv = src;
+
+  char_type needle_buffer[2]{};
+  std::basic_string_view<char_type> needle_sv{};
+
+  if constexpr (is_valid_char_type_v<U>) {
+    needle_buffer[0] = needle;
+    needle_sv = {needle_buffer, 1U};
+  } else if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
+    needle_sv = {needle, needle_len};
+  else
+    needle_sv = needle;
+
+  if (!ignore_case)
+    return str_find_all_of_impl(src_sv, needle_sv, start_pos);
+
+  std::basic_string<char_type> src_lc{src_sv};
+  std::basic_string<char_type> needle_lc{needle_sv};
+
+  if (std::has_facet<std::ctype<char_type>>(loc)) {
+    const auto& f = std::use_facet<std::ctype<char_type>>(loc);
+    std::transform(std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
+                   [&f](const auto ch) { return f.tolower(ch); });
+    std::transform(std::cbegin(needle_lc), std::cend(needle_lc),
+                   std::begin(needle_lc),
+                   [&f](const auto ch) { return f.tolower(ch); });
+
+  } else {
+    std::transform(
+        std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
+        [](const auto ch) { return static_cast<char_type>(std::tolower(ch)); });
+    std::transform(
+        std::cbegin(needle_lc), std::cend(needle_lc), std::begin(needle_lc),
+        [](const auto ch) { return static_cast<char_type>(std::tolower(ch)); });
+  }
+
+  src_sv = src_lc;
+  needle_sv = needle_lc;
+
+  return str_find_all_of_impl(src_sv, needle_sv, start_pos);
 }
 
 template <typename SrcIterType,
@@ -4163,7 +4252,7 @@ std::basic_string<get_char_type_t<T>> substr(
   if (start_pos >= src_len)
     return {};
 
-  if (start_pos + character_count > src_len)
+  if (src_len - start_pos < character_count)
     character_count = src_len - start_pos;
 
   std::basic_string_view<char_type> src_sv{};
