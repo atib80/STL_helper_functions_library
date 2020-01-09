@@ -400,10 +400,15 @@ class run_at_scope_exit {
   template <typename RunnableObject>
   explicit run_at_scope_exit(RunnableObject&& callable_object)
       : callable{std::forward<RunnableObject>(callable_object)} {}
+
   run_at_scope_exit(const run_at_scope_exit&) = delete;
+
   run_at_scope_exit(run_at_scope_exit&&) = delete;
+
   run_at_scope_exit& operator=(const run_at_scope_exit&) = delete;
+
   run_at_scope_exit& operator=(run_at_scope_exit&&) = delete;
+
   ~run_at_scope_exit() { callable(); }
 };
 
@@ -428,10 +433,15 @@ class run_task_at_scope_exit {
   template <typename... RunnableObjects>
   explicit run_task_at_scope_exit(RunnableObjects&&... callable_objects)
       : callable_tasks{std::forward<RunnableObjects>(callable_objects)...} {}
+
   run_task_at_scope_exit(const run_task_at_scope_exit&) = delete;
+
   run_task_at_scope_exit(run_task_at_scope_exit&&) = delete;
+
   run_task_at_scope_exit& operator=(const run_task_at_scope_exit&) = delete;
+
   run_task_at_scope_exit& operator=(run_task_at_scope_exit&&) = delete;
+
   ~run_task_at_scope_exit() {
     for (auto& task : callable_tasks)
       task();
@@ -880,9 +890,7 @@ constexpr size_t len(T src) {
   if constexpr (is_valid_char_type_v<T>) {
     unused_args(src);
     return 1U;
-  }
-
-  else if constexpr (is_valid_string_view_type_v<T>)
+  } else if constexpr (is_valid_string_view_type_v<T>)
     return src.length();
 
   else {
@@ -2197,9 +2205,7 @@ bool has_value(const ContainerType& container, const ValueType& value) {
     return std::any_of(std::cbegin(container), std::cend(container),
                        [&value](const auto& p) { return p.second == value; });
 
-  }
-
-  else if constexpr (has_key_type_v<ContainerType>) {
+  } else if constexpr (has_key_type_v<ContainerType>) {
     return std::cend(container) != container.find(value);
 
   } else if constexpr (has_value_type_v<ContainerType> &&
@@ -4571,9 +4577,7 @@ std::basic_string<get_char_type_t<T>> str_replace_first(
   else if constexpr (is_valid_char_type_v<V>) {
     replace_buffer[0] = replace;
     replace_sv = {replace_buffer, 1U};
-  }
-
-  else
+  } else
     replace_sv = replace;
 
   str.replace(start_pos, needle_len, replace_sv);
@@ -4663,9 +4667,7 @@ size_t str_replace_first(
   else if constexpr (is_valid_char_type_v<V>) {
     replace_buffer[0] = replace;
     replace_sv = {replace_buffer, 1U};
-  }
-
-  else
+  } else
     replace_sv = replace;
 
   dst.replace(start_pos, needle_len, replace_sv);
@@ -4998,9 +5000,7 @@ std::basic_string<get_char_type_t<T>> str_replace_nth(
   else if constexpr (is_valid_char_type_v<V>) {
     replace_buffer[0] = replace;
     replace_sv = {replace_buffer, 1U};
-  }
-
-  else
+  } else
     replace_sv = replace;
 
   str.replace(nth_needle_pos, needle_len, replace_sv);
@@ -5093,9 +5093,7 @@ size_t str_replace_nth(T& dst,
   else if constexpr (is_valid_char_type_v<V>) {
     replace_buffer[0] = replace;
     replace_sv = {replace_buffer, 1U};
-  }
-
-  else
+  } else
     replace_sv = replace;
 
   dst.replace(nth_needle_pos, needle_len, replace_sv);
@@ -5412,9 +5410,7 @@ std::basic_string<get_char_type_t<T>> str_replace_last(
   else if constexpr (is_valid_char_type_v<V>) {
     replace_buffer[0] = replace;
     replace_sv = {replace_buffer, 1U};
-  }
-
-  else
+  } else
     replace_sv = replace;
 
   str.replace(last_needle_pos, needle_len, replace_sv);
@@ -5705,9 +5701,7 @@ size_t str_replace_all(T dst,
   else if constexpr (is_valid_char_type_v<V>) {
     replace_buffer[0] = replace;
     replace_sv = {replace_buffer, 1U};
-  }
-
-  else
+  } else
     replace_sv = replace;
 
   std::basic_string<char_type> buffer{};
@@ -5832,9 +5826,7 @@ std::basic_string<get_char_type_t<T>> str_replace_all(
   else if constexpr (is_valid_char_type_v<V>) {
     replace_buffer[0] = replace;
     replace_sv = {replace_buffer, 1U};
-  }
-
-  else
+  } else
     replace_sv = replace;
 
   std::basic_string<char_type> buffer{};
@@ -5941,9 +5933,7 @@ size_t str_replace_all(T& dst,
   else if constexpr (is_valid_char_type_v<V>) {
     replace_buffer[0] = replace;
     replace_sv = {replace_buffer, 1U};
-  }
-
-  else
+  } else
     replace_sv = replace;
 
   std::basic_string<char_type> buffer{};
@@ -6055,9 +6045,7 @@ size_t str_replace_first_n(
   else if constexpr (is_valid_char_type_v<V>) {
     replace_buffer[0] = replace;
     replace_sv = {replace_buffer, 1U};
-  }
-
-  else
+  } else
     replace_sv = replace;
 
   std::basic_string<char_type> buffer{};
@@ -6168,9 +6156,7 @@ size_t str_replace_first_n(
   else if constexpr (is_valid_char_type_v<V>) {
     replace_buffer[0] = replace;
     replace_sv = {replace_buffer, 1U};
-  }
-
-  else
+  } else
     replace_sv = replace;
 
   std::basic_string<char_type> buffer{};
@@ -6296,9 +6282,7 @@ std::basic_string<get_char_type_t<T>> str_replace_first_n(
   else if constexpr (is_valid_char_type_v<V>) {
     replace_buffer[0] = replace;
     replace_sv = {replace_buffer, 1U};
-  }
-
-  else
+  } else
     replace_sv = replace;
 
   std::basic_string<char_type> buffer{};
@@ -6407,9 +6391,7 @@ size_t str_replace_first_n(
   else if constexpr (is_valid_char_type_v<V>) {
     replace_buffer[0] = replace;
     replace_sv = {replace_buffer, 1U};
-  }
-
-  else
+  } else
     replace_sv = replace;
 
   std::basic_string<char_type> buffer{};
@@ -6524,9 +6506,7 @@ size_t str_replace_last_n(
   else if constexpr (is_valid_char_type_v<V>) {
     replace_buffer[0] = replace;
     replace_sv = {replace_buffer, 1U};
-  }
-
-  else
+  } else
     replace_sv = replace;
 
   std::basic_string<char_type> buffer{};
@@ -6640,9 +6620,7 @@ size_t str_replace_last_n(
   else if constexpr (is_valid_char_type_v<V>) {
     replace_buffer[0] = replace;
     replace_sv = {replace_buffer, 1U};
-  }
-
-  else
+  } else
     replace_sv = replace;
 
   std::basic_string<char_type> buffer{};
@@ -6770,9 +6748,7 @@ std::basic_string<get_char_type_t<T>> str_replace_last_n(
   else if constexpr (is_valid_char_type_v<V>) {
     replace_buffer[0] = replace;
     replace_sv = {replace_buffer, 1U};
-  }
-
-  else
+  } else
     replace_sv = replace;
 
   std::basic_string<char_type> buffer{};
@@ -6878,9 +6854,7 @@ size_t str_replace_last_n(
   else if constexpr (is_valid_char_type_v<V>) {
     replace_buffer[0] = replace;
     replace_sv = {replace_buffer, 1U};
-  }
-
-  else
+  } else
     replace_sv = replace;
 
   std::basic_string<char_type> buffer{};
@@ -10247,11 +10221,9 @@ float stof(const T& src,
             fractional_part_position_index = -1;
           } else
             found_invalid_character = true;
-        }
-
-        else if (!exponential_sign_found &&
-                 (src_sv[i] == static_cast<char_type>('e') ||
-                  src_sv[i] == static_cast<char_type>('E')))
+        } else if (!exponential_sign_found &&
+                   (src_sv[i] == static_cast<char_type>('e') ||
+                    src_sv[i] == static_cast<char_type>('E')))
           exponential_sign_found = true;
 
         else if (exponential_sign_found &&
@@ -10261,10 +10233,8 @@ float stof(const T& src,
             found_invalid_character = true;
 
           exponential_part_value = 0;
-        }
-
-        else if (exponential_sign_found &&
-                 src_sv[i] == static_cast<char_type>('-')) {
+        } else if (exponential_sign_found &&
+                   src_sv[i] == static_cast<char_type>('-')) {
           if (src_sv[i - 1] != static_cast<char_type>('e') &&
               src_sv[i - 1] != static_cast<char_type>('E'))
             found_invalid_character = true;
@@ -10272,10 +10242,8 @@ float stof(const T& src,
             negative_exponent_sign_found = true;
 
           exponential_part_value = 0;
-        }
-
-        else if (exponential_sign_found && exponent_leading_zero_values &&
-                 src_sv[i] == static_cast<char_type>('0'))
+        } else if (exponential_sign_found && exponent_leading_zero_values &&
+                   src_sv[i] == static_cast<char_type>('0'))
           exponential_part_value = 0;
 
         else if (src_sv[i] < static_cast<char_type>('0') ||
@@ -10325,11 +10293,9 @@ float stof(const T& src,
             fractional_part_position_index = -1;
           } else
             found_invalid_character = true;
-        }
-
-        else if (!exponential_sign_found &&
-                 (src_sv[i] == static_cast<char_type>('e') ||
-                  src_sv[i] == static_cast<char_type>('E')))
+        } else if (!exponential_sign_found &&
+                   (src_sv[i] == static_cast<char_type>('e') ||
+                    src_sv[i] == static_cast<char_type>('E')))
           exponential_sign_found = true;
 
         else if (exponential_sign_found &&
@@ -10338,20 +10304,16 @@ float stof(const T& src,
               src_sv[i - 1] != static_cast<char_type>('E'))
             found_invalid_character = true;
           exponential_part_value = 0;
-        }
-
-        else if (exponential_sign_found &&
-                 src_sv[i] == static_cast<char_type>('-')) {
+        } else if (exponential_sign_found &&
+                   src_sv[i] == static_cast<char_type>('-')) {
           if (src_sv[i - 1] != static_cast<char_type>('e') &&
               src_sv[i - 1] != static_cast<char_type>('E'))
             found_invalid_character = true;
           else
             negative_exponent_sign_found = true;
           exponential_part_value = 0;
-        }
-
-        else if (exponential_sign_found && exponent_leading_zero_values &&
-                 src_sv[i] == static_cast<char_type>('0'))
+        } else if (exponential_sign_found && exponent_leading_zero_values &&
+                   src_sv[i] == static_cast<char_type>('0'))
           exponential_part_value = 0;
 
         else if (src_sv[i] < static_cast<char_type>('0') ||
@@ -10400,11 +10362,9 @@ float stof(const T& src,
             fractional_part_position_index = -1;
           } else
             found_invalid_character = true;
-        }
-
-        else if (!exponential_sign_found &&
-                 (src_sv[i] == static_cast<char_type>('e') ||
-                  src_sv[i] == static_cast<char_type>('E')))
+        } else if (!exponential_sign_found &&
+                   (src_sv[i] == static_cast<char_type>('e') ||
+                    src_sv[i] == static_cast<char_type>('E')))
           exponential_sign_found = true;
 
         else if (exponential_sign_found &&
@@ -10413,20 +10373,16 @@ float stof(const T& src,
               src_sv[i - 1] != static_cast<char_type>('E'))
             found_invalid_character = true;
           exponential_part_value = 0;
-        }
-
-        else if (exponential_sign_found &&
-                 src_sv[i] == static_cast<char_type>('-')) {
+        } else if (exponential_sign_found &&
+                   src_sv[i] == static_cast<char_type>('-')) {
           if (src_sv[i - 1] != static_cast<char_type>('e') &&
               src_sv[i - 1] != static_cast<char_type>('E'))
             found_invalid_character = true;
           else
             negative_exponent_sign_found = true;
           exponential_part_value = 0;
-        }
-
-        else if (exponential_sign_found && exponent_leading_zero_values &&
-                 src_sv[i] == static_cast<char_type>('0'))
+        } else if (exponential_sign_found && exponent_leading_zero_values &&
+                   src_sv[i] == static_cast<char_type>('0'))
           exponential_part_value = 0;
         else if (src_sv[i] < static_cast<char_type>('0') ||
                  src_sv[i] > static_cast<char_type>('9'))
@@ -10695,11 +10651,9 @@ double stod(const T& src,
             fractional_part_position_index = -1;
           } else
             found_invalid_character = true;
-        }
-
-        else if (!exponential_sign_found &&
-                 (src_sv[i] == static_cast<char_type>('e') ||
-                  src_sv[i] == static_cast<char_type>('E')))
+        } else if (!exponential_sign_found &&
+                   (src_sv[i] == static_cast<char_type>('e') ||
+                    src_sv[i] == static_cast<char_type>('E')))
           exponential_sign_found = true;
 
         else if (exponential_sign_found &&
@@ -10709,10 +10663,8 @@ double stod(const T& src,
             found_invalid_character = true;
 
           exponential_part_value = 0;
-        }
-
-        else if (exponential_sign_found &&
-                 src_sv[i] == static_cast<char_type>('-')) {
+        } else if (exponential_sign_found &&
+                   src_sv[i] == static_cast<char_type>('-')) {
           if (src_sv[i - 1] != static_cast<char_type>('e') &&
               src_sv[i - 1] != static_cast<char_type>('E'))
             found_invalid_character = true;
@@ -10720,10 +10672,8 @@ double stod(const T& src,
             negative_exponent_sign_found = true;
 
           exponential_part_value = 0;
-        }
-
-        else if (exponential_sign_found && exponent_leading_zero_values &&
-                 src_sv[i] == static_cast<char_type>('0'))
+        } else if (exponential_sign_found && exponent_leading_zero_values &&
+                   src_sv[i] == static_cast<char_type>('0'))
           exponential_part_value = 0;
 
         else if (src_sv[i] < static_cast<char_type>('0') ||
@@ -10773,11 +10723,9 @@ double stod(const T& src,
             fractional_part_position_index = -1;
           } else
             found_invalid_character = true;
-        }
-
-        else if (!exponential_sign_found &&
-                 (src_sv[i] == static_cast<char_type>('e') ||
-                  src_sv[i] == static_cast<char_type>('E')))
+        } else if (!exponential_sign_found &&
+                   (src_sv[i] == static_cast<char_type>('e') ||
+                    src_sv[i] == static_cast<char_type>('E')))
           exponential_sign_found = true;
 
         else if (exponential_sign_found &&
@@ -10786,20 +10734,16 @@ double stod(const T& src,
               src_sv[i - 1] != static_cast<char_type>('E'))
             found_invalid_character = true;
           exponential_part_value = 0;
-        }
-
-        else if (exponential_sign_found &&
-                 src_sv[i] == static_cast<char_type>('-')) {
+        } else if (exponential_sign_found &&
+                   src_sv[i] == static_cast<char_type>('-')) {
           if (src_sv[i - 1] != static_cast<char_type>('e') &&
               src_sv[i - 1] != static_cast<char_type>('E'))
             found_invalid_character = true;
           else
             negative_exponent_sign_found = true;
           exponential_part_value = 0;
-        }
-
-        else if (exponential_sign_found && exponent_leading_zero_values &&
-                 src_sv[i] == static_cast<char_type>('0'))
+        } else if (exponential_sign_found && exponent_leading_zero_values &&
+                   src_sv[i] == static_cast<char_type>('0'))
           exponential_part_value = 0;
 
         else if (src_sv[i] < static_cast<char_type>('0') ||
@@ -10848,11 +10792,9 @@ double stod(const T& src,
             fractional_part_position_index = -1;
           } else
             found_invalid_character = true;
-        }
-
-        else if (!exponential_sign_found &&
-                 (src_sv[i] == static_cast<char_type>('e') ||
-                  src_sv[i] == static_cast<char_type>('E')))
+        } else if (!exponential_sign_found &&
+                   (src_sv[i] == static_cast<char_type>('e') ||
+                    src_sv[i] == static_cast<char_type>('E')))
           exponential_sign_found = true;
 
         else if (exponential_sign_found &&
@@ -10861,20 +10803,16 @@ double stod(const T& src,
               src_sv[i - 1] != static_cast<char_type>('E'))
             found_invalid_character = true;
           exponential_part_value = 0;
-        }
-
-        else if (exponential_sign_found &&
-                 src_sv[i] == static_cast<char_type>('-')) {
+        } else if (exponential_sign_found &&
+                   src_sv[i] == static_cast<char_type>('-')) {
           if (src_sv[i - 1] != static_cast<char_type>('e') &&
               src_sv[i - 1] != static_cast<char_type>('E'))
             found_invalid_character = true;
           else
             negative_exponent_sign_found = true;
           exponential_part_value = 0;
-        }
-
-        else if (exponential_sign_found && exponent_leading_zero_values &&
-                 src_sv[i] == static_cast<char_type>('0'))
+        } else if (exponential_sign_found && exponent_leading_zero_values &&
+                   src_sv[i] == static_cast<char_type>('0'))
           exponential_part_value = 0;
         else if (src_sv[i] < static_cast<char_type>('0') ||
                  src_sv[i] > static_cast<char_type>('9'))
@@ -11144,11 +11082,9 @@ long double stold(const T& src,
             fractional_part_position_index = -1;
           } else
             found_invalid_character = true;
-        }
-
-        else if (!exponential_sign_found &&
-                 (src_sv[i] == static_cast<char_type>('e') ||
-                  src_sv[i] == static_cast<char_type>('E')))
+        } else if (!exponential_sign_found &&
+                   (src_sv[i] == static_cast<char_type>('e') ||
+                    src_sv[i] == static_cast<char_type>('E')))
           exponential_sign_found = true;
 
         else if (exponential_sign_found &&
@@ -11158,10 +11094,8 @@ long double stold(const T& src,
             found_invalid_character = true;
 
           exponential_part_value = 0;
-        }
-
-        else if (exponential_sign_found &&
-                 src_sv[i] == static_cast<char_type>('-')) {
+        } else if (exponential_sign_found &&
+                   src_sv[i] == static_cast<char_type>('-')) {
           if (src_sv[i - 1] != static_cast<char_type>('e') &&
               src_sv[i - 1] != static_cast<char_type>('E'))
             found_invalid_character = true;
@@ -11169,10 +11103,8 @@ long double stold(const T& src,
             negative_exponent_sign_found = true;
 
           exponential_part_value = 0;
-        }
-
-        else if (exponential_sign_found && exponent_leading_zero_values &&
-                 src_sv[i] == static_cast<char_type>('0'))
+        } else if (exponential_sign_found && exponent_leading_zero_values &&
+                   src_sv[i] == static_cast<char_type>('0'))
           exponential_part_value = 0;
 
         else if (src_sv[i] < static_cast<char_type>('0') ||
@@ -11222,11 +11154,9 @@ long double stold(const T& src,
             fractional_part_position_index = -1;
           } else
             found_invalid_character = true;
-        }
-
-        else if (!exponential_sign_found &&
-                 (src_sv[i] == static_cast<char_type>('e') ||
-                  src_sv[i] == static_cast<char_type>('E')))
+        } else if (!exponential_sign_found &&
+                   (src_sv[i] == static_cast<char_type>('e') ||
+                    src_sv[i] == static_cast<char_type>('E')))
           exponential_sign_found = true;
 
         else if (exponential_sign_found &&
@@ -11235,20 +11165,16 @@ long double stold(const T& src,
               src_sv[i - 1] != static_cast<char_type>('E'))
             found_invalid_character = true;
           exponential_part_value = 0;
-        }
-
-        else if (exponential_sign_found &&
-                 src_sv[i] == static_cast<char_type>('-')) {
+        } else if (exponential_sign_found &&
+                   src_sv[i] == static_cast<char_type>('-')) {
           if (src_sv[i - 1] != static_cast<char_type>('e') &&
               src_sv[i - 1] != static_cast<char_type>('E'))
             found_invalid_character = true;
           else
             negative_exponent_sign_found = true;
           exponential_part_value = 0;
-        }
-
-        else if (exponential_sign_found && exponent_leading_zero_values &&
-                 src_sv[i] == static_cast<char_type>('0'))
+        } else if (exponential_sign_found && exponent_leading_zero_values &&
+                   src_sv[i] == static_cast<char_type>('0'))
           exponential_part_value = 0;
 
         else if (src_sv[i] < static_cast<char_type>('0') ||
@@ -11297,11 +11223,9 @@ long double stold(const T& src,
             fractional_part_position_index = -1;
           } else
             found_invalid_character = true;
-        }
-
-        else if (!exponential_sign_found &&
-                 (src_sv[i] == static_cast<char_type>('e') ||
-                  src_sv[i] == static_cast<char_type>('E')))
+        } else if (!exponential_sign_found &&
+                   (src_sv[i] == static_cast<char_type>('e') ||
+                    src_sv[i] == static_cast<char_type>('E')))
           exponential_sign_found = true;
 
         else if (exponential_sign_found &&
@@ -11310,20 +11234,16 @@ long double stold(const T& src,
               src_sv[i - 1] != static_cast<char_type>('E'))
             found_invalid_character = true;
           exponential_part_value = 0;
-        }
-
-        else if (exponential_sign_found &&
-                 src_sv[i] == static_cast<char_type>('-')) {
+        } else if (exponential_sign_found &&
+                   src_sv[i] == static_cast<char_type>('-')) {
           if (src_sv[i - 1] != static_cast<char_type>('e') &&
               src_sv[i - 1] != static_cast<char_type>('E'))
             found_invalid_character = true;
           else
             negative_exponent_sign_found = true;
           exponential_part_value = 0;
-        }
-
-        else if (exponential_sign_found && exponent_leading_zero_values &&
-                 src_sv[i] == static_cast<char_type>('0'))
+        } else if (exponential_sign_found && exponent_leading_zero_values &&
+                   src_sv[i] == static_cast<char_type>('0'))
           exponential_part_value = 0;
         else if (src_sv[i] < static_cast<char_type>('0') ||
                  src_sv[i] > static_cast<char_type>('9'))
@@ -11457,9 +11377,30 @@ long double stold(const T& src,
   return number_value;
 }
 
+template <typename T, typename = std::enable_if_t<is_valid_char_type_v<T>>>
+std::pair<std::size_t, std::size_t> str_find_first_needle_position(
+    std::basic_string_view<T> src_sv,
+    const std::vector<std::basic_string_view<T>>& needle_parts,
+    const size_t start_pos = 0U) {
+  const size_t not_found_index{std::basic_string_view<T>::npos};
+  size_t first_needle_pos{not_found_index};
+  size_t needle_len{};
+
+  for (const auto& needle_sv : needle_parts) {
+    const size_t needle_start_pos = src_sv.find(needle_sv, start_pos);
+    if (needle_start_pos < first_needle_pos) {
+      first_needle_pos = needle_start_pos;
+      needle_len = needle_sv.length();
+    }
+  }
+
+  return {first_needle_pos, needle_len};
+}
+
 template <
     typename T,
     typename U,
+    typename V,
     typename = std::enable_if_t<(
         is_valid_string_type_v<T> || is_valid_string_view_type_v<T> ||
         is_char_array_type_v<T> ||
@@ -11467,12 +11408,19 @@ template <
             T>)&&(is_valid_string_type_v<U> || is_valid_string_view_type_v<U> ||
                   is_char_array_type_v<U> || is_char_pointer_type_v<U> ||
                   is_valid_char_type_v<
-                      U>)&&(std::is_same_v<get_char_type_t<T>,
-                                           get_char_type_t<U>>)>>
-std::vector<std::basic_string<get_char_type_t<T>>> split(
+                      U>)&&(is_valid_string_type_v<V> ||
+                            is_valid_string_view_type_v<V> ||
+                            is_char_array_type_v<V> ||
+                            is_char_pointer_type_v<V> ||
+                            is_valid_char_type_v<
+                                V>)&&(is_all_of_v<get_char_type_t<T>,
+                                                  get_char_type_t<U>,
+                                                  get_char_type_t<V>>)>>
+std::vector<std::basic_string<get_char_type_t<T>>> str_split(
     const T& src,
     const U& needle,
-    const bool split_on_whole_needle = true,
+    const V& needle_parts_separator_token,
+    const bool split_on_whole_needle = false,
     const bool ignore_empty_string = true,
     size_t const max_count = std::basic_string<get_char_type_t<T>>::npos) {
   using char_type = get_char_type_t<T>;
@@ -11494,7 +11442,7 @@ std::vector<std::basic_string<get_char_type_t<T>>> split(
       return {};
   }
 
-  size_t needle_len{len(needle)};
+  const size_t needle_len{len(needle)};
 
   if (0U == needle_len) {
     const size_t upper_limit{max_count < src_len ? max_count : src_len};
@@ -11505,45 +11453,79 @@ std::vector<std::basic_string<get_char_type_t<T>>> split(
     return parts;
   }
 
-  std::basic_string<char_type> needle_str{};
+  char_type needle_buffer[2]{};
   std::basic_string_view<char_type> needle_sv{};
 
   if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
     needle_sv = {needle, needle_len};
   else if constexpr (is_valid_char_type_v<U>) {
-    needle_str.assign(1U, needle);
-    needle_sv = needle_str;
+    needle_buffer[0U] = needle;
+    needle_sv = {needle_buffer, 1U};
   } else
     needle_sv = needle;
 
-  if (!split_on_whole_needle)
-    needle_len = 1U;
+  char_type needle_parts_separator_token_buffer[2]{};
+  std::basic_string_view<char_type> needle_parts_separator_token_sv{};
+
+  const size_t needle_parts_separator_token_len{
+      len(needle_parts_separator_token)};
+
+  if (needle_parts_separator_token_len > 0U) {
+    if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>)
+      needle_parts_separator_token_sv = {needle_parts_separator_token,
+                                         needle_parts_separator_token_len};
+    else if constexpr (is_valid_char_type_v<V>) {
+      needle_parts_separator_token_buffer[0U] = needle_parts_separator_token;
+      needle_parts_separator_token_sv = {needle_parts_separator_token_buffer,
+                                         1U};
+    } else
+      needle_parts_separator_token_sv = needle_parts_separator_token;
+  }
+
+  std::vector<std::basic_string_view<char_type>> needle_parts{};
+
+  if (needle_parts_separator_token_len > 0U && !split_on_whole_needle) {
+    size_t start_pos{};
+
+    while (true) {
+      const size_t next_pos{
+          needle_sv.find(needle_parts_separator_token_sv, start_pos)};
+
+      if (std::basic_string_view<char_type>::npos == next_pos) {
+        needle_parts.emplace_back(needle_sv.data() + start_pos,
+                                  needle_len - start_pos);
+        break;
+      }
+
+      needle_parts.emplace_back(needle_sv.data() + start_pos,
+                                next_pos - start_pos);
+
+      start_pos = next_pos + needle_parts_separator_token_sv.length();
+    }
+  } else
+    needle_parts.emplace_back(needle_sv);
 
   std::vector<std::basic_string<char_type>> parts{};
   size_t number_of_parts{}, prev{};
 
   while (true) {
-    const size_t current = split_on_whole_needle
-                               ? src_sv.find(needle_sv.data(), prev)
-                               : src_sv.find_first_of(needle_sv.data(), prev);
+    const auto [current, needle_part_len] =
+        str_find_first_needle_position(src_sv, needle_parts, prev);
 
-    if (std::basic_string<char_type>::npos == current)
+    if (std::basic_string_view<char_type>::npos == current ||
+        0U == needle_part_len || parts.size() == max_count)
       break;
 
-    if (parts.size() == max_count)
-      break;
-
-    if (current - prev > 0 || !ignore_empty_string) {
-      if (current - prev > 0)
-        parts.emplace_back(std::cbegin(src_sv) + prev,
-                           std::cbegin(src_sv) + current);
-      else if (!ignore_empty_string)
-        parts.emplace_back();
-
+    if (current - prev > 0U) {
+      parts.emplace_back(std::cbegin(src_sv) + prev,
+                         std::cbegin(src_sv) + current);
+      number_of_parts++;
+    } else if (!ignore_empty_string) {
+      parts.emplace_back();
       number_of_parts++;
     }
 
-    prev = current + needle_len;
+    prev = current + needle_part_len;
 
     if (prev >= src_len)
       break;
@@ -11562,30 +11544,40 @@ std::vector<std::basic_string<get_char_type_t<T>>> split(
 template <
     typename IteratorType,
     typename NeedleType,
+    typename NeedleSeparatorType,
     typename = std::enable_if_t<
         is_valid_char_type_v<
             typename std::iterator_traits<IteratorType>::value_type> &&
-        std::is_same_v<typename std::iterator_traits<IteratorType>::value_type,
-                       get_char_type_t<NeedleType>>>>
+        is_all_of_v<typename std::iterator_traits<IteratorType>::value_type,
+                    get_char_type_t<NeedleType>,
+                    get_char_type_t<NeedleSeparatorType>>>>
 std::vector<
     std::basic_string<typename std::iterator_traits<IteratorType>::value_type>>
-split(IteratorType first,
-      IteratorType last,
-      const NeedleType& needle,
-      const bool split_on_whole_needle = true,
-      const bool ignore_empty_string = true,
-      const size_t max_count = std::numeric_limits<size_t>::max()) {
+str_split_range(IteratorType first,
+                IteratorType last,
+                const NeedleType& needle,
+                const NeedleSeparatorType& needle_parts_separator_token,
+                const bool split_on_whole_needle = false,
+                const bool ignore_empty_string = true,
+                const size_t max_count = std::numeric_limits<size_t>::max()) {
   using char_type = typename std::iterator_traits<IteratorType>::value_type;
 
   const typename std::iterator_traits<IteratorType>::difference_type
       src_distance{std::distance(first, last)};
   if (src_distance <= 0)
     return {};
+
+  if constexpr (is_char_pointer_type_v<NeedleType>) {
+    if (nullptr == needle)
+      return {};
+  }
+
   const size_t src_len{static_cast<size_t>(src_distance)};
-  size_t needle_len{len(needle)};
 
   std::basic_string_view<char_type> src_sv{
       static_cast<const char_type*>(&(*first)), src_len};
+
+  const size_t needle_len{len(needle)};
 
   if (0U == needle_len) {
     const size_t upper_limit{max_count < src_len ? max_count : src_len};
@@ -11596,46 +11588,81 @@ split(IteratorType first,
     return parts;
   }
 
-  std::basic_string<char_type> needle_str{};
+  char_type needle_buffer[2]{};
   std::basic_string_view<char_type> needle_sv{};
 
-  if constexpr (is_char_array_type_v<NeedleType> ||
-                is_char_pointer_type_v<NeedleType>)
+  if constexpr (is_char_pointer_type_v<NeedleType> ||
+                is_char_array_type_v<NeedleType>)
     needle_sv = {needle, needle_len};
   else if constexpr (is_valid_char_type_v<NeedleType>) {
-    needle_str.assign(1, needle);
-    needle_sv = needle_str;
+    needle_buffer[0U] = needle;
+    needle_sv = {needle_buffer, 1U};
   } else
     needle_sv = needle;
 
-  if (!split_on_whole_needle)
-    needle_len = 1U;
+  char_type needle_parts_separator_token_buffer[2]{};
+  std::basic_string_view<char_type> needle_parts_separator_token_sv{};
+
+  std::vector<std::basic_string_view<char_type>> needle_parts{};
+
+  const size_t needle_parts_separator_token_len{
+      len(needle_parts_separator_token)};
+
+  if (needle_parts_separator_token_len > 0U) {
+    if constexpr (is_char_pointer_type_v<NeedleSeparatorType> ||
+                  is_char_array_type_v<NeedleSeparatorType>)
+      needle_parts_separator_token_sv = {needle_parts_separator_token,
+                                         needle_parts_separator_token_len};
+    else if constexpr (is_valid_char_type_v<NeedleSeparatorType>) {
+      needle_parts_separator_token_buffer[0U] = needle_parts_separator_token;
+      needle_parts_separator_token_sv = {needle_parts_separator_token_buffer,
+                                         1U};
+    } else
+      needle_parts_separator_token_sv = needle_parts_separator_token;
+  }
+
+  if (needle_parts_separator_token_len > 0U && !split_on_whole_needle) {
+    size_t start_pos{};
+
+    while (true) {
+      const size_t next_pos{
+          needle_sv.find(needle_parts_separator_token_sv, start_pos)};
+
+      if (std::basic_string_view<char_type>::npos == next_pos) {
+        needle_parts.emplace_back(needle_sv.data() + start_pos,
+                                  needle_len - start_pos);
+        break;
+      }
+
+      needle_parts.emplace_back(needle_sv.data() + start_pos,
+                                next_pos - start_pos);
+
+      start_pos = next_pos + needle_parts_separator_token_sv.length();
+    }
+  } else
+    needle_parts.emplace_back(needle_sv);
 
   std::vector<std::basic_string<char_type>> parts{};
   size_t number_of_parts{}, prev{};
 
   while (true) {
-    const size_t current = split_on_whole_needle
-                               ? src_sv.find(needle_sv.data(), prev)
-                               : src_sv.find_first_of(needle_sv.data(), prev);
+    const auto [current, needle_part_len] =
+        str_find_first_needle_position(src_sv, needle_parts, prev);
 
-    if (std::basic_string<char_type>::npos == current)
+    if (std::basic_string_view<char_type>::npos == current ||
+        0U == needle_part_len || parts.size() == max_count)
       break;
 
-    if (parts.size() == max_count)
-      break;
-
-    if (current - prev > 0 || !ignore_empty_string) {
-      if (current - prev > 0)
-        parts.emplace_back(std::cbegin(src_sv) + prev,
-                           std::cbegin(src_sv) + current);
-      else if (!ignore_empty_string)
-        parts.emplace_back();
-
+    if (current - prev > 0U) {
+      parts.emplace_back(std::cbegin(src_sv) + prev,
+                         std::cbegin(src_sv) + current);
+      number_of_parts++;
+    } else if (!ignore_empty_string) {
+      parts.emplace_back();
       number_of_parts++;
     }
 
-    prev = current + needle_len;
+    prev = current + needle_part_len;
 
     if (prev >= src_len)
       break;
@@ -11651,11 +11678,7 @@ split(IteratorType first,
   return parts;
 }
 
-template <typename SrcIterType,
-          typename DstIterType,
-          std::enable_if_t<check_equality_v<
-              typename std::iterator_traits<SrcIterType>::value_type,
-              typename std::iterator_traits<DstIterType>::value_type>>>
+template <typename SrcIterType, typename DstIterType>
 std::vector<std::pair<SrcIterType, SrcIterType>> split(
     const SrcIterType src_first,
     const SrcIterType src_last,
