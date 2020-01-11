@@ -963,39 +963,44 @@ StringType& str)")
   REQUIRE(dst == u32string{ U"\t Hello World!" });
 }
 */
-TEST_CASE("1. split function template",
-          "std::vector<std::basic_string<char_type>> split(const T& src, const "
-          "U& needle, const bool split_on_whole_needle = true, const bool "
-          "ignore_empty_string = true, const size_t max_count = "
-          "std::basic_string<char_type>::npos)") {
+TEST_CASE(
+    "str_split function template",
+    "std::vector<std::basic_string<char_type>> split(const T& src,"
+    "const U& needle,"
+    "const V& needle_parts_separator_token,"
+    "const bool split_on_whole_needle = false,"
+    "const bool ignore_empty_string = true,"
+    "size_t const max_count = std::basic_string<get_char_type_t<T>>::npos)") {
   const char* source{"apple|banana|cabbage|lemon|orange|pepper|plum"};
-  const auto parts{split(source, '|', true)};
+  const auto parts{str_split(source, "|", "", true)};
 
-  REQUIRE(parts.front() == "apple");
+  REQUIRE(parts.front() == "apple"s);
 
-  REQUIRE(parts[3] == "lemon");
+  REQUIRE(parts[3] == "lemon"s);
 
-  REQUIRE(parts.back() == "plum");
+  REQUIRE(parts.back() == "plum"s);
 }
 
-TEST_CASE("2. split function template",
+TEST_CASE("str_split_range function template",
           "std::vector<std::basic_string<typename "
           "std::iterator_traits<IteratorType>::value_type>> split(IteratorType "
-          "first,teratorType last, const NeedleType& needle, const bool "
-          "split_on_whole_needle = true, const bool ignore_empty_string = "
+          "first, IteratorType last, const NeedleType& needle, const "
+          "NeedleSeparatorType& needle_parts_separator_token, const bool "
+          "split_on_whole_needle = false, const bool ignore_empty_string = "
           "true, const size_t max_count = std::numeric_limits<size_t>::max()") {
-  const wstring source{L"apple|banana|cabbage|lemon|orange|pepper|plum"};
-  const auto parts{split(cbegin(source), cend(source), L'|', true)};
+  const wstring source{L"apple#banana@cabbage<lemon>orange@pepper#plum"};
+  const auto parts{
+      str_split_range(cbegin(source), cend(source), L"<|>|#|@", L"|", false)};
 
-  REQUIRE(parts.front() == L"apple");
+  REQUIRE(parts.front() == L"apple"s);
 
-  REQUIRE(parts[3] == L"lemon");
+  REQUIRE(parts[3] == L"lemon"s);
 
-  REQUIRE(parts.back() == L"plum");
+  REQUIRE(parts.back() == L"plum"s);
 }
 
 TEST_CASE(
-    "3. split function template",
+    "split function template",
     "std::vector<std::pair<SrcIterType, SrcIterType>> split(const SrcIterType "
     "src_first, const SrcIterType src_last, const DstIterType needle_first, "
     "const DstIterType needle_last, const bool split_on_whole_sequence = true, "
@@ -1005,14 +1010,20 @@ TEST_CASE(
       U"apple|-|banana|-|cabbage|-|lemon|-|orange|-|pepper|-|plum"};
   const char32_t needle[]{U"|-|"};
 
-  const auto parts{
-      split(cbegin(source), cend(source), cbegin(needle), cend(needle), true)};
+  const auto parts{split(cbegin(source), cend(source), &needle[0],
+                         &needle[0] + len(needle), true)};
 
-  REQUIRE(parts.front() == U"apple");
+  REQUIRE(parts.size() == 7);
 
-  REQUIRE(parts[3] == U"lemon");
+  const u32string first_str(parts.front().first, parts.front().second);
+  const u32string third_str(parts[3].first, parts[3].second);
+  const u32string last_str(parts.back().first, parts.back().second);
 
-  REQUIRE(parts.back() == U"plum");
+  REQUIRE(str_compare(first_str.c_str(), U"apple") == 0);
+
+  REQUIRE(str_compare(third_str.c_str(), U"lemon") == 0);
+
+  REQUIRE(str_compare(last_str.c_str(), U"plum") == 0);
 }
 
 TEST_CASE("str_starts_with function templates",

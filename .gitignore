@@ -33,7 +33,13 @@
 *.out
 *.app
 
+*.json
+
+
 # custom folders to ignore
-build/
-debug/
-release/
+/build
+/debug
+/release
+/.idea
+/.metals
+/.vscode
