@@ -150,32 +150,6 @@ TEST_CASE("int say(std::wostream&, const wchar_t* format_string, Args... args)",
   REQUIRE(length2 == woss.str().length());
 }
 
-TEST_CASE("void swap(T& first, T& second)",
-          "Testing global function template void swap(T& first, T& second)") {
-  struct no_move_type {
-    int id;
-    no_move_type(const int id_num = -1) : id{id_num} {}
-    no_move_type(no_move_type const&) = default;
-    no_move_type& operator=(no_move_type const&) = default;
-    no_move_type(no_move_type&&) = delete;
-    no_move_type& operator=(no_move_type&&) = delete;
-  };
-
-  string first{"first"}, second{"second"};
-  REQUIRE(first == "first"s);
-  REQUIRE(second == "second"s);
-  stl::helper::swap(first, second);
-  REQUIRE(first == "second"s);
-  REQUIRE(second == "first"s);
-
-  no_move_type a{1}, b{2};
-  REQUIRE(1 == a.id);
-  REQUIRE(2 == b.id);
-  stl::helper::swap(a, b);
-  REQUIRE(2 == a.id);
-  REQUIRE(1 == b.id);
-}
-
 TEST_CASE("is_non_const_char_array_type<T>",
           "Testing is_non_const_char_array_type<T> class template") {
   REQUIRE(is_non_const_char_array_type<char[10]>::value);

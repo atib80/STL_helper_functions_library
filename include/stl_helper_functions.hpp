@@ -46,13 +46,16 @@
 #include <unordered_set>
 #include <vector>
 
+extern "C" int snprintf(char* s, size_t n, const char* format, ...);
+extern "C" int swprintf(wchar_t* s, size_t n, const wchar_t* format, ...);
+
 #ifdef _MSC_VER
 #include <Strsafe.h>
 #define SNPRINTF StringCchPrintfA
 #define SNWPRINTF StringCchPrintfW
 #else
 #define SNPRINTF snprintf
-#define SNWPRINTF snwprintf
+#define SNWPRINTF swprintf
 #endif
 
 #define PRINT_VAR_NAME(arg) std::cout << #arg << ' '
@@ -569,36 +572,6 @@ void show_var_info_w(const T& arg, std::wostream& wos) {
 }
 
 template <typename T>
-constexpr inline void swap(T& first, T& second, std::true_type) noexcept(
-    std::is_nothrow_move_constructible_v<T>&&
-        std::is_nothrow_move_assignable_v<T>) {
-  T tmp{std::move(first)};
-  first = std::move(second);
-  second = std::move(tmp);
-}
-
-template <typename T>
-constexpr inline void swap(T& first, T& second, std::false_type) noexcept(
-    std::is_nothrow_copy_constructible_v<T>&&
-        std::is_nothrow_copy_assignable_v<T>) {
-  T tmp{first};
-  first = second;
-  second = tmp;
-}
-
-template <typename T>
-constexpr inline void swap(T& first, T& second) noexcept(
-    (std::is_nothrow_move_constructible_v<T> &&
-     std::is_nothrow_move_assignable_v<T>) ||
-    (std::is_nothrow_copy_constructible_v<T> &&
-     std::is_nothrow_copy_assignable_v<T>)) {
-  swap(first, second,
-       std::conditional_t < std::is_nothrow_move_constructible_v<T> &&
-           std::is_nothrow_move_assignable_v<T>,
-       std::true_type, std::false_type > {});
-}
-
-template <typename T>
 struct is_valid_char_type {
   static constexpr const bool value = is_anyone_of_v<std::remove_cv_t<T>,
                                                      char,
@@ -929,8 +902,12 @@ size_t say_slow(std::ostream& os,
                 const size_t time_delay_in_ms,
                 const char* format_string,
                 Args&&... args) {
-  auto const buffer_size =
-      _scprintf(format_string, std::forward<Args>(args)...) + 1;
+  const size_t buffer_size =
+#ifdef _MSC_VER
+      scprintf(format_string, std::forward<Args>(args)...) + 1;
+#else
+      8192U;
+#endif
 
   std::unique_ptr<char[], char_buffer_deleter> output_buffer_sp(
       new char[buffer_size], char_buffer_deleter{});
@@ -959,8 +936,12 @@ size_t say_slow(std::wostream& os,
                 const size_t time_delay_in_ms,
                 const wchar_t* format_string,
                 Args&&... args) {
-  auto const buffer_size =
-      _scwprintf(format_string, std::forward<Args>(args)...) + 1;
+  const size_t buffer_size =
+#ifdef _MSC_VER
+      scwprintf(format_string, std::forward<Args>(args)...) + 1;
+#else
+      8192U;
+#endif
 
   std::unique_ptr<wchar_t[], wchar_t_buffer_deleter> output_buffer_sp(
       new wchar_t[buffer_size], wchar_t_buffer_deleter{});
@@ -987,8 +968,12 @@ size_t say_slow(std::wostream& os,
 
 template <typename... Args>
 size_t say(std::ostream& os, const char* format_string, Args&&... args) {
-  auto const buffer_size =
-      _scprintf(format_string, std::forward<Args>(args)...) + 1;
+  const size_t buffer_size =
+#ifdef _MSC_VER
+      scprintf(format_string, std::forward<Args>(args)...) + 1;
+#else
+      8192U;
+#endif
 
   std::unique_ptr<char[], char_buffer_deleter> output_buffer_sp(
       new char[buffer_size], char_buffer_deleter{});
@@ -1005,8 +990,12 @@ size_t say(std::ostream& os, const char* format_string, Args&&... args) {
 
 template <typename... Args>
 size_t say(std::wostream& os, const wchar_t* format_string, Args&&... args) {
-  auto const buffer_size =
-      _scwprintf(format_string, std::forward<Args>(args)...) + 1;
+  const size_t buffer_size =
+#ifdef _MSC_VER
+      scwprintf(format_string, std::forward<Args>(args)...) + 1;
+#else
+      8192U;
+#endif
 
   std::unique_ptr<wchar_t[], wchar_t_buffer_deleter> output_buffer_sp(
       new wchar_t[buffer_size], wchar_t_buffer_deleter{});
