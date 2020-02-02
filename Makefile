@@ -1,6 +1,6 @@
 CC=gcc
 CXX=g++
-CODE_FORMAT=clang-format
+CODE_FORMAT=clang-format-9
 CODE_FORMAT_PARAMS=-i -style=Chromium
 RM=rm -f
 CPPFLAGS=-Wall -Wextra -Wpedantic -std=c++17 -fpermissive -O3
@@ -22,7 +22,7 @@ test: $(OBJS)
 $(TESTS_DIR)/main_catch_tests.o: $(TESTS_DIR)/main_catch_tests.cpp
 
 format:
-	$(CODE_FORMAT) $(CODE_FORMAT_PARAMS) $(HEADERS) $(SRCS) $(TESTS_DIR)/main_google_tests.cpp
+	$(CODE_FORMAT) $(CODE_FORMAT_PARAMS) $(HEADERS) $(SRCS) 
 
 run:	
 	chmod +x $(BUILD_DIR)/test && $(BUILD_DIR)/test	
