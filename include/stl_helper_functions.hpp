@@ -234,6 +234,20 @@ struct has_mapped_type<T, std::void_t<has_mapped_type_t<T>>> : std::true_type {
 template <typename T>
 constexpr const bool has_mapped_type_v = has_mapped_type<T>::value;
 
+template <typename T>
+using has_sort_member_function_t = decltype(std::declval<T&>().sort());
+
+template <typename T, typename = void>
+struct has_sort_member_function : std::false_type {};
+
+template <typename T>
+struct has_sort_member_function<T, std::void_t<has_sort_member_function_t<T>>>
+    : std::true_type {};
+
+template <typename T>
+constexpr const bool has_sort_member_function_v =
+    has_sort_member_function<T>::value;
+
 template <typename T, typename U>
 using has_find_member_function_t =
     decltype(std::declval<T&>().find(std::declval<U>()));
@@ -1810,6 +1824,120 @@ constexpr SrcIterType find_last_any_of(SrcIterType src_first,
 
     } while (true);
   }
+}
+
+template <typename ForwardIterType, typename ContainerType>
+std::pair<ForwardIterType, ForwardIterType>
+find_first_sequence_of_allowed_elements(ForwardIterType start,
+                                        ForwardIterType last,
+                                        const ContainerType& haystack,
+                                        const bool is_haystack_sorted = false) {
+  using T = typename std::iterator_traits<ForwardIterType>::value_type;
+
+  if (start == last)
+    return {last, last};
+
+  if constexpr (has_find_member_function_v<ContainerType, T>) {
+    const auto first{
+        std::find_if(start, last, [&haystack](const auto& current_element) {
+          return std::cend(haystack) != haystack.find(current_element);
+        })};
+    if (first == last)
+      return {last, last};
+    auto second{first};
+    ++second;
+    second =
+        std::find_if(second, last, [&haystack](const auto& current_element) {
+          return std::cend(haystack) == haystack.find(current_element);
+        });
+    return {first, second};
+
+  } else {
+    if (is_haystack_sorted) {
+      const auto first{
+          find_if(start, last, [&haystack](const auto& current_element) {
+            return std::binary_search(std::cbegin(haystack),
+                                      std::cend(haystack), current_element);
+          })};
+      if (last == first)
+        return {last, last};
+      auto second{first};
+      ++second;
+      second =
+          std::find_if(second, last, [&haystack](const auto& current_element) {
+            return !std::binary_search(std::cbegin(haystack),
+                                       std::cend(haystack), current_element);
+          });
+
+      return {first, second};
+    } else {
+      const auto first{
+          std::find_if(start, last, [&haystack](const auto& current_element) {
+            return std::cend(haystack) != std::find(std::cbegin(haystack),
+                                                    std::cend(haystack),
+                                                    current_element);
+          })};
+      if (last == first)
+        return {last, last};
+      auto second{first};
+      ++second;
+      second =
+          std::find_if(second, last, [&haystack](const auto& current_element) {
+            return std::cend(haystack) == std::find(std::cbegin(haystack),
+                                                    std::cend(haystack),
+                                                    current_element);
+          });
+
+      return {first, second};
+    }
+  }
+}
+
+template <typename StringType, typename ContainerType>
+StringType find_longest_word(const StringType& src, ContainerType& haystack) {
+  using T = typename StringType::value_type;
+  using U = typename ContainerType::value_type;
+
+  bool is_haystack_sorted{has_find_member_function_v<ContainerType, T>};
+
+  if constexpr (!has_find_member_function_v<ContainerType, T> &&
+                ((has_sort_member_function_v<ContainerType> &&
+                  is_operator_less_than_defined_v<U>) ||
+                 is_operator_less_than_defined_v<U>)) {
+    if constexpr (has_sort_member_function_v<ContainerType>)
+      haystack.sort();
+    else
+      std::sort(std::begin(haystack), std::end(haystack));
+    is_haystack_sorted = true;
+  }
+
+  auto next_iter = std::cbegin(src);
+  const auto last_iter = std::cend(src);
+
+  decltype(std::distance(next_iter, last_iter)) longest_first_word_length{};
+  auto longest_first_word_start_iter = next_iter;
+  auto longest_first_word_last_iter = next_iter;
+
+  while (next_iter != last_iter) {
+    const auto [first, last] = find_first_sequence_of_allowed_elements(
+        next_iter, last_iter, haystack, is_haystack_sorted);
+
+    if (first == last)
+      break;
+
+    const auto current_distance{std::distance(first, last)};
+
+    if (current_distance > longest_first_word_length) {
+      longest_first_word_length = current_distance;
+      longest_first_word_start_iter = first;
+      longest_first_word_last_iter = last;
+    }
+
+    next_iter = last;
+  }
+
+  return StringType(longest_first_word_start_iter,
+                    longest_first_word_last_iter);
 }
 
 template <
@@ -11443,33 +11571,41 @@ std::vector<std::basic_string<get_char_type_t<T>>> str_split(
     return parts;
   }
 
-  char_type needle_buffer[2]{};
+  char_type needle_buffer[2];
   std::basic_string_view<char_type> needle_sv{};
 
-  if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
+  if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>) {
     needle_sv = {needle, needle_len};
-  else if constexpr (is_valid_char_type_v<U>) {
-    needle_buffer[0U] = needle;
+    unused_args(needle_buffer);
+  } else if constexpr (is_valid_char_type_v<U>) {
+    needle_buffer[0] = needle;
+    needle_buffer[1] = static_cast<char_type>(0);
     needle_sv = {needle_buffer, 1U};
-  } else
+  } else {
     needle_sv = needle;
+    unused_args(needle_buffer);
+  }
 
-  char_type needle_parts_separator_token_buffer[2]{};
+  char_type needle_parts_separator_token_buffer[2];
   std::basic_string_view<char_type> needle_parts_separator_token_sv{};
 
   const size_t needle_parts_separator_token_len{
       len(needle_parts_separator_token)};
 
   if (needle_parts_separator_token_len > 0U) {
-    if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>)
+    if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
       needle_parts_separator_token_sv = {needle_parts_separator_token,
                                          needle_parts_separator_token_len};
-    else if constexpr (is_valid_char_type_v<V>) {
-      needle_parts_separator_token_buffer[0U] = needle_parts_separator_token;
+      unused_args(needle_parts_separator_token_buffer);
+    } else if constexpr (is_valid_char_type_v<V>) {
+      needle_parts_separator_token_buffer[0] = needle_parts_separator_token;
+      needle_parts_separator_token_buffer[1] = static_cast<char_type>(0);
       needle_parts_separator_token_sv = {needle_parts_separator_token_buffer,
                                          1U};
-    } else
+    } else {
       needle_parts_separator_token_sv = needle_parts_separator_token;
+      unused_args(needle_parts_separator_token_buffer);
+    }
   }
 
   std::vector<std::basic_string_view<char_type>> needle_parts{};
@@ -11578,19 +11714,23 @@ str_split_range(IteratorType first,
     return parts;
   }
 
-  char_type needle_buffer[2]{};
+  char_type needle_buffer[2];
   std::basic_string_view<char_type> needle_sv{};
 
   if constexpr (is_char_pointer_type_v<NeedleType> ||
-                is_char_array_type_v<NeedleType>)
+                is_char_array_type_v<NeedleType>) {
     needle_sv = {needle, needle_len};
-  else if constexpr (is_valid_char_type_v<NeedleType>) {
-    needle_buffer[0U] = needle;
+    unused_args(needle_buffer);
+  } else if constexpr (is_valid_char_type_v<NeedleType>) {
+    needle_buffer[0] = needle;
+    needle_buffer[1] = static_cast<char_type>(0);
     needle_sv = {needle_buffer, 1U};
-  } else
+  } else {
     needle_sv = needle;
+    unused_args(needle_buffer);
+  }
 
-  char_type needle_parts_separator_token_buffer[2]{};
+  char_type needle_parts_separator_token_buffer[2];
   std::basic_string_view<char_type> needle_parts_separator_token_sv{};
 
   std::vector<std::basic_string_view<char_type>> needle_parts{};
@@ -11600,15 +11740,19 @@ str_split_range(IteratorType first,
 
   if (needle_parts_separator_token_len > 0U) {
     if constexpr (is_char_pointer_type_v<NeedleSeparatorType> ||
-                  is_char_array_type_v<NeedleSeparatorType>)
+                  is_char_array_type_v<NeedleSeparatorType>) {
       needle_parts_separator_token_sv = {needle_parts_separator_token,
                                          needle_parts_separator_token_len};
-    else if constexpr (is_valid_char_type_v<NeedleSeparatorType>) {
-      needle_parts_separator_token_buffer[0U] = needle_parts_separator_token;
+      unused_args(needle_parts_separator_token_buffer);
+    } else if constexpr (is_valid_char_type_v<NeedleSeparatorType>) {
+      needle_parts_separator_token_buffer[0] = needle_parts_separator_token;
+      needle_parts_separator_token_buffer[1] = static_cast<char_type>(0);
       needle_parts_separator_token_sv = {needle_parts_separator_token_buffer,
                                          1U};
-    } else
+    } else {
       needle_parts_separator_token_sv = needle_parts_separator_token;
+      unused_args(needle_parts_separator_token_buffer);
+    }
   }
 
   if (needle_parts_separator_token_len > 0U && !split_on_whole_needle) {
