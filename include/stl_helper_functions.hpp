@@ -897,28 +897,13 @@ size_t len(const T& src) {
   return src.length();
 }
 
-struct char_buffer_deleter {
-  using pointer_type = const char*;
-
-  void operator()(pointer_type pointer) const noexcept { delete[] pointer; }
-};
-
-struct wchar_t_buffer_deleter {
-  using pointer_type = const wchar_t*;
-
-  void operator()(pointer_type pointer) const noexcept { delete[] pointer; }
-};
-
-std::mutex say_cstr_mu{};
-std::mutex say_wstr_mu{};
-std::mutex say_slow_cstr_mu{};
-std::mutex say_slow_wstr_mu{};
-
 template <typename... Args>
 size_t say_slow(std::ostream& os,
                 const size_t time_delay_in_ms,
                 const char* format_string,
                 Args&&... args) {
+  static std::mutex say_slow_cstr_mu{};
+
   std::lock_guard<std::mutex> guard{say_slow_cstr_mu};
 
   const int number_of_chars_written =
@@ -948,6 +933,8 @@ size_t say_slow(std::wostream& os,
                 const size_t time_delay_in_ms,
                 const wchar_t* format_string,
                 Args&&... args) {
+  static std::mutex say_slow_wstr_mu;
+
   std::lock_guard<std::mutex> guard{say_slow_wstr_mu};
 
   int buffer_size{4096};
@@ -981,6 +968,8 @@ size_t say_slow(std::wostream& os,
 
 template <typename... Args>
 size_t say(std::ostream& os, const char* format_string, Args&&... args) {
+  static std::mutex say_cstr_mu;
+
   std::lock_guard<std::mutex> guard{say_cstr_mu};
 
   const int number_of_chars_written =
@@ -1001,6 +990,8 @@ size_t say(std::ostream& os, const char* format_string, Args&&... args) {
 
 template <typename... Args>
 size_t say(std::wostream& os, const wchar_t* format_string, Args&&... args) {
+  static std::mutex say_wstr_mu;
+
   std::lock_guard<std::mutex> guard{say_wstr_mu};
 
   int buffer_size{4096};
