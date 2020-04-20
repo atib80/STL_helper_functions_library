@@ -2590,6 +2590,7 @@ class Section : NonCopyable {
 #define TWOBLUECUBES_CATCH_GENERATORS_HPP_INCLUDED
 
 #include <stdlib.h>
+
 #include <string>
 #include <vector>
 
@@ -6319,6 +6320,7 @@ inline Option<std::size_t> list(Config const& config) {
 #define TWOBLUECUBES_CATCH_TEST_CASE_TRACKER_HPP_INCLUDED
 
 #include <assert.h>
+
 #include <algorithm>
 #include <stdexcept>
 #include <string>
@@ -7296,6 +7298,7 @@ inline Version libraryVersion();
 }  // namespace Catch
 
 #include <stdlib.h>
+
 #include <fstream>
 #include <limits>
 
@@ -9924,6 +9927,7 @@ Ptr<IStreamingReporter> addReporter(
 #define TWOBLUECUBES_CATCH_REPORTER_BASES_HPP_INCLUDED
 
 #include <assert.h>
+
 #include <cfloat>
 #include <cstdio>
 #include <cstring>

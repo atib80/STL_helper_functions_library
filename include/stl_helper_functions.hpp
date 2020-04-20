@@ -1817,42 +1817,66 @@ constexpr SrcIterType find_last_any_of(SrcIterType src_first,
   }
 }
 
+/* function template 'find_first_sequence_of_allowed_elements' is
+ * a less generic version of the std::search algorithm function template,
+ * which allows the user to find in the input source range a consequtive
+ * sequence of elements which are all present in the provided @haystack
+ * container.
+ *
+ * @param ForwardIterType first -> an iterator value (of a forward,
+ * bidirectional or random access iterator type) which points to the first
+ * element of a range of elements
+ * @param ForwardIterType last -> an iterator value (of a forward, bidirectional
+ *       or random access iterator type) which points to the last element of a
+ * range of elements
+ *
+ * @param ContainerType haystack -> an instance of a known STL container type
+ * which contains elements that are related or implicitly convertible to the
+ * type of values contained in the specified input source range of elements
+ * [first, last].
+ *
+ * @return std::pair<ForwardIterType, ForwardIterType> -> a pair of iterators of
+ * type ForwardIterType (forward, bidirectional or random access iterator type)
+ * pointing the first found range of consecutive elements which are all
+ * contained in the provided @haystack of allowed elements.
+ */
+
 template <typename ForwardIterType, typename ContainerType>
 std::pair<ForwardIterType, ForwardIterType>
-find_first_sequence_of_allowed_elements(ForwardIterType start,
+find_first_sequence_of_allowed_elements(ForwardIterType first,
                                         ForwardIterType last,
                                         const ContainerType& haystack,
                                         const bool is_haystack_sorted = false) {
   using T = typename std::iterator_traits<ForwardIterType>::value_type;
 
-  if (start == last)
+  if (first == last)
     return {last, last};
 
-  if constexpr (has_find_member_function_v<ContainerType, T>) {
-    const auto first{
-        std::find_if(start, last, [&haystack](const auto& current_element) {
+  if constexpr (stl::helper::has_find_member_function_v<ContainerType, T>) {
+    const auto found{
+        std::find_if(first, last, [&haystack](const auto& current_element) {
           return std::cend(haystack) != haystack.find(current_element);
         })};
-    if (first == last)
+    if (found == last)
       return {last, last};
-    auto second{first};
+    auto second{found};
     ++second;
     second =
         std::find_if(second, last, [&haystack](const auto& current_element) {
           return std::cend(haystack) == haystack.find(current_element);
         });
-    return {first, second};
+    return {found, second};
 
   } else {
     if (is_haystack_sorted) {
-      const auto first{
-          find_if(start, last, [&haystack](const auto& current_element) {
+      const auto found{
+          find_if(first, last, [&haystack](const auto& current_element) {
             return std::binary_search(std::cbegin(haystack),
                                       std::cend(haystack), current_element);
           })};
-      if (last == first)
+      if (found == last)
         return {last, last};
-      auto second{first};
+      auto second{found};
       ++second;
       second =
           std::find_if(second, last, [&haystack](const auto& current_element) {
@@ -1860,17 +1884,17 @@ find_first_sequence_of_allowed_elements(ForwardIterType start,
                                        std::cend(haystack), current_element);
           });
 
-      return {first, second};
+      return {found, second};
     } else {
-      const auto first{
-          std::find_if(start, last, [&haystack](const auto& current_element) {
+      const auto found{
+          std::find_if(first, last, [&haystack](const auto& current_element) {
             return std::cend(haystack) != std::find(std::cbegin(haystack),
                                                     std::cend(haystack),
                                                     current_element);
           })};
-      if (last == first)
+      if (found == last)
         return {last, last};
-      auto second{first};
+      auto second{found};
       ++second;
       second =
           std::find_if(second, last, [&haystack](const auto& current_element) {
@@ -1879,56 +1903,77 @@ find_first_sequence_of_allowed_elements(ForwardIterType start,
                                                     current_element);
           });
 
-      return {first, second};
+      return {found, second};
     }
   }
 }
 
-template <typename StringType, typename ContainerType>
-StringType find_longest_word(const StringType& src, ContainerType& haystack) {
-  using T = typename StringType::value_type;
+/* function template 'find_longest_word' finds the longest word in the provided
+ * [first, last) input source range of character like elements.
+ * The longest word may be comprised
+ * of elements that are contained in the provided @haystack container only.
+ *
+ * @param ForwardIterType first -> an iterator value (of a forward,
+ * bidirectional or random access iterator type) which points to the first
+ * element of a range of elements
+ * @param ForwardIterType last -> an iterator value (of a forward, bidirectional
+ *      or random access iterator type) which points to the last element of a
+ * range of elements
+ *
+ * @param ContainerType haystack -> an instance of a known STL container type
+ * which contains elements that are related or implicitly convertible to the
+ * type of values contained in the specified input source range [first, last].
+ *
+ * @return std::pair<ForwardIterType, ForwardIterType> -> a pair of iterators of
+ * type ForwardIterType (forward, bidirectional or random access iterator type)
+ * pointing the first found range of consecutive elements which form the longest
+ * word of elements that are all contained in the provided @haystack of allowed
+ * elements.
+ */
+template <typename IterType, typename ContainerType>
+std::pair<IterType, IterType> find_longest_word(IterType first,
+                                                const IterType last,
+                                                ContainerType& haystack) {
+  using T = typename std::iterator_traits<IterType>::value_type;
   using U = typename ContainerType::value_type;
 
-  bool is_haystack_sorted{has_find_member_function_v<ContainerType, T>};
+  bool is_haystack_sorted{
+      stl::helper::has_find_member_function_v<ContainerType, T>};
 
-  if constexpr (!has_find_member_function_v<ContainerType, T> &&
-                ((has_sort_member_function_v<ContainerType> &&
-                  is_operator_less_than_defined_v<U>) ||
-                 is_operator_less_than_defined_v<U>)) {
-    if constexpr (has_sort_member_function_v<ContainerType>)
+  if constexpr (!stl::helper::has_find_member_function_v<ContainerType, T> &&
+                ((stl::helper::has_sort_member_function_v<ContainerType> &&
+                  stl::helper::is_operator_less_than_defined_v<U>) ||
+                 stl::helper::is_operator_less_than_defined_v<U>)) {
+    if constexpr (stl::helper::has_sort_member_function_v<ContainerType>)
       haystack.sort();
     else
       std::sort(std::begin(haystack), std::end(haystack));
     is_haystack_sorted = true;
   }
 
-  auto next_iter = std::cbegin(src);
-  const auto last_iter = std::cend(src);
+  decltype(std::distance(first, last)) longest_first_word_length{};
+  auto longest_first_word_start_iter = first;
+  auto longest_first_word_last_iter = first;
 
-  decltype(std::distance(next_iter, last_iter)) longest_first_word_length{};
-  auto longest_first_word_start_iter = next_iter;
-  auto longest_first_word_last_iter = next_iter;
+  while (first != last) {
+    const auto [seq_first, seq_last] = find_first_sequence_of_allowed_elements(
+        first, last, haystack, is_haystack_sorted);
 
-  while (next_iter != last_iter) {
-    const auto [first, last] = find_first_sequence_of_allowed_elements(
-        next_iter, last_iter, haystack, is_haystack_sorted);
-
-    if (first == last)
+    if (seq_first == seq_last)
       break;
 
-    const auto current_distance{std::distance(first, last)};
+    const auto current_distance{std::distance(seq_first, seq_last)};
 
     if (current_distance > longest_first_word_length) {
       longest_first_word_length = current_distance;
-      longest_first_word_start_iter = first;
-      longest_first_word_last_iter = last;
+      longest_first_word_start_iter = seq_first;
+      longest_first_word_last_iter = seq_last;
     }
 
-    next_iter = last;
+    first = seq_last;
   }
 
-  return StringType(longest_first_word_start_iter,
-                    longest_first_word_last_iter);
+  return {longest_first_word_start_iter, longest_first_word_last_iter};
 }
 
 template <
