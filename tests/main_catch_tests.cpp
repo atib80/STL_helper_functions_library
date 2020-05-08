@@ -1679,3 +1679,389 @@ TEST_CASE(
     REQUIRE(found_word2 == found_word3);
   }
 }
+
+TEST_CASE(
+    "constexpr std::pair<ForwardIterType1, ForwardIterType2> "
+    "copy_forward_while_true(ForwardIterType1 src_first, const "
+    "ForwardIterType1 src_last, ForwardIterType2 dst_first, Predicate p) "
+    "noexcept(boolean expression)",
+    "Testing global function template copy_forward_while_true") {
+  const vector<int> src1{};
+  vector<int> dst1{};
+  const vector<int> expected_numbers1{};
+
+  const auto iter_pair1 =
+      copy_forward_while_true(cbegin(src1), cend(src1), back_inserter(dst1),
+                              [](const auto n) { return n % 2 == 1; });
+
+  REQUIRE(0U == dst1.size());
+  REQUIRE(expected_numbers1 == dst1);
+  REQUIRE(iter_pair1.first == cend(src1));
+
+  const vector<int> src2{0, 2, 4, 6, 7, 8, 10, 11, 12, 14};
+  vector<int> dst2{};
+  const vector<int> expected_numbers2{};
+
+  const auto iter_pair2 =
+      copy_forward_while_true(cbegin(src2), cend(src2), back_inserter(dst2),
+                              [](const auto n) { return n % 2 == 1; });
+
+  REQUIRE(0U == dst2.size());
+  REQUIRE(expected_numbers2 == dst2);
+  REQUIRE(iter_pair2.first == cbegin(src2));
+  REQUIRE(*(iter_pair2.first) == 0);
+
+  const vector<int> src3{0, 2, 4, 6, 7, 8, 10, 11, 12, 14};
+  vector<int> dst3{};
+  const vector<int> expected_numbers3{0, 2, 4, 6};
+
+  const auto iter_pair3 =
+      copy_forward_while_true(cbegin(src3), cend(src3), back_inserter(dst3),
+                              [](const auto n) { return n % 2 == 0; });
+
+  REQUIRE(4U == dst3.size());
+  REQUIRE(expected_numbers3 == dst3);
+  REQUIRE(iter_pair3.first != cend(src3));
+  REQUIRE(*(iter_pair3.first) == 7);
+}
+
+TEST_CASE(
+    "constexpr std::pair<ForwardIterType1, ForwardIterType2> "
+    "copy_forward_while_false(ForwardIterType1 src_first, const "
+    "ForwardIterType1 src_last, ForwardIterType2 dst_first, Predicate p) "
+    "noexcept(boolean expression)",
+    "Testing global function template copy_forward_while_false") {
+  const vector<int> src1{};
+  vector<int> dst1{};
+  const vector<int> expected_numbers1{};
+
+  const auto iter_pair1 =
+      copy_forward_while_false(cbegin(src1), cend(src1), back_inserter(dst1),
+                               [](const auto n) { return n % 2 == 0; });
+
+  REQUIRE(0U == dst1.size());
+  REQUIRE(expected_numbers1 == dst1);
+  REQUIRE(iter_pair1.first == cend(src1));
+
+  const vector<int> src2{0, 2, 4, 6, 7, 8, 10, 11, 12, 14};
+  vector<int> dst2{};
+  const vector<int> expected_numbers2{};
+
+  const auto iter_pair2 =
+      copy_forward_while_false(cbegin(src2), cend(src2), back_inserter(dst2),
+                               [](const auto n) { return n % 2 == 0; });
+
+  REQUIRE(0U == dst2.size());
+  REQUIRE(expected_numbers2 == dst2);
+  REQUIRE(iter_pair2.first == cbegin(src2));
+  REQUIRE(*(iter_pair2.first) == 0);
+
+  const vector<int> src3{0, 2, 4, 6, 7, 8, 10, 11, 12, 14};
+  vector<int> dst3{};
+  const vector<int> expected_numbers3{0, 2, 4, 6};
+
+  const auto iter_pair3 =
+      copy_forward_while_false(cbegin(src3), cend(src3), back_inserter(dst3),
+                               [](const auto n) { return n % 2 == 1; });
+
+  REQUIRE(4U == dst3.size());
+  REQUIRE(expected_numbers3 == dst3);
+  REQUIRE(iter_pair3.first != cend(src3));
+  REQUIRE(*(iter_pair3.first) == 7);
+}
+
+TEST_CASE(
+    "constexpr std::pair<BidirIterType1, BidirIterType2> "
+    "copy_backward_while_true(const BidirIterType1 src_first, BidirIterType1 "
+    "src_last, BidirIterType2 dst_last, Predicate p) noexcept(boolean "
+    "expression)",
+    "Testing global function template copy_backward_while_true") {
+  const vector<int> src1{};
+  vector<int> dst1(src1.size(), 0);
+  const vector<int> expected_numbers1{};
+
+  const auto iter_pair1 =
+      copy_backward_while_true(cbegin(src1), cend(src1), end(dst1),
+                               [](const auto n) { return n % 2 == 1; });
+
+  REQUIRE(0U == dst1.size());
+  REQUIRE(expected_numbers1 == dst1);
+  REQUIRE(iter_pair1.first == cend(src1));
+  REQUIRE(iter_pair1.second == end(dst1));
+
+  const vector<int> src2{0, 2, 4, 6, 7, 8, 10, 11, 12, 14};
+  vector<int> dst2(src2.size(), 0);
+  const vector<int> expected_numbers2{dst2};
+
+  const auto iter_pair2 =
+      copy_backward_while_true(cbegin(src2), cend(src2), end(dst2),
+                               [](const auto n) { return n % 2 == 1; });
+
+  REQUIRE(src2.size() == dst2.size());
+  REQUIRE(expected_numbers2 == dst2);
+  REQUIRE(iter_pair2.first == cend(src2));
+  REQUIRE(iter_pair2.second == end(dst2));
+
+  const vector<int> src3{0, 2, 4, 6, 7, 8, 10, 11, 12, 14, 16};
+  vector<int> dst3(src3.size(), 0);
+  const vector<int> expected_numbers3{0, 0, 0, 0, 0, 0, 0, 0, 12, 14, 16};
+
+  const auto iter_pair3 =
+      copy_backward_while_true(cbegin(src3), cend(src3), end(dst3),
+                               [](const auto n) { return n % 2 == 0; });
+
+  REQUIRE(src3.size() == dst3.size());
+  REQUIRE(vector<int>(iter_pair3.first, cend(src3)) ==
+          vector<int>(iter_pair3.second, end(dst3)));
+  REQUIRE(expected_numbers3 == dst3);
+  REQUIRE(iter_pair3.first != cend(src3));
+  REQUIRE(*(iter_pair3.first) == 12);
+  REQUIRE(*(iter_pair3.second) == 12);
+}
+
+TEST_CASE(
+    "constexpr std::pair<BidirIterType1, BidirIterType2> "
+    "copy_backward_while_false(const BidirIterType1 src_first, BidirIterType1 "
+    "src_last, BidirIterType2 dst_last, Predicate p) noexcept(boolean "
+    "expression)",
+    "Testing global function template copy_backward_while_false") {
+  const vector<int> src1{};
+  vector<int> dst1(src1.size(), 0);
+  const vector<int> expected_numbers1{};
+
+  const auto iter_pair1 =
+      copy_backward_while_false(cbegin(src1), cend(src1), end(dst1),
+                                [](const auto n) { return n % 2 == 0; });
+
+  REQUIRE(0U == dst1.size());
+  REQUIRE(expected_numbers1 == dst1);
+  REQUIRE(iter_pair1.first == cend(src1));
+  REQUIRE(iter_pair1.second == end(dst1));
+
+  const vector<int> src2{0, 2, 4, 6, 7, 8, 10, 11, 12, 14};
+  vector<int> dst2(src2.size(), 0);
+  const vector<int> expected_numbers2{dst2};
+
+  const auto iter_pair2 =
+      copy_backward_while_false(cbegin(src2), cend(src2), end(dst2),
+                                [](const auto n) { return n % 2 == 0; });
+
+  REQUIRE(src2.size() == dst2.size());
+  REQUIRE(expected_numbers2 == dst2);
+  REQUIRE(iter_pair2.first == cend(src2));
+  REQUIRE(iter_pair2.second == end(dst2));
+
+  const vector<int> src3{0, 2, 4, 6, 7, 8, 10, 11, 12, 14, 16};
+  vector<int> dst3(src3.size(), 0);
+  const vector<int> expected_numbers3{0, 0, 0, 0, 0, 0, 0, 0, 12, 14, 16};
+
+  const auto iter_pair3 =
+      copy_backward_while_false(cbegin(src3), cend(src3), end(dst3),
+                                [](const auto n) { return n % 2 == 1; });
+
+  REQUIRE(src3.size() == dst3.size());
+  REQUIRE(vector<int>(iter_pair3.first, cend(src3)) ==
+          vector<int>(iter_pair3.second, end(dst3)));
+  REQUIRE(expected_numbers3 == dst3);
+  REQUIRE(iter_pair3.first != cend(src3));
+  REQUIRE(*(iter_pair3.first) == 12);
+  REQUIRE(*(iter_pair3.second) == 12);
+}
+
+TEST_CASE(
+    "constexpr std::pair<ForwardIterType1, ForwardIterType2> "
+    "move_forward_while_true(ForwardIterType1 src_first, const "
+    "ForwardIterType1 src_last, ForwardIterType2 dst_first, Predicate p) "
+    "noexcept(boolean expression)",
+    "Testing global function template move_forward_while_true") {
+  const vector<string> src1{};
+  vector<string> dst1{};
+  const vector<string> expected_numbers1{};
+
+  const auto iter_pair1 = move_forward_while_true(
+      cbegin(src1), cend(src1), back_inserter(dst1),
+      [](const auto& n) { return !n.empty() && n.back() % 2 == 1; });
+
+  REQUIRE(0U == dst1.size());
+  REQUIRE(expected_numbers1 == dst1);
+  REQUIRE(iter_pair1.first == cend(src1));
+
+  const vector<string> src2{"0", "2",  "4",  "6",  "7",
+                            "8", "10", "11", "12", "14"};
+  vector<string> dst2{};
+  const vector<string> expected_numbers2{};
+
+  const auto iter_pair2 = move_forward_while_true(
+      cbegin(src2), cend(src2), back_inserter(dst2),
+      [](const auto& n) { return !n.empty() && n.back() % 2 == 1; });
+
+  REQUIRE(0U == dst2.size());
+  REQUIRE(expected_numbers2 == dst2);
+  REQUIRE(iter_pair2.first == cbegin(src2));
+  REQUIRE(*(iter_pair2.first) == "0");
+
+  const vector<string> src3{"0", "2",  "4",  "6",  "7",
+                            "8", "10", "11", "12", "14"};
+  vector<string> dst3{};
+  const vector<string> expected_numbers3{"0", "2", "4", "6"};
+
+  const auto iter_pair3 = move_forward_while_true(
+      cbegin(src3), cend(src3), back_inserter(dst3),
+      [](const auto& n) { return !n.empty() && n.back() % 2 == 0; });
+
+  REQUIRE(4U == dst3.size());
+  REQUIRE(expected_numbers3 == dst3);
+  REQUIRE(iter_pair3.first != cend(src3));
+  REQUIRE(*(iter_pair3.first) == "7");
+}
+
+TEST_CASE(
+    "constexpr std::pair<ForwardIterType1, ForwardIterType2> "
+    "move_forward_while_false(ForwardIterType1 src_first, const "
+    "ForwardIterType1 src_last, ForwardIterType2 dst_first, Predicate p) "
+    "noexcept(boolean expression)",
+    "Testing global function template move_forward_while_false") {
+  const vector<string> src1{};
+  vector<string> dst1{};
+  const vector<string> expected_numbers1{};
+
+  const auto iter_pair1 = move_forward_while_false(
+      cbegin(src1), cend(src1), back_inserter(dst1),
+      [](const auto& n) { return !n.empty() && n.back() % 2 == 0; });
+
+  REQUIRE(0U == dst1.size());
+  REQUIRE(expected_numbers1 == dst1);
+  REQUIRE(iter_pair1.first == cend(src1));
+
+  const vector<string> src2{"0", "2",  "4",  "6",  "7",
+                            "8", "10", "11", "12", "14"};
+  vector<string> dst2{};
+  const vector<string> expected_numbers2{};
+
+  const auto iter_pair2 = move_forward_while_false(
+      cbegin(src2), cend(src2), back_inserter(dst2),
+      [](const auto& n) { return !n.empty() && n.back() % 2 == 0; });
+
+  REQUIRE(0U == dst2.size());
+  REQUIRE(expected_numbers2 == dst2);
+  REQUIRE(iter_pair2.first == cbegin(src2));
+  REQUIRE(*(iter_pair2.first) == "0");
+
+  const vector<string> src3{"0", "2",  "4",  "6",  "7",
+                            "8", "10", "11", "12", "14"};
+  vector<string> dst3{};
+  const vector<string> expected_numbers3{"0", "2", "4", "6"};
+
+  const auto iter_pair3 = move_forward_while_false(
+      cbegin(src3), cend(src3), back_inserter(dst3),
+      [](const auto& n) { return !n.empty() && n.back() % 2 == 1; });
+
+  REQUIRE(4U == dst3.size());
+  REQUIRE(expected_numbers3 == dst3);
+  REQUIRE(iter_pair3.first != cend(src3));
+  REQUIRE(*(iter_pair3.first) == "7");
+}
+
+TEST_CASE(
+    "constexpr std::pair<BidirIterType1, BidirIterType2> "
+    "move_backward_while_true(const BidirIterType1 src_first, BidirIterType1 "
+    "src_last, BidirIterType2 dst_last, Predicate p) noexcept(boolean "
+    "expression)",
+    "Testing global function template move_backward_while_true") {
+  const vector<string> src1{};
+  vector<string> dst1{src1};
+  const vector<string> expected_numbers1{};
+
+  const auto iter_pair1 = move_backward_while_true(
+      cbegin(src1), cend(src1), end(dst1),
+      [](const auto n) { return !n.empty() && n.back() % 2 == 1; });
+
+  REQUIRE(0U == dst1.size());
+  REQUIRE(expected_numbers1 == dst1);
+  REQUIRE(iter_pair1.first == cend(src1));
+  REQUIRE(iter_pair1.second == end(dst1));
+
+  const vector<string> src2{"0", "2",  "4",  "6",  "7",
+                            "8", "10", "11", "12", "14"};
+  vector<string> dst2(src2.size(), "");
+  const vector<string> expected_numbers2{dst2};
+
+  const auto iter_pair2 = move_backward_while_true(
+      cbegin(src2), cend(src2), end(dst2),
+      [](const auto n) { return !n.empty() && n.back() % 2 == 1; });
+
+  REQUIRE(src2.size() == dst2.size());
+  REQUIRE(expected_numbers2 == dst2);
+  REQUIRE(iter_pair2.first == cend(src2));
+  REQUIRE(iter_pair2.second == end(dst2));
+
+  const vector<string> src3{"0",  "2",  "4",  "6",  "7", "8",
+                            "10", "11", "12", "14", "16"};
+  vector<string> dst3(src3.size(), "0");
+  const vector<string> expected_numbers3{"0", "0", "0",  "0",  "0", "0",
+                                         "0", "0", "12", "14", "16"};
+
+  const auto iter_pair3 = move_backward_while_true(
+      cbegin(src3), cend(src3), end(dst3),
+      [](const auto n) { return !n.empty() && n.back() % 2 == 0; });
+
+  REQUIRE(src3.size() == dst3.size());
+  REQUIRE(vector<string>(iter_pair3.first, cend(src3)) ==
+          vector<string>(iter_pair3.second, end(dst3)));
+  REQUIRE(expected_numbers3 == dst3);
+  REQUIRE(iter_pair3.first != cend(src3));
+  REQUIRE(*(iter_pair3.first) == "12");
+  REQUIRE(*(iter_pair3.second) == "12");
+}
+
+TEST_CASE(
+    "constexpr std::pair<BidirIterType1, BidirIterType2> "
+    "move_backward_while_false(const BidirIterType1 src_first, BidirIterType1 "
+    "src_last, BidirIterType2 dst_last, Predicate p) noexcept(boolean "
+    "expression)",
+    "Testing global function template move_backward_while_false") {
+  const vector<string> src1{};
+  vector<string> dst1{src1};
+  const vector<string> expected_numbers1{};
+
+  const auto iter_pair1 = move_backward_while_false(
+      cbegin(src1), cend(src1), end(dst1),
+      [](const auto n) { return !n.empty() && n.back() % 2 == 0; });
+
+  REQUIRE(0U == dst1.size());
+  REQUIRE(expected_numbers1 == dst1);
+  REQUIRE(iter_pair1.first == cend(src1));
+  REQUIRE(iter_pair1.second == end(dst1));
+
+  const vector<string> src2{"0", "2",  "4",  "6",  "7",
+                            "8", "10", "11", "12", "14"};
+  vector<string> dst2(src2.size(), "");
+  const vector<string> expected_numbers2{dst2};
+
+  const auto iter_pair2 = move_backward_while_false(
+      cbegin(src2), cend(src2), end(dst2),
+      [](const auto n) { return !n.empty() && n.back() % 2 == 0; });
+
+  REQUIRE(src2.size() == dst2.size());
+  REQUIRE(expected_numbers2 == dst2);
+  REQUIRE(iter_pair2.first == cend(src2));
+  REQUIRE(iter_pair2.second == end(dst2));
+
+  const vector<string> src3{"0",  "2",  "4",  "6",  "7", "8",
+                            "10", "11", "12", "14", "16"};
+  vector<string> dst3(src3.size(), "0");
+  const vector<string> expected_numbers3{"0", "0", "0",  "0",  "0", "0",
+                                         "0", "0", "12", "14", "16"};
+
+  const auto iter_pair3 = move_backward_while_false(
+      cbegin(src3), cend(src3), end(dst3),
+      [](const auto n) { return !n.empty() && n.back() % 2 == 1; });
+
+  REQUIRE(src3.size() == dst3.size());
+  REQUIRE(vector<string>(iter_pair3.first, cend(src3)) ==
+          vector<string>(iter_pair3.second, end(dst3)));
+  REQUIRE(expected_numbers3 == dst3);
+  REQUIRE(iter_pair3.first != cend(src3));
+  REQUIRE(*(iter_pair3.first) == "12");
+  REQUIRE(*(iter_pair3.second) == "12");
+}

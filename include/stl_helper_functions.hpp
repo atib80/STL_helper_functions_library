@@ -12031,13 +12031,8 @@ str_join(FwIterType first, const FwIterType last, const NeedleType& needle) {
 
 template <typename ForwardIterType1,
           typename ForwardIterType2,
-          typename Predicate,
-          typename = std::enable_if_t<std::is_assignable_v<
-              std::add_lvalue_reference_t<
-                  typename std::iterator_traits<ForwardIterType2>::value_type>,
-              std::add_lvalue_reference_t<const typename std::iterator_traits<
-                  ForwardIterType1>::value_type>>>>
-constexpr std::pair<ForwardIterType1, ForwardIterType2> copy_while(
+          typename Predicate>
+constexpr std::pair<ForwardIterType1, ForwardIterType2> copy_forward_while_true(
     ForwardIterType1 src_first,
     const ForwardIterType1 src_last,
     ForwardIterType2 dst_first,
@@ -12061,18 +12056,49 @@ constexpr std::pair<ForwardIterType1, ForwardIterType2> copy_while(
     ++dst_first;
   }
 
-  return std::make_pair(src_first, dst_first);
+  return {src_first, dst_first};
+}
+
+template <typename BidirIterType1, typename BidirIterType2, typename Predicate>
+constexpr std::pair<BidirIterType1, BidirIterType2> copy_backward_while_true(
+    const BidirIterType1 src_first,
+    BidirIterType1 src_last,
+    BidirIterType2 dst_last,
+    Predicate p) noexcept(std::
+                              is_nothrow_assignable_v<
+                                  std::add_lvalue_reference_t<
+                                      typename std::iterator_traits<
+                                          BidirIterType2>::value_type>,
+                                  std::add_lvalue_reference_t<
+                                      const typename std::iterator_traits<
+                                          BidirIterType1>::value_type>>&&
+                                  std::is_nothrow_invocable_r_v<
+                                      bool,
+                                      Predicate,
+                                      std::add_lvalue_reference_t<
+                                          const typename std::iterator_traits<
+                                              BidirIterType1>::value_type>>) {
+  bool is_copied{true};
+
+  while (src_first != src_last) {
+    is_copied = p(*(--src_last));
+    if (is_copied)
+      *(--dst_last) = *src_last;
+    else
+      break;
+  }
+
+  if (!is_copied)
+    ++src_last;
+
+  return {src_last, dst_last};
 }
 
 template <typename ForwardIterType1,
           typename ForwardIterType2,
-          typename Predicate,
-          typename = std::enable_if_t<std::is_assignable_v<
-              std::add_lvalue_reference_t<
-                  typename std::iterator_traits<ForwardIterType2>::value_type>,
-              std::add_lvalue_reference_t<const typename std::iterator_traits<
-                  ForwardIterType1>::value_type>>>>
-constexpr std::pair<ForwardIterType1, ForwardIterType2> copy_until(
+          typename Predicate>
+constexpr std::pair<ForwardIterType1, ForwardIterType2>
+copy_forward_while_false(
     ForwardIterType1 src_first,
     const ForwardIterType1 src_last,
     ForwardIterType2 dst_first,
@@ -12096,105 +12122,157 @@ constexpr std::pair<ForwardIterType1, ForwardIterType2> copy_until(
     ++dst_first;
   }
 
-  return std::make_pair(src_first, dst_first);
+  return {src_first, dst_first};
 }
 
-template <
-    typename ForwardIterType1,
-    typename ForwardIterType2,
-    typename Predicate,
-    typename = std::enable_if_t<
-        std::is_assignable_v<
-            std::add_lvalue_reference_t<
-                typename std::iterator_traits<ForwardIterType2>::value_type>,
-            std::add_rvalue_reference_t<
-                typename std::iterator_traits<ForwardIterType1>::value_type>> ||
-        std::is_assignable_v<
-            std::add_lvalue_reference_t<
-                typename std::iterator_traits<ForwardIterType2>::value_type>,
-            std::add_lvalue_reference_t<const typename std::iterator_traits<
-                ForwardIterType1>::value_type>>>>
-constexpr std::pair<ForwardIterType1, ForwardIterType2> move_while(
+template <typename BidirIterType1, typename BidirIterType2, typename Predicate>
+constexpr std::pair<BidirIterType1, BidirIterType2> copy_backward_while_false(
+    const BidirIterType1 src_first,
+    BidirIterType1 src_last,
+    BidirIterType2 dst_last,
+    Predicate p) noexcept(std::
+                              is_nothrow_assignable_v<
+                                  std::add_lvalue_reference_t<
+                                      typename std::iterator_traits<
+                                          BidirIterType2>::value_type>,
+                                  std::add_lvalue_reference_t<
+                                      const typename std::iterator_traits<
+                                          BidirIterType1>::value_type>>&&
+                                  std::is_nothrow_invocable_r_v<
+                                      bool,
+                                      Predicate,
+                                      std::add_lvalue_reference_t<
+                                          const typename std::iterator_traits<
+                                              BidirIterType1>::value_type>>) {
+  bool is_copied{true};
+
+  while (src_first != src_last) {
+    is_copied = !p(*(--src_last));
+    if (is_copied)
+      *(--dst_last) = *src_last;
+    else
+      break;
+  }
+
+  if (!is_copied)
+    ++src_last;
+
+  return {src_last, dst_last};
+}
+
+template <typename ForwardIterType1,
+          typename ForwardIterType2,
+          typename Predicate>
+constexpr std::pair<ForwardIterType1, ForwardIterType2> move_forward_while_true(
     ForwardIterType1 src_first,
     const ForwardIterType1 src_last,
     ForwardIterType2 dst_first,
-    Predicate p) noexcept((std::
-                               is_nothrow_move_assignable_v<
-                                   std::add_lvalue_reference_t<
-                                       typename std::iterator_traits<
-                                           ForwardIterType2>::value_type>,
-                                   std::add_lvalue_reference_t<
-                                       const typename std::iterator_traits<
-                                           ForwardIterType1>::value_type>> ||
-                           std::is_nothrow_assignable_v<
-                               std::add_lvalue_reference_t<
-                                   typename std::iterator_traits<
-                                       ForwardIterType2>::value_type>,
-                               std::add_lvalue_reference_t<
-                                   const typename std::iterator_traits<
-                                       ForwardIterType1>::value_type>>)&&std::
-                              is_nothrow_invocable_r_v<
-                                  bool,
-                                  Predicate,
-                                  std::add_lvalue_reference_t<
-                                      const typename std::iterator_traits<
-                                          ForwardIterType1>::value_type>>) {
+    Predicate p) noexcept(std::
+                              is_nothrow_move_assignable_v<
+                                  typename std::iterator_traits<
+                                      ForwardIterType1>::value_type>&&
+                                  std::is_nothrow_invocable_r_v<
+                                      bool,
+                                      Predicate,
+                                      std::add_lvalue_reference_t<
+                                          const typename std::iterator_traits<
+                                              ForwardIterType1>::value_type>>) {
   while (src_first != src_last && p(*src_first)) {
     *dst_first = std::move(*src_first);
     ++src_first;
     ++dst_first;
   }
 
-  return std::make_pair(src_first, dst_first);
+  return {src_first, dst_first};
 }
 
-template <
-    typename ForwardIterType1,
-    typename ForwardIterType2,
-    typename Predicate,
-    typename = std::enable_if_t<
-        std::is_assignable_v<
-            std::add_lvalue_reference_t<
-                typename std::iterator_traits<ForwardIterType2>::value_type>,
-            std::add_rvalue_reference_t<
-                typename std::iterator_traits<ForwardIterType1>::value_type>> ||
-        std::is_assignable_v<
-            std::add_lvalue_reference_t<
-                typename std::iterator_traits<ForwardIterType2>::value_type>,
-            std::add_lvalue_reference_t<const typename std::iterator_traits<
-                ForwardIterType1>::value_type>>>>
-constexpr std::pair<ForwardIterType1, ForwardIterType2> move_until(
+template <typename BidirIterType1, typename BidirIterType2, typename Predicate>
+constexpr std::pair<BidirIterType1, BidirIterType2> move_backward_while_true(
+    const BidirIterType1 src_first,
+    BidirIterType1 src_last,
+    BidirIterType2 dst_last,
+    Predicate p) noexcept(std::
+                              is_nothrow_move_assignable_v<
+                                  typename std::iterator_traits<
+                                      BidirIterType1>::value_type>&&
+                                  std::is_nothrow_invocable_r_v<
+                                      bool,
+                                      Predicate,
+                                      std::add_lvalue_reference_t<
+                                          const typename std::iterator_traits<
+                                              BidirIterType1>::value_type>>) {
+  bool is_moved{true};
+
+  while (src_first != src_last) {
+    is_moved = p(*(--src_last));
+    if (is_moved)
+      *(--dst_last) = std::move(*src_last);
+    else
+      break;
+  }
+
+  if (!is_moved)
+    ++src_last;
+
+  return {src_last, dst_last};
+}
+
+template <typename ForwardIterType1,
+          typename ForwardIterType2,
+          typename Predicate>
+constexpr std::pair<ForwardIterType1, ForwardIterType2>
+move_forward_while_false(
     ForwardIterType1 src_first,
     const ForwardIterType1 src_last,
     ForwardIterType2 dst_first,
-    Predicate p) noexcept((std::
-                               is_nothrow_move_assignable_v<
-                                   std::add_lvalue_reference_t<
-                                       typename std::iterator_traits<
-                                           ForwardIterType2>::value_type>,
-                                   std::add_lvalue_reference_t<
-                                       const typename std::iterator_traits<
-                                           ForwardIterType1>::value_type>> ||
-                           std::is_nothrow_assignable_v<
-                               std::add_lvalue_reference_t<
-                                   typename std::iterator_traits<
-                                       ForwardIterType2>::value_type>,
-                               std::add_lvalue_reference_t<
-                                   const typename std::iterator_traits<
-                                       ForwardIterType1>::value_type>>)&&std::
-                              is_nothrow_invocable_r_v<
-                                  bool,
-                                  Predicate,
-                                  std::add_lvalue_reference_t<
-                                      const typename std::iterator_traits<
-                                          ForwardIterType1>::value_type>>) {
+    Predicate p) noexcept(std::
+                              is_nothrow_move_assignable_v<
+                                  typename std::iterator_traits<
+                                      ForwardIterType1>::value_type>&&
+                                  std::is_nothrow_invocable_r_v<
+                                      bool,
+                                      Predicate,
+                                      std::add_lvalue_reference_t<
+                                          const typename std::iterator_traits<
+                                              ForwardIterType1>::value_type>>) {
   while (src_first != src_last && !p(*src_first)) {
     *dst_first = std::move(*src_first);
     ++src_first;
     ++dst_first;
   }
 
-  return std::make_pair(src_first, dst_first);
+  return {src_first, dst_first};
+}
+
+template <typename BidirIterType1, typename BidirIterType2, typename Predicate>
+constexpr std::pair<BidirIterType1, BidirIterType2> move_backward_while_false(
+    const BidirIterType1 src_first,
+    BidirIterType1 src_last,
+    BidirIterType2 dst_last,
+    Predicate p) noexcept(std::
+                              is_nothrow_move_assignable_v<
+                                  typename std::iterator_traits<
+                                      BidirIterType1>::value_type>&&
+                                  std::is_nothrow_invocable_r_v<
+                                      bool,
+                                      Predicate,
+                                      std::add_lvalue_reference_t<
+                                          const typename std::iterator_traits<
+                                              BidirIterType1>::value_type>>) {
+  bool is_moved{true};
+
+  while (src_first != src_last) {
+    is_moved = !p(*(--src_last));
+    if (is_moved)
+      *(--dst_last) = std::move(*src_last);
+    else
+      break;
+  }
+
+  if (!is_moved)
+    ++src_last;
+
+  return {src_last, dst_last};
 }
 
 }  // namespace stl::helper
