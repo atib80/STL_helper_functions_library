@@ -49,11 +49,29 @@
 
 #ifdef _MSC_VER
 #include <Strsafe.h>
+#include <windows.h>
 #define SNPRINTF StringCchPrintfA
 #define SNWPRINTF StringCchPrintfW
 #else
 #define SNPRINTF snprintf
 #define SNWPRINTF swprintf
+#endif
+
+#ifdef _DEBUG
+#if defined(_MSC_VER)
+#include <crtdbg.h>
+#define ASSERT _ASSERTE_
+#else
+#include <cassert>
+#define ASSERT assert
+#endif
+
+#define VERIFY ASSERT
+#define VERIFY_(result, expression) ASSERT(result == expression)
+#else
+#undef ASSERT
+#define VERIFY(expression) (expression)
+#define VERIFY_(result, expression) (expression)
 #endif
 
 #define PRINT_VAR_NAME(arg) std::cout << #arg << ' '
@@ -62,6 +80,40 @@
 namespace stl::helper {
 
 constexpr const char* __stl_helper_utility_library_version__{"0.0.1-devel"};
+
+#ifdef _DEBUG
+
+struct tracer {
+  std::ostream& output_stream;
+  const char* m_filename;
+  size_t m_line_number;
+
+  tracer(std::ostream& os, const char* filename, const size_t line_number)
+      : output_stream{os}, m_filename{filename}, m_line_number{line_number} {}
+
+  template <typename... Args>
+  void operator()(const char* format, Args&&... args) const {
+    const size_t buffer_len{1024U};
+    char buffer[buffer_len];
+
+    const auto count = snprintf(buffer, "%s (line number: %lu) -> ", m_filename,
+                                m_line_number);
+
+    ASSERT(-1 != count);
+
+    ASSERT(-1 != snprintf(buffer + count, buffer_len - count, format,
+                          std::forward<Args>(args)...));
+
+    output_stream << buffer;
+  }
+};
+
+#define trace_to_cout tracer(std::cout, __FILE__, __LINE__)
+#define trace_to_cerr tracer(std::cerr, __FILE__, __LINE__)
+#else
+#undef trace_to_cout
+#undef trace_to_cerr
+#endif
 
 template <typename... Args>
 constexpr void unused_args(Args&&...) {}
@@ -12036,20 +12088,7 @@ constexpr std::pair<ForwardIterType1, ForwardIterType2> copy_forward_while_true(
     ForwardIterType1 src_first,
     const ForwardIterType1 src_last,
     ForwardIterType2 dst_first,
-    Predicate p) noexcept(std::
-                              is_nothrow_assignable_v<
-                                  std::add_lvalue_reference_t<
-                                      typename std::iterator_traits<
-                                          ForwardIterType2>::value_type>,
-                                  std::add_lvalue_reference_t<
-                                      const typename std::iterator_traits<
-                                          ForwardIterType1>::value_type>>&&
-                                  std::is_nothrow_invocable_r_v<
-                                      bool,
-                                      Predicate,
-                                      std::add_lvalue_reference_t<
-                                          const typename std::iterator_traits<
-                                              ForwardIterType1>::value_type>>) {
+    Predicate p) {
   while (src_first != src_last && p(*src_first)) {
     *dst_first = *src_first;
     ++src_first;
@@ -12064,20 +12103,7 @@ constexpr std::pair<BidirIterType1, BidirIterType2> copy_backward_while_true(
     const BidirIterType1 src_first,
     BidirIterType1 src_last,
     BidirIterType2 dst_last,
-    Predicate p) noexcept(std::
-                              is_nothrow_assignable_v<
-                                  std::add_lvalue_reference_t<
-                                      typename std::iterator_traits<
-                                          BidirIterType2>::value_type>,
-                                  std::add_lvalue_reference_t<
-                                      const typename std::iterator_traits<
-                                          BidirIterType1>::value_type>>&&
-                                  std::is_nothrow_invocable_r_v<
-                                      bool,
-                                      Predicate,
-                                      std::add_lvalue_reference_t<
-                                          const typename std::iterator_traits<
-                                              BidirIterType1>::value_type>>) {
+    Predicate p) {
   bool is_copied{true};
 
   while (src_first != src_last) {
@@ -12098,24 +12124,10 @@ template <typename ForwardIterType1,
           typename ForwardIterType2,
           typename Predicate>
 constexpr std::pair<ForwardIterType1, ForwardIterType2>
-copy_forward_while_false(
-    ForwardIterType1 src_first,
-    const ForwardIterType1 src_last,
-    ForwardIterType2 dst_first,
-    Predicate p) noexcept(std::
-                              is_nothrow_assignable_v<
-                                  std::add_lvalue_reference_t<
-                                      typename std::iterator_traits<
-                                          ForwardIterType2>::value_type>,
-                                  std::add_lvalue_reference_t<
-                                      const typename std::iterator_traits<
-                                          ForwardIterType1>::value_type>>&&
-                                  std::is_nothrow_invocable_r_v<
-                                      bool,
-                                      Predicate,
-                                      std::add_lvalue_reference_t<
-                                          const typename std::iterator_traits<
-                                              ForwardIterType1>::value_type>>) {
+copy_forward_while_false(ForwardIterType1 src_first,
+                         const ForwardIterType1 src_last,
+                         ForwardIterType2 dst_first,
+                         Predicate p) {
   while (src_first != src_last && !p(*src_first)) {
     *dst_first = *src_first;
     ++src_first;
@@ -12130,20 +12142,7 @@ constexpr std::pair<BidirIterType1, BidirIterType2> copy_backward_while_false(
     const BidirIterType1 src_first,
     BidirIterType1 src_last,
     BidirIterType2 dst_last,
-    Predicate p) noexcept(std::
-                              is_nothrow_assignable_v<
-                                  std::add_lvalue_reference_t<
-                                      typename std::iterator_traits<
-                                          BidirIterType2>::value_type>,
-                                  std::add_lvalue_reference_t<
-                                      const typename std::iterator_traits<
-                                          BidirIterType1>::value_type>>&&
-                                  std::is_nothrow_invocable_r_v<
-                                      bool,
-                                      Predicate,
-                                      std::add_lvalue_reference_t<
-                                          const typename std::iterator_traits<
-                                              BidirIterType1>::value_type>>) {
+    Predicate p) {
   bool is_copied{true};
 
   while (src_first != src_last) {
