@@ -2057,3 +2057,20 @@ TEST_CASE(
   REQUIRE(*(iter_pair3.first) == "12");
   REQUIRE(*(iter_pair3.second) == "12");
 }
+
+TEST_CASE("void tracer::operator()(const char* format, Args&&... args) const",
+          "Testing custom tracer struct's operator() member function") {
+  ostringstream oss1;
+  ostringstream oss2;
+
+  const char* file_name{__FILE__};
+  const size_t line_number{__LINE__};
+
+  oss1 << file_name << " (line no.: " << line_number
+       << ") -> Printing Hello World to stdout.";
+
+  string oss2_str{
+      tracer{oss2, file_name, line_number}("Printing Hello World to stdout.")};
+
+  REQUIRE(oss1.str() == oss2_str);
+}

@@ -57,7 +57,6 @@
 #define SNWPRINTF swprintf
 #endif
 
-#ifdef _DEBUG
 #if defined(_MSC_VER)
 #include <crtdbg.h>
 #define ASSERT _ASSERTE_
@@ -68,11 +67,6 @@
 
 #define VERIFY ASSERT
 #define VERIFY_(result, expression) ASSERT(result == expression)
-#else
-#undef ASSERT
-#define VERIFY(expression) (expression)
-#define VERIFY_(result, expression) (expression)
-#endif
 
 #define PRINT_VAR_NAME(arg) std::cout << #arg << ' '
 #define PRINT_VAR_NAMEW(arg) std::wcout << #arg << L' '
@@ -81,39 +75,33 @@ namespace stl::helper {
 
 constexpr const char* __stl_helper_utility_library_version__{"0.0.1-devel"};
 
-#ifdef _DEBUG
-
 struct tracer {
   std::ostream& output_stream;
   const char* m_filename;
-  size_t m_line_number;
+  const size_t m_line_number;
 
   tracer(std::ostream& os, const char* filename, const size_t line_number)
       : output_stream{os}, m_filename{filename}, m_line_number{line_number} {}
 
   template <typename... Args>
-  void operator()(const char* format, Args&&... args) const {
+  std::string operator()(const char* format, Args&&... args) const {
     const size_t buffer_len{1024U};
     char buffer[buffer_len];
 
-    const auto count = snprintf(buffer, "%s (line number: %lu) -> ", m_filename,
-                                m_line_number);
+    const auto count = snprintf(buffer, buffer_len, "%s (line no.: %lu) -> ",
+                                m_filename, m_line_number);
 
-    ASSERT(-1 != count);
-
-    ASSERT(-1 != snprintf(buffer + count, buffer_len - count, format,
-                          std::forward<Args>(args)...));
+    snprintf(buffer + count, buffer_len - count, format,
+             std::forward<Args>(args)...);
 
     output_stream << buffer;
+
+    return buffer;
   }
 };
 
 #define trace_to_cout tracer(std::cout, __FILE__, __LINE__)
 #define trace_to_cerr tracer(std::cerr, __FILE__, __LINE__)
-#else
-#undef trace_to_cout
-#undef trace_to_cerr
-#endif
 
 template <typename... Args>
 constexpr void unused_args(Args&&...) {}
