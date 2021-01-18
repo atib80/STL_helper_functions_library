@@ -14,6 +14,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define _SCL_SECURE_NO_WARNINGS
 
+#include <inttypes.h>
 #include <algorithm>
 #include <array>
 #include <chrono>
@@ -71,6 +72,12 @@
 #define PRINT_VAR_NAME(arg) std::cout << #arg << ' '
 #define PRINT_VAR_NAMEW(arg) std::wcout << #arg << L' '
 
+#if defined(__LP64__) || defined(_M_AMD64) || defined(_M_X64)
+#define SIZE_T_PFORMAT PRIu64
+#else
+#define SIZE_T_PFORMAT PRIu32
+#endif
+
 namespace stl::helper {
 
 constexpr const char* __stl_helper_utility_library_version__{"0.0.1-devel"};
@@ -88,7 +95,9 @@ struct tracer {
     const size_t buffer_len{1024U};
     char buffer[buffer_len];
 
-    const auto count = snprintf(buffer, buffer_len, "%s (line no.: %lu) -> ",
+    const std::string format_str{"%s (line no.: %" SIZE_T_PFORMAT ") -> "};
+
+    const auto count = snprintf(buffer, buffer_len, format_str.c_str(),
                                 m_filename, m_line_number);
 
     snprintf(buffer + count, buffer_len - count, format,
@@ -12092,18 +12101,14 @@ constexpr std::pair<BidirIterType1, BidirIterType2> copy_backward_while_true(
     BidirIterType1 src_last,
     BidirIterType2 dst_last,
     Predicate p) {
-  bool is_copied{true};
-
   while (src_first != src_last) {
-    is_copied = p(*(--src_last));
-    if (is_copied)
+    if (p(*(--src_last)))
       *(--dst_last) = *src_last;
-    else
+    else {
+      ++src_last;
       break;
+    }
   }
-
-  if (!is_copied)
-    ++src_last;
 
   return {src_last, dst_last};
 }
@@ -12131,18 +12136,14 @@ constexpr std::pair<BidirIterType1, BidirIterType2> copy_backward_while_false(
     BidirIterType1 src_last,
     BidirIterType2 dst_last,
     Predicate p) {
-  bool is_copied{true};
-
   while (src_first != src_last) {
-    is_copied = !p(*(--src_last));
-    if (is_copied)
+    if (!p(*(--src_last)))
       *(--dst_last) = *src_last;
-    else
+    else {
+      ++src_last;
       break;
+    }
   }
-
-  if (!is_copied)
-    ++src_last;
 
   return {src_last, dst_last};
 }
@@ -12188,18 +12189,14 @@ constexpr std::pair<BidirIterType1, BidirIterType2> move_backward_while_true(
                                       std::add_lvalue_reference_t<
                                           const typename std::iterator_traits<
                                               BidirIterType1>::value_type>>) {
-  bool is_moved{true};
-
   while (src_first != src_last) {
-    is_moved = p(*(--src_last));
-    if (is_moved)
+    if (p(*(--src_last)))
       *(--dst_last) = std::move(*src_last);
-    else
+    else {
+      ++src_last;
       break;
+    }
   }
-
-  if (!is_moved)
-    ++src_last;
 
   return {src_last, dst_last};
 }
@@ -12246,19 +12243,14 @@ constexpr std::pair<BidirIterType1, BidirIterType2> move_backward_while_false(
                                       std::add_lvalue_reference_t<
                                           const typename std::iterator_traits<
                                               BidirIterType1>::value_type>>) {
-  bool is_moved{true};
-
   while (src_first != src_last) {
-    is_moved = !p(*(--src_last));
-    if (is_moved)
+    if (!p(*(--src_last)))
       *(--dst_last) = std::move(*src_last);
-    else
+    else {
+      ++src_last;
       break;
+    }
   }
-
-  if (!is_moved)
-    ++src_last;
-
   return {src_last, dst_last};
 }
 

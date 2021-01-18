@@ -2069,7 +2069,7 @@ TEST_CASE("void tracer::operator()(const char* format, Args&&... args) const",
   oss1 << file_name << " (line no.: " << line_number
        << ") -> Printing Hello World to stdout.";
 
-  string oss2_str{
+  const string oss2_str{
       tracer{oss2, file_name, line_number}("Printing Hello World to stdout.")};
 
   REQUIRE(oss1.str() == oss2_str);
