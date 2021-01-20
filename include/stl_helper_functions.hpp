@@ -95,10 +95,9 @@ struct tracer {
     const size_t buffer_len{1024U};
     char buffer[buffer_len];
 
-    const std::string format_str{"%s (line no.: %" SIZE_T_PFORMAT ") -> "};
-
-    const auto count = snprintf(buffer, buffer_len, format_str.c_str(),
-                                m_filename, m_line_number);
+    const auto count =
+        snprintf(buffer, buffer_len, "%s (line no.: %" SIZE_T_PFORMAT ") -> ",
+                 m_filename, m_line_number);
 
     snprintf(buffer + count, buffer_len - count, format,
              std::forward<Args>(args)...);
@@ -12104,10 +12103,8 @@ constexpr std::pair<BidirIterType1, BidirIterType2> copy_backward_while_true(
   while (src_first != src_last) {
     if (p(*(--src_last)))
       *(--dst_last) = *src_last;
-    else {
-      ++src_last;
-      break;
-    }
+    else
+      return {++src_last, dst_last};
   }
 
   return {src_last, dst_last};
@@ -12139,10 +12136,8 @@ constexpr std::pair<BidirIterType1, BidirIterType2> copy_backward_while_false(
   while (src_first != src_last) {
     if (!p(*(--src_last)))
       *(--dst_last) = *src_last;
-    else {
-      ++src_last;
-      break;
-    }
+    else
+      return {++src_last, dst_last};
   }
 
   return {src_last, dst_last};
@@ -12192,10 +12187,8 @@ constexpr std::pair<BidirIterType1, BidirIterType2> move_backward_while_true(
   while (src_first != src_last) {
     if (p(*(--src_last)))
       *(--dst_last) = std::move(*src_last);
-    else {
-      ++src_last;
-      break;
-    }
+    else
+      return {++src_last, dst_last};
   }
 
   return {src_last, dst_last};
@@ -12246,10 +12239,8 @@ constexpr std::pair<BidirIterType1, BidirIterType2> move_backward_while_false(
   while (src_first != src_last) {
     if (!p(*(--src_last)))
       *(--dst_last) = std::move(*src_last);
-    else {
-      ++src_last;
-      break;
-    }
+    else
+      return {++src_last, dst_last};
   }
   return {src_last, dst_last};
 }
