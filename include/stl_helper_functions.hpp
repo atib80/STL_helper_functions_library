@@ -269,6 +269,21 @@ struct has_value_type<T, std::void_t<has_value_type_t<T>>> : std::true_type {};
 template <typename T>
 constexpr const bool has_value_type_v = has_value_type<T>::value;
 
+template <typename T, typename U>
+using has_insert_member_func_t =
+    decltype(std::declval<T&>().insert(std::declval<U>()));
+
+template <typename T, typename U, typename = void>
+struct has_insert_member_func : std::false_type {};
+
+template <typename T, typename U>
+struct has_insert_member_func<T, U, std::void_t<has_insert_member_func_t<T, U>>>
+    : std::true_type {};
+
+template <typename T, typename U>
+constexpr const bool has_insert_member_func_v =
+    has_insert_member_func<T, U>::value;
+
 template <typename T>
 using has_mapped_type_t = decltype(std::declval<typename T::mapped_type>());
 
@@ -1457,14 +1472,14 @@ std::basic_string<get_char_type_t<T>> rtrim(
   const std::unordered_set<char_type> trimmed_chars(
       chars_to_trim, chars_to_trim + len(chars_to_trim));
 
-  const auto last{std::find_if(std::crbegin(source_str), std::crend(source_str),
+  const auto last{std::find_if(std::rbegin(source_str), std::rend(source_str),
                                [&trimmed_chars](const auto ch) {
                                  return trimmed_chars.find(ch) ==
-                                        std::cend(trimmed_chars);
+                                        std::end(trimmed_chars);
                                })
                       .base()};
 
-  source_str.erase(last, cend(source_str));
+  source_str.erase(last, end(source_str));
 
   return source_str;
 }

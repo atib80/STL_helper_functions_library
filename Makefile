@@ -2,8 +2,8 @@ CC=gcc
 CXX=g++
 CODE_FORMAT=clang-format
 CODE_FORMAT_PARAMS=-i -style=Chromium
-RM=rm -f
-CPPFLAGS=-Wall -Wextra -Wpedantic -std=c++17 -fpermissive -O3
+RM=rm -rf
+CPPFLAGS=-Wall -Wextra -pedantic -std=c++17 -fpermissive -O3 -Ofast
 INCLUDE_DIR=include
 SRC_DIR=src
 TESTS_DIR=tests
