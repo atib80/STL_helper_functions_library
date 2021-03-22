@@ -12260,6 +12260,173 @@ constexpr std::pair<BidirIterType1, BidirIterType2> move_backward_while_false(
   return {src_last, dst_last};
 }
 
+/**
+ * An alternative implementation of the generic stable_partition algorithm
+ *
+ * @param[in] first BidirIterType - a bidirectional or random iterator pointing
+ * to the first element of the input sequence [first, last)
+ * @param[in] last BidirIterType - a bidirectional or random iterator pointing
+ * to the first non-existing element located after the last valid position in
+ * the input sequence
+ * @param[in] p UnaryPredicate - a unary predicate [global function, functor,
+ * lambda] that returns true or false depending on the input element's value
+ *
+ * @return new_last BidirIterType - a bidirectional iterator that points to
+ * the first non-matching element in the modified input sequence [first, last)
+ *
+ * Generic algorithm stable_partition accepts a sequence of elements denoted by
+ * 'first' and 'last' bidirectional iterators and a unary predicate 'p', it
+ * processes the whole range of elements [first, last) by moving all the
+ * matching elements, for which the UnaryPredicate p returns true, to the
+ * beginning of the input range [first, last).
+ *
+ * The original relative order of the elements is kept intact.
+ */
+
+template <typename BidirIterType, typename UnaryPredicate>
+constexpr BidirIterType stable_partition(BidirIterType first,
+                                         BidirIterType last,
+                                         UnaryPredicate p) {
+  BidirIterType tmp_first{first}, tmp_last{last};
+
+  if (first == last || first == --tmp_last)
+    return last;
+
+  std::vector<typename std::iterator_traits<BidirIterType>::value_type> similar;
+  std::vector<typename std::iterator_traits<BidirIterType>::value_type>
+      different;
+
+  while (tmp_first != last) {
+    if (!p(*tmp_first)) {
+      different.emplace_back(std::move(*tmp_first));
+    } else {
+      similar.emplace_back(std::move(*tmp_first));
+    }
+
+    ++tmp_first;
+  }
+
+  for (auto iter = std::begin(similar); iter != std::end(similar);
+       ++iter, ++first) {
+    *first = std::move(*iter);
+  }
+
+  const BidirIterType new_last{first};
+
+  for (auto iter = std::begin(different); iter != std::end(different);
+       ++iter, ++first) {
+    *first = std::move(*iter);
+  }
+
+  return new_last;
+}
+
+/**
+ * A possible generic implementation of the stable_gather algorithm
+ *
+ * @param[in] first BidirIterType - a bidirectional or random iterator pointing
+ * to the first element of the input sequence
+ * @param[in] last BidirIterType - a bidirectional or random iterator pointing
+ * to the first non-existing element located behind the last valid position in
+ * the input sequence
+ * @param[in] target BidirIterType - a bidirectional or random iterator pointing
+ * to an existing element in the input sequence for which we want to find all
+ * the similar elements that are contained in the same input sequence [first,
+ * last)
+ * @param[in] p BinaryPredicate - a binary predicate [global function, functor,
+ * lambda] that returns true or false depending on the result of comparison
+ * between the target element and a custom element from the same input sequence
+ * [first, last)
+ *
+ * @return std::pair<BidirIterType, BidirIterType> - a pair of bidirectional
+ * iterators lower_bound and upper_bound that point to the first similar
+ * (matching) element located farthest to the left of the target element and the
+ * first non-matching element located closest to the right, respectively, in the
+ * modified input sequence [first, last)
+ *
+ * Generic algorithm stable_gather accepts a sequence of elements denoted by
+ * the 'first' and 'last' bidirectional iterators, a target element pointed by
+ * the bidirectional iterator 'target', and a unary predicate 'p', it processes
+ * the whole range of elements [first, last) by moving all the matching similar
+ * elements from [first, target), for which the BinaryPredicate p returns true,
+ * in front of the target element and moving all the
+ * matching similar elements from (target, last) behind the target element
+ * resulting in 2 logically related partial sequences [lower_bound, target) and
+ * [target, upper_bound), respectively.
+ *
+ * The algorithm returns a pair of bidirectional iterators that point to the
+ * first matching element located farthest to the left of the target element and
+ * the first non-matching element located closest to the right of the target
+ * element, respectively.
+ *
+ * The original relative order of the elements is kept intact.
+ */
+
+template <typename BidirIterType, typename BinaryPredicate>
+constexpr std::pair<BidirIterType, BidirIterType> stable_gather(
+    BidirIterType first,
+    BidirIterType last,
+    const BidirIterType target,
+    BinaryPredicate p) {
+  BidirIterType tmp_first{first}, tmp_last{last};
+
+  if (first == last || first == --tmp_last)
+    return last;
+
+  std::vector<typename std::iterator_traits<BidirIterType>::value_type>
+      left_different_data;
+  std::vector<typename std::iterator_traits<BidirIterType>::value_type>
+      left_similar_data;
+
+  while (tmp_first != target) {
+    if (p(*tmp_first, *target)) {
+      left_similar_data.emplace_back(std::move(*tmp_first));
+    } else {
+      left_different_data.emplace_back(std::move(*tmp_first));
+    }
+    ++tmp_first;
+  }
+
+  std::vector<typename std::iterator_traits<BidirIterType>::value_type>
+      right_similar_data;
+  std::vector<typename std::iterator_traits<BidirIterType>::value_type>
+      right_different_data;
+
+  while (++tmp_first != last) {
+    if (p(*target, *tmp_first)) {
+      right_similar_data.emplace_back(std::move(*tmp_first));
+    } else {
+      right_different_data.emplace_back(std::move(*tmp_first));
+    }
+  }
+
+  for (auto iter = std::begin(left_different_data);
+       iter != std::end(left_different_data); ++iter, ++first) {
+    *first = std::move(*iter);
+  }
+
+  const BidirIterType lower_bound{first};
+
+  for (auto iter = std::rbegin(right_different_data);
+       iter != std::rend(right_different_data); ++iter) {
+    *--last = std::move(*iter);
+  }
+
+  const BidirIterType upper_bound{last};
+
+  for (auto iter = std::begin(left_similar_data);
+       iter != std::end(left_similar_data); ++iter, ++first) {
+    *first = std::move(*iter);
+  }
+
+  for (auto iter = std::rbegin(right_similar_data);
+       iter != std::rend(right_similar_data); ++iter) {
+    *--last = std::move(*iter);
+  }
+
+  return {lower_bound, upper_bound};
+}
+
 }  // namespace stl::helper
 
 #endif
