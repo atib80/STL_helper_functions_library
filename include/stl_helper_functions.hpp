@@ -12284,9 +12284,9 @@ constexpr std::pair<BidirIterType1, BidirIterType2> move_backward_while_false(
  */
 
 template <typename BidirIterType, typename UnaryPredicate>
-constexpr BidirIterType stable_partition(BidirIterType first,
-                                         BidirIterType last,
-                                         UnaryPredicate p) {
+BidirIterType stable_partition(BidirIterType first,
+                               BidirIterType last,
+                               UnaryPredicate p) {
   BidirIterType tmp_first{first}, tmp_last{last};
 
   if (first == last || first == --tmp_last)
@@ -12363,7 +12363,7 @@ constexpr BidirIterType stable_partition(BidirIterType first,
  */
 
 template <typename BidirIterType, typename BinaryPredicate>
-constexpr std::pair<BidirIterType, BidirIterType> stable_gather(
+std::pair<BidirIterType, BidirIterType> stable_gather(
     BidirIterType first,
     BidirIterType last,
     const BidirIterType target,
