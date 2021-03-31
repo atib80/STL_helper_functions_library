@@ -1,6 +1,8 @@
 #define CATCH_CONFIG_MAIN
 
+#include <algorithm>
 #include <chrono>
+#include <cstdlib>
 #include <cstring>
 #include <iterator>
 #include <map>
@@ -20,14 +22,30 @@ using namespace stl::helper;
 
 long long get_random_number(const long long lower_bound,
                             const long long upper_bound) {
-  static mt19937 rand_engine{static_cast<unsigned>(
+  mt19937 rand_engine{static_cast<unsigned>(
       high_resolution_clock::now().time_since_epoch().count())};
-  static uniform_int_distribution<long long> num_distr{lower_bound,
-                                                       upper_bound};
+  uniform_int_distribution<long long> num_distr{lower_bound, upper_bound};
 
   return num_distr(rand_engine);
 }
 
+template <typename T>
+std::vector<T> generate_sequence_of_random_values(
+    const T& low,
+    const T& high,
+    const size_t num_of_elements) {
+  std::random_device rd{};
+  std::mt19937 rand_engine{rd()};
+  std::uniform_int_distribution<T> dist{low, high};
+
+  std::vector<T> seq;
+  seq.reserve(num_of_elements);
+
+  for (size_t i{}; i < num_of_elements; ++i)
+    seq.emplace_back(dist(rand_engine));
+
+  return seq;
+}
 TEST_CASE("int say_slow(std::ostream&, const size_t, const char*, Args...)",
           "Testing correct work of global template function int say_slow(const "
           "size_t time_delay_in_ms, const char* format_string, Args... args)") {
@@ -2073,4 +2091,88 @@ TEST_CASE("void tracer::operator()(const char* format, Args&&... args) const",
       tracer{oss2, file_name, line_number}("Printing Hello World to stdout.")};
 
   REQUIRE(oss1.str() == oss2_str);
+}
+
+TEST_CASE(
+    "BidirIterType stable_partition(BidirIterType first, BidirIterType last, "
+    "UnaryPredicate p)",
+    "Testing global function template stl::helper::stable_partition") {
+  std::srand(std::time(nullptr));
+
+  std::vector<int> vec{1, 0, -1, -3, -2, 2, 8, 3, 5, -7, 4, -9, 7, -10};
+  std::vector<int> vec_copy{vec};
+
+  const auto vec_last = std::stable_partition(
+      std::begin(vec), std::end(vec), [](const int n) { return n > 0; });
+  const auto vec_copy_last =
+      stl::helper::stable_partition(std::begin(vec_copy), std::end(vec_copy),
+                                    [](const int n) { return n > 0; });
+
+  REQUIRE(std::equal(std::begin(vec), vec_last, std::begin(vec_copy),
+                     vec_copy_last));
+  REQUIRE((std::vector<int>(std::begin(vec), vec_last) ==
+           std::vector<int>{1, 2, 8, 3, 5, 4, 7}));
+  REQUIRE((std::vector<int>(std::begin(vec_copy), vec_copy_last) ==
+           std::vector<int>{1, 2, 8, 3, 5, 4, 7}));
+
+  std::vector<int> vec1{};
+  REQUIRE(std::end(vec1) ==
+          stl::helper::stable_partition(std::begin(vec1), std::end(vec1),
+                                        [](const int n) { return n > 0; }));
+
+  std::vector<int> vec2{-8};
+  REQUIRE(std::end(vec2) ==
+          stl::helper::stable_partition(std::begin(vec2), std::end(vec2),
+                                        [](const int n) { return n > 0; }));
+
+  std::vector<int> vec3{8};
+  REQUIRE(std::end(vec3) ==
+          stl::helper::stable_partition(std::begin(vec3), std::end(vec3),
+                                        [](const int n) { return n > 0; }));
+
+  const int number_of_test_cases = 10 + std::rand() % 100;
+
+  for (int i{}; i < number_of_test_cases; ++i) {
+    std::vector<int> vec4{generate_sequence_of_random_values(
+        -1000, 1000, 10 + std::rand() % 1000)};
+    std::vector<int> vec4_copy{vec4};
+
+    const auto vec4_last = std::stable_partition(
+        std::begin(vec4), std::end(vec4), [](const int n) { return n > 0; });
+    const auto vec4_copy_last = stl::helper::stable_partition(
+        std::begin(vec4_copy), std::end(vec4_copy),
+        [](const int n) { return n > 0; });
+
+    REQUIRE(std::equal(std::begin(vec4), vec4_last, std::begin(vec4_copy),
+                       vec4_copy_last));
+  }
+}
+
+TEST_CASE(
+    "std::pair<BidirIterType, BidirIterType> stable_gather(BidirIterType "
+    "first, BidirIterType last, const BidirIterType target, BinaryPredicate p",
+    "Testing global function template stl::helper::stable_gather") {
+  std::srand(std::time(nullptr));
+
+  std::vector<int> vec{1, 0, -1, -3, -2, 2, 8, 3, 5, -7, 4, -9, 7, -10};
+  std::vector<int> vec_copy{vec};
+
+  const auto target_iter1 = std::find(std::begin(vec), std::end(vec), 8);
+
+  const auto [vect_first1, vec_last1] = stl::helper::stable_gather(
+      std::begin(vec), std::end(vec), target_iter1,
+      [](const int x, const int y) { return std::abs(x - y) <= 5; });
+
+  REQUIRE((std::vector<int>(vect_first1, vec_last1) ==
+           std::vector<int>{8, 3, 5, 4, 7}));
+
+  const auto target_iter2 =
+      std::find(std::begin(vec_copy), std::end(vec_copy), 2);
+
+  const auto [vect_first2, vec_last2] = stl::helper::stable_gather(
+      std::begin(vec_copy), std::end(vec_copy), target_iter2,
+      [](const int x, const int y) { return std::abs(x - y) <= 3; });
+
+  REQUIRE((std::vector<int>(vect_first2, vec_last2) ==
+           std::vector<int>{1, 0, -1, 2, 3, 5, 4}));
 }

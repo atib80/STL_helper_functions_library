@@ -12287,35 +12287,33 @@ template <typename BidirIterType, typename UnaryPredicate>
 BidirIterType stable_partition(BidirIterType first,
                                BidirIterType last,
                                UnaryPredicate p) {
-  BidirIterType tmp_first{first}, tmp_last{last};
+  BidirIterType tmp_last{last};
 
   if (first == last || first == --tmp_last)
     return last;
 
-  std::vector<typename std::iterator_traits<BidirIterType>::value_type> similar;
-  std::vector<typename std::iterator_traits<BidirIterType>::value_type>
-      different;
+  std::queue<typename std::iterator_traits<BidirIterType>::value_type> q;
 
-  while (tmp_first != last) {
-    if (!p(*tmp_first)) {
-      different.emplace_back(std::move(*tmp_first));
+  BidirIterType current{first};
+
+  while (current != last) {
+    if (!p(*current)) {
+      q.emplace(std::move(*current));
     } else {
-      similar.emplace_back(std::move(*tmp_first));
+      if (first != current)
+        *first = std::move(*current);
+
+      ++first;
     }
-
-    ++tmp_first;
-  }
-
-  for (auto iter = std::begin(similar); iter != std::end(similar);
-       ++iter, ++first) {
-    *first = std::move(*iter);
+    ++current;
   }
 
   const BidirIterType new_last{first};
 
-  for (auto iter = std::begin(different); iter != std::end(different);
-       ++iter, ++first) {
-    *first = std::move(*iter);
+  while (!q.empty()) {
+    *first = std::move(q.front());
+    q.pop();
+    ++first;
   }
 
   return new_last;
@@ -12368,63 +12366,58 @@ std::pair<BidirIterType, BidirIterType> stable_gather(
     BidirIterType last,
     const BidirIterType target,
     BinaryPredicate p) {
-  BidirIterType tmp_first{first}, tmp_last{last};
+  BidirIterType tmp_last{last};
 
   if (first == last || first == --tmp_last)
-    return last;
+    return {first, last};
 
-  std::vector<typename std::iterator_traits<BidirIterType>::value_type>
-      left_different_data;
-  std::vector<typename std::iterator_traits<BidirIterType>::value_type>
-      left_similar_data;
+  std::queue<typename std::iterator_traits<BidirIterType>::value_type> q;
 
-  while (tmp_first != target) {
-    if (p(*tmp_first, *target)) {
-      left_similar_data.emplace_back(std::move(*tmp_first));
+  BidirIterType current{first};
+
+  while (current != target) {
+    if (p(*current, *target)) {
+      q.emplace(std::move(*current));
     } else {
-      left_different_data.emplace_back(std::move(*tmp_first));
+      if (first != current)
+        *first = std::move(*current);
+
+      ++first;
     }
-    ++tmp_first;
+    ++current;
   }
 
-  std::vector<typename std::iterator_traits<BidirIterType>::value_type>
-      right_similar_data;
-  std::vector<typename std::iterator_traits<BidirIterType>::value_type>
-      right_different_data;
+  const BidirIterType similar_first{first};
 
-  while (++tmp_first != last) {
-    if (p(*target, *tmp_first)) {
-      right_similar_data.emplace_back(std::move(*tmp_first));
+  while (!q.empty()) {
+    *first = std::move(q.front());
+    q.pop();
+    ++first;
+  }
+
+  first = ++current;
+
+  while (current != last) {
+    if (!p(*target, *current)) {
+      q.emplace(std::move(*current));
     } else {
-      right_different_data.emplace_back(std::move(*tmp_first));
+      if (first != current)
+        *first = std::move(*current);
+
+      ++first;
     }
+    ++current;
   }
 
-  for (auto iter = std::begin(left_different_data);
-       iter != std::end(left_different_data); ++iter, ++first) {
-    *first = std::move(*iter);
+  const BidirIterType similar_last{first};
+
+  while (!q.empty()) {
+    *first = std::move(q.front());
+    q.pop();
+    ++first;
   }
 
-  const BidirIterType lower_bound{first};
-
-  for (auto iter = std::rbegin(right_different_data);
-       iter != std::rend(right_different_data); ++iter) {
-    *--last = std::move(*iter);
-  }
-
-  const BidirIterType upper_bound{last};
-
-  for (auto iter = std::begin(left_similar_data);
-       iter != std::end(left_similar_data); ++iter, ++first) {
-    *first = std::move(*iter);
-  }
-
-  for (auto iter = std::rbegin(right_similar_data);
-       iter != std::rend(right_similar_data); ++iter) {
-    *--last = std::move(*iter);
-  }
-
-  return {lower_bound, upper_bound};
+  return {similar_first, similar_last};
 }
 
 }  // namespace stl::helper
