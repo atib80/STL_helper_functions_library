@@ -2154,6 +2154,41 @@ TEST_CASE(
     "Testing global function template stl::helper::stable_gather") {
   std::srand(std::time(nullptr));
 
+  std::vector<int> vec_b1{};
+
+  const auto target_iter_b1 =
+      std::find(std::begin(vec_b1), std::end(vec_b1), 8);
+
+  const auto [vec_first_b1, vec_last_b1] = stl::helper::stable_gather(
+      std::begin(vec_b1), std::end(vec_b1), target_iter_b1,
+      [](const int x, const int y) { return std::abs(x - y) <= 5; });
+
+  REQUIRE(vec_first_b1 == std::begin(vec_b1));
+  REQUIRE(std::begin(vec_b1) == vec_last_b1);
+  REQUIRE(vec_last_b1 == std::end(vec_b1));
+
+  std::vector<int> vec_b2{1};
+
+  const auto target_iter_b2 =
+      std::find(std::begin(vec_b2), std::end(vec_b2), 1);
+
+  const auto [vec_first_b2, vec_last_b2] = stl::helper::stable_gather(
+      std::begin(vec_b2), std::end(vec_b2), target_iter_b2,
+      [](const int x, const int y) { return std::abs(x - y) <= 5; });
+
+  REQUIRE(vec_first_b2 == std::begin(vec_b2));
+  REQUIRE(vec_last_b2 == std::end(vec_b2));
+
+  const auto target_iter_b3 =
+      std::find(std::begin(vec_b2), std::end(vec_b2), 8);
+
+  const auto [vec_first_b3, vec_last_b3] = stl::helper::stable_gather(
+      std::begin(vec_b2), std::end(vec_b2), target_iter_b3,
+      [](const int x, const int y) { return std::abs(x - y) <= 5; });
+
+  REQUIRE(vec_first_b3 == vec_last_b3);
+  REQUIRE(vec_first_b3 == std::end(vec_b2));
+
   std::vector<int> vec{1, 0, -1, -3, -2, 2, 8, 3, 5, -7, 4, -9, 7, -10};
   std::vector<int> vec2{vec};
 

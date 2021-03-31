@@ -12368,8 +12368,8 @@ std::pair<BidirIterType, BidirIterType> stable_gather(
     BinaryPredicate p) {
   BidirIterType tmp_last{last};
 
-  if (first == last || first == --tmp_last)
-    return {first, last};
+  if (first == last || target == last)
+    return {last, last};
 
   std::queue<typename std::iterator_traits<BidirIterType>::value_type> q;
 
