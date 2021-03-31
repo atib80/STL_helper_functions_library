@@ -2155,24 +2155,69 @@ TEST_CASE(
   std::srand(std::time(nullptr));
 
   std::vector<int> vec{1, 0, -1, -3, -2, 2, 8, 3, 5, -7, 4, -9, 7, -10};
-  std::vector<int> vec_copy{vec};
+  std::vector<int> vec2{vec};
 
   const auto target_iter1 = std::find(std::begin(vec), std::end(vec), 8);
 
-  const auto [vect_first1, vec_last1] = stl::helper::stable_gather(
+  const auto [vec_first1, vec_last1] = stl::helper::stable_gather(
       std::begin(vec), std::end(vec), target_iter1,
       [](const int x, const int y) { return std::abs(x - y) <= 5; });
 
-  REQUIRE((std::vector<int>(vect_first1, vec_last1) ==
+  REQUIRE((std::vector<int>(vec_first1, vec_last1) ==
            std::vector<int>{8, 3, 5, 4, 7}));
 
-  const auto target_iter2 =
-      std::find(std::begin(vec_copy), std::end(vec_copy), 2);
+  const auto target_iter2 = std::find(std::begin(vec2), std::end(vec2), 8);
+  const auto target_value = 8;
 
-  const auto [vect_first2, vec_last2] = stl::helper::stable_gather(
-      std::begin(vec_copy), std::end(vec_copy), target_iter2,
-      [](const int x, const int y) { return std::abs(x - y) <= 3; });
+  const auto vec_first2 = std::stable_partition(
+      std::begin(vec2), target_iter2,
+      [&](const auto n) { return !(std::abs(n - target_value) <= 5); });
 
-  REQUIRE((std::vector<int>(vect_first2, vec_last2) ==
-           std::vector<int>{1, 0, -1, 2, 3, 5, 4}));
+  const auto vec_last2 = std::stable_partition(
+      target_iter2, std::end(vec2),
+      [&](const auto n) { return std::abs(n - target_value) <= 5; });
+
+  REQUIRE(std::equal(vec_first1, vec_last1, vec_first2, vec_last2));
+
+  const int number_of_test_cases = 10 + std::rand() % 100;
+
+  for (int i{}; i < number_of_test_cases; ++i) {
+    std::vector<int> vec{generate_sequence_of_random_values(
+        -1000, 1000, 10 + std::rand() % 1000)};
+
+    const auto offset = std::rand() % (vec.size() - 1);
+
+    const auto target_iter1 = std::begin(vec) + offset;
+
+    const int target = *target_iter1;
+    const int low = target - std::rand() % 100;
+    const int high = target + std::rand() % 100;
+
+    std::vector<int> vec_copy{vec};
+    const auto target_iter2 = std::begin(vec_copy) + offset;
+
+    const auto [vec_first1, vec_last1] = stl::helper::stable_gather(
+        std::begin(vec), std::end(vec), target_iter1,
+        [&](const auto x, const auto y) {
+          const auto min_element = std::min(x, y);
+          const auto max_element = std::max(x, y);
+          return min_element >= low && max_element <= high;
+        });
+
+    const auto vec_first2 = std::stable_partition(
+        std::begin(vec_copy), target_iter2, [&](const auto n) {
+          const auto min_element = std::min(n, target);
+          const auto max_element = std::max(n, target);
+          return !(min_element >= low && max_element <= high);
+        });
+
+    const auto vec_last2 = std::stable_partition(
+        target_iter2, std::end(vec_copy), [&](const auto n) {
+          const auto min_element = std::min(target, n);
+          const auto max_element = std::max(target, n);
+          return min_element >= low && max_element <= high;
+        });
+
+    REQUIRE(std::equal(vec_first1, vec_last1, vec_first2, vec_last2));
+  }
 }
