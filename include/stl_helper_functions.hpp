@@ -12423,25 +12423,19 @@ std::pair<BidirIterType, BidirIterType> stable_gather(
 
 namespace detail {
 
-struct array_like_container_tag {
-} __attribute__((aligned(4)));
+struct array_like_container_tag {};
 
-struct vector_like_container_tag {
-} __attribute__((aligned(4)));
+struct vector_like_container_tag {};
 
-struct list_like_container_tag {
-} __attribute__((aligned(4)));
-;
+struct list_like_container_tag {};
 
-struct associative_like_container_tag {
-} __attribute__((aligned(4)));
-;
+struct associative_like_container_tag {};
 
 template <typename C>
 struct container_traits;
 
-// partial specializations for sequential STL container data types similar to
-// std::vector<T, A>
+// partial specializations for those sequential STL container data types that
+// are similar to std::vector<T, A>
 
 template <typename T, size_t N>
 struct container_traits<std::array<T, N>> {
@@ -12458,8 +12452,8 @@ struct container_traits<std::deque<T, A>> {
   using category = vector_like_container_tag;
 };
 
-// partial specializations for sequential STL container data types similar to
-// std::list<T, A>
+// partial specializations for those sequential STL container data types that
+// are similar to std::list<T, A>
 
 template <typename T, typename A>
 struct container_traits<std::list<T, A>> {
@@ -12471,8 +12465,8 @@ struct container_traits<std::forward_list<T, A>> {
   using category = list_like_container_tag;
 };
 
-// partial specializations for associative STL container types similar to
-// std::set<T, C, A> and std::map<K, V, C, A> containers
+// partial specializations for those associative STL container types that are
+// similar to std::set<T, C, A> and std::map<K, V, C, A>
 
 template <typename T, typename C, typename A>
 struct container_traits<std::set<T, C, A>> {
