@@ -62,7 +62,9 @@
 #include <crtdbg.h>
 #define ASSERT _ASSERTE_
 #else
+
 #include <cassert>
+
 #define ASSERT assert
 #endif
 
@@ -82,11 +84,12 @@ namespace stl::helper {
 
 constexpr const char* __stl_helper_utility_library_version__{"0.0.1-devel"};
 
-struct tracer {
+class alignas(32) tracer {
   std::ostream& output_stream;
   const char* m_filename;
   const size_t m_line_number;
 
+ public:
   tracer(std::ostream& os, const char* filename, const size_t line_number)
       : output_stream{os}, m_filename{filename}, m_line_number{line_number} {}
 
@@ -982,11 +985,10 @@ size_t say_slow(std::ostream& os,
 
   size_t ch_count{};
 
-  for (size_t i{}; i < output_buffer.size() - 1 && os.good(); ++i) {
-    os << output_buffer[i];
-    ++ch_count;
-    std::this_thread::sleep_for(std::chrono::milliseconds(time_delay_in_ms));
-  }
+  for (size_t i{}; i < output_buffer.size() - 1 && os << output_buffer[i];
+       ++i, ++ch_count,
+       std::this_thread::sleep_for(std::chrono::milliseconds(time_delay_in_ms)))
+    ;
 
   return ch_count;
 }
@@ -1012,12 +1014,11 @@ size_t say_slow(std::wostream& os,
     if (number_of_chars_written != -1) {
       size_t ch_count{};
 
-      for (int i{}; i < number_of_chars_written && os.good(); ++i) {
-        os << output_buffer[i];
-        ++ch_count;
-        std::this_thread::sleep_for(
-            std::chrono::milliseconds(time_delay_in_ms));
-      }
+      for (int i{}; i < number_of_chars_written && os << output_buffer[i];
+           ++i, ++ch_count,
+           std::this_thread::sleep_for(
+               std::chrono::milliseconds(time_delay_in_ms)))
+        ;
 
       return ch_count;
     }
@@ -9045,8 +9046,8 @@ std::basic_string<get_char_type_t<T>> to_title_case(
 
   bool is_new_sentence{true};
 
-  std::optional<decltype(
-      std::use_facet<std::ctype<char_type>>(std::declval<std::locale>()))>
+  std::optional<decltype(std::use_facet<std::ctype<char_type>>(
+      std::declval<std::locale>()))>
       f{};
 
   if (std::has_facet<std::ctype<char_type>>(loc))
@@ -9083,8 +9084,8 @@ void to_title_case_in_place(T& src, const std::locale& loc = std::locale{}) {
     return;
   bool is_new_sentence{true};
 
-  std::optional<decltype(
-      std::use_facet<std::ctype<char_type>>(std::declval<std::locale>()))>
+  std::optional<decltype(std::use_facet<std::ctype<char_type>>(
+      std::declval<std::locale>()))>
       f{};
 
   if (std::has_facet<std::ctype<char_type>>(loc))
@@ -12343,14 +12344,14 @@ BidirIterType stable_partition(BidirIterType first,
  * modified input sequence [first, last)
  *
  * Generic algorithm stable_gather accepts a sequence of elements denoted by
- * the 'first' and 'last' bidirectional iterators, a target element pointed by
- * the bidirectional iterator 'target', and a unary predicate 'p', it processes
- * the whole range of elements [first, last) by moving all the matching similar
- * elements from [first, target), for which the BinaryPredicate p returns true,
- * in front of the target element and moving all the
- * matching similar elements from (target, last) behind the target element
- * resulting in 2 logically related partial sequences [lower_bound, target) and
- * [target, upper_bound), respectively.
+ * the 'first' and 'last' bidirectional iterators, a target element pointed to
+ * by the bidirectional iterator 'target', and a unary predicate 'p', it
+ * processes the whole range of elements [first, last) by moving all the
+ * matching similar elements from [first, target), for those that satisfy the
+ * BinaryPredicate p, in front of the target element and moving all the matching
+ * similar elements from (target, last) behind the target element resulting in 2
+ * logically related partial sequences [lower_bound, target) and [target,
+ * upper_bound), respectively.
  *
  * The algorithm returns a pair of bidirectional iterators that point to the
  * first matching element located farthest to the left of the target element and
@@ -12418,6 +12419,319 @@ std::pair<BidirIterType, BidirIterType> stable_gather(
   }
 
   return {similar_first, similar_last};
+}
+
+namespace detail {
+
+struct array_like_container_tag {
+} __attribute__((aligned(4)));
+
+struct vector_like_container_tag {
+} __attribute__((aligned(4)));
+
+struct list_like_container_tag {
+} __attribute__((aligned(4)));
+;
+
+struct associative_like_container_tag {
+} __attribute__((aligned(4)));
+;
+
+template <typename C>
+struct container_traits;
+
+// partial specializations for sequential STL container data types similar to
+// std::vector<T, A>
+
+template <typename T, size_t N>
+struct container_traits<std::array<T, N>> {
+  using category = array_like_container_tag;
+};
+
+template <typename T, typename A>
+struct container_traits<std::vector<T, A>> {
+  using category = vector_like_container_tag;
+};
+
+template <typename T, typename A>
+struct container_traits<std::deque<T, A>> {
+  using category = vector_like_container_tag;
+};
+
+// partial specializations for sequential STL container data types similar to
+// std::list<T, A>
+
+template <typename T, typename A>
+struct container_traits<std::list<T, A>> {
+  using category = list_like_container_tag;
+};
+
+template <typename T, typename A>
+struct container_traits<std::forward_list<T, A>> {
+  using category = list_like_container_tag;
+};
+
+// partial specializations for associative STL container types similar to
+// std::set<T, C, A> and std::map<K, V, C, A> containers
+
+template <typename T, typename C, typename A>
+struct container_traits<std::set<T, C, A>> {
+  using category = associative_like_container_tag;
+};
+
+template <typename T, typename C, typename A>
+struct container_traits<std::multiset<T, C, A>> {
+  using category = associative_like_container_tag;
+};
+
+template <typename T, typename C, typename A>
+struct container_traits<std::unordered_set<T, C, A>> {
+  using category = associative_like_container_tag;
+};
+
+template <typename T, typename C, typename A>
+struct container_traits<std::unordered_multiset<T, C, A>> {
+  using category = associative_like_container_tag;
+};
+
+template <typename K, typename V, typename C, typename A>
+struct container_traits<std::map<K, V, C, A>> {
+  using category = associative_like_container_tag;
+};
+
+template <typename K, typename V, typename C, typename A>
+struct container_traits<std::multimap<K, V, C, A>> {
+  using category = associative_like_container_tag;
+};
+
+template <typename K, typename V, typename C, typename A>
+struct container_traits<std::unordered_map<K, V, C, A>> {
+  using category = associative_like_container_tag;
+};
+
+template <typename K, typename V, typename C, typename A>
+struct container_traits<std::unordered_multimap<K, V, C, A>> {
+  using category = associative_like_container_tag;
+};
+
+template <typename T, size_t N, typename X>
+bool erase_first_helper(std::array<T, N>& c,
+                        const X& x,
+                        array_like_container_tag /*unused*/) {
+  auto iter = std::find(c.begin(), c.end(), x);
+
+  if (iter == c.end()) {
+    return false;
+  }
+
+  for (auto prev = iter++; iter != c.end(); ++prev, ++iter) {
+    *prev = *iter;
+  }
+
+  return true;
+}
+
+template <typename T, size_t N, typename X>
+bool erase_all_helper(std::array<T, N>& c,
+                      const X& x,
+                      array_like_container_tag /*unused*/) {
+  return std::remove(c.begin(), c.end(), x) != c.end();
+}
+
+template <typename T, size_t N, typename Pred>
+bool erase_first_if_helper(std::array<T, N>& c,
+                           Pred p,
+                           array_like_container_tag /*unused*/) {
+  auto iter = std::find_if(c.begin(), c.end(), p);
+
+  if (iter == c.end()) {
+    return false;
+  }
+
+  for (auto prev = iter++; iter != c.end(); ++prev, ++iter) {
+    *prev = *iter;
+  }
+
+  return true;
+}
+
+template <typename T, size_t N, typename Pred>
+bool erase_all_if_helper(std::array<T, N>& c,
+                         Pred p,
+                         array_like_container_tag /*unused*/) {
+  return std::remove_if(c.begin(), c.end(), p) != c.end();
+}
+
+template <typename Container, typename X>
+bool erase_first_helper(Container& c,
+                        const X& x,
+                        vector_like_container_tag /*unused*/) {
+  const auto found_pos_iter = std::find(c.cbegin(), c.cend(), x);
+
+  if (found_pos_iter == c.cend()) {
+    return false;
+  }
+
+  c.erase(found_pos_iter);
+
+  return true;
+}
+
+template <typename Container, typename X>
+bool erase_all_helper(Container& c,
+                      const X& x,
+                      vector_like_container_tag /*unused*/) {
+  const size_t original_size = c.size();
+  c.erase(std::remove(c.begin(), c.end(), x), c.end());
+  return c.size() < original_size;
+}
+
+template <typename Container, typename Pred>
+bool erase_first_if_helper(Container& c,
+                           Pred p,
+                           vector_like_container_tag /*unused*/) {
+  const auto found_pos_iter = std::find_if(c.cbegin, c.cend(), p);
+
+  if (found_pos_iter == c.cend()) {
+    return false;
+  }
+
+  c.erase(found_pos_iter);
+
+  return true;
+}
+
+template <typename Container, typename Pred>
+bool erase_all_if_helper(Container& c,
+                         Pred p,
+                         vector_like_container_tag /*unused*/) {
+  const size_t original_size = c.size();
+  c.erase(std::remove_if(c.begin(), c.end(), p), c.end());
+  return c.size() < original_size;
+}
+
+template <typename Container, typename X>
+bool erase_first_helper(Container& c,
+                        const X& x,
+                        list_like_container_tag /*unused*/) {
+  for (auto iter = c.cbegin(); iter != c.cend(); ++iter) {
+    if (x == *iter) {
+      c.erase(iter);
+      return true;
+    }
+  }
+
+  return false;
+}
+
+template <typename Container, typename X>
+bool erase_all_helper(Container& c,
+                      const X& x,
+                      list_like_container_tag /*unused*/) {
+  const size_t original_size = c.size();
+  c.remove(x);
+  return c.size() < original_size;
+}
+
+template <typename Container, typename Pred>
+bool erase_first_if_helper(Container& c,
+                           Pred p,
+                           list_like_container_tag /*unused*/) {
+  for (auto iter = c.cbegin(); iter != c.cend(); ++iter) {
+    if (p(*iter)) {
+      c.erase(iter);
+      return true;
+    }
+  }
+
+  return false;
+}
+
+template <typename Container, typename Pred>
+bool erase_all_if_helper(Container& c,
+                         Pred p,
+                         list_like_container_tag /*unused*/) {
+  const size_t original_size = c.size();
+  c.remove_if(p);
+  return c.size() < original_size;
+}
+
+template <typename Container, typename X>
+bool erase_first_helper(Container& c,
+                        const X& x,
+                        associative_like_container_tag /*unused*/) {
+  const auto found_iter = c.find(x);
+  if (found_iter != c.end()) {
+    c.erase(found_iter);
+    return true;
+  }
+
+  return false;
+}
+
+template <typename Container, typename X>
+bool erase_all_helper(Container& c,
+                      const X& x,
+                      associative_like_container_tag /*unused*/) {
+  const size_t original_size = c.size();
+  c.erase(x);
+  return c.size() < original_size;
+}
+
+template <typename Container, typename Pred>
+bool erase_first_if_helper(Container& c,
+                           Pred p,
+                           associative_like_container_tag /*unused*/) {
+  for (auto iter = c.cbegin(); iter != c.cend();) {
+    if (p(*iter)) {
+      c.erase(iter);
+      return true;
+    }
+  }
+
+  return false;
+}
+
+template <typename Container, typename Pred>
+bool erase_all_if_helper(Container& c,
+                         Pred p,
+                         associative_like_container_tag /*unused*/) {
+  const size_t original_size = c.size();
+  for (auto iter = c.cbegin(); iter != c.cend();) {
+    if (p(*iter)) {
+      c.erase(iter++);
+    } else {
+      ++iter;
+    }
+  }
+
+  return c.size() < original_size;
+}
+
+}  // namespace detail
+
+template <typename Container, typename X>
+bool erase_first(Container& c, const X& x) {
+  return detail::erase_first_helper(
+      c, x, typename detail::container_traits<Container>::category{});
+}
+
+template <typename Container, typename X>
+bool erase_all(Container& c, const X& x) {
+  return detail::erase_all_helper(
+      c, x, typename detail::container_traits<Container>::category{});
+}
+
+template <typename Container, typename Pred>
+bool erase_first_if(Container& c, Pred p) {
+  return detail::erase_first_if_helper(
+      c, p, typename detail::container_traits<Container>::category{});
+}
+
+template <typename Container, typename Pred>
+bool erase_all_if(Container& c, Pred p) {
+  return detail::erase_all_if_helper(
+      c, p, typename detail::container_traits<Container>::category{});
 }
 
 }  // namespace stl::helper
