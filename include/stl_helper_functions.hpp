@@ -9046,8 +9046,8 @@ std::basic_string<get_char_type_t<T>> to_title_case(
 
   bool is_new_sentence{true};
 
-  std::optional<decltype(std::use_facet<std::ctype<char_type>>(
-      std::declval<std::locale>()))>
+  std::optional<decltype(
+      std::use_facet<std::ctype<char_type>>(std::declval<std::locale>()))>
       f{};
 
   if (std::has_facet<std::ctype<char_type>>(loc))
@@ -9084,8 +9084,8 @@ void to_title_case_in_place(T& src, const std::locale& loc = std::locale{}) {
     return;
   bool is_new_sentence{true};
 
-  std::optional<decltype(std::use_facet<std::ctype<char_type>>(
-      std::declval<std::locale>()))>
+  std::optional<decltype(
+      std::use_facet<std::ctype<char_type>>(std::declval<std::locale>()))>
       f{};
 
   if (std::has_facet<std::ctype<char_type>>(loc))
@@ -12438,6 +12438,11 @@ struct container_traits;
 // are similar to std::vector<T, A>
 
 template <typename T, size_t N>
+struct container_traits<T[N]> {
+  using category = array_like_container_tag;
+};
+
+template <typename T, size_t N>
 struct container_traits<std::array<T, N>> {
   using category = array_like_container_tag;
 };
@@ -12509,9 +12514,83 @@ struct container_traits<std::unordered_multimap<K, V, C, A>> {
 };
 
 template <typename T, size_t N, typename X>
+bool erase_first_helper(T (&arr)[N], const X& x, array_like_container_tag) {
+  auto iter = std::find(arr, arr + N, x);
+
+  if (iter == arr + N) {
+    return false;
+  }
+
+  for (auto prev = iter++; iter != arr + N; ++prev, ++iter) {
+    *prev = *iter;
+  }
+
+  return true;
+}
+
+template <typename T, size_t N, typename X>
+bool erase_last_helper(T (&arr)[N], const X& x, array_like_container_tag) {
+  auto iter = arr + N;
+  while (iter != arr) {
+    auto current = --iter;
+    if (x == *current) {
+      for (auto prev = current++; current != arr + N; ++prev, ++current) {
+        *prev = *current;
+      }
+
+      return true;
+    }
+  }
+
+  return false;
+}
+
+template <typename T, size_t N, typename X>
+bool erase_all_helper(T (&arr)[N], const X& x, array_like_container_tag) {
+  return std::remove(arr, arr + N, x) != arr + N;
+}
+
+template <typename T, size_t N, typename Pred>
+bool erase_first_if_helper(T (&arr)[N], Pred p, array_like_container_tag) {
+  auto iter = std::find_if(arr, arr + N, p);
+
+  if (iter == arr + N) {
+    return false;
+  }
+
+  for (auto prev = iter++; iter != arr + N; ++prev, ++iter) {
+    *prev = *iter;
+  }
+
+  return true;
+}
+
+template <typename T, size_t N, typename Pred>
+bool erase_last_if_helper(T (&arr)[N], Pred p, array_like_container_tag) {
+  auto iter = arr + N;
+  while (iter != arr) {
+    auto current = --iter;
+    if (p(*current)) {
+      for (auto prev = current++; current != arr + N; ++prev, ++current) {
+        *prev = *current;
+      }
+
+      return true;
+    }
+  }
+
+  return false;
+}
+
+template <typename T, size_t N, typename Pred>
+bool erase_all_if_helper(T (&arr)[N], Pred p, array_like_container_tag) {
+  return std::remove_if(arr, arr + N, p) != arr + N;
+}
+
+template <typename T, size_t N, typename X>
 bool erase_first_helper(std::array<T, N>& c,
                         const X& x,
-                        array_like_container_tag /*unused*/) {
+                        array_like_container_tag) {
   auto iter = std::find(c.begin(), c.end(), x);
 
   if (iter == c.end()) {
@@ -12526,16 +12605,34 @@ bool erase_first_helper(std::array<T, N>& c,
 }
 
 template <typename T, size_t N, typename X>
+bool erase_last_helper(std::array<T, N>& c,
+                       const X& x,
+                       array_like_container_tag) {
+  auto iter = std::find(c.rbegin(), c.rend(), x);
+
+  if (iter == c.rend()) {
+    return false;
+  }
+
+  for (auto prev = (iter + 1).base(), next = prev + 1; next != c.end();
+       ++prev, ++next) {
+    *prev = *next;
+  }
+
+  return true;
+}
+
+template <typename T, size_t N, typename X>
 bool erase_all_helper(std::array<T, N>& c,
                       const X& x,
-                      array_like_container_tag /*unused*/) {
+                      array_like_container_tag) {
   return std::remove(c.begin(), c.end(), x) != c.end();
 }
 
 template <typename T, size_t N, typename Pred>
 bool erase_first_if_helper(std::array<T, N>& c,
                            Pred p,
-                           array_like_container_tag /*unused*/) {
+                           array_like_container_tag) {
   auto iter = std::find_if(c.begin(), c.end(), p);
 
   if (iter == c.end()) {
@@ -12550,16 +12647,32 @@ bool erase_first_if_helper(std::array<T, N>& c,
 }
 
 template <typename T, size_t N, typename Pred>
+bool erase_last_if_helper(std::array<T, N>& c,
+                          Pred p,
+                          array_like_container_tag) {
+  auto iter = std::find_if(c.rbegin(), c.rend(), p);
+
+  if (iter == c.rend()) {
+    return false;
+  }
+
+  for (auto prev = (iter + 1).base(), next = prev + 1; next != c.end();
+       ++prev, ++next) {
+    *prev = *next;
+  }
+
+  return true;
+}
+
+template <typename T, size_t N, typename Pred>
 bool erase_all_if_helper(std::array<T, N>& c,
                          Pred p,
-                         array_like_container_tag /*unused*/) {
+                         array_like_container_tag) {
   return std::remove_if(c.begin(), c.end(), p) != c.end();
 }
 
 template <typename Container, typename X>
-bool erase_first_helper(Container& c,
-                        const X& x,
-                        vector_like_container_tag /*unused*/) {
+bool erase_first_helper(Container& c, const X& x, vector_like_container_tag) {
   const auto found_pos_iter = std::find(c.cbegin(), c.cend(), x);
 
   if (found_pos_iter == c.cend()) {
@@ -12572,18 +12685,27 @@ bool erase_first_helper(Container& c,
 }
 
 template <typename Container, typename X>
-bool erase_all_helper(Container& c,
-                      const X& x,
-                      vector_like_container_tag /*unused*/) {
+bool erase_last_helper(Container& c, const X& x, vector_like_container_tag) {
+  const auto found_pos_iter = std::find(c.crbegin(), c.crend(), x);
+
+  if (found_pos_iter == c.crend()) {
+    return false;
+  }
+
+  c.erase((found_pos_iter + 1).base());
+
+  return true;
+}
+
+template <typename Container, typename X>
+bool erase_all_helper(Container& c, const X& x, vector_like_container_tag) {
   const size_t original_size = c.size();
   c.erase(std::remove(c.begin(), c.end(), x), c.end());
   return c.size() < original_size;
 }
 
 template <typename Container, typename Pred>
-bool erase_first_if_helper(Container& c,
-                           Pred p,
-                           vector_like_container_tag /*unused*/) {
+bool erase_first_if_helper(Container& c, Pred p, vector_like_container_tag) {
   const auto found_pos_iter = std::find_if(c.cbegin, c.cend(), p);
 
   if (found_pos_iter == c.cend()) {
@@ -12596,18 +12718,27 @@ bool erase_first_if_helper(Container& c,
 }
 
 template <typename Container, typename Pred>
-bool erase_all_if_helper(Container& c,
-                         Pred p,
-                         vector_like_container_tag /*unused*/) {
+bool erase_last_if_helper(Container& c, Pred p, vector_like_container_tag) {
+  const auto found_pos_iter = std::find_if(c.crbegin(), c.crend(), p);
+
+  if (found_pos_iter == c.crend()) {
+    return false;
+  }
+
+  c.erase((found_pos_iter + 1).base());
+
+  return true;
+}
+
+template <typename Container, typename Pred>
+bool erase_all_if_helper(Container& c, Pred p, vector_like_container_tag) {
   const size_t original_size = c.size();
   c.erase(std::remove_if(c.begin(), c.end(), p), c.end());
   return c.size() < original_size;
 }
 
 template <typename Container, typename X>
-bool erase_first_helper(Container& c,
-                        const X& x,
-                        list_like_container_tag /*unused*/) {
+bool erase_first_helper(Container& c, const X& x, list_like_container_tag) {
   for (auto iter = c.cbegin(); iter != c.cend(); ++iter) {
     if (x == *iter) {
       c.erase(iter);
@@ -12619,18 +12750,46 @@ bool erase_first_helper(Container& c,
 }
 
 template <typename Container, typename X>
-bool erase_all_helper(Container& c,
-                      const X& x,
-                      list_like_container_tag /*unused*/) {
+bool erase_last_helper(Container& c, const X& x, list_like_container_tag) {
+  if constexpr (std::is_same_v<
+                    std::iterator_traits<
+                        typename Container::const_iterator>::iterator_category,
+                    std::forward_iterator_tag>) {
+    auto iter = std::find(c.cbegin(), c.cend(), x);
+    auto curr = iter;
+
+    while (curr != c.cend()) {
+      curr = std::find(++curr, c.cend(), x);
+
+      if (curr != c.cend()) {
+        iter = curr;
+      } else {
+        c.erase(iter);
+        return true;
+      }
+    }
+    return false;
+  } else {
+    auto found_pos_iter = std::find(c.crbegin(), c.crend(), x);
+
+    if (found_pos_iter == c.crend()) {
+      return false;
+    }
+
+    c.erase((++found_pos_iter).base());
+    return true;
+  }
+}
+
+template <typename Container, typename X>
+bool erase_all_helper(Container& c, const X& x, list_like_container_tag) {
   const size_t original_size = c.size();
   c.remove(x);
   return c.size() < original_size;
 }
 
 template <typename Container, typename Pred>
-bool erase_first_if_helper(Container& c,
-                           Pred p,
-                           list_like_container_tag /*unused*/) {
+bool erase_first_if_helper(Container& c, Pred p, list_like_container_tag) {
   for (auto iter = c.cbegin(); iter != c.cend(); ++iter) {
     if (p(*iter)) {
       c.erase(iter);
@@ -12642,9 +12801,39 @@ bool erase_first_if_helper(Container& c,
 }
 
 template <typename Container, typename Pred>
-bool erase_all_if_helper(Container& c,
-                         Pred p,
-                         list_like_container_tag /*unused*/) {
+bool erase_last_if_helper(Container& c, Pred p, list_like_container_tag) {
+  if constexpr (std::is_same_v<
+                    std::iterator_traits<
+                        typename Container::const_iterator>::iterator_category,
+                    std::forward_iterator_tag>) {
+    auto iter = std::find_if(c.cbegin(), c.cend(), p);
+    auto curr = iter;
+
+    while (curr != c.cend()) {
+      curr = std::find_if(++curr, c.cend(), p);
+
+      if (curr != c.cend()) {
+        iter = curr;
+      } else {
+        c.erase(iter);
+        return true;
+      }
+    }
+    return false;
+  } else {
+    auto found_pos_iter = std::find_if(c.crbegin(), c.crend(), p);
+
+    if (found_pos_iter == c.crend()) {
+      return false;
+    }
+
+    c.erase((++found_pos_iter).base());
+    return true;
+  }
+}
+
+template <typename Container, typename Pred>
+bool erase_all_if_helper(Container& c, Pred p, list_like_container_tag) {
   const size_t original_size = c.size();
   c.remove_if(p);
   return c.size() < original_size;
@@ -12653,7 +12842,7 @@ bool erase_all_if_helper(Container& c,
 template <typename Container, typename X>
 bool erase_first_helper(Container& c,
                         const X& x,
-                        associative_like_container_tag /*unused*/) {
+                        associative_like_container_tag) {
   const auto found_iter = c.find(x);
   if (found_iter != c.end()) {
     c.erase(found_iter);
@@ -12664,9 +12853,22 @@ bool erase_first_helper(Container& c,
 }
 
 template <typename Container, typename X>
+bool erase_last_helper(Container& c,
+                       const X& x,
+                       associative_like_container_tag) {
+  const auto iter_range = c.equal_range(x);
+  if (iter_range.first != iter_range.second) {
+    c.erase(--(iter_range.second));
+    return true;
+  }
+
+  return false;
+}
+
+template <typename Container, typename X>
 bool erase_all_helper(Container& c,
                       const X& x,
-                      associative_like_container_tag /*unused*/) {
+                      associative_like_container_tag) {
   const size_t original_size = c.size();
   c.erase(x);
   return c.size() < original_size;
@@ -12675,8 +12877,8 @@ bool erase_all_helper(Container& c,
 template <typename Container, typename Pred>
 bool erase_first_if_helper(Container& c,
                            Pred p,
-                           associative_like_container_tag /*unused*/) {
-  for (auto iter = c.cbegin(); iter != c.cend();) {
+                           associative_like_container_tag) {
+  for (auto iter = c.cbegin(); iter != c.cend(); ++iter) {
     if (p(*iter)) {
       c.erase(iter);
       return true;
@@ -12687,9 +12889,21 @@ bool erase_first_if_helper(Container& c,
 }
 
 template <typename Container, typename Pred>
-bool erase_all_if_helper(Container& c,
-                         Pred p,
-                         associative_like_container_tag /*unused*/) {
+bool erase_last_if_helper(Container& c,
+                          Pred p,
+                          associative_like_container_tag) {
+  for (auto iter = c.crbegin(); iter != c.crend(); ++iter) {
+    if (p(*iter)) {
+      c.erase((++iter).base());
+      return true;
+    }
+  }
+
+  return false;
+}
+
+template <typename Container, typename Pred>
+bool erase_all_if_helper(Container& c, Pred p, associative_like_container_tag) {
   const size_t original_size = c.size();
   for (auto iter = c.cbegin(); iter != c.cend();) {
     if (p(*iter)) {
@@ -12702,11 +12916,672 @@ bool erase_all_if_helper(Container& c,
   return c.size() < original_size;
 }
 
+template <typename T, size_t N, typename X>
+const T* find_first_helper(const T (&arr)[N],
+                           const X& x,
+                           array_like_container_tag) {
+  auto iter = &arr[0];
+
+  for (; iter != arr + N && *iter != x; ++iter)
+    ;
+
+  return iter;
+}
+
+template <typename T, size_t N, typename Pred>
+const T* find_first_if_helper(const T (&arr)[N],
+                              Pred p,
+                              array_like_container_tag) {
+  auto iter = &arr[0];
+
+  for (; iter != arr + N && !p(*iter); ++iter)
+    ;
+
+  return iter;
+}
+
+template <typename T, size_t N, typename X>
+const T* find_last_helper(const T (&arr)[N],
+                          const X& x,
+                          array_like_container_tag) {
+  for (auto iter = arr + N; iter != arr;) {
+    if (x == *--iter) {
+      return iter;
+    }
+  }
+
+  return arr + N;
+}
+
+template <typename T, size_t N, typename Pred>
+const T* find_last_if_helper(const T (&arr)[N],
+                             Pred p,
+                             array_like_container_tag) {
+  for (auto iter = arr + N; iter != arr;) {
+    if (p(*--iter)) {
+      return iter;
+    }
+  }
+
+  return arr + N;
+}
+
+template <typename T, size_t N, typename X>
+std::vector<const T*> find_all_helper(const T (&arr)[N],
+                                      const X& x,
+                                      array_like_container_tag) {
+  std::vector<const T*> result;
+
+  for (auto iter = &arr[0]; iter != arr + N; ++iter) {
+    if (x == *iter) {
+      result.emplace_back(iter);
+    }
+  }
+
+  return result;
+}
+
+template <typename T, size_t N, typename Pred>
+std::vector<const T*> find_all_if_helper(const T (&arr)[N],
+                                         Pred p,
+                                         array_like_container_tag) {
+  std::vector<const T*> result;
+
+  for (auto iter = &arr[0]; iter != arr + N; ++iter) {
+    if (p(*iter)) {
+      result.emplace_back(iter);
+    }
+  }
+
+  return result;
+}
+
+template <typename T, size_t N, typename X>
+typename std::array<T, N>::const_iterator find_first_helper(
+    const std::array<T, N>& c,
+    const X& x,
+    array_like_container_tag) {
+  auto iter = c.cbegin();
+
+  for (; iter != c.cend() && *iter != x; ++iter)
+    ;
+
+  return iter;
+}
+
+template <typename T, size_t N, typename Pred>
+typename std::array<T, N>::const_iterator find_first_if_helper(
+    const std::array<T, N>& c,
+    Pred p,
+    array_like_container_tag) {
+  auto iter = c.cbegin();
+
+  for (; iter != c.cend() && !p(*iter); ++iter)
+    ;
+
+  return iter;
+}
+
+template <typename T, size_t N, typename X>
+typename std::array<T, N>::const_iterator find_last_helper(
+    const std::array<T, N>& c,
+    const X& x,
+    array_like_container_tag) {
+  for (auto iter = c.crbegin(); iter != c.crend(); ++iter) {
+    if (x == *iter) {
+      return (iter + 1).base();
+    }
+  }
+
+  return c.cend();
+}
+
+template <typename T, size_t N, typename Pred>
+typename std::array<T, N>::const_iterator find_last_if_helper(
+    const std::array<T, N>& c,
+    Pred p,
+    array_like_container_tag) {
+  for (auto iter = c.crbegin(); iter != c.crend(); ++iter) {
+    if (p(*iter)) {
+      return (iter + 1).base();
+    }
+  }
+
+  return c.cend();
+}
+
+template <typename T, size_t N, typename X>
+std::vector<typename std::array<T, N>::const_iterator> find_all_helper(
+    const std::array<T, N>& c,
+    const X& x,
+    array_like_container_tag) {
+  std::vector<typename std::array<T, N>::const_iterator> result;
+
+  for (auto iter = c.cbegin(); iter != c.cend(); ++iter) {
+    if (x == *iter) {
+      result.emplace_back(iter);
+    }
+  }
+
+  return result;
+}
+
+template <typename T, size_t N, typename Pred>
+typename std::array<T, N>::const_iterator find_all_if_helper(
+    const std::array<T, N>& c,
+    Pred p,
+    array_like_container_tag) {
+  std::vector<typename std::array<T, N>::const_iterator> result;
+
+  for (auto iter = c.cbegin(); iter != c.cend(); ++iter) {
+    if (p(*iter)) {
+      result.emplace_back(iter);
+    }
+  }
+
+  return result;
+}
+
+template <typename Container, typename X>
+typename Container::const_iterator
+find_first_helper(const Container& c, const X& x, vector_like_container_tag) {
+  auto iter = c.cbegin();
+
+  for (; iter != c.cend() && *iter != x; ++iter)
+    ;
+
+  return iter;
+}
+
+template <typename Container, typename Pred>
+typename Container::const_iterator
+find_first_if_helper(const Container& c, Pred p, vector_like_container_tag) {
+  auto iter = c.cbegin();
+
+  for (; iter != c.cend() && !p(*iter); ++iter)
+    ;
+
+  return iter;
+}
+
+template <typename Container, typename X>
+typename Container::const_iterator find_last_helper(const Container& c,
+                                                    const X& x,
+                                                    vector_like_container_tag) {
+  for (auto iter = c.crbegin(); iter != c.crend(); ++iter) {
+    if (x == *iter) {
+      return (iter + 1).base();
+    }
+  }
+
+  return c.cend();
+}
+
+template <typename Container, typename Pred>
+typename Container::const_iterator
+find_last_if_helper(const Container& c, Pred p, vector_like_container_tag) {
+  for (auto iter = c.crbegin(); iter != c.crend(); ++iter) {
+    if (p(*iter)) {
+      return (iter + 1).base();
+    }
+  }
+
+  return c.cend();
+}
+
+template <typename Container, typename X>
+std::vector<typename Container::const_iterator>
+find_all_helper(const Container& c, const X& x, vector_like_container_tag) {
+  std::vector<typename Container::const_iterator> result;
+
+  for (auto iter = c.cbegin(); iter != c.cend(); ++iter) {
+    if (x == *iter) {
+      result.emplace_back(iter);
+    }
+  }
+
+  return result;
+}
+
+template <typename Container, typename Pred>
+typename Container::const_iterator
+find_all_if_helper(const Container& c, Pred p, vector_like_container_tag) {
+  std::vector<typename Container::const_iterator> result;
+
+  for (auto iter = c.cbegin(); iter != c.cend(); ++iter) {
+    if (p(*iter)) {
+      result.emplace_back(iter);
+    }
+  }
+
+  return result;
+}
+
+template <typename Container, typename X>
+typename Container::const_iterator find_first_helper(const Container& c,
+                                                     const X& x,
+                                                     list_like_container_tag) {
+  auto iter = c.cbegin();
+
+  for (; iter != c.cend() && *iter != x; ++iter)
+    ;
+
+  return iter;
+}
+
+template <typename Container, typename Pred>
+typename Container::const_iterator
+find_first_if_helper(const Container& c, Pred p, list_like_container_tag) {
+  auto iter = c.cbegin();
+
+  for (; iter != c.cend() && !p(*iter); ++iter)
+    ;
+
+  return iter;
+}
+
+template <typename Container, typename X>
+typename Container::const_iterator find_last_helper(const Container& c,
+                                                    const X& x,
+                                                    list_like_container_tag) {
+  if constexpr (std::is_same_v<
+                    std::iterator_traits<
+                        typename Container::const_iterator>::iterator_category,
+                    std::forward_iterator_tag>) {
+    auto curr = c.cbegin();
+    typename Container::const_iterator last_found_iter;
+
+    while ((curr = std::find(curr, c.cend(), x)) != c.cend()) {
+      last_found_iter = curr;
+    }
+
+    return last_found_iter;
+
+  } else {
+    auto last_found_iter = std::find(c.crbegin(), c.crend(), x);
+
+    if (last_found_iter == c.crend()) {
+      return c.cend();
+    }
+
+    return (++last_found_iter).base();
+  }
+}
+
+template <typename Container, typename Pred>
+typename Container::const_iterator
+find_last_if_helper(const Container& c, Pred p, list_like_container_tag) {
+  if constexpr (std::is_same_v<
+                    std::iterator_traits<
+                        typename Container::const_iterator>::iterator_category,
+                    std::forward_iterator_tag>) {
+    auto curr = c.cbegin();
+    typename Container::const_iterator last_found_iter;
+
+    while ((curr = std::find_if(curr, c.cend(), p)) != c.cend()) {
+      last_found_iter = curr;
+    }
+
+    return last_found_iter;
+
+  } else {
+    auto last_found_iter = std::find_if(c.crbegin(), c.crend(), p);
+
+    if (last_found_iter == c.crend()) {
+      return c.cend();
+    }
+
+    return (++last_found_iter).base();
+  }
+}
+
+template <typename Container, typename X>
+std::vector<typename Container::const_iterator>
+find_all_helper(const Container& c, const X& x, list_like_container_tag) {
+  std::vector<typename Container::const_iterator> result;
+
+  for (auto iter = c.cbegin(); iter != c.cend(); ++iter) {
+    if (x == *iter) {
+      result.emplace_back(iter);
+    }
+  }
+
+  return result;
+}
+
+template <typename Container, typename Pred>
+typename Container::const_iterator find_all_if_helper(const Container& c,
+                                                      Pred p,
+                                                      list_like_container_tag) {
+  std::vector<typename Container::const_iterator> result;
+
+  for (auto iter = c.cbegin(); iter != c.cend(); ++iter) {
+    if (p(*iter)) {
+      result.emplace_back(iter);
+    }
+  }
+
+  return result;
+}
+
+template <typename Container, typename X>
+typename Container::const_iterator find_first_helper(
+    const Container& c,
+    const X& x,
+    associative_like_container_tag) {
+  return c.find(x);
+}
+
+template <typename Container, typename Pred>
+typename Container::const_iterator find_first_if_helper(
+    const Container& c,
+    Pred p,
+    associative_like_container_tag) {
+  auto iter = c.cbegin();
+
+  for (; iter != c.cend() && !p(*iter); ++iter)
+    ;
+
+  return iter;
+}
+
+template <typename Container, typename X>
+typename Container::const_iterator find_last_helper(
+    const Container& c,
+    const X& x,
+    associative_like_container_tag) {
+  const auto iter_range = c.equal_range(x);
+  if (iter_range.first != iter_range.second) {
+    return --(iter_range.second);
+  }
+
+  return c.cend();
+}
+
+template <typename Container, typename Pred>
+typename Container::const_iterator find_last_if_helper(
+    const Container& c,
+    Pred p,
+    associative_like_container_tag) {
+  auto iter = c.crbegin();
+  for (; iter != c.crend() && !p(*iter); ++iter)
+    ;
+
+  if (iter != c.crend()) {
+    return (++iter).base();
+  }
+
+  return c.cend();
+}
+
+template <typename Container, typename X>
+std::vector<typename Container::const_iterator> find_all_helper(
+    const Container& c,
+    const X& x,
+    associative_like_container_tag) {
+  std::vector<typename Container::const_iterator> result;
+
+  const auto iter_range = c.equal_range(x);
+
+  for (auto iter = iter_range.first; iter != iter_range.second; ++iter) {
+    result.emplace_back(iter);
+  }
+
+  return result;
+}
+
+template <typename Container, typename Pred>
+typename Container::const_iterator
+find_all_if_helper(const Container& c, Pred p, associative_like_container_tag) {
+  std::vector<typename Container::const_iterator> result;
+
+  for (auto iter = c.cbegin(); iter != c.cend(); ++iter) {
+    if (p(*iter)) {
+      result.emplace_back(iter);
+    }
+  }
+
+  return result;
+}
+
+// insert function templates for STL container types with
+// vector_like_container_tag defined
+
+template <typename Container, typename IterType, typename X>
+constexpr auto insert_helper(Container& c,
+                             IterType iter,
+                             const X& x,
+                             vector_like_container_tag) {
+  return c.insert(iter, x);
+}
+
+template <typename Container, typename X>
+constexpr auto insert_at_beginning_helper(Container& c,
+                                          const X& x,
+                                          vector_like_container_tag) {
+  return c.insert(c.begin(), x);
+}
+
+template <typename Container, typename X>
+constexpr auto insert_at_end_helper(Container& c,
+                                    const X& x,
+                                    vector_like_container_tag) {
+  return c.insert(c.end(), x);
+}
+
+// insert function templates for STL container types with
+// list_like_container_tag defined
+
+template <typename Container, typename IterType, typename X>
+constexpr auto insert_helper(Container& c,
+                             IterType iter,
+                             const X& x,
+                             list_like_container_tag) {
+  return c.insert(iter, x);
+}
+
+template <typename Container, typename X>
+constexpr auto insert_at_beginning_helper(Container& c,
+                                          const X& x,
+                                          list_like_container_tag) {
+  return c.insert(c.cbefore_begin(), x);
+}
+
+template <typename Container, typename X>
+constexpr auto insert_at_end_helper(Container& c,
+                                    const X& x,
+                                    list_like_container_tag) {
+  if constexpr (std::is_same_v<
+                    std::iterator_traits<
+                        typename Container::const_iterator>::iterator_category,
+                    std::forward_iterator_tag>) {
+    auto prev = c.cbegin();
+
+    for (auto curr = prev; curr != c.cend(); ++curr) {
+      prev = curr;
+    }
+
+    return c.insert(prev, x);
+
+  } else {
+    return c.insert(--c.cend(), x);
+  }
+}
+
+// insert function templates for STL container types with
+// associative_like_container_tag defined
+
+template <typename Container, typename X>
+constexpr auto insert_helper(Container& c,
+                             const X& x,
+                             associative_like_container_tag) {
+  return c.insert(x);
+}
+
+template <typename Container, typename X>
+constexpr auto insert_at_beginning_helper(Container& c,
+                                          const X& x,
+                                          associative_like_container_tag) {
+  return c.insert(c.cbegin(), x);
+}
+
+template <typename Container, typename X>
+constexpr auto insert_at_end_helper(Container& c,
+                                    const X& x,
+                                    associative_like_container_tag) {
+  return c.insert(c.cend(), x);
+}
+
 }  // namespace detail
+
+template <typename T, size_t N, typename X>
+const T* find_first(const T (&arr)[N], const X& x) {
+  return detail::find_first_helper(
+      arr, x, typename detail::container_traits<T[N]>::category{});
+}
+
+template <typename T, size_t N, typename Pred>
+const T* find_first_if(const T (&arr)[N], Pred p) {
+  return detail::find_first_if_helper(
+      arr, p, typename detail::container_traits<T[N]>::category{});
+}
+
+template <typename T, size_t N, typename X>
+const T* find_last(const T (&arr)[N], const X& x) {
+  return detail::find_last_helper(
+      arr, x, typename detail::container_traits<T[N]>::category{});
+}
+
+template <typename T, size_t N, typename Pred>
+const T* find_last_if(const T (&arr)[N], Pred p) {
+  return detail::find_last_if_helper(
+      arr, p, typename detail::container_traits<T[N]>::category{});
+}
+
+template <typename T, size_t N, typename X>
+std::vector<const T*> find_all(const T (&arr)[N], const X& x) {
+  return detail::find_all_helper(
+      arr, x, typename detail::container_traits<T[N]>::category{});
+}
+
+template <typename T, size_t N, typename Pred>
+std::vector<const T*> find_all_if(const T (&arr)[N], Pred p) {
+  return detail::find_all_if_helper(
+      arr, p, typename detail::container_traits<T[N]>::category{});
+}
+
+template <typename T, size_t N, typename X>
+typename std::array<T, N>::const_iterator find_first(
+    const std::array<T, N>& arr,
+    const X& x) {
+  return detail::find_first_helper(
+      arr, x, typename detail::container_traits<std::array<T, N>>::category{});
+}
+
+template <typename T, size_t N, typename Pred>
+typename std::array<T, N>::const_iterator find_first_if(
+    const std::array<T, N>& arr,
+    Pred p) {
+  return detail::find_first_if_helper(
+      arr, p, typename detail::container_traits<std::array<T, N>>::category{});
+}
+
+template <typename T, size_t N, typename X>
+typename std::array<T, N>::const_iterator find_last(const std::array<T, N>& arr,
+                                                    const X& x) {
+  return detail::find_last_helper(
+      arr, x, typename detail::container_traits<std::array<T, N>>::category{});
+}
+
+template <typename T, size_t N, typename Pred>
+typename std::array<T, N>::const_iterator find_last_if(
+    const std::array<T, N>& arr,
+    Pred p) {
+  return detail::find_last_if_helper(
+      arr, p, typename detail::container_traits<std::array<T, N>>::category{});
+}
+
+template <typename T, size_t N, typename X>
+std::vector<typename std::array<T, N>::const_iterator> find_all(
+    const std::array<T, N>& arr,
+    const X& x) {
+  return detail::find_all_helper(
+      arr, x, typename detail::container_traits<std::array<T, N>>::category{});
+}
+
+template <typename T, size_t N, typename Pred>
+std::vector<typename std::array<T, N>::const_iterator> find_all_if(
+    const std::array<T, N>& arr,
+    Pred p) {
+  return detail::find_all_if_helper(
+      arr, p, typename detail::container_traits<std::array<T, N>>::category{});
+}
+
+template <typename Container, typename X>
+typename Container::const_iterator find_first(const Container& c, const X& x) {
+  return detail::find_first_helper(
+      c, x, typename detail::container_traits<Container>::category{});
+}
+
+template <typename Container, typename Pred>
+typename Container::const_iterator find_first_if(const Container& c, Pred p) {
+  return detail::find_first_if_helper(
+      c, p, typename detail::container_traits<Container>::category{});
+}
+
+template <typename Container, typename X>
+typename Container::const_iterator find_last(const Container& c, const X& x) {
+  return detail::find_last_helper(
+      c, x, typename detail::container_traits<Container>::category{});
+}
+
+template <typename Container, typename Pred>
+typename Container::const_iterator find_last_if(Container& c, Pred p) {
+  return detail::find_last_if_helper(
+      c, p, typename detail::container_traits<Container>::category{});
+}
+
+template <typename Container, typename X>
+std::vector<typename Container::const_iterator> find_all(Container& c,
+                                                         const X& x) {
+  return detail::find_all_helper(
+      c, x, typename detail::container_traits<Container>::category{});
+}
+
+template <typename Container, typename Pred>
+std::vector<typename Container::const_iterator> find_all_if(Container& c,
+                                                            Pred p) {
+  return detail::find_all_if_helper(
+      c, p, typename detail::container_traits<Container>::category{});
+}
+
+template <typename Container, typename X>
+constexpr auto insert(Container& c, const X& x) {
+  return detail::insert_helper(
+      c, x, typename detail::container_traits<Container>::category{});
+}
+
+template <typename Container, typename X>
+constexpr auto insert_at_beginning(Container& c, const X& x) {
+  return detail::insert_at_beginning_helper(
+      c, x, typename detail::container_traits<Container>::category{});
+}
+
+template <typename Container, typename X>
+constexpr auto insert_at_end(Container& c, const X& x) {
+  return detail::insert_at_end_helper(
+      c, x, typename detail::container_traits<Container>::category{});
+}
 
 template <typename Container, typename X>
 bool erase_first(Container& c, const X& x) {
   return detail::erase_first_helper(
+      c, x, typename detail::container_traits<Container>::category{});
+}
+
+template <typename Container, typename X>
+bool erase_last(Container& c, const X& x) {
+  return detail::erase_last_helper(
       c, x, typename detail::container_traits<Container>::category{});
 }
 
@@ -12719,6 +13594,12 @@ bool erase_all(Container& c, const X& x) {
 template <typename Container, typename Pred>
 bool erase_first_if(Container& c, Pred p) {
   return detail::erase_first_if_helper(
+      c, p, typename detail::container_traits<Container>::category{});
+}
+
+template <typename Container, typename Pred>
+bool erase_last_if(Container& c, Pred p) {
+  return detail::erase_last_if_helper(
       c, p, typename detail::container_traits<Container>::category{});
 }
 
