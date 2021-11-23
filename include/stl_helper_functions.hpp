@@ -13126,7 +13126,7 @@ find_all_if_helper(const std::array<T, N>& c,
 }
 
 template <typename Container, typename X>
-constexpr typename Container::const_iterator
+CPP20_USE_CONSTEXPR typename Container::const_iterator
 find_first_helper(const Container& c, const X& x, vector_like_container_tag) {
   auto iter = c.cbegin();
 
@@ -13137,7 +13137,7 @@ find_first_helper(const Container& c, const X& x, vector_like_container_tag) {
 }
 
 template <typename Container, typename Pred>
-constexpr typename Container::const_iterator
+CPP20_USE_CONSTEXPR typename Container::const_iterator
 find_first_if_helper(const Container& c, Pred p, vector_like_container_tag) {
   auto iter = c.cbegin();
 
@@ -13148,7 +13148,7 @@ find_first_if_helper(const Container& c, Pred p, vector_like_container_tag) {
 }
 
 template <typename Container, typename X>
-constexpr typename Container::const_iterator
+CPP20_USE_CONSTEXPR typename Container::const_iterator
 find_last_helper(const Container& c, const X& x, vector_like_container_tag) {
   for (auto iter = c.crbegin(); iter != c.crend(); ++iter) {
     if (x == *iter) {
@@ -13160,7 +13160,7 @@ find_last_helper(const Container& c, const X& x, vector_like_container_tag) {
 }
 
 template <typename Container, typename Pred>
-constexpr typename Container::const_iterator
+CPP20_USE_CONSTEXPR typename Container::const_iterator
 find_last_if_helper(const Container& c, Pred p, vector_like_container_tag) {
   for (auto iter = c.crbegin(); iter != c.crend(); ++iter) {
     if (p(*iter)) {
@@ -13200,7 +13200,7 @@ find_all_if_helper(const Container& c, Pred p, vector_like_container_tag) {
 }
 
 template <typename Container, typename X>
-constexpr typename Container::const_iterator
+CPP20_USE_CONSTEXPR typename Container::const_iterator
 find_first_helper(const Container& c, const X& x, list_like_container_tag) {
   auto iter = c.cbegin();
 
@@ -13211,7 +13211,7 @@ find_first_helper(const Container& c, const X& x, list_like_container_tag) {
 }
 
 template <typename Container, typename Pred>
-constexpr typename Container::const_iterator
+CPP20_USE_CONSTEXPR typename Container::const_iterator
 find_first_if_helper(const Container& c, Pred p, list_like_container_tag) {
   auto iter = c.cbegin();
 
@@ -13222,7 +13222,7 @@ find_first_if_helper(const Container& c, Pred p, list_like_container_tag) {
 }
 
 template <typename Container, typename X>
-constexpr typename Container::const_iterator
+CPP20_USE_CONSTEXPR typename Container::const_iterator
 find_last_helper(const Container& c, const X& x, list_like_container_tag) {
   if constexpr (std::is_same_v<
                     std::iterator_traits<
@@ -13249,7 +13249,7 @@ find_last_helper(const Container& c, const X& x, list_like_container_tag) {
 }
 
 template <typename Container, typename Pred>
-constexpr typename Container::const_iterator
+CPP20_USE_CONSTEXPR typename Container::const_iterator
 find_last_if_helper(const Container& c, Pred p, list_like_container_tag) {
   if constexpr (std::is_same_v<
                     std::iterator_traits<
@@ -13304,7 +13304,7 @@ find_all_if_helper(const Container& c, Pred p, list_like_container_tag) {
 }
 
 template <typename Container, typename X>
-constexpr typename Container::const_iterator find_first_helper(
+CPP20_USE_CONSTEXPR typename Container::const_iterator find_first_helper(
     const Container& c,
     const X& x,
     associative_like_container_tag) {
@@ -13312,7 +13312,7 @@ constexpr typename Container::const_iterator find_first_helper(
 }
 
 template <typename Container, typename Pred>
-constexpr typename Container::const_iterator find_first_if_helper(
+CPP20_USE_CONSTEXPR typename Container::const_iterator find_first_if_helper(
     const Container& c,
     Pred p,
     associative_like_container_tag) {
@@ -13325,7 +13325,7 @@ constexpr typename Container::const_iterator find_first_if_helper(
 }
 
 template <typename Container, typename X>
-constexpr typename Container::const_iterator find_last_helper(
+CPP20_USE_CONSTEXPR typename Container::const_iterator find_last_helper(
     const Container& c,
     const X& x,
     associative_like_container_tag) {
@@ -13338,7 +13338,7 @@ constexpr typename Container::const_iterator find_last_helper(
 }
 
 template <typename Container, typename Pred>
-constexpr typename Container::const_iterator find_last_if_helper(
+CPP20_USE_CONSTEXPR typename Container::const_iterator find_last_if_helper(
     const Container& c,
     Pred p,
     associative_like_container_tag) {
