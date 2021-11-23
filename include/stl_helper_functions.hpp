@@ -71,6 +71,13 @@
 #define VERIFY ASSERT
 #define VERIFY_(result, expression) ASSERT(result == expression)
 
+#if (defined(_MSVC_LANG) && _MSVC_LANG >= 202002L) || \
+    (defined(__cplusplus) && __cplusplus >= 202002L)
+#define CPP20_USE_CONSTEXPR constexpr
+#else
+#define CPP20_USE_CONSTEXPR
+#endif
+
 #define PRINT_VAR_NAME(arg) std::cout << #arg << ' '
 #define PRINT_VAR_NAMEW(arg) std::wcout << #arg << L' '
 
@@ -12514,7 +12521,9 @@ struct container_traits<std::unordered_multimap<K, V, C, A>> {
 };
 
 template <typename T, size_t N, typename X>
-bool erase_first_helper(T (&arr)[N], const X& x, array_like_container_tag) {
+CPP20_USE_CONSTEXPR bool erase_first_helper(T (&arr)[N],
+                                            const X& x,
+                                            array_like_container_tag) {
   auto iter = std::find(arr, arr + N, x);
 
   if (iter == arr + N) {
@@ -12529,7 +12538,9 @@ bool erase_first_helper(T (&arr)[N], const X& x, array_like_container_tag) {
 }
 
 template <typename T, size_t N, typename X>
-bool erase_last_helper(T (&arr)[N], const X& x, array_like_container_tag) {
+CPP20_USE_CONSTEXPR bool erase_last_helper(T (&arr)[N],
+                                           const X& x,
+                                           array_like_container_tag) {
   auto iter = arr + N;
   while (iter != arr) {
     auto current = --iter;
@@ -12546,12 +12557,16 @@ bool erase_last_helper(T (&arr)[N], const X& x, array_like_container_tag) {
 }
 
 template <typename T, size_t N, typename X>
-bool erase_all_helper(T (&arr)[N], const X& x, array_like_container_tag) {
+CPP20_USE_CONSTEXPR bool erase_all_helper(T (&arr)[N],
+                                          const X& x,
+                                          array_like_container_tag) {
   return std::remove(arr, arr + N, x) != arr + N;
 }
 
 template <typename T, size_t N, typename Pred>
-bool erase_first_if_helper(T (&arr)[N], Pred p, array_like_container_tag) {
+CPP20_USE_CONSTEXPR bool erase_first_if_helper(T (&arr)[N],
+                                               Pred p,
+                                               array_like_container_tag) {
   auto iter = std::find_if(arr, arr + N, p);
 
   if (iter == arr + N) {
@@ -12566,7 +12581,9 @@ bool erase_first_if_helper(T (&arr)[N], Pred p, array_like_container_tag) {
 }
 
 template <typename T, size_t N, typename Pred>
-bool erase_last_if_helper(T (&arr)[N], Pred p, array_like_container_tag) {
+CPP20_USE_CONSTEXPR bool erase_last_if_helper(T (&arr)[N],
+                                              Pred p,
+                                              array_like_container_tag) {
   auto iter = arr + N;
   while (iter != arr) {
     auto current = --iter;
@@ -12583,14 +12600,16 @@ bool erase_last_if_helper(T (&arr)[N], Pred p, array_like_container_tag) {
 }
 
 template <typename T, size_t N, typename Pred>
-bool erase_all_if_helper(T (&arr)[N], Pred p, array_like_container_tag) {
+CPP20_USE_CONSTEXPR bool erase_all_if_helper(T (&arr)[N],
+                                             Pred p,
+                                             array_like_container_tag) {
   return std::remove_if(arr, arr + N, p) != arr + N;
 }
 
 template <typename T, size_t N, typename X>
-bool erase_first_helper(std::array<T, N>& c,
-                        const X& x,
-                        array_like_container_tag) {
+CPP20_USE_CONSTEXPR bool erase_first_helper(std::array<T, N>& c,
+                                            const X& x,
+                                            array_like_container_tag) {
   auto iter = std::find(c.begin(), c.end(), x);
 
   if (iter == c.end()) {
@@ -12605,9 +12624,9 @@ bool erase_first_helper(std::array<T, N>& c,
 }
 
 template <typename T, size_t N, typename X>
-bool erase_last_helper(std::array<T, N>& c,
-                       const X& x,
-                       array_like_container_tag) {
+CPP20_USE_CONSTEXPR bool erase_last_helper(std::array<T, N>& c,
+                                           const X& x,
+                                           array_like_container_tag) {
   auto iter = std::find(c.rbegin(), c.rend(), x);
 
   if (iter == c.rend()) {
@@ -12623,16 +12642,16 @@ bool erase_last_helper(std::array<T, N>& c,
 }
 
 template <typename T, size_t N, typename X>
-bool erase_all_helper(std::array<T, N>& c,
-                      const X& x,
-                      array_like_container_tag) {
+CPP20_USE_CONSTEXPR bool erase_all_helper(std::array<T, N>& c,
+                                          const X& x,
+                                          array_like_container_tag) {
   return std::remove(c.begin(), c.end(), x) != c.end();
 }
 
 template <typename T, size_t N, typename Pred>
-bool erase_first_if_helper(std::array<T, N>& c,
-                           Pred p,
-                           array_like_container_tag) {
+CPP20_USE_CONSTEXPR bool erase_first_if_helper(std::array<T, N>& c,
+                                               Pred p,
+                                               array_like_container_tag) {
   auto iter = std::find_if(c.begin(), c.end(), p);
 
   if (iter == c.end()) {
@@ -12647,9 +12666,9 @@ bool erase_first_if_helper(std::array<T, N>& c,
 }
 
 template <typename T, size_t N, typename Pred>
-bool erase_last_if_helper(std::array<T, N>& c,
-                          Pred p,
-                          array_like_container_tag) {
+CPP20_USE_CONSTEXPR bool erase_last_if_helper(std::array<T, N>& c,
+                                              Pred p,
+                                              array_like_container_tag) {
   auto iter = std::find_if(c.rbegin(), c.rend(), p);
 
   if (iter == c.rend()) {
@@ -12665,14 +12684,16 @@ bool erase_last_if_helper(std::array<T, N>& c,
 }
 
 template <typename T, size_t N, typename Pred>
-bool erase_all_if_helper(std::array<T, N>& c,
-                         Pred p,
-                         array_like_container_tag) {
+CPP20_USE_CONSTEXPR bool erase_all_if_helper(std::array<T, N>& c,
+                                             Pred p,
+                                             array_like_container_tag) {
   return std::remove_if(c.begin(), c.end(), p) != c.end();
 }
 
 template <typename Container, typename X>
-bool erase_first_helper(Container& c, const X& x, vector_like_container_tag) {
+CPP20_USE_CONSTEXPR bool erase_first_helper(Container& c,
+                                            const X& x,
+                                            vector_like_container_tag) {
   const auto found_pos_iter = std::find(c.cbegin(), c.cend(), x);
 
   if (found_pos_iter == c.cend()) {
@@ -12685,7 +12706,9 @@ bool erase_first_helper(Container& c, const X& x, vector_like_container_tag) {
 }
 
 template <typename Container, typename X>
-bool erase_last_helper(Container& c, const X& x, vector_like_container_tag) {
+CPP20_USE_CONSTEXPR bool erase_last_helper(Container& c,
+                                           const X& x,
+                                           vector_like_container_tag) {
   const auto found_pos_iter = std::find(c.crbegin(), c.crend(), x);
 
   if (found_pos_iter == c.crend()) {
@@ -12698,14 +12721,18 @@ bool erase_last_helper(Container& c, const X& x, vector_like_container_tag) {
 }
 
 template <typename Container, typename X>
-bool erase_all_helper(Container& c, const X& x, vector_like_container_tag) {
+CPP20_USE_CONSTEXPR bool erase_all_helper(Container& c,
+                                          const X& x,
+                                          vector_like_container_tag) {
   const size_t original_size = c.size();
   c.erase(std::remove(c.begin(), c.end(), x), c.end());
   return c.size() < original_size;
 }
 
 template <typename Container, typename Pred>
-bool erase_first_if_helper(Container& c, Pred p, vector_like_container_tag) {
+CPP20_USE_CONSTEXPR bool erase_first_if_helper(Container& c,
+                                               Pred p,
+                                               vector_like_container_tag) {
   const auto found_pos_iter = std::find_if(c.cbegin, c.cend(), p);
 
   if (found_pos_iter == c.cend()) {
@@ -12718,7 +12745,9 @@ bool erase_first_if_helper(Container& c, Pred p, vector_like_container_tag) {
 }
 
 template <typename Container, typename Pred>
-bool erase_last_if_helper(Container& c, Pred p, vector_like_container_tag) {
+CPP20_USE_CONSTEXPR bool erase_last_if_helper(Container& c,
+                                              Pred p,
+                                              vector_like_container_tag) {
   const auto found_pos_iter = std::find_if(c.crbegin(), c.crend(), p);
 
   if (found_pos_iter == c.crend()) {
@@ -12731,14 +12760,18 @@ bool erase_last_if_helper(Container& c, Pred p, vector_like_container_tag) {
 }
 
 template <typename Container, typename Pred>
-bool erase_all_if_helper(Container& c, Pred p, vector_like_container_tag) {
+CPP20_USE_CONSTEXPR bool erase_all_if_helper(Container& c,
+                                             Pred p,
+                                             vector_like_container_tag) {
   const size_t original_size = c.size();
   c.erase(std::remove_if(c.begin(), c.end(), p), c.end());
   return c.size() < original_size;
 }
 
 template <typename Container, typename X>
-bool erase_first_helper(Container& c, const X& x, list_like_container_tag) {
+CPP20_USE_CONSTEXPR bool erase_first_helper(Container& c,
+                                            const X& x,
+                                            list_like_container_tag) {
   for (auto iter = c.cbegin(); iter != c.cend(); ++iter) {
     if (x == *iter) {
       c.erase(iter);
@@ -12750,7 +12783,9 @@ bool erase_first_helper(Container& c, const X& x, list_like_container_tag) {
 }
 
 template <typename Container, typename X>
-bool erase_last_helper(Container& c, const X& x, list_like_container_tag) {
+CPP20_USE_CONSTEXPR bool erase_last_helper(Container& c,
+                                           const X& x,
+                                           list_like_container_tag) {
   if constexpr (std::is_same_v<
                     std::iterator_traits<
                         typename Container::const_iterator>::iterator_category,
@@ -12782,14 +12817,18 @@ bool erase_last_helper(Container& c, const X& x, list_like_container_tag) {
 }
 
 template <typename Container, typename X>
-bool erase_all_helper(Container& c, const X& x, list_like_container_tag) {
+CPP20_USE_CONSTEXPR bool erase_all_helper(Container& c,
+                                          const X& x,
+                                          list_like_container_tag) {
   const size_t original_size = c.size();
   c.remove(x);
   return c.size() < original_size;
 }
 
 template <typename Container, typename Pred>
-bool erase_first_if_helper(Container& c, Pred p, list_like_container_tag) {
+CPP20_USE_CONSTEXPR bool erase_first_if_helper(Container& c,
+                                               Pred p,
+                                               list_like_container_tag) {
   for (auto iter = c.cbegin(); iter != c.cend(); ++iter) {
     if (p(*iter)) {
       c.erase(iter);
@@ -12801,7 +12840,9 @@ bool erase_first_if_helper(Container& c, Pred p, list_like_container_tag) {
 }
 
 template <typename Container, typename Pred>
-bool erase_last_if_helper(Container& c, Pred p, list_like_container_tag) {
+CPP20_USE_CONSTEXPR bool erase_last_if_helper(Container& c,
+                                              Pred p,
+                                              list_like_container_tag) {
   if constexpr (std::is_same_v<
                     std::iterator_traits<
                         typename Container::const_iterator>::iterator_category,
@@ -12833,16 +12874,18 @@ bool erase_last_if_helper(Container& c, Pred p, list_like_container_tag) {
 }
 
 template <typename Container, typename Pred>
-bool erase_all_if_helper(Container& c, Pred p, list_like_container_tag) {
+CPP20_USE_CONSTEXPR bool erase_all_if_helper(Container& c,
+                                             Pred p,
+                                             list_like_container_tag) {
   const size_t original_size = c.size();
   c.remove_if(p);
   return c.size() < original_size;
 }
 
 template <typename Container, typename X>
-bool erase_first_helper(Container& c,
-                        const X& x,
-                        associative_like_container_tag) {
+CPP20_USE_CONSTEXPR bool erase_first_helper(Container& c,
+                                            const X& x,
+                                            associative_like_container_tag) {
   const auto found_iter = c.find(x);
   if (found_iter != c.end()) {
     c.erase(found_iter);
@@ -12853,9 +12896,9 @@ bool erase_first_helper(Container& c,
 }
 
 template <typename Container, typename X>
-bool erase_last_helper(Container& c,
-                       const X& x,
-                       associative_like_container_tag) {
+CPP20_USE_CONSTEXPR bool erase_last_helper(Container& c,
+                                           const X& x,
+                                           associative_like_container_tag) {
   const auto iter_range = c.equal_range(x);
   if (iter_range.first != iter_range.second) {
     c.erase(--(iter_range.second));
@@ -12866,18 +12909,18 @@ bool erase_last_helper(Container& c,
 }
 
 template <typename Container, typename X>
-bool erase_all_helper(Container& c,
-                      const X& x,
-                      associative_like_container_tag) {
+CPP20_USE_CONSTEXPR bool erase_all_helper(Container& c,
+                                          const X& x,
+                                          associative_like_container_tag) {
   const size_t original_size = c.size();
   c.erase(x);
   return c.size() < original_size;
 }
 
 template <typename Container, typename Pred>
-bool erase_first_if_helper(Container& c,
-                           Pred p,
-                           associative_like_container_tag) {
+CPP20_USE_CONSTEXPR bool erase_first_if_helper(Container& c,
+                                               Pred p,
+                                               associative_like_container_tag) {
   for (auto iter = c.cbegin(); iter != c.cend(); ++iter) {
     if (p(*iter)) {
       c.erase(iter);
@@ -12889,9 +12932,9 @@ bool erase_first_if_helper(Container& c,
 }
 
 template <typename Container, typename Pred>
-bool erase_last_if_helper(Container& c,
-                          Pred p,
-                          associative_like_container_tag) {
+CPP20_USE_CONSTEXPR bool erase_last_if_helper(Container& c,
+                                              Pred p,
+                                              associative_like_container_tag) {
   for (auto iter = c.crbegin(); iter != c.crend(); ++iter) {
     if (p(*iter)) {
       c.erase((++iter).base());
@@ -12903,7 +12946,9 @@ bool erase_last_if_helper(Container& c,
 }
 
 template <typename Container, typename Pred>
-bool erase_all_if_helper(Container& c, Pred p, associative_like_container_tag) {
+CPP20_USE_CONSTEXPR bool erase_all_if_helper(Container& c,
+                                             Pred p,
+                                             associative_like_container_tag) {
   const size_t original_size = c.size();
   for (auto iter = c.cbegin(); iter != c.cend();) {
     if (p(*iter)) {
@@ -12917,9 +12962,9 @@ bool erase_all_if_helper(Container& c, Pred p, associative_like_container_tag) {
 }
 
 template <typename T, size_t N, typename X>
-const T* find_first_helper(const T (&arr)[N],
-                           const X& x,
-                           array_like_container_tag) {
+constexpr const T* find_first_helper(const T (&arr)[N],
+                                     const X& x,
+                                     array_like_container_tag) {
   auto iter = &arr[0];
 
   for (; iter != arr + N && *iter != x; ++iter)
@@ -12929,9 +12974,9 @@ const T* find_first_helper(const T (&arr)[N],
 }
 
 template <typename T, size_t N, typename Pred>
-const T* find_first_if_helper(const T (&arr)[N],
-                              Pred p,
-                              array_like_container_tag) {
+constexpr const T* find_first_if_helper(const T (&arr)[N],
+                                        Pred p,
+                                        array_like_container_tag) {
   auto iter = &arr[0];
 
   for (; iter != arr + N && !p(*iter); ++iter)
@@ -12941,9 +12986,9 @@ const T* find_first_if_helper(const T (&arr)[N],
 }
 
 template <typename T, size_t N, typename X>
-const T* find_last_helper(const T (&arr)[N],
-                          const X& x,
-                          array_like_container_tag) {
+constexpr const T* find_last_helper(const T (&arr)[N],
+                                    const X& x,
+                                    array_like_container_tag) {
   for (auto iter = arr + N; iter != arr;) {
     if (x == *--iter) {
       return iter;
@@ -12954,9 +12999,9 @@ const T* find_last_helper(const T (&arr)[N],
 }
 
 template <typename T, size_t N, typename Pred>
-const T* find_last_if_helper(const T (&arr)[N],
-                             Pred p,
-                             array_like_container_tag) {
+constexpr const T* find_last_if_helper(const T (&arr)[N],
+                                       Pred p,
+                                       array_like_container_tag) {
   for (auto iter = arr + N; iter != arr;) {
     if (p(*--iter)) {
       return iter;
@@ -12967,9 +13012,8 @@ const T* find_last_if_helper(const T (&arr)[N],
 }
 
 template <typename T, size_t N, typename X>
-std::vector<const T*> find_all_helper(const T (&arr)[N],
-                                      const X& x,
-                                      array_like_container_tag) {
+CPP20_USE_CONSTEXPR std::vector<const T*>
+find_all_helper(const T (&arr)[N], const X& x, array_like_container_tag) {
   std::vector<const T*> result;
 
   for (auto iter = &arr[0]; iter != arr + N; ++iter) {
@@ -12982,9 +13026,8 @@ std::vector<const T*> find_all_helper(const T (&arr)[N],
 }
 
 template <typename T, size_t N, typename Pred>
-std::vector<const T*> find_all_if_helper(const T (&arr)[N],
-                                         Pred p,
-                                         array_like_container_tag) {
+CPP20_USE_CONSTEXPR std::vector<const T*>
+find_all_if_helper(const T (&arr)[N], Pred p, array_like_container_tag) {
   std::vector<const T*> result;
 
   for (auto iter = &arr[0]; iter != arr + N; ++iter) {
@@ -12997,7 +13040,7 @@ std::vector<const T*> find_all_if_helper(const T (&arr)[N],
 }
 
 template <typename T, size_t N, typename X>
-typename std::array<T, N>::const_iterator find_first_helper(
+constexpr typename std::array<T, N>::const_iterator find_first_helper(
     const std::array<T, N>& c,
     const X& x,
     array_like_container_tag) {
@@ -13010,7 +13053,7 @@ typename std::array<T, N>::const_iterator find_first_helper(
 }
 
 template <typename T, size_t N, typename Pred>
-typename std::array<T, N>::const_iterator find_first_if_helper(
+constexpr typename std::array<T, N>::const_iterator find_first_if_helper(
     const std::array<T, N>& c,
     Pred p,
     array_like_container_tag) {
@@ -13023,7 +13066,7 @@ typename std::array<T, N>::const_iterator find_first_if_helper(
 }
 
 template <typename T, size_t N, typename X>
-typename std::array<T, N>::const_iterator find_last_helper(
+constexpr typename std::array<T, N>::const_iterator find_last_helper(
     const std::array<T, N>& c,
     const X& x,
     array_like_container_tag) {
@@ -13037,7 +13080,7 @@ typename std::array<T, N>::const_iterator find_last_helper(
 }
 
 template <typename T, size_t N, typename Pred>
-typename std::array<T, N>::const_iterator find_last_if_helper(
+constexpr typename std::array<T, N>::const_iterator find_last_if_helper(
     const std::array<T, N>& c,
     Pred p,
     array_like_container_tag) {
@@ -13051,10 +13094,10 @@ typename std::array<T, N>::const_iterator find_last_if_helper(
 }
 
 template <typename T, size_t N, typename X>
-std::vector<typename std::array<T, N>::const_iterator> find_all_helper(
-    const std::array<T, N>& c,
-    const X& x,
-    array_like_container_tag) {
+CPP20_USE_CONSTEXPR std::vector<typename std::array<T, N>::const_iterator>
+find_all_helper(const std::array<T, N>& c,
+                const X& x,
+                array_like_container_tag) {
   std::vector<typename std::array<T, N>::const_iterator> result;
 
   for (auto iter = c.cbegin(); iter != c.cend(); ++iter) {
@@ -13067,10 +13110,10 @@ std::vector<typename std::array<T, N>::const_iterator> find_all_helper(
 }
 
 template <typename T, size_t N, typename Pred>
-typename std::array<T, N>::const_iterator find_all_if_helper(
-    const std::array<T, N>& c,
-    Pred p,
-    array_like_container_tag) {
+CPP20_USE_CONSTEXPR std::vector<typename std::array<T, N>::const_iterator>
+find_all_if_helper(const std::array<T, N>& c,
+                   Pred p,
+                   array_like_container_tag) {
   std::vector<typename std::array<T, N>::const_iterator> result;
 
   for (auto iter = c.cbegin(); iter != c.cend(); ++iter) {
@@ -13083,7 +13126,7 @@ typename std::array<T, N>::const_iterator find_all_if_helper(
 }
 
 template <typename Container, typename X>
-typename Container::const_iterator
+constexpr typename Container::const_iterator
 find_first_helper(const Container& c, const X& x, vector_like_container_tag) {
   auto iter = c.cbegin();
 
@@ -13094,7 +13137,7 @@ find_first_helper(const Container& c, const X& x, vector_like_container_tag) {
 }
 
 template <typename Container, typename Pred>
-typename Container::const_iterator
+constexpr typename Container::const_iterator
 find_first_if_helper(const Container& c, Pred p, vector_like_container_tag) {
   auto iter = c.cbegin();
 
@@ -13105,9 +13148,8 @@ find_first_if_helper(const Container& c, Pred p, vector_like_container_tag) {
 }
 
 template <typename Container, typename X>
-typename Container::const_iterator find_last_helper(const Container& c,
-                                                    const X& x,
-                                                    vector_like_container_tag) {
+constexpr typename Container::const_iterator
+find_last_helper(const Container& c, const X& x, vector_like_container_tag) {
   for (auto iter = c.crbegin(); iter != c.crend(); ++iter) {
     if (x == *iter) {
       return (iter + 1).base();
@@ -13118,7 +13160,7 @@ typename Container::const_iterator find_last_helper(const Container& c,
 }
 
 template <typename Container, typename Pred>
-typename Container::const_iterator
+constexpr typename Container::const_iterator
 find_last_if_helper(const Container& c, Pred p, vector_like_container_tag) {
   for (auto iter = c.crbegin(); iter != c.crend(); ++iter) {
     if (p(*iter)) {
@@ -13130,7 +13172,7 @@ find_last_if_helper(const Container& c, Pred p, vector_like_container_tag) {
 }
 
 template <typename Container, typename X>
-std::vector<typename Container::const_iterator>
+CPP20_USE_CONSTEXPR std::vector<typename Container::const_iterator>
 find_all_helper(const Container& c, const X& x, vector_like_container_tag) {
   std::vector<typename Container::const_iterator> result;
 
@@ -13144,7 +13186,7 @@ find_all_helper(const Container& c, const X& x, vector_like_container_tag) {
 }
 
 template <typename Container, typename Pred>
-typename Container::const_iterator
+CPP20_USE_CONSTEXPR std::vector<typename Container::const_iterator>
 find_all_if_helper(const Container& c, Pred p, vector_like_container_tag) {
   std::vector<typename Container::const_iterator> result;
 
@@ -13158,9 +13200,8 @@ find_all_if_helper(const Container& c, Pred p, vector_like_container_tag) {
 }
 
 template <typename Container, typename X>
-typename Container::const_iterator find_first_helper(const Container& c,
-                                                     const X& x,
-                                                     list_like_container_tag) {
+constexpr typename Container::const_iterator
+find_first_helper(const Container& c, const X& x, list_like_container_tag) {
   auto iter = c.cbegin();
 
   for (; iter != c.cend() && *iter != x; ++iter)
@@ -13170,7 +13211,7 @@ typename Container::const_iterator find_first_helper(const Container& c,
 }
 
 template <typename Container, typename Pred>
-typename Container::const_iterator
+constexpr typename Container::const_iterator
 find_first_if_helper(const Container& c, Pred p, list_like_container_tag) {
   auto iter = c.cbegin();
 
@@ -13181,9 +13222,8 @@ find_first_if_helper(const Container& c, Pred p, list_like_container_tag) {
 }
 
 template <typename Container, typename X>
-typename Container::const_iterator find_last_helper(const Container& c,
-                                                    const X& x,
-                                                    list_like_container_tag) {
+constexpr typename Container::const_iterator
+find_last_helper(const Container& c, const X& x, list_like_container_tag) {
   if constexpr (std::is_same_v<
                     std::iterator_traits<
                         typename Container::const_iterator>::iterator_category,
@@ -13209,7 +13249,7 @@ typename Container::const_iterator find_last_helper(const Container& c,
 }
 
 template <typename Container, typename Pred>
-typename Container::const_iterator
+constexpr typename Container::const_iterator
 find_last_if_helper(const Container& c, Pred p, list_like_container_tag) {
   if constexpr (std::is_same_v<
                     std::iterator_traits<
@@ -13236,7 +13276,7 @@ find_last_if_helper(const Container& c, Pred p, list_like_container_tag) {
 }
 
 template <typename Container, typename X>
-std::vector<typename Container::const_iterator>
+CPP20_USE_CONSTEXPR std::vector<typename Container::const_iterator>
 find_all_helper(const Container& c, const X& x, list_like_container_tag) {
   std::vector<typename Container::const_iterator> result;
 
@@ -13250,9 +13290,8 @@ find_all_helper(const Container& c, const X& x, list_like_container_tag) {
 }
 
 template <typename Container, typename Pred>
-typename Container::const_iterator find_all_if_helper(const Container& c,
-                                                      Pred p,
-                                                      list_like_container_tag) {
+CPP20_USE_CONSTEXPR std::vector<typename Container::const_iterator>
+find_all_if_helper(const Container& c, Pred p, list_like_container_tag) {
   std::vector<typename Container::const_iterator> result;
 
   for (auto iter = c.cbegin(); iter != c.cend(); ++iter) {
@@ -13265,7 +13304,7 @@ typename Container::const_iterator find_all_if_helper(const Container& c,
 }
 
 template <typename Container, typename X>
-typename Container::const_iterator find_first_helper(
+constexpr typename Container::const_iterator find_first_helper(
     const Container& c,
     const X& x,
     associative_like_container_tag) {
@@ -13273,7 +13312,7 @@ typename Container::const_iterator find_first_helper(
 }
 
 template <typename Container, typename Pred>
-typename Container::const_iterator find_first_if_helper(
+constexpr typename Container::const_iterator find_first_if_helper(
     const Container& c,
     Pred p,
     associative_like_container_tag) {
@@ -13286,7 +13325,7 @@ typename Container::const_iterator find_first_if_helper(
 }
 
 template <typename Container, typename X>
-typename Container::const_iterator find_last_helper(
+constexpr typename Container::const_iterator find_last_helper(
     const Container& c,
     const X& x,
     associative_like_container_tag) {
@@ -13299,7 +13338,7 @@ typename Container::const_iterator find_last_helper(
 }
 
 template <typename Container, typename Pred>
-typename Container::const_iterator find_last_if_helper(
+constexpr typename Container::const_iterator find_last_if_helper(
     const Container& c,
     Pred p,
     associative_like_container_tag) {
@@ -13315,10 +13354,10 @@ typename Container::const_iterator find_last_if_helper(
 }
 
 template <typename Container, typename X>
-std::vector<typename Container::const_iterator> find_all_helper(
-    const Container& c,
-    const X& x,
-    associative_like_container_tag) {
+CPP20_USE_CONSTEXPR std::vector<typename Container::const_iterator>
+find_all_helper(const Container& c,
+                const X& x,
+                associative_like_container_tag) {
   std::vector<typename Container::const_iterator> result;
 
   const auto iter_range = c.equal_range(x);
@@ -13331,7 +13370,7 @@ std::vector<typename Container::const_iterator> find_all_helper(
 }
 
 template <typename Container, typename Pred>
-typename Container::const_iterator
+typename Container::const_iterator CPP20_USE_CONSTEXPR
 find_all_if_helper(const Container& c, Pred p, associative_like_container_tag) {
   std::vector<typename Container::const_iterator> result;
 
@@ -13348,24 +13387,24 @@ find_all_if_helper(const Container& c, Pred p, associative_like_container_tag) {
 // vector_like_container_tag defined
 
 template <typename Container, typename IterType, typename X>
-constexpr auto insert_helper(Container& c,
-                             IterType iter,
-                             const X& x,
-                             vector_like_container_tag) {
+CPP20_USE_CONSTEXPR auto insert_helper(Container& c,
+                                       IterType iter,
+                                       const X& x,
+                                       vector_like_container_tag) {
   return c.insert(iter, x);
 }
 
 template <typename Container, typename X>
-constexpr auto insert_at_beginning_helper(Container& c,
-                                          const X& x,
-                                          vector_like_container_tag) {
+CPP20_USE_CONSTEXPR auto insert_at_beginning_helper(Container& c,
+                                                    const X& x,
+                                                    vector_like_container_tag) {
   return c.insert(c.begin(), x);
 }
 
 template <typename Container, typename X>
-constexpr auto insert_at_end_helper(Container& c,
-                                    const X& x,
-                                    vector_like_container_tag) {
+CPP20_USE_CONSTEXPR auto insert_at_end_helper(Container& c,
+                                              const X& x,
+                                              vector_like_container_tag) {
   return c.insert(c.end(), x);
 }
 
@@ -13373,24 +13412,24 @@ constexpr auto insert_at_end_helper(Container& c,
 // list_like_container_tag defined
 
 template <typename Container, typename IterType, typename X>
-constexpr auto insert_helper(Container& c,
-                             IterType iter,
-                             const X& x,
-                             list_like_container_tag) {
+CPP20_USE_CONSTEXPR auto insert_helper(Container& c,
+                                       IterType iter,
+                                       const X& x,
+                                       list_like_container_tag) {
   return c.insert(iter, x);
 }
 
 template <typename Container, typename X>
-constexpr auto insert_at_beginning_helper(Container& c,
-                                          const X& x,
-                                          list_like_container_tag) {
+CPP20_USE_CONSTEXPR auto insert_at_beginning_helper(Container& c,
+                                                    const X& x,
+                                                    list_like_container_tag) {
   return c.insert(c.cbefore_begin(), x);
 }
 
 template <typename Container, typename X>
-constexpr auto insert_at_end_helper(Container& c,
-                                    const X& x,
-                                    list_like_container_tag) {
+CPP20_USE_CONSTEXPR auto insert_at_end_helper(Container& c,
+                                              const X& x,
+                                              list_like_container_tag) {
   if constexpr (std::is_same_v<
                     std::iterator_traits<
                         typename Container::const_iterator>::iterator_category,
@@ -13412,66 +13451,67 @@ constexpr auto insert_at_end_helper(Container& c,
 // associative_like_container_tag defined
 
 template <typename Container, typename X>
-constexpr auto insert_helper(Container& c,
-                             const X& x,
-                             associative_like_container_tag) {
+CPP20_USE_CONSTEXPR auto insert_helper(Container& c,
+                                       const X& x,
+                                       associative_like_container_tag) {
   return c.insert(x);
 }
 
 template <typename Container, typename X>
-constexpr auto insert_at_beginning_helper(Container& c,
-                                          const X& x,
-                                          associative_like_container_tag) {
+CPP20_USE_CONSTEXPR auto insert_at_beginning_helper(
+    Container& c,
+    const X& x,
+    associative_like_container_tag) {
   return c.insert(c.cbegin(), x);
 }
 
 template <typename Container, typename X>
-constexpr auto insert_at_end_helper(Container& c,
-                                    const X& x,
-                                    associative_like_container_tag) {
+CPP20_USE_CONSTEXPR auto insert_at_end_helper(Container& c,
+                                              const X& x,
+                                              associative_like_container_tag) {
   return c.insert(c.cend(), x);
 }
 
 }  // namespace detail
 
 template <typename T, size_t N, typename X>
-const T* find_first(const T (&arr)[N], const X& x) {
+constexpr const T* find_first(const T (&arr)[N], const X& x) {
   return detail::find_first_helper(
       arr, x, typename detail::container_traits<T[N]>::category{});
 }
 
 template <typename T, size_t N, typename Pred>
-const T* find_first_if(const T (&arr)[N], Pred p) {
+constexpr const T* find_first_if(const T (&arr)[N], Pred p) {
   return detail::find_first_if_helper(
       arr, p, typename detail::container_traits<T[N]>::category{});
 }
 
 template <typename T, size_t N, typename X>
-const T* find_last(const T (&arr)[N], const X& x) {
+constexpr const T* find_last(const T (&arr)[N], const X& x) {
   return detail::find_last_helper(
       arr, x, typename detail::container_traits<T[N]>::category{});
 }
 
 template <typename T, size_t N, typename Pred>
-const T* find_last_if(const T (&arr)[N], Pred p) {
+constexpr const T* find_last_if(const T (&arr)[N], Pred p) {
   return detail::find_last_if_helper(
       arr, p, typename detail::container_traits<T[N]>::category{});
 }
 
 template <typename T, size_t N, typename X>
-std::vector<const T*> find_all(const T (&arr)[N], const X& x) {
+constexpr std::vector<const T*> find_all(const T (&arr)[N], const X& x) {
   return detail::find_all_helper(
       arr, x, typename detail::container_traits<T[N]>::category{});
 }
 
 template <typename T, size_t N, typename Pred>
-std::vector<const T*> find_all_if(const T (&arr)[N], Pred p) {
+constexpr std::vector<const T*> find_all_if(const T (&arr)[N], Pred p) {
   return detail::find_all_if_helper(
       arr, p, typename detail::container_traits<T[N]>::category{});
 }
 
 template <typename T, size_t N, typename X>
-typename std::array<T, N>::const_iterator find_first(
+constexpr typename std::array<T, N>::const_iterator find_first(
     const std::array<T, N>& arr,
     const X& x) {
   return detail::find_first_helper(
@@ -13479,7 +13519,7 @@ typename std::array<T, N>::const_iterator find_first(
 }
 
 template <typename T, size_t N, typename Pred>
-typename std::array<T, N>::const_iterator find_first_if(
+constexpr typename std::array<T, N>::const_iterator find_first_if(
     const std::array<T, N>& arr,
     Pred p) {
   return detail::find_first_if_helper(
@@ -13487,14 +13527,15 @@ typename std::array<T, N>::const_iterator find_first_if(
 }
 
 template <typename T, size_t N, typename X>
-typename std::array<T, N>::const_iterator find_last(const std::array<T, N>& arr,
-                                                    const X& x) {
+constexpr typename std::array<T, N>::const_iterator find_last(
+    const std::array<T, N>& arr,
+    const X& x) {
   return detail::find_last_helper(
       arr, x, typename detail::container_traits<std::array<T, N>>::category{});
 }
 
 template <typename T, size_t N, typename Pred>
-typename std::array<T, N>::const_iterator find_last_if(
+constexpr typename std::array<T, N>::const_iterator find_last_if(
     const std::array<T, N>& arr,
     Pred p) {
   return detail::find_last_if_helper(
@@ -13502,7 +13543,7 @@ typename std::array<T, N>::const_iterator find_last_if(
 }
 
 template <typename T, size_t N, typename X>
-std::vector<typename std::array<T, N>::const_iterator> find_all(
+constexpr std::vector<typename std::array<T, N>::const_iterator> find_all(
     const std::array<T, N>& arr,
     const X& x) {
   return detail::find_all_helper(
@@ -13510,7 +13551,7 @@ std::vector<typename std::array<T, N>::const_iterator> find_all(
 }
 
 template <typename T, size_t N, typename Pred>
-std::vector<typename std::array<T, N>::const_iterator> find_all_if(
+constexpr std::vector<typename std::array<T, N>::const_iterator> find_all_if(
     const std::array<T, N>& arr,
     Pred p) {
   return detail::find_all_if_helper(
@@ -13518,93 +13559,98 @@ std::vector<typename std::array<T, N>::const_iterator> find_all_if(
 }
 
 template <typename Container, typename X>
-typename Container::const_iterator find_first(const Container& c, const X& x) {
+constexpr typename Container::const_iterator find_first(const Container& c,
+                                                        const X& x) {
   return detail::find_first_helper(
       c, x, typename detail::container_traits<Container>::category{});
 }
 
 template <typename Container, typename Pred>
-typename Container::const_iterator find_first_if(const Container& c, Pred p) {
+constexpr typename Container::const_iterator find_first_if(const Container& c,
+                                                           Pred p) {
   return detail::find_first_if_helper(
       c, p, typename detail::container_traits<Container>::category{});
 }
 
 template <typename Container, typename X>
-typename Container::const_iterator find_last(const Container& c, const X& x) {
+constexpr typename Container::const_iterator find_last(const Container& c,
+                                                       const X& x) {
   return detail::find_last_helper(
       c, x, typename detail::container_traits<Container>::category{});
 }
 
 template <typename Container, typename Pred>
-typename Container::const_iterator find_last_if(Container& c, Pred p) {
+constexpr typename Container::const_iterator find_last_if(Container& c,
+                                                          Pred p) {
   return detail::find_last_if_helper(
       c, p, typename detail::container_traits<Container>::category{});
 }
 
 template <typename Container, typename X>
-std::vector<typename Container::const_iterator> find_all(Container& c,
-                                                         const X& x) {
+constexpr std::vector<typename Container::const_iterator> find_all(Container& c,
+                                                                   const X& x) {
   return detail::find_all_helper(
       c, x, typename detail::container_traits<Container>::category{});
 }
 
 template <typename Container, typename Pred>
-std::vector<typename Container::const_iterator> find_all_if(Container& c,
-                                                            Pred p) {
+constexpr std::vector<typename Container::const_iterator> find_all_if(
+    Container& c,
+    Pred p) {
   return detail::find_all_if_helper(
       c, p, typename detail::container_traits<Container>::category{});
 }
 
 template <typename Container, typename X>
-constexpr auto insert(Container& c, const X& x) {
+CPP20_USE_CONSTEXPR auto insert(Container& c, const X& x) {
   return detail::insert_helper(
       c, x, typename detail::container_traits<Container>::category{});
 }
 
 template <typename Container, typename X>
-constexpr auto insert_at_beginning(Container& c, const X& x) {
+CPP20_USE_CONSTEXPR auto insert_at_beginning(Container& c, const X& x) {
   return detail::insert_at_beginning_helper(
       c, x, typename detail::container_traits<Container>::category{});
 }
 
 template <typename Container, typename X>
-constexpr auto insert_at_end(Container& c, const X& x) {
+CPP20_USE_CONSTEXPR auto insert_at_end(Container& c, const X& x) {
   return detail::insert_at_end_helper(
       c, x, typename detail::container_traits<Container>::category{});
 }
 
 template <typename Container, typename X>
-bool erase_first(Container& c, const X& x) {
+CPP20_USE_CONSTEXPR bool erase_first(Container& c, const X& x) {
   return detail::erase_first_helper(
       c, x, typename detail::container_traits<Container>::category{});
 }
 
 template <typename Container, typename X>
-bool erase_last(Container& c, const X& x) {
+CPP20_USE_CONSTEXPR bool erase_last(Container& c, const X& x) {
   return detail::erase_last_helper(
       c, x, typename detail::container_traits<Container>::category{});
 }
 
 template <typename Container, typename X>
-bool erase_all(Container& c, const X& x) {
+CPP20_USE_CONSTEXPR bool erase_all(Container& c, const X& x) {
   return detail::erase_all_helper(
       c, x, typename detail::container_traits<Container>::category{});
 }
 
 template <typename Container, typename Pred>
-bool erase_first_if(Container& c, Pred p) {
+CPP20_USE_CONSTEXPR bool erase_first_if(Container& c, Pred p) {
   return detail::erase_first_if_helper(
       c, p, typename detail::container_traits<Container>::category{});
 }
 
 template <typename Container, typename Pred>
-bool erase_last_if(Container& c, Pred p) {
+CPP20_USE_CONSTEXPR bool erase_last_if(Container& c, Pred p) {
   return detail::erase_last_if_helper(
       c, p, typename detail::container_traits<Container>::category{});
 }
 
 template <typename Container, typename Pred>
-bool erase_all_if(Container& c, Pred p) {
+CPP20_USE_CONSTEXPR bool erase_all_if(Container& c, Pred p) {
   return detail::erase_all_if_helper(
       c, p, typename detail::container_traits<Container>::category{});
 }
