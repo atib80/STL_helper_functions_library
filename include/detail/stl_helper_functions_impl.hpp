@@ -614,10 +614,22 @@ template <typename Container, typename X>
 CPP20_USE_CONSTEXPR bool erase_last_impl(Container& c,
                                          const X& x,
                                          associative_like_container_tag) {
-  const auto iter_range = c.equal_range(x);
+  auto iter_range = c.equal_range(x);
   if (iter_range.first != iter_range.second) {
-    c.erase(--(iter_range.second));
-    return true;
+    if constexpr (std::is_same_v<typename std::iterator_traits<
+                                     typename Container::const_iterator>::
+                                     iterator_category,
+                                 std::forward_iterator_tag>) {
+      auto prev = iter_range.first;
+      while (++iter_range.first != iter_range.second) {
+        prev = iter_range.first;
+      }
+      c.erase(prev);
+      return true;
+
+    } else {
+      c.erase(--iter_range.second);
+    }
   }
 
   return false;
@@ -650,10 +662,28 @@ template <typename Container, typename Pred>
 CPP20_USE_CONSTEXPR bool erase_last_if_impl(Container& c,
                                             Pred p,
                                             associative_like_container_tag) {
-  for (auto iter = c.crbegin(); iter != c.crend(); ++iter) {
-    if (p(*iter)) {
-      c.erase((++iter).base());
+  if constexpr (std::is_same_v<
+                    typename std::iterator_traits<
+                        typename Container::const_iterator>::iterator_category,
+                    std::forward_iterator_tag>) {
+    auto last = c.cend();
+    for (auto iter = c.cbegin(); iter != c.cend(); ++iter) {
+      if (p(*iter)) {
+        last = iter;
+      }
+    }
+
+    if (last != c.cend()) {
+      c.erase(last);
       return true;
+    }
+
+  } else {
+    for (auto iter = c.crbegin(); iter != c.crend(); ++iter) {
+      if (p(*iter)) {
+        c.erase((++iter).base());
+        return true;
+      }
     }
   }
 
@@ -1036,9 +1066,22 @@ find_first_if_impl(const Container& c, Pred p, associative_like_container_tag) {
 template <typename Container, typename X>
 CPP20_USE_CONSTEXPR typename Container::const_iterator
 find_last_impl(const Container& c, const X& x, associative_like_container_tag) {
-  const auto iter_range = c.equal_range(x);
+  auto iter_range = c.equal_range(x);
   if (iter_range.first != iter_range.second) {
-    return --(iter_range.second);
+    if constexpr (std::is_same_v<typename std::iterator_traits<
+                                     typename Container::const_iterator>::
+                                     iterator_category,
+                                 std::forward_iterator_tag>) {
+      auto prev = iter_range.first;
+      while (++iter_range.first != iter_range.second) {
+        prev = iter_range.first;
+      }
+      return prev;
+    } else {
+      if (iter_range.first != iter_range.second) {
+        return --iter_range.second;
+      }
+    }
   }
 
   return c.cend();
@@ -1047,15 +1090,27 @@ find_last_impl(const Container& c, const X& x, associative_like_container_tag) {
 template <typename Container, typename Pred>
 CPP20_USE_CONSTEXPR typename Container::const_iterator
 find_last_if_impl(const Container& c, Pred p, associative_like_container_tag) {
-  auto iter = c.crbegin();
-  for (; iter != c.crend() && !p(*iter); ++iter)
-    ;
+  if constexpr (std::is_same_v<
+                    typename std::iterator_traits<
+                        typename Container::const_iterator>::iterator_category,
+                    std::forward_iterator_tag>) {
+    auto last = c.cend();
+    for (auto iter = c.cbegin(); iter != c.cend(); ++iter) {
+      if (p(*iter)) {
+        last = iter;
+      }
+    }
 
-  if (iter != c.crend()) {
-    return (++iter).base();
+    return last;
+
+  } else {
+    for (auto iter = c.crbegin(); iter != c.crend(); ++iter) {
+      if (p(*iter)) {
+        return (++iter).base();
+      }
+    }
+    return c.cend();
   }
-
-  return c.cend();
 }
 
 template <typename Container, typename X>
