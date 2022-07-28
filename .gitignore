@@ -43,3 +43,6 @@
 /.idea
 /.metals
 /.vscode
+/f*
+/cmake-build-debug*
+CMakeLists.txt.user

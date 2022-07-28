@@ -60,19 +60,6 @@ namespace stl::helper::detail {
 #define SNWPRINTF swprintf
 #endif
 
-#if defined(_MSC_VER)
-#include <crtdbg.h>
-#define ASSERT _ASSERTE_
-#else
-
-#include <cassert>
-
-#define ASSERT assert
-#endif
-
-#define VERIFY ASSERT
-#define VERIFY_(result, expression) ASSERT(result == expression)
-
 #define PRINT_VAR_NAME(arg) std::cout << #arg << ' '
 #define PRINT_VAR_NAMEW(arg) std::wcout << #arg << L' '
 

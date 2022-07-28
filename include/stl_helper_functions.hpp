@@ -812,7 +812,7 @@ constexpr size_t len(const std::array<T, ARRAY_SIZE>& arr) {
   size_t length{};
 
   while (arr[length]) {
-    length++;
+    ++length;
 
     if (ARRAY_SIZE == length)
       return ARRAY_SIZE;
@@ -8915,8 +8915,8 @@ std::basic_string<get_char_type_t<T>> to_title_case(
 
   bool is_new_sentence{true};
 
-  std::optional<decltype(
-      std::use_facet<std::ctype<char_type>>(std::declval<std::locale>()))>
+  std::optional<decltype(std::use_facet<std::ctype<char_type>>(
+      std::declval<std::locale>()))>
       f{};
 
   if (std::has_facet<std::ctype<char_type>>(loc))
@@ -8953,8 +8953,8 @@ void to_title_case_in_place(T& src, const std::locale& loc = std::locale{}) {
     return;
   bool is_new_sentence{true};
 
-  std::optional<decltype(
-      std::use_facet<std::ctype<char_type>>(std::declval<std::locale>()))>
+  std::optional<decltype(std::use_facet<std::ctype<char_type>>(
+      std::declval<std::locale>()))>
       f{};
 
   if (std::has_facet<std::ctype<char_type>>(loc))
@@ -11499,10 +11499,21 @@ template <
                             is_valid_string_view_type_v<V> ||
                             is_char_array_type_v<V> ||
                             is_char_pointer_type_v<V> ||
-                            is_valid_char_type_v<
-                                V>)&&(is_all_of_v<get_char_type_t<T>,
-                                                  get_char_type_t<U>,
-                                                  get_char_type_t<V>>)>>
+                            is_valid_char_type_v<V> ||
+                            std::is_same_v<
+                                V,
+                                std::
+                                    nullptr_t>)&&(is_all_of_v<get_char_type_t<T>,
+                                                              get_char_type_t<
+                                                                  U>,
+                                                              get_char_type_t<
+                                                                  V>> ||
+                                                  (std::is_same_v<
+                                                       get_char_type_t<T>,
+                                                       get_char_type_t<U>> &&
+                                                   std::is_same_v<
+                                                       V,
+                                                       std::nullptr_t>))>>
 std::vector<std::basic_string<get_char_type_t<T>>> str_split(
     const T& src,
     const U& needle,
@@ -11579,23 +11590,29 @@ std::vector<std::basic_string<get_char_type_t<T>>> str_split(
 
   std::vector<std::basic_string_view<char_type>> needle_parts{};
 
-  if (needle_parts_separator_token_len > 0U && !split_on_whole_needle) {
-    size_t start_pos{};
+  if (!split_on_whole_needle) {
+    if (needle_parts_separator_token_len > 0U) {
+      size_t start_pos{};
 
-    while (true) {
-      const size_t next_pos{
-          needle_sv.find(needle_parts_separator_token_sv, start_pos)};
+      while (true) {
+        const size_t next_pos{
+            needle_sv.find(needle_parts_separator_token_sv, start_pos)};
 
-      if (std::basic_string_view<char_type>::npos == next_pos) {
+        if (std::basic_string_view<char_type>::npos == next_pos) {
+          needle_parts.emplace_back(needle_sv.data() + start_pos,
+                                    needle_len - start_pos);
+          break;
+        }
+
         needle_parts.emplace_back(needle_sv.data() + start_pos,
-                                  needle_len - start_pos);
-        break;
+                                  next_pos - start_pos);
+
+        start_pos = next_pos + needle_parts_separator_token_sv.length();
       }
 
-      needle_parts.emplace_back(needle_sv.data() + start_pos,
-                                next_pos - start_pos);
-
-      start_pos = next_pos + needle_parts_separator_token_sv.length();
+    } else {
+      for (size_t i{}; i < needle_len; ++i)
+        needle_parts.emplace_back(needle_sv.data() + i, 1U);
     }
   } else
     needle_parts.emplace_back(needle_sv);
@@ -11614,10 +11631,10 @@ std::vector<std::basic_string<get_char_type_t<T>>> str_split(
     if (current - prev > 0U) {
       parts.emplace_back(std::cbegin(src_sv) + prev,
                          std::cbegin(src_sv) + current);
-      number_of_parts++;
+      ++number_of_parts;
     } else if (!ignore_empty_string) {
       parts.emplace_back();
-      number_of_parts++;
+      ++number_of_parts;
     }
 
     prev = current + needle_part_len;
@@ -11643,9 +11660,13 @@ template <
     typename = std::enable_if_t<
         is_valid_char_type_v<
             typename std::iterator_traits<IteratorType>::value_type> &&
-        is_all_of_v<typename std::iterator_traits<IteratorType>::value_type,
-                    get_char_type_t<NeedleType>,
-                    get_char_type_t<NeedleSeparatorType>>>>
+        (is_all_of_v<typename std::iterator_traits<IteratorType>::value_type,
+                     get_char_type_t<NeedleType>,
+                     get_char_type_t<NeedleSeparatorType>> ||
+         (std::is_same_v<
+              typename std::iterator_traits<IteratorType>::value_type,
+              get_char_type_t<NeedleType>> &&
+          std::is_same_v<NeedleSeparatorType, std::nullptr_t>))>>
 std::vector<
     std::basic_string<typename std::iterator_traits<IteratorType>::value_type>>
 str_split_range(IteratorType first,
@@ -11724,23 +11745,28 @@ str_split_range(IteratorType first,
     }
   }
 
-  if (needle_parts_separator_token_len > 0U && !split_on_whole_needle) {
-    size_t start_pos{};
+  if (!split_on_whole_needle) {
+    if (needle_parts_separator_token_len > 0U) {
+      size_t start_pos{};
 
-    while (true) {
-      const size_t next_pos{
-          needle_sv.find(needle_parts_separator_token_sv, start_pos)};
+      while (true) {
+        const size_t next_pos{
+            needle_sv.find(needle_parts_separator_token_sv, start_pos)};
 
-      if (std::basic_string_view<char_type>::npos == next_pos) {
+        if (std::basic_string_view<char_type>::npos == next_pos) {
+          needle_parts.emplace_back(needle_sv.data() + start_pos,
+                                    needle_len - start_pos);
+          break;
+        }
+
         needle_parts.emplace_back(needle_sv.data() + start_pos,
-                                  needle_len - start_pos);
-        break;
+                                  next_pos - start_pos);
+
+        start_pos = next_pos + needle_parts_separator_token_sv.length();
       }
-
-      needle_parts.emplace_back(needle_sv.data() + start_pos,
-                                next_pos - start_pos);
-
-      start_pos = next_pos + needle_parts_separator_token_sv.length();
+    } else {
+      for (size_t i{}; i < needle_len; ++i)
+        needle_parts.emplace_back(needle_sv.data() + i, 1U);
     }
   } else
     needle_parts.emplace_back(needle_sv);
@@ -12131,23 +12157,28 @@ constexpr std::pair<BidirIterType1, BidirIterType2> move_backward_while_false(
 }
 
 /**
- * An alternative implementation of the generic stable_partition algorithm
+ * An alternative implementation of the generic stable_partition
+ * algorithm
  *
- * @param[in] first BidirIterType - a bidirectional or random iterator pointing
- * to the first element of the input sequence [first, last)
- * @param[in] last BidirIterType - a bidirectional or random iterator pointing
- * to the first non-existing element located after the last valid position in
- * the input sequence
- * @param[in] p UnaryPredicate - a unary predicate [global function, functor,
- * lambda] that returns true or false depending on the input element's value
+ * @param[in] first BidirIterType - a bidirectional or random
+ * iterator pointing to the first element of the input sequence
+ * [first, last)
+ * @param[in] last BidirIterType - a bidirectional or random
+ * iterator pointing to the first non-existing element located
+ * after the last valid position in the input sequence
+ * @param[in] p UnaryPredicate - a unary predicate [global
+ * function, functor, lambda] that returns true or false
+ * depending on the input element's value
  *
- * @return new_last BidirIterType - a bidirectional iterator that points to
- * the first non-matching element in the modified input sequence [first, last)
+ * @return new_last BidirIterType - a bidirectional iterator
+ * that points to the first non-matching element in the modified
+ * input sequence [first, last)
  *
- * Generic algorithm stable_partition accepts a sequence of elements denoted by
- * 'first' and 'last' bidirectional iterators and a unary predicate 'p', it
- * processes the whole range of elements [first, last) by moving all the
- * matching elements, for which the UnaryPredicate p returns true, to the
+ * Generic algorithm stable_partition accepts a sequence of
+ * elements denoted by 'first' and 'last' bidirectional
+ * iterators and a unary predicate 'p', it processes the whole
+ * range of elements [first, last) by moving all the matching
+ * elements, for which the UnaryPredicate p returns true, to the
  * beginning of the input range [first, last).
  *
  * The original relative order of the elements is kept intact.
@@ -12190,42 +12221,48 @@ BidirIterType stable_partition(BidirIterType first,
 }
 
 /**
- * A possible generic implementation of the stable_gather algorithm
+ * A possible generic implementation of the stable_gather
+ * algorithm
  *
- * @param[in] first BidirIterType - a bidirectional or random iterator pointing
- * to the first element of the input sequence
- * @param[in] last BidirIterType - a bidirectional or random iterator pointing
- * to the first non-existing element located behind the last valid position in
- * the input sequence
- * @param[in] target BidirIterType - a bidirectional or random iterator pointing
- * to an existing element in the input sequence for which we want to find all
- * the similar elements that are contained in the same input sequence [first,
- * last)
- * @param[in] p BinaryPredicate - a binary predicate [global function, functor,
- * lambda] that returns true or false depending on the result of comparison
- * between the target element and a custom element from the same input sequence
+ * @param[in] first BidirIterType - a bidirectional or random
+ * iterator pointing to the first element of the input sequence
+ * @param[in] last BidirIterType - a bidirectional or random
+ * iterator pointing to the first non-existing element located
+ * behind the last valid position in the input sequence
+ * @param[in] target BidirIterType - a bidirectional or random
+ * iterator pointing to an existing element in the input
+ * sequence for which we want to find all the similar elements
+ * that are contained in the same input sequence [first, last)
+ * @param[in] p BinaryPredicate - a binary predicate [global
+ * function, functor, lambda] that returns true or false
+ * depending on the result of comparison between the target
+ * element and a custom element from the same input sequence
  * [first, last)
  *
- * @return std::pair<BidirIterType, BidirIterType> - a pair of bidirectional
- * iterators lower_bound and upper_bound that point to the first similar
- * (matching) element located farthest to the left of the target element and the
- * first non-matching element located closest to the right, respectively, in the
- * modified input sequence [first, last)
+ * @return std::pair<BidirIterType, BidirIterType> - a pair of
+ * bidirectional iterators lower_bound and upper_bound that
+ * point to the first similar (matching) element located
+ * farthest to the left of the target element and the first
+ * non-matching element located closest to the right,
+ * respectively, in the modified input sequence [first, last)
  *
- * Generic algorithm stable_gather accepts a sequence of elements denoted by
- * the 'first' and 'last' bidirectional iterators, a target element pointed to
- * by the bidirectional iterator 'target', and a unary predicate 'p', it
- * processes the whole range of elements [first, last) by moving all the
- * matching similar elements from [first, target), for those that satisfy the
- * BinaryPredicate p, in front of the target element and moving all the matching
- * similar elements from (target, last) behind the target element resulting in 2
- * logically related partial sequences [lower_bound, target) and [target,
- * upper_bound), respectively.
+ * Generic algorithm stable_gather accepts a sequence of
+ * elements denoted by the 'first' and 'last' bidirectional
+ * iterators, a target element pointed to by the bidirectional
+ * iterator 'target', and a unary predicate 'p', it processes
+ * the whole range of elements [first, last) by moving all the
+ * matching similar elements from [first, target), for those
+ * that satisfy the BinaryPredicate p, in front of the target
+ * element and moving all the matching similar elements from
+ * (target, last) behind the target element resulting in 2
+ * logically related partial sequences [lower_bound, target) and
+ * [target, upper_bound), respectively.
  *
- * The algorithm returns a pair of bidirectional iterators that point to the
- * first matching element located farthest to the left of the target element and
- * the first non-matching element located closest to the right of the target
- * element, respectively.
+ * The algorithm returns a pair of bidirectional iterators that
+ * point to the first matching element located farthest to the
+ * left of the target element and the first non-matching element
+ * located closest to the right of the target element,
+ * respectively.
  *
  * The original relative order of the elements is kept intact.
  */
