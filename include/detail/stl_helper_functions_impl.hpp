@@ -39,7 +39,6 @@
 #include <vector>
 
 namespace stl::helper::detail {
-
 #if defined(_MSC_VER)
 #if defined(_MSVC_LANG) && _MSVC_LANG < 201703L
 #error \
@@ -613,7 +612,6 @@ CPP20_USE_CONSTEXPR bool erase_last_impl(Container& c,
       }
       c.erase(prev);
       return true;
-
     } else {
       c.erase(--iter_range.second);
     }
@@ -664,7 +662,6 @@ CPP20_USE_CONSTEXPR bool erase_last_if_impl(Container& c,
       c.erase(last);
       return true;
     }
-
   } else {
     for (auto iter = c.crbegin(); iter != c.crend(); ++iter) {
       if (p(*iter)) {
@@ -963,7 +960,6 @@ find_last_impl(const Container& c, const X& x, list_like_container_tag) {
     }
 
     return last_found_iter;
-
   } else {
     auto last_found_iter = std::find(c.crbegin(), c.crend(), x);
 
@@ -991,7 +987,6 @@ find_last_if_impl(const Container& c, Pred p, list_like_container_tag) {
     }
 
     return last_found_iter;
-
   } else {
     auto last_found_iter = std::find_if(c.crbegin(), c.crend(), p);
 
@@ -1089,7 +1084,6 @@ find_last_if_impl(const Container& c, Pred p, associative_like_container_tag) {
     }
 
     return last;
-
   } else {
     for (auto iter = c.crbegin(); iter != c.crend(); ++iter) {
       if (p(*iter)) {
@@ -1186,7 +1180,6 @@ CPP20_USE_CONSTEXPR auto insert_at_end_impl(Container& c,
     }
 
     return c.insert_after(prev, x);
-
   } else {
     return c.insert_after(--c.cend(), x);
   }
@@ -1216,7 +1209,6 @@ CPP20_USE_CONSTEXPR auto insert_at_end_impl(Container& c,
                                             associative_like_container_tag) {
   return c.insert(c.cend(), x);
 }
-
 }  // namespace stl::helper::detail
 
 #endif /* _STL_HELPER_FUNCTIONS_IMPL_HPP_ */

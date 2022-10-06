@@ -1,13 +1,14 @@
 #ifndef _STL_HELPER_FUNCTIONS_HPP_
 #define _STL_HELPER_FUNCTIONS_HPP_
 
+#include <dshow.h>
 #include "detail/stl_helper_functions_impl.hpp"
 
 namespace stl::helper {
-
 constexpr const char* __stl_helper_utility_library_version__{"0.0.1-devel"};
+using std::min;
 
-class alignas(32) tracer {
+class tracer {
   std::ostream& output_stream;
   const char* m_filename;
   const size_t m_line_number;
@@ -147,6 +148,31 @@ constexpr bool check_if_type_is_identical_to(T&& arg1,
 
   return is_any_of(std::forward<T>(arg1), std::forward<U>(arg2),
                    std::forward<Args>(args)...);
+}
+
+template <typename T, typename U, typename... Args>
+std::common_type_t<T, U, Args...> min_element(const T& first,
+                                              const U& second,
+                                              const Args&... args) noexcept {
+  std::common_type_t<T, U, Args...> min_value = first < second ? first : second;
+
+  if constexpr (sizeof...(args) == 0)
+    return min_value;
+
+  return min_element(min_value, args...);
+}
+
+template <typename T, typename U, typename... Args>
+std::common_type_t<T, U, Args...> max_element(const T& first,
+                                              const U& second,
+                                              const Args&... args) noexcept {
+  std::common_type_t<T, U, Args...> max_value =
+      first >= second ? first : second;
+
+  if constexpr (sizeof...(args) == 0)
+    return max_value;
+
+  return max_element(max_value, args...);
 }
 
 template <typename T>
@@ -441,7 +467,7 @@ class crange {
 
  public:
   constexpr explicit crange() {
-    if (!(start < last))
+    if (start >= last)
       throw std::invalid_argument{
           "The last element of the range object must be greater than its first "
           "element!"};
@@ -499,7 +525,7 @@ class range {
       : start_{start},
         last_{last},
         range_(static_cast<size_t>(last_ - start_)) {
-    if (!(start_ < last_))
+    if (start_ >= last_)
       throw std::invalid_argument{
           "The last element of the range object must be greater than its first "
           "element!"};
@@ -796,7 +822,7 @@ constexpr size_t len(T (&arr)[ARRAY_SIZE]) {
   size_t length{};
 
   while (arr[length]) {
-    length++;
+    ++length;
 
     if (ARRAY_SIZE == length)
       return ARRAY_SIZE;
@@ -896,8 +922,8 @@ size_t say_slow(std::wostream& os,
     std::vector<wchar_t> output_buffer(buffer_size);
 
     const int number_of_chars_written =
-        swprintf(&output_buffer[0], output_buffer.size(), format_string,
-                 std::forward<Args>(args)...);
+        StringCchPrintfW(&output_buffer[0], output_buffer.size(), format_string,
+                         std::forward<Args>(args)...);
 
     if (number_of_chars_written != -1) {
       size_t ch_count{};
@@ -912,7 +938,6 @@ size_t say_slow(std::wostream& os,
     }
 
     buffer_size *= 2;
-
   } while (true);
 
   return 0U;
@@ -952,8 +977,8 @@ size_t say(std::wostream& os, const wchar_t* format_string, Args&&... args) {
     std::vector<wchar_t> output_buffer(buffer_size);
 
     const int number_of_chars_written =
-        swprintf(&output_buffer[0], output_buffer.size(), format_string,
-                 std::forward<Args>(args)...);
+        StringCchPrintfW(&output_buffer[0], output_buffer.size(), format_string,
+                         std::forward<Args>(args)...);
 
     if (number_of_chars_written != -1) {
       return (os << &output_buffer[0])
@@ -962,7 +987,6 @@ size_t say(std::wostream& os, const wchar_t* format_string, Args&&... args) {
     }
 
     buffer_size *= 2;
-
   } while (true);
 
   return 0U;
@@ -1467,7 +1491,6 @@ bool str_starts_with(const T& src,
     }
 
     return std::tolower(src[0]) == std::tolower(needle);
-
   } else {
     if (!ignore_case) {
       for (size_t i{}; i < needle_len; i++) {
@@ -1578,7 +1601,6 @@ size_t str_index_of(const T& src,
       std::transform(std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
                      [&f](const auto ch) { return f.tolower(ch); });
       needle_lc = f.tolower(needle);
-
     } else {
       std::transform(std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
                      [](const auto ch) {
@@ -1589,7 +1611,6 @@ size_t str_index_of(const T& src,
     }
 
     return src_lc.find(needle_lc, start_pos);
-
   } else {
     std::basic_string_view<char_type> needle_sv{};
     if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
@@ -1610,7 +1631,6 @@ size_t str_index_of(const T& src,
       std::transform(std::cbegin(needle_lc), std::cend(needle_lc),
                      std::begin(needle_lc),
                      [&f](const auto ch) { return f.tolower(ch); });
-
     } else {
       std::transform(std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
                      [](const auto ch) {
@@ -1681,7 +1701,6 @@ std::vector<size_t> str_find_all_of(const T& src,
     std::transform(std::cbegin(needle_lc), std::cend(needle_lc),
                    std::begin(needle_lc),
                    [&f](const auto ch) { return f.tolower(ch); });
-
   } else {
     std::transform(
         std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
@@ -1745,7 +1764,6 @@ constexpr SrcIterType find_last_any_of(SrcIterType src_first,
       found_last_item_iter = found_iter;
       src_first = found_iter;
       ++src_first;
-
     } while (true);
   }
 }
@@ -1799,7 +1817,6 @@ find_first_sequence_of_allowed_elements(ForwardIterType first,
           return std::cend(haystack) == haystack.find(current_element);
         });
     return {found, second};
-
   } else {
     if (is_haystack_sorted) {
       const auto found{
@@ -1954,7 +1971,6 @@ typename std::basic_string<get_char_type_t<T>>::size_type str_last_index_of(
       std::transform(std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
                      [&f](const auto ch) { return f.tolower(ch); });
       needle_lc = f.tolower(needle);
-
     } else {
       std::transform(std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
                      [](const auto ch) {
@@ -1965,7 +1981,6 @@ typename std::basic_string<get_char_type_t<T>>::size_type str_last_index_of(
     }
 
     return src_lc.rfind(needle_lc, start_pos);
-
   } else {
     std::basic_string_view<char_type> needle_sv{};
     if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
@@ -1986,7 +2001,6 @@ typename std::basic_string<get_char_type_t<T>>::size_type str_last_index_of(
       std::transform(std::cbegin(needle_lc), std::cend(needle_lc),
                      std::begin(needle_lc),
                      [&f](const auto ch) { return f.tolower(ch); });
-
     } else {
       std::transform(std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
                      [](const auto ch) {
@@ -2089,7 +2103,6 @@ bool str_contains(const T& src,
 
     return std::basic_string<char_type>::npos !=
            src_lc.find(needle_lc, start_pos);
-
   } else {
     std::basic_string_view<char_type> needle_sv{};
     if constexpr (is_char_pointer_type_v<U> || is_char_array_type_v<U>)
@@ -2113,7 +2126,6 @@ bool str_contains(const T& src,
       std::transform(std::cbegin(needle_lc), std::cend(needle_lc),
                      std::begin(needle_lc),
                      [&f](const auto ch) { return f.tolower(ch); });
-
     } else {
       std::transform(std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
                      [](const auto ch) {
@@ -2215,7 +2227,6 @@ bool str_ends_with(const T& src,
     }
 
     return std::tolower(src[src_len - 1]) == std::tolower(needle);
-
   } else {
     const size_t expected_start_pos_of_needle{src_len - needle_len};
 
@@ -2291,10 +2302,8 @@ bool has_value(const ContainerType& container, const ValueType& value) {
   if constexpr (has_mapped_type_v<ContainerType>) {
     return std::any_of(std::cbegin(container), std::cend(container),
                        [&value](const auto& p) { return p.second == value; });
-
   } else if constexpr (has_key_type_v<ContainerType>) {
     return std::cend(container) != container.find(value);
-
   } else if constexpr (has_value_type_v<ContainerType> &&
                        check_equality_v<typename ContainerType::value_type,
                                         std::remove_reference_t<ValueType>>) {
@@ -2395,7 +2404,8 @@ int str_compare(const T& src1, const U& src2) {
   if (0U == src2_len)
     return 0U == src1_len ? 0 : static_cast<int>(src1[0]);
 
-  size_t const number_of_characters_to_compare{std::min(src1_len, src2_len)};
+  size_t const number_of_characters_to_compare =
+      min_element(src1_len, src2_len);
 
   size_t i{};
 
@@ -2404,7 +2414,11 @@ int str_compare(const T& src1, const U& src2) {
       return static_cast<int>(src1[i] - src2[i]);
   }
 
-  return static_cast<int>(src1[i] - src2[i]);
+  if (src1_len == src2_len)
+    return 0;
+  if (src1_len > src2_len)
+    return static_cast<int>(src1[i]);
+  return -static_cast<int>(src2[i]);
 }
 
 template <
@@ -2436,7 +2450,7 @@ int str_compare(FwIterType1 first1,
   const std::common_type_t<
       typename std::iterator_traits<FwIterType1>::difference_type,
       typename std::iterator_traits<FwIterType2>::difference_type>
-      number_of_characters_to_compare{std::min(src1_len, src2_len)};
+      number_of_characters_to_compare = min_element(src1_len, src2_len);
 
   for (std::common_type_t<
            typename std::iterator_traits<FwIterType1>::difference_type,
@@ -2446,7 +2460,11 @@ int str_compare(FwIterType1 first1,
       return static_cast<int>(*first1 - *first2);
   }
 
-  return static_cast<int>(*first1 - *first2);
+  if (src1_len == src2_len)
+    return 0;
+  if (src1_len > src2_len)
+    return static_cast<int>(*first1);
+  return -static_cast<int>(*first2);
 }
 
 template <typename T,
@@ -2472,7 +2490,7 @@ int str_compare_n(const T& src1,
 
   if (src1_len < number_of_characters_to_compare ||
       src2_len < number_of_characters_to_compare)
-    number_of_characters_to_compare = std::min(src1_len, src2_len);
+    number_of_characters_to_compare = min_element(src1_len, src2_len);
 
   size_t i{};
 
@@ -2481,7 +2499,11 @@ int str_compare_n(const T& src1,
       return static_cast<int>(src1[i] - src2[i]);
   }
 
-  return static_cast<int>(src1[i] - src2[i]);
+  if (src1_len == src2_len)
+    return 0;
+  if (src1_len > src2_len)
+    return static_cast<int>(src1[i]);
+  return -static_cast<int>(src2[i]);
 }
 
 template <
@@ -2517,7 +2539,7 @@ int str_compare_n(
 
   if (src1_len < number_of_characters_to_compare ||
       src2_len < number_of_characters_to_compare)
-    number_of_characters_to_compare = std::min(src1_len, src2_len);
+    number_of_characters_to_compare = min_element(src1_len, src2_len);
 
   for (std::common_type_t<
            typename std::iterator_traits<FwIterType1>::difference_type,
@@ -2527,7 +2549,11 @@ int str_compare_n(
       return static_cast<int>(*first1 - *first2);
   }
 
-  return static_cast<int>(*first1 - *first2);
+  if (src1_len == src2_len)
+    return 0;
+  if (src1_len > src2_len)
+    return static_cast<int>(*first1);
+  return -static_cast<int>(*first2);
 }
 
 template <typename T,
@@ -2553,7 +2579,7 @@ int str_compare_i(const T& src1,
   if (0U == src2_len)
     return 0U == src1_len ? 0 : static_cast<int>(src1[0]);
 
-  const size_t number_of_characters_to_compare{std::min(src1_len, src2_len)};
+  const size_t number_of_characters_to_compare = min(src1_len, src2_len);
 
   if (std::has_facet<std::ctype<char_type>>(loc)) {
     const auto& f = std::use_facet<std::ctype<char_type>>(loc);
@@ -2567,7 +2593,11 @@ int str_compare_i(const T& src1,
         return static_cast<int>(ch1 - ch2);
     }
 
-    return static_cast<int>(f.tolower(src1[i]) - f.tolower(src2[i]));
+    if (src1_len == src2_len)
+      return 0;
+    if (src1_len > src2_len)
+      return static_cast<int>(f.tolower(src1[i]));
+    return -static_cast<int>(f.tolower(src2[i]));
   }
 
   size_t i{};
@@ -2579,7 +2609,11 @@ int str_compare_i(const T& src1,
       return static_cast<int>(ch1 - ch2);
   }
 
-  return static_cast<int>(std::tolower(src1[i]) - std::tolower(src2[i]));
+  if (src1_len == src2_len)
+    return 0;
+  if (src1_len > src2_len)
+    return static_cast<int>(std::tolower(src1[i]));
+  return -static_cast<int>(std::tolower(src2[i]));
 }
 
 template <
@@ -2615,7 +2649,7 @@ int str_compare_i(FwIterType1 first1,
   const std::common_type_t<
       typename std::iterator_traits<FwIterType1>::difference_type,
       typename std::iterator_traits<FwIterType2>::difference_type>
-      number_of_characters_to_compare{std::min(src1_len, src2_len)};
+      number_of_characters_to_compare = min_element(src1_len, src2_len);
 
   if (std::has_facet<std::ctype<char_type>>(loc)) {
     const auto& f = std::use_facet<std::ctype<char_type>>(loc);
@@ -2630,7 +2664,11 @@ int str_compare_i(FwIterType1 first1,
         return static_cast<int>(ch1 - ch2);
     }
 
-    return static_cast<int>(f.tolower(*first1) - f.tolower(*first2));
+    if (src1_len == src2_len)
+      return 0;
+    if (src1_len > src2_len)
+      return static_cast<int>(f.tolower(*first1));
+    return -static_cast<int>(f.tolower(*first2));
   }
 
   for (std::common_type_t<
@@ -2643,7 +2681,11 @@ int str_compare_i(FwIterType1 first1,
       return static_cast<int>(ch1 - ch2);
   }
 
-  return static_cast<int>(std::tolower(*first1) - std::tolower(*first2));
+  if (src1_len == src2_len)
+    return 0;
+  if (src1_len > src2_len)
+    return static_cast<int>(std::tolower(*first1));
+  return -static_cast<int>(std::tolower(*first2));
 }
 
 template <typename T,
@@ -2670,8 +2712,10 @@ int str_compare_n_i(const T& src1,
   if (0U == src2_len)
     return 0U == src1_len ? 0 : static_cast<int>(src1[0]);
 
+  const size_t min_src_len = min(src1_len, src2_len);
+
   number_of_characters_to_compare =
-      std::min(number_of_characters_to_compare, std::min(src1_len, src2_len));
+      min(number_of_characters_to_compare, min_src_len);
 
   if (std::has_facet<std::ctype<char_type>>(loc)) {
     const auto& f = std::use_facet<std::ctype<char_type>>(loc);
@@ -2728,7 +2772,7 @@ int str_compare_n_i(
 
   if (src1_len < number_of_characters_to_compare ||
       src2_len < number_of_characters_to_compare)
-    number_of_characters_to_compare = std::min(src1_len, src2_len);
+    number_of_characters_to_compare = min_element(src1_len, src2_len);
 
   if (std::has_facet<std::ctype<char_type>>(loc)) {
     const auto& f = std::use_facet<std::ctype<char_type>>(loc);
@@ -2806,7 +2850,7 @@ size_t str_copy(T (&dst)[ARRAY_SIZE],
   else
     src_sv = src;
 
-  const size_t no_of_chars_to_copy{std::min(ARRAY_SIZE - 1, src_len)};
+  const size_t no_of_chars_to_copy = min_element(ARRAY_SIZE - 1, src_len);
   std::copy(std::cbegin(src_sv), std::cbegin(src_sv) + no_of_chars_to_copy,
             dst);
   dst[no_of_chars_to_copy] = static_cast<char_type>('\0');
@@ -2853,8 +2897,8 @@ size_t str_copy(
   else
     src_sv = src;
 
-  const size_t no_of_chars_to_copy{
-      std::min(dst_capacity_in_number_of_characters - 1, src_len)};
+  const size_t no_of_chars_to_copy =
+      min_element(dst_capacity_in_number_of_characters - 1, src_len);
 
   std::copy(std::cbegin(src_sv), std::cbegin(src_sv) + no_of_chars_to_copy,
             dst);
@@ -2920,7 +2964,7 @@ size_t str_copy_n(T (&dst)[ARRAY_SIZE],
   const auto src_len{len(src)};
 
   number_of_characters_to_copy =
-      std::min(number_of_characters_to_copy, src_len);
+      min_element(number_of_characters_to_copy, src_len);
   const size_t required_dst_buffer_size{number_of_characters_to_copy + 1};
 
   if (required_dst_capacity)
@@ -2944,8 +2988,8 @@ size_t str_copy_n(T (&dst)[ARRAY_SIZE],
   else
     src_sv = src;
 
-  const size_t no_chars_to_copy{
-      std::min(ARRAY_SIZE - 1, number_of_characters_to_copy)};
+  const size_t no_chars_to_copy =
+      min_element(ARRAY_SIZE - 1, number_of_characters_to_copy);
 
   std::copy(std::cbegin(src_sv), std::cbegin(src_sv) + no_chars_to_copy, dst);
 
@@ -2973,7 +3017,7 @@ size_t str_copy_n(
 
   const size_t src_len{len(src)};
   number_of_characters_to_copy =
-      std::min(number_of_characters_to_copy, src_len);
+      min_element(number_of_characters_to_copy, src_len);
   const size_t required_dst_buffer_size{number_of_characters_to_copy + 1};
 
   if (required_dst_capacity)
@@ -2997,8 +3041,8 @@ size_t str_copy_n(
   else
     src_sv = src;
 
-  const size_t no_chars_to_copy{std::min(
-      dst_capacity_in_number_of_characters - 1, number_of_characters_to_copy)};
+  const size_t no_chars_to_copy = min_element(
+      dst_capacity_in_number_of_characters - 1, number_of_characters_to_copy);
 
   std::copy(std::cbegin(src_sv), std::cbegin(src_sv) + no_chars_to_copy, dst);
 
@@ -3023,7 +3067,7 @@ size_t str_copy_n(T& dst,
 
   const size_t src_len{len(src)};
   number_of_characters_to_copy =
-      std::min(number_of_characters_to_copy, src_len);
+      min_element(number_of_characters_to_copy, src_len);
 
   if (required_dst_capacity)
     *required_dst_capacity = number_of_characters_to_copy + 1;
@@ -3058,7 +3102,7 @@ size_t str_copy_n(T& dst,
                   size_t* required_dst_capacity = nullptr) {
   const size_t src_len{len(src)};
   number_of_characters_to_copy =
-      std::min(number_of_characters_to_copy, src_len);
+      min_element(number_of_characters_to_copy, src_len);
 
   if (required_dst_capacity)
     *required_dst_capacity = number_of_characters_to_copy + 1;
@@ -3117,7 +3161,8 @@ size_t str_append(T (&dst)[ARRAY_SIZE],
   else
     src_sv = src;
 
-  const size_t no_of_chars_to_copy{std::min(ARRAY_SIZE - dst_len - 1, src_len)};
+  const size_t no_of_chars_to_copy =
+      min_element(ARRAY_SIZE - dst_len - 1, src_len);
 
   std::copy(std::cbegin(src_sv), std::cbegin(src_sv) + no_of_chars_to_copy,
             dst + dst_len);
@@ -3169,8 +3214,8 @@ size_t str_append(T dst,
   else
     src_sv = src;
 
-  const size_t no_of_chars_to_copy{
-      std::min(dst_capacity_in_number_of_characters - dst_len - 1, src_len)};
+  const size_t no_of_chars_to_copy =
+      min_element(dst_capacity_in_number_of_characters - dst_len - 1, src_len);
 
   std::copy(std::cbegin(src_sv), std::cbegin(src_sv) + no_of_chars_to_copy,
             dst + dst_len);
@@ -3283,7 +3328,7 @@ size_t str_append_n(T (&dst)[ARRAY_SIZE],
   const size_t dst_len{len(dst)};
 
   number_of_characters_to_append =
-      std::min(src_len, number_of_characters_to_append);
+      min_element(src_len, number_of_characters_to_append);
   const size_t required_dst_buffer_size{dst_len +
                                         number_of_characters_to_append + 1};
 
@@ -3310,7 +3355,7 @@ size_t str_append_n(T (&dst)[ARRAY_SIZE],
     src_sv = src;
 
   number_of_characters_to_append =
-      std::min(ARRAY_SIZE - dst_len - 1, number_of_characters_to_append);
+      min_element(ARRAY_SIZE - dst_len - 1, number_of_characters_to_append);
 
   std::copy(std::cbegin(src_sv),
             std::cbegin(src_sv) + number_of_characters_to_append,
@@ -3343,7 +3388,7 @@ size_t str_append_n(T dst,
   const size_t dst_len{len(dst)};
 
   number_of_characters_to_append =
-      std::min(number_of_characters_to_append, src_len);
+      min_element(number_of_characters_to_append, src_len);
 
   const size_t required_dst_buffer_size{dst_len +
                                         number_of_characters_to_append + 1};
@@ -3374,8 +3419,8 @@ size_t str_append_n(T dst,
     src_sv = src;
 
   number_of_characters_to_append =
-      std::min(dst_capacity_in_number_of_characters - dst_len - 1,
-               number_of_characters_to_append);
+      min_element(dst_capacity_in_number_of_characters - dst_len - 1,
+                  number_of_characters_to_append);
 
   std::copy(std::cbegin(src_sv),
             std::cbegin(src_sv) + number_of_characters_to_append,
@@ -3406,7 +3451,7 @@ std::basic_string<get_char_type_t<T>> str_append_n(
   const size_t dst_len{len(dst)};
   const size_t src_len{len(src)};
   number_of_characters_to_append =
-      std::min(number_of_characters_to_append, src_len);
+      min_element(number_of_characters_to_append, src_len);
 
   if (required_dst_capacity)
     *required_dst_capacity = dst_len + number_of_characters_to_append + 1;
@@ -3458,7 +3503,7 @@ size_t str_append_n(T& dst,
   using char_type = get_char_type_t<T>;
   const size_t src_len{len(src)};
   number_of_characters_to_append =
-      std::min(number_of_characters_to_append, src_len);
+      min_element(number_of_characters_to_append, src_len);
 
   if (required_dst_capacity)
     *required_dst_capacity = dst.length() + number_of_characters_to_append + 1;
@@ -3528,7 +3573,8 @@ size_t str_prepend(T (&dst)[ARRAY_SIZE],
   else
     src_sv = src;
 
-  const size_t no_of_chars_to_copy{std::min(ARRAY_SIZE - dst_len - 1, src_len)};
+  const size_t no_of_chars_to_copy =
+      min_element(ARRAY_SIZE - dst_len - 1, src_len);
 
   std::copy_backward(dst, dst + dst_len, dst + dst_len + no_of_chars_to_copy);
 
@@ -3582,8 +3628,8 @@ size_t str_prepend(T dst,
   else
     src_sv = src;
 
-  const size_t no_of_chars_to_copy{
-      std::min(dst_capacity_in_number_of_characters - dst_len - 1, src_len)};
+  const size_t no_of_chars_to_copy =
+      min_element(dst_capacity_in_number_of_characters - dst_len - 1, src_len);
 
   std::copy_backward(dst, dst + dst_len, dst + dst_len + no_of_chars_to_copy);
 
@@ -3697,7 +3743,7 @@ size_t str_prepend_n(T (&dst)[ARRAY_SIZE],
   const size_t dst_len{len(dst)};
 
   number_of_characters_to_prepend =
-      std::min(number_of_characters_to_prepend, src_len);
+      min_element(number_of_characters_to_prepend, src_len);
   const size_t required_dst_buffer_size{dst_len +
                                         number_of_characters_to_prepend + 1};
 
@@ -3724,7 +3770,7 @@ size_t str_prepend_n(T (&dst)[ARRAY_SIZE],
     src_sv = src;
 
   number_of_characters_to_prepend =
-      std::min(ARRAY_SIZE - dst_len - 1, number_of_characters_to_prepend);
+      min_element(ARRAY_SIZE - dst_len - 1, number_of_characters_to_prepend);
 
   std::copy_backward(dst, dst + dst_len,
                      dst + dst_len + number_of_characters_to_prepend);
@@ -3757,7 +3803,7 @@ size_t str_prepend_n(T dst,
   const size_t src_len{len(src)};
   const size_t dst_len{len(dst)};
   number_of_characters_to_prepend =
-      std::min(number_of_characters_to_prepend, src_len);
+      min_element(number_of_characters_to_prepend, src_len);
   const size_t required_dst_buffer_size{dst_len +
                                         number_of_characters_to_prepend + 1};
 
@@ -3784,8 +3830,8 @@ size_t str_prepend_n(T dst,
     src_sv = src;
 
   number_of_characters_to_prepend =
-      std::min(dst_capacity_in_number_of_characters - dst_len - 1,
-               number_of_characters_to_prepend);
+      min_element(dst_capacity_in_number_of_characters - dst_len - 1,
+                  number_of_characters_to_prepend);
 
   std::copy_backward(dst, dst + dst_len,
                      dst + dst_len + number_of_characters_to_prepend);
@@ -3819,7 +3865,7 @@ std::basic_string<get_char_type_t<T>> str_prepend_n(
   const size_t src_len{len(src)};
 
   number_of_characters_to_prepend =
-      std::min(number_of_characters_to_prepend, src_len);
+      min_element(number_of_characters_to_prepend, src_len);
 
   if (required_dst_capacity)
     *required_dst_capacity = dst_len + number_of_characters_to_prepend + 1;
@@ -3872,7 +3918,7 @@ void str_prepend_n(T& dst,
   const size_t src_len{len(src)};
 
   number_of_characters_to_prepend =
-      std::min(number_of_characters_to_prepend, src_len);
+      min_element(number_of_characters_to_prepend, src_len);
 
   if (required_dst_capacity)
     *required_dst_capacity = dst.length() + number_of_characters_to_prepend + 1;
@@ -3939,7 +3985,7 @@ size_t str_insert(T (&dst)[ARRAY_SIZE],
   else
     src_sv = src;
 
-  const size_t nocti{std::min(ARRAY_SIZE - 1 - dst_len, src_len)};
+  const size_t nocti = min_element(ARRAY_SIZE - 1 - dst_len, src_len);
 
   std::copy_backward(dst + position_index_in_dst, dst + dst_len,
                      dst + dst_len + nocti);
@@ -3987,8 +4033,8 @@ size_t str_insert(T dst,
        dst_capacity_in_number_of_characters < required_dst_buffer_size))
     return 0U;
 
-  const size_t nocti{
-      std::min(dst_capacity_in_number_of_characters - 1 - dst_len, src_len)};
+  const size_t nocti =
+      min_element(dst_capacity_in_number_of_characters - 1 - dst_len, src_len);
 
   std::basic_string_view<char_type> src_sv{};
 
@@ -4124,7 +4170,7 @@ size_t str_insert_n(T (&dst)[ARRAY_SIZE],
   const size_t dst_len{len(dst)};
 
   number_of_characters_to_insert =
-      std::min(number_of_characters_to_insert, src_len);
+      min_element(number_of_characters_to_insert, src_len);
 
   const size_t required_dst_size{dst_len + number_of_characters_to_insert + 1};
 
@@ -4149,7 +4195,7 @@ size_t str_insert_n(T (&dst)[ARRAY_SIZE],
     src_sv = src;
 
   number_of_characters_to_insert =
-      std::min(ARRAY_SIZE - dst_len - 1, number_of_characters_to_insert);
+      min_element(ARRAY_SIZE - dst_len - 1, number_of_characters_to_insert);
 
   std::copy_backward(dst + position_index_in_dst, dst + dst_len,
                      dst + dst_len + number_of_characters_to_insert);
@@ -4185,7 +4231,7 @@ size_t str_insert_n(T dst,
   const size_t dst_len{len(dst)};
 
   number_of_characters_to_insert =
-      std::min(number_of_characters_to_insert, src_len);
+      min_element(number_of_characters_to_insert, src_len);
 
   const size_t required_dst_size{dst_len + number_of_characters_to_insert + 1};
 
@@ -4203,8 +4249,8 @@ size_t str_insert_n(T dst,
     return 0U;
 
   number_of_characters_to_insert =
-      std::min(dst_capacity_in_number_of_characters - dst_len - 1,
-               number_of_characters_to_insert);
+      min_element(dst_capacity_in_number_of_characters - dst_len - 1,
+                  number_of_characters_to_insert);
 
   std::basic_string_view<char_type> src_sv{};
 
@@ -4247,7 +4293,7 @@ std::basic_string<get_char_type_t<T>> str_insert_n(
   const auto src_len{len(src)};
 
   number_of_characters_to_insert =
-      std::min(number_of_characters_to_insert, src_len);
+      min_element(number_of_characters_to_insert, src_len);
 
   if (required_dst_capacity)
     *required_dst_capacity = dst_len + number_of_characters_to_insert + 1;
@@ -4309,7 +4355,7 @@ void str_insert_n(T& dst,
   const size_t src_len{len(src)};
 
   number_of_characters_to_insert =
-      std::min(number_of_characters_to_insert, src_len);
+      min_element(number_of_characters_to_insert, src_len);
 
   if (required_dst_capacity)
     *required_dst_capacity = dst_len + number_of_characters_to_insert + 1;
@@ -4339,7 +4385,7 @@ template <typename T,
 std::basic_string<get_char_type_t<T>> substr(
     const T& src,
     const size_t start_pos,
-    size_t character_count = std::numeric_limits<size_t>::max()) {
+    size_t character_count = std::string::npos) {
   using char_type = get_char_type_t<T>;
   const size_t src_len{len(src)};
   if (start_pos >= src_len)
@@ -4444,7 +4490,6 @@ size_t str_replace_first(
                        dst + dst_len + noctm);
 
     dst[dst_len + noctm] = static_cast<char_type>('\0');
-
   } else if (needle_len > replace_len) {
     const size_t noctm{needle_len - replace_len};
 
@@ -4545,7 +4590,6 @@ size_t str_replace_first(
                        dst + dst_len + noctm);
 
     dst[dst_len + noctm] = static_cast<char_type>('\0');
-
   } else if (needle_len > replace_len) {
     const size_t noctm{needle_len - replace_len};
 
@@ -4853,7 +4897,6 @@ size_t str_replace_nth(T (&dst)[ARRAY_SIZE],
                        dst + dst_len + noctm);
 
     dst[dst_len + noctm] = static_cast<char_type>('\0');
-
   } else if (needle_len > replace_len) {
     const size_t noctm{needle_len - replace_len};
 
@@ -4961,7 +5004,6 @@ size_t str_replace_nth(T dst,
                        dst + dst_len + noctm);
 
     dst[dst_len + noctm] = static_cast<char_type>('\0');
-
   } else if (needle_len > replace_len) {
     const size_t noctm{needle_len - replace_len};
 
@@ -5274,7 +5316,6 @@ size_t str_replace_last(
                        dst + dst_len + noctm);
 
     dst[dst_len + noctm] = static_cast<char_type>('\0');
-
   } else if (needle_len > replace_len) {
     const size_t noctm{needle_len - replace_len};
 
@@ -5377,7 +5418,6 @@ size_t str_replace_last(
                        dst + dst_len + noctm);
 
     dst[dst_len + noctm] = static_cast<char_type>('\0');
-
   } else if (needle_len > replace_len) {
     const size_t noctm{needle_len - replace_len};
 
@@ -5652,7 +5692,6 @@ size_t str_replace_all(T (&dst)[ARRAY_SIZE],
     needle_start_positions.emplace_back(needle_start_pos);
 
     start_position_in_dst = needle_start_pos + needle_len;
-
   } while (true);
 
   const size_t required_dst_buffer_size{
@@ -5761,7 +5800,6 @@ size_t str_replace_all(T dst,
     needle_start_positions.emplace_back(needle_start_pos);
 
     start_position_in_dst = needle_start_pos + needle_len;
-
   } while (true);
 
   const size_t required_dst_buffer_size{
@@ -5888,7 +5926,6 @@ std::basic_string<get_char_type_t<T>> str_replace_all(
     needle_start_positions.emplace_back(needle_start_pos);
 
     start_position_in_dst = needle_start_pos + needle_len;
-
   } while (true);
 
   const size_t required_dst_buffer_size{
@@ -5996,7 +6033,6 @@ size_t str_replace_all(T& dst,
     needle_start_positions.emplace_back(needle_start_pos);
 
     start_position_in_dst = needle_start_pos + needle_len;
-
   } while (true);
 
   const size_t required_dst_buffer_size{
@@ -6105,7 +6141,6 @@ size_t str_replace_first_n(
     needle_start_positions.emplace_back(needle_start_pos);
 
     start_position_in_dst = needle_start_pos + needle_len;
-
   } while (needle_start_positions.size() < first_n_needle_count);
 
   const size_t required_dst_buffer_size{
@@ -6216,7 +6251,6 @@ size_t str_replace_first_n(
     needle_start_positions.emplace_back(needle_start_pos);
 
     start_position_in_dst = needle_start_pos + needle_len;
-
   } while (needle_start_positions.size() < first_n_needle_count);
 
   const size_t required_dst_buffer_size{
@@ -6344,7 +6378,6 @@ std::basic_string<get_char_type_t<T>> str_replace_first_n(
     needle_start_positions.emplace_back(needle_start_pos);
 
     start_position_in_dst = needle_start_pos + needle_len;
-
   } while (needle_start_positions.size() < first_n_needle_count);
 
   const size_t required_dst_buffer_size{
@@ -6454,7 +6487,6 @@ size_t str_replace_first_n(
     needle_start_positions.emplace_back(needle_start_pos);
 
     start_position_in_dst = needle_start_pos + needle_len;
-
   } while (needle_start_positions.size() < first_n_needle_count);
 
   const size_t required_dst_buffer_size{
@@ -6566,7 +6598,6 @@ size_t str_replace_last_n(
       break;
 
     start_position_in_dst = needle_start_pos - needle_len;
-
   } while (needle_start_positions.size() < last_n_needle_count);
 
   const size_t required_dst_buffer_size{
@@ -6680,7 +6711,6 @@ size_t str_replace_last_n(
       break;
 
     start_position_in_dst = needle_start_pos - needle_len;
-
   } while (needle_start_positions.size() < last_n_needle_count);
 
   const size_t required_dst_buffer_size{
@@ -6810,7 +6840,6 @@ std::basic_string<get_char_type_t<T>> str_replace_last_n(
       break;
 
     start_position_in_dst = needle_start_pos - needle_len;
-
   } while (needle_start_positions.size() < last_n_needle_count);
 
   const size_t required_dst_buffer_size{
@@ -6922,7 +6951,6 @@ size_t str_replace_last_n(
       break;
 
     start_position_in_dst = needle_start_pos - needle_len;
-
   } while (needle_start_positions.size() < last_n_needle_count);
 
   const size_t required_dst_buffer_size{
@@ -7743,7 +7771,6 @@ size_t str_erase_all(T (&dst)[ARRAY_SIZE],
     needle_start_positions.emplace_back(needle_start_pos);
 
     start_position_in_dst = needle_start_pos + needle_len;
-
   } while (true);
 
   const size_t required_dst_buffer_size{
@@ -7817,7 +7844,6 @@ size_t str_erase_all(T dst,
     needle_start_positions.emplace_back(needle_start_pos);
 
     start_position_in_dst = needle_start_pos + needle_len;
-
   } while (true);
 
   const size_t required_dst_buffer_size{
@@ -7907,7 +7933,6 @@ std::basic_string<get_char_type_t<T>> str_erase_all(
     needle_start_positions.emplace_back(needle_start_pos);
 
     start_position_in_dst = needle_start_pos + needle_len;
-
   } while (true);
 
   const size_t required_dst_buffer_size{
@@ -7983,7 +8008,6 @@ size_t str_erase_all(T& dst,
     needle_start_positions.emplace_back(needle_start_pos);
 
     start_position_in_dst = needle_start_pos + needle_len;
-
   } while (true);
 
   const size_t required_dst_buffer_size{
@@ -8059,7 +8083,6 @@ size_t str_replace_first_n(
     needle_start_positions.emplace_back(needle_start_pos);
 
     start_position_in_dst = needle_start_pos + needle_len;
-
   } while (needle_start_positions.size() < first_n_needle_count);
 
   const size_t required_dst_buffer_size{
@@ -8135,7 +8158,6 @@ size_t str_replace_first_n(
     needle_start_positions.emplace_back(needle_start_pos);
 
     start_position_in_dst = needle_start_pos + needle_len;
-
   } while (needle_start_positions.size() < first_n_needle_count);
 
   const size_t required_dst_buffer_size{
@@ -8226,7 +8248,6 @@ std::basic_string<get_char_type_t<T>> str_replace_first_n(
     needle_start_positions.emplace_back(needle_start_pos);
 
     start_position_in_dst = needle_start_pos + needle_len;
-
   } while (needle_start_positions.size() < first_n_needle_count);
 
   const size_t required_dst_buffer_size{
@@ -8304,7 +8325,6 @@ size_t str_replace_first_n(
     needle_start_positions.emplace_back(needle_start_pos);
 
     start_position_in_dst = needle_start_pos + needle_len;
-
   } while (needle_start_positions.size() < first_n_needle_count);
 
   const size_t required_dst_buffer_size{
@@ -8383,7 +8403,6 @@ size_t str_replace_last_n(
       break;
 
     start_position_in_dst = needle_start_pos - needle_len;
-
   } while (needle_start_positions.size() < last_n_needle_count);
 
   const size_t required_dst_buffer_size{
@@ -8461,7 +8480,6 @@ size_t str_replace_last_n(
       break;
 
     start_position_in_dst = needle_start_pos - needle_len;
-
   } while (needle_start_positions.size() < last_n_needle_count);
 
   const size_t required_dst_buffer_size{
@@ -8554,7 +8572,6 @@ std::basic_string<get_char_type_t<T>> str_replace_last_n(
       break;
 
     start_position_in_dst = needle_start_pos - needle_len;
-
   } while (needle_start_positions.size() < last_n_needle_count);
 
   const size_t required_dst_buffer_size{
@@ -8633,7 +8650,6 @@ size_t str_replace_last_n(
       break;
 
     start_position_in_dst = needle_start_pos - needle_len;
-
   } while (needle_start_positions.size() < last_n_needle_count);
 
   const size_t required_dst_buffer_size{
@@ -8733,7 +8749,6 @@ strstri(T src, U needle, const std::locale& loc = std::locale{}) {
     std::transform(std::cbegin(needle_lc), std::cend(needle_lc),
                    std::begin(needle_lc),
                    [&f](const auto ch) { return f.tolower(ch); });
-
   } else {
     std::transform(
         std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
@@ -8774,7 +8789,6 @@ const get_char_type_t<T>* strstri(const T& src,
     std::transform(std::cbegin(needle_lc), std::cend(needle_lc),
                    std::begin(needle_lc),
                    [&f](const auto ch) { return f.tolower(ch); });
-
   } else {
     std::transform(
         std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
@@ -8809,7 +8823,6 @@ std::basic_string<get_char_type_t<T>> to_lower_case(
     const auto& f = std::use_facet<std::ctype<char_type>>(loc);
     std::transform(std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
                    [&f](const auto ch) { return f.tolower(ch); });
-
   } else {
     std::transform(
         std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
@@ -8833,7 +8846,6 @@ void to_lower_case_in_place(T& src, const std::locale& loc = std::locale{}) {
     const auto& f = std::use_facet<std::ctype<char_type>>(loc);
     std::transform(first, first + str_len, first,
                    [&f](const auto ch) { return f.tolower(ch); });
-
   } else {
     std::transform(first, first + str_len, first, [](const auto ch) {
       return static_cast<char_type>(std::tolower(ch));
@@ -8861,7 +8873,6 @@ std::basic_string<get_char_type_t<T>> to_upper_case(
     const auto& f = std::use_facet<std::ctype<char_type>>(loc);
     std::transform(std::cbegin(src_uc), std::cend(src_uc), std::begin(src_uc),
                    [&f](const auto ch) { return f.toupper(ch); });
-
   } else {
     std::transform(
         std::cbegin(src_uc), std::cend(src_uc), std::begin(src_uc),
@@ -8889,7 +8900,6 @@ void to_upper_case_in_place(T& src, const std::locale& loc = std::locale{}) {
     const auto& f = std::use_facet<std::ctype<char_type>>(loc);
     std::transform(first, first + src_len, first,
                    [&f](const auto ch) { return f.toupper(ch); });
-
   } else {
     std::transform(first, first + src_len, first, [](const auto ch) {
       return static_cast<char_type>(std::toupper(ch));
@@ -8915,8 +8925,8 @@ std::basic_string<get_char_type_t<T>> to_title_case(
 
   bool is_new_sentence{true};
 
-  std::optional<decltype(std::use_facet<std::ctype<char_type>>(
-      std::declval<std::locale>()))>
+  std::optional<decltype(
+      std::use_facet<std::ctype<char_type>>(std::declval<std::locale>()))>
       f{};
 
   if (std::has_facet<std::ctype<char_type>>(loc))
@@ -8953,8 +8963,8 @@ void to_title_case_in_place(T& src, const std::locale& loc = std::locale{}) {
     return;
   bool is_new_sentence{true};
 
-  std::optional<decltype(std::use_facet<std::ctype<char_type>>(
-      std::declval<std::locale>()))>
+  std::optional<decltype(
+      std::use_facet<std::ctype<char_type>>(std::declval<std::locale>()))>
       f{};
 
   if (std::has_facet<std::ctype<char_type>>(loc))
@@ -9012,7 +9022,6 @@ std::string num_to_str(const T& data, const char* format_string = nullptr) {
       SNPRINTF(buffer, buffer_size, "%lf", data);
     else
       SNPRINTF(buffer, buffer_size, "%Lf", data);
-
   } else {
     static char msg[128];
     SNPRINTF(msg, 128,
@@ -9042,26 +9051,25 @@ std::wstring num_to_wstr(const T& data,
       return oss.str();
     }
 
-    SNWPRINTF(buffer, buffer_size, format_string, data);
+    StringCchPrintfW(buffer, buffer_size, format_string, data);
     return buffer;
   }
 
   if constexpr (std::is_integral_v<data_type>) {
     if constexpr (std::is_signed_v<data_type>) {
       const long long value{data};
-      SNWPRINTF(buffer, buffer_size, L"%lld", value);
+      StringCchPrintfW(buffer, buffer_size, L"%lld", value);
     } else {
       const unsigned long long value{data};
-      SNWPRINTF(buffer, buffer_size, L"%llu", value);
+      StringCchPrintfW(buffer, buffer_size, L"%llu", value);
     }
   } else if constexpr (std::is_floating_point_v<data_type>) {
     if constexpr (std::is_same_v<float, data_type>)
-      SNWPRINTF(buffer, buffer_size, L"%f", data);
+      StringCchPrintfW(buffer, buffer_size, L"%f", data);
     else if constexpr (std::is_same_v<double, data_type>)
-      SNWPRINTF(buffer, buffer_size, L"%lf", data);
+      StringCchPrintfW(buffer, buffer_size, L"%lf", data);
     else
-      SNWPRINTF(buffer, buffer_size, L"%Lf", data);
-
+      StringCchPrintfW(buffer, buffer_size, L"%Lf", data);
   } else {
     static char msg[128];
     SNPRINTF(msg, 128,
@@ -9139,7 +9147,6 @@ std::u16string to_u16string(
           str_copy(buffer, u"0x");
           break;
       }
-
     } else {
       switch (base) {
         case 2:
@@ -9251,11 +9258,10 @@ std::u16string to_u16string(
   wchar_t buffer[buffer_size];
 
   if (nullptr != format_str) {
-    SNWPRINTF(buffer, buffer_size, format_str, number);
-
+    StringCchPrintfW(buffer, buffer_size, format_str, number);
   } else {
     wchar_t format_str_buffer[buffer_size]{L"%."};
-    number_of_decimal_digits = std::min(
+    number_of_decimal_digits = min_element(
         number_of_decimal_digits, std::numeric_limits<floating_type>::digits10);
 
     str_append(format_str_buffer,
@@ -9270,7 +9276,7 @@ std::u16string to_u16string(
     else if constexpr (std::is_same_v<floating_type, long double>)
       str_append(format_str_buffer, L"Lf");
 
-    SNWPRINTF(buffer, buffer_size, format_str_buffer, number);
+    StringCchPrintfW(buffer, buffer_size, format_str_buffer, number);
   }
 
   const size_t buffer_len{len(buffer)};
@@ -9339,7 +9345,6 @@ std::u32string to_u32string(
           str_copy(buffer, U"0x");
           break;
       }
-
     } else {
       switch (base) {
         case 2:
@@ -9451,12 +9456,11 @@ std::u32string to_u32string(
   wchar_t buffer[buffer_size];
 
   if (nullptr != format_str) {
-    SNWPRINTF(buffer, buffer_size, format_str, number);
-
+    StringCchPrintfW(buffer, buffer_size, format_str, number);
   } else {
     wchar_t format_str_buffer[buffer_size]{L"%."};
 
-    number_of_decimal_digits = std::min(
+    number_of_decimal_digits = min_element(
         number_of_decimal_digits, std::numeric_limits<floating_type>::digits10);
 
     str_append(format_str_buffer,
@@ -9471,7 +9475,7 @@ std::u32string to_u32string(
     else if constexpr (std::is_same_v<floating_type, long double>)
       str_append(format_str_buffer, L"Lf");
 
-    SNWPRINTF(buffer, buffer_size, format_str_buffer, number);
+    StringCchPrintfW(buffer, buffer_size, format_str_buffer, number);
   }
 
   const size_t buffer_len{len(buffer)};
@@ -10517,7 +10521,6 @@ float stof(const T& src,
             fractional_part_position_index = -1;
           } else
             found_invalid_character = true;
-
         } else {
           if (fractional_part_found) {
             if ((src_sv[i] >= static_cast<char_type>('0') &&
@@ -10548,7 +10551,6 @@ float stof(const T& src,
               fractional_part_position_index--;
             } else
               found_invalid_character = true;
-
           } else {
             if ((src_sv[i] >= static_cast<char_type>('0') &&
                  src_sv[i] <= static_cast<char_type>('9')) ||
@@ -10947,7 +10949,6 @@ double stod(const T& src,
             fractional_part_position_index = -1;
           } else
             found_invalid_character = true;
-
         } else {
           if (fractional_part_found) {
             if ((src_sv[i] >= static_cast<char_type>('0') &&
@@ -10978,7 +10979,6 @@ double stod(const T& src,
               fractional_part_position_index--;
             } else
               found_invalid_character = true;
-
           } else {
             if ((src_sv[i] >= static_cast<char_type>('0') &&
                  src_sv[i] <= static_cast<char_type>('9')) ||
@@ -11378,7 +11378,6 @@ long double stold(const T& src,
             fractional_part_position_index = -1;
           } else
             found_invalid_character = true;
-
         } else {
           if (fractional_part_found) {
             if ((src_sv[i] >= static_cast<char_type>('0') &&
@@ -11409,7 +11408,6 @@ long double stold(const T& src,
               fractional_part_position_index--;
             } else
               found_invalid_character = true;
-
           } else {
             if ((src_sv[i] >= static_cast<char_type>('0') &&
                  src_sv[i] <= static_cast<char_type>('9')) ||
@@ -11609,7 +11607,6 @@ std::vector<std::basic_string<get_char_type_t<T>>> str_split(
 
         start_pos = next_pos + needle_parts_separator_token_sv.length();
       }
-
     } else {
       for (size_t i{}; i < needle_len; ++i)
         needle_parts.emplace_back(needle_sv.data() + i, 1U);
@@ -11675,7 +11672,7 @@ str_split_range(IteratorType first,
                 const NeedleSeparatorType& needle_parts_separator_token,
                 const bool split_on_whole_needle = false,
                 const bool ignore_empty_string = true,
-                const size_t max_count = std::numeric_limits<size_t>::max()) {
+                const size_t max_count = std::string::npos) {
   using char_type = typename std::iterator_traits<IteratorType>::value_type;
 
   const typename std::iterator_traits<IteratorType>::difference_type
@@ -11815,7 +11812,7 @@ std::vector<std::pair<SrcIterType, SrcIterType>> split(
     const DstIterType needle_last,
     const bool split_on_whole_sequence = true,
     const bool ignore_empty_sequence = true,
-    const size_t max_count = std::numeric_limits<size_t>::max()) {
+    const size_t max_count = std::string::npos) {
   const typename std::iterator_traits<SrcIterType>::difference_type
       src_distance{std::distance(src_first, src_last)};
   if (src_distance <= 0)
@@ -12507,7 +12504,6 @@ CPP20_USE_CONSTEXPR bool erase_all_if(Container& c, Pred p) {
   return detail::erase_all_if_impl(
       c, p, typename detail::container_traits<Container>::category{});
 }
-
 }  // namespace stl::helper
 
 #endif
