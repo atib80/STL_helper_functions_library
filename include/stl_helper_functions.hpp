@@ -1,7 +1,6 @@
 #ifndef _STL_HELPER_FUNCTIONS_HPP_
 #define _STL_HELPER_FUNCTIONS_HPP_
 
-#include <dshow.h>
 #include "detail/stl_helper_functions_impl.hpp"
 
 namespace stl::helper {
@@ -8674,16 +8673,13 @@ size_t str_replace_last_n(
   return needle_start_positions.size();
 }
 
-template <
-    typename T,
-    typename U,
-    std::enable_if_t<(is_char_pointer_type_v<T> || is_char_array_type_v<T>)&&(
-        is_char_pointer_type_v<U> || is_char_array_type_v<U>)&&std::
-                         is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
-std::conditional_t<std::is_const_v<T>,
-                   const get_char_type_t<T>*,
-                   get_char_type_t<T>*>
-strstr(T src, U needle) {
+template <typename T,
+          typename U,
+          typename = std::enable_if_t<
+              (is_char_pointer_type_v<T> || is_char_array_type_v<T>)&&(
+                  is_char_pointer_type_v<U> || is_char_array_type_v<U>)&&std::
+                  is_same_v<get_char_type_t<T>, get_char_type_t<U>>>>
+auto strstr(T src, U needle) {
   using char_type = get_char_type_t<T>;
   using return_type =
       std::conditional_t<std::is_const_v<T>, const char_type*, char_type*>;
@@ -8692,42 +8688,43 @@ strstr(T src, U needle) {
   const size_t needle_len{len(needle)};
 
   if (0U == src_len || 0U == needle_len)
-    return nullptr;
+    return static_cast<return_type>(nullptr);
 
   const std::basic_string_view<char_type> src_sv{src, src_len},
       needle_sv{needle, needle_len};
 
   const size_t pos = src_sv.find(needle_sv);
-  return std::basic_string_view<char_type>::npos != pos
-             ? static_cast<return_type>(&src[0] + pos)
-             : nullptr;
+  if constexpr (std::is_const_v<T>)
+    return std::basic_string_view<char_type>::npos != pos
+               ? static_cast<return_type>(&src[0]) + pos
+               : static_cast<return_type>(nullptr);
+  else
+    return std::basic_string_view<char_type>::npos != pos
+               ? const_cast<return_type>(&src[0]) + pos
+               : static_cast<return_type>(nullptr);
 }
 
 template <
     typename T,
     typename U,
-    std::enable_if_t<
+    typename = std::enable_if_t<
         (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)&&(
             is_valid_string_type_v<U> ||
             is_valid_string_view_type_v<
                 U>)&&(std::is_same_v<get_char_type_t<T>, get_char_type_t<U>>)>>
-const get_char_type_t<T>* strstr(const T& src, const U& needle) {
-  using char_type = get_char_type_t<T>;
-  const size_t pos = src.find(needle);
-  return std::basic_string<char_type>::npos != pos ? src.data() + pos : nullptr;
+size_t strstr(const T& src, const U& needle) {
+  return src.find(needle);
 }
 
 template <
     typename T,
     typename U,
-    std::enable_if_t<(is_char_array_type_v<T> || is_char_pointer_type_v<T>)&&(
-        is_char_array_type_v<U> ||
-        is_char_pointer_type_v<U>)&&(std::is_same_v<get_char_type_t<T>,
-                                                    get_char_type_t<U>>)>>
-std::conditional_t<std::is_const_v<T>,
-                   const get_char_type_t<T>*,
-                   get_char_type_t<T>*>
-strstri(T src, U needle, const std::locale& loc = std::locale{}) {
+    typename = std::enable_if_t<
+        (is_char_array_type_v<T> || is_char_pointer_type_v<T>)&&(
+            is_char_array_type_v<U> ||
+            is_char_pointer_type_v<U>)&&(std::is_same_v<get_char_type_t<T>,
+                                                        get_char_type_t<U>>)>>
+auto strstri(T src, U needle, const std::locale& loc = std::locale{}) {
   using char_type = get_char_type_t<T>;
   using return_type =
       std::conditional_t<std::is_const_v<T>, const char_type*, char_type*>;
@@ -8736,7 +8733,7 @@ strstri(T src, U needle, const std::locale& loc = std::locale{}) {
   const size_t needle_len{len(needle)};
 
   if (0U == src_len || 0U == needle_len)
-    return nullptr;
+    return static_cast<return_type>(nullptr);
 
   const std::basic_string<char_type> src_lc{src}, needle_lc{needle};
 
@@ -8760,22 +8757,28 @@ strstri(T src, U needle, const std::locale& loc = std::locale{}) {
   }
 
   const size_t pos = src_lc.find(needle_lc);
-  return std::basic_string<char_type>::npos != pos
-             ? static_cast<return_type>(&src[0] + pos)
-             : nullptr;
+
+  if constexpr (std::is_const_v<T>)
+    return std::basic_string<char_type>::npos != pos
+               ? static_cast<return_type>(&src[0] + pos)
+               : static_cast<return_type>(nullptr);
+  else
+    return std::basic_string<char_type>::npos != pos
+               ? const_cast<return_type>(&src[0] + pos)
+               : static_cast<return_type>(nullptr);
 }
 
 template <
     typename T,
     typename U,
-    std::enable_if_t<
+    typename = std::enable_if_t<
         (is_valid_string_type_v<T> || is_valid_string_view_type_v<T>)&&(
             is_valid_string_type_v<U> ||
             is_valid_string_view_type_v<
                 U>)&&(std::is_same_v<get_char_type_t<T>, get_char_type_t<U>>)>>
-const get_char_type_t<T>* strstri(const T& src,
-                                  const U& needle,
-                                  const std::locale& loc = std::locale{}) {
+size_t strstri(const T& src,
+               const U& needle,
+               const std::locale& loc = std::locale{}) {
   using char_type = get_char_type_t<T>;
   std::basic_string<char_type> src_lc{src};
   std::basic_string<char_type> needle_lc{needle};
@@ -8799,8 +8802,7 @@ const get_char_type_t<T>* strstri(const T& src,
         [](const auto ch) { return static_cast<char_type>(std::tolower(ch)); });
   }
 
-  const size_t pos = src_lc.find(needle_lc);
-  return std::basic_string<char_type>::npos != pos ? src.data() + pos : nullptr;
+  return src_lc.find(needle_lc);
 }
 
 template <typename T,
