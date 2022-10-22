@@ -32,7 +32,6 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
-#include <strsafe.h>
 #include <thread>
 #include <type_traits>
 #include <typeinfo>

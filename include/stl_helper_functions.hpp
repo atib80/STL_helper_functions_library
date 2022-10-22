@@ -4,7 +4,7 @@
 #include "detail/stl_helper_functions_impl.hpp"
 
 namespace stl::helper {
-constexpr const char* __stl_helper_utility_library_version__{"0.0.1-devel"};
+constexpr const char* __stl_helper_utility_library_version__{"0.2.0-devel"};
 using std::min;
 
 class tracer {
@@ -149,30 +149,29 @@ constexpr bool check_if_type_is_identical_to(T&& arg1,
                    std::forward<Args>(args)...);
 }
 
-template <typename T, typename U, typename... Args>
-std::common_type_t<T, U, Args...> min_element(const T& first,
-                                              const U& second,
-                                              const Args&... args) noexcept {
-  std::common_type_t<T, U, Args...> min_value = first < second ? first : second;
+    template <typename T, typename U, typename... Args>
+    constexpr const std::common_type_t<T, U, Args...>& min_element(const T& first,
+                                                                   const U& second,
+                                                                   const Args&... args) noexcept {
+        const std::common_type_t<T, U>& min_value = first < second ? first : second;
 
-  if constexpr (sizeof...(args) == 0)
-    return min_value;
+        if constexpr (sizeof...(args) == 0)
+            return min_value;
+        else
+            return min_element(min_value, args...);
+    }
 
-  return min_element(min_value, args...);
-}
+    template <typename T, typename U, typename... Args>
+    constexpr const std::common_type_t<T, U, Args...>& max_element(const T& first,
+                                                                   const U& second,
+                                                                   const Args&... args) noexcept {
+        const std::common_type_t<T, U>& max_value = first >= second ? first : second;
 
-template <typename T, typename U, typename... Args>
-std::common_type_t<T, U, Args...> max_element(const T& first,
-                                              const U& second,
-                                              const Args&... args) noexcept {
-  std::common_type_t<T, U, Args...> max_value =
-      first >= second ? first : second;
-
-  if constexpr (sizeof...(args) == 0)
-    return max_value;
-
-  return max_element(max_value, args...);
-}
+        if constexpr (sizeof...(args) == 0)
+            return max_value;
+        else
+            return max_element(max_value, args...);
+    }
 
 template <typename T>
 using has_key_type_t = decltype(std::declval<typename T::key_type>());
@@ -921,7 +920,7 @@ size_t say_slow(std::wostream& os,
     std::vector<wchar_t> output_buffer(buffer_size);
 
     const int number_of_chars_written =
-        StringCchPrintfW(&output_buffer[0], output_buffer.size(), format_string,
+        SNWPRINTF(&output_buffer[0], output_buffer.size(), format_string,
                          std::forward<Args>(args)...);
 
     if (number_of_chars_written != -1) {
@@ -976,7 +975,7 @@ size_t say(std::wostream& os, const wchar_t* format_string, Args&&... args) {
     std::vector<wchar_t> output_buffer(buffer_size);
 
     const int number_of_chars_written =
-        StringCchPrintfW(&output_buffer[0], output_buffer.size(), format_string,
+        SNWPRINTF(&output_buffer[0], output_buffer.size(), format_string,
                          std::forward<Args>(args)...);
 
     if (number_of_chars_written != -1) {
@@ -9053,25 +9052,25 @@ std::wstring num_to_wstr(const T& data,
       return oss.str();
     }
 
-    StringCchPrintfW(buffer, buffer_size, format_string, data);
+    swprintf(buffer, buffer_size, format_string, data);
     return buffer;
   }
 
   if constexpr (std::is_integral_v<data_type>) {
     if constexpr (std::is_signed_v<data_type>) {
       const long long value{data};
-      StringCchPrintfW(buffer, buffer_size, L"%lld", value);
+      swprintf(buffer, buffer_size, L"%lld", value);
     } else {
       const unsigned long long value{data};
-      StringCchPrintfW(buffer, buffer_size, L"%llu", value);
+      swprintf(buffer, buffer_size, L"%llu", value);
     }
   } else if constexpr (std::is_floating_point_v<data_type>) {
     if constexpr (std::is_same_v<float, data_type>)
-      StringCchPrintfW(buffer, buffer_size, L"%f", data);
+      swprintf(buffer, buffer_size, L"%f", data);
     else if constexpr (std::is_same_v<double, data_type>)
-      StringCchPrintfW(buffer, buffer_size, L"%lf", data);
+      swprintf(buffer, buffer_size, L"%lf", data);
     else
-      StringCchPrintfW(buffer, buffer_size, L"%Lf", data);
+      swprintf(buffer, buffer_size, L"%Lf", data);
   } else {
     static char msg[128];
     SNPRINTF(msg, 128,

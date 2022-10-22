@@ -3,7 +3,7 @@ CXX=g++
 CODE_FORMAT=clang-format
 CODE_FORMAT_PARAMS=-i -style=Chromium
 RM=rm
-CPPFLAGS=-std=c++17 -Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-unused-variable -fpermissive -O0 -MMD -MP -g
+CPPFLAGS=-std=c++17 -Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-unused-variable -Wno-format-security -O3 -Ofast
 INCLUDE_DIR=include
 SRC_DIR=src
 TESTS_DIR=tests
