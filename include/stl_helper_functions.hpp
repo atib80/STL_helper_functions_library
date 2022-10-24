@@ -846,11 +846,16 @@ constexpr size_t len(const std::array<T, ARRAY_SIZE>& arr) {
 }
 
 template <typename T,
-          typename = std::enable_if_t<is_char_pointer_type_v<T> ||
+          typename = std::enable_if_t<std::is_same_v<T, std::nullptr_t> || 
+                                      is_char_pointer_type_v<T> ||
                                       is_valid_string_view_type_v<T> ||
                                       is_valid_char_type_v<T>>>
 constexpr size_t len(T src) {
-  if constexpr (is_valid_char_type_v<T>) {
+  if constexpr (std::is_same_v<T, std::nullptr_t>) {
+    unused_args(src);
+    return 0U;
+  }
+  else if constexpr (is_valid_char_type_v<T>) {
     unused_args(src);
     return 1U;
   } else if constexpr (is_valid_string_view_type_v<T>)
@@ -11486,7 +11491,7 @@ std::pair<std::size_t, std::size_t> str_find_first_needle_position(
 template <
     typename T,
     typename U,
-    typename V,
+    typename V = const get_char_type_t<U>*,
     typename = std::enable_if_t<(
         is_valid_string_type_v<T> || is_valid_string_view_type_v<T> ||
         is_char_array_type_v<T> ||
@@ -11502,22 +11507,22 @@ template <
                             std::is_same_v<
                                 V,
                                 std::
-                                    nullptr_t>)&&(is_all_of_v<get_char_type_t<T>,
-                                                              get_char_type_t<
-                                                                  U>,
-                                                              get_char_type_t<
-                                                                  V>> ||
-                                                  (std::is_same_v<
+                                    nullptr_t>)&&((std::is_same_v<
                                                        get_char_type_t<T>,
                                                        get_char_type_t<U>> &&
                                                    std::is_same_v<
                                                        V,
-                                                       std::nullptr_t>))>>
+                                                       std::nullptr_t>) || is_all_of_v<get_char_type_t<T>,
+                                                              get_char_type_t<
+                                                                  U>,
+                                                              get_char_type_t<
+                                                                  V>>
+                                                  )>>
 std::vector<std::basic_string<get_char_type_t<T>>> str_split(
     const T& src,
     const U& needle,
-    const V& needle_parts_separator_token,
-    const bool split_on_whole_needle = false,
+    const V& needle_parts_separator_token = nullptr,
+    const bool split_on_whole_needle = true,
     const bool ignore_empty_string = true,
     size_t const max_count = std::basic_string<get_char_type_t<T>>::npos) {
   using char_type = get_char_type_t<T>;
@@ -11571,6 +11576,8 @@ std::vector<std::basic_string<get_char_type_t<T>>> str_split(
   const size_t needle_parts_separator_token_len{
       len(needle_parts_separator_token)};
 
+if constexpr (!std::is_same_v<V, std::nullptr_t>) {
+
   if (needle_parts_separator_token_len > 0U) {
     if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
       needle_parts_separator_token_sv = {needle_parts_separator_token,
@@ -11586,6 +11593,7 @@ std::vector<std::basic_string<get_char_type_t<T>>> str_split(
       unused_args(needle_parts_separator_token_buffer);
     }
   }
+}
 
   std::vector<std::basic_string_view<char_type>> needle_parts{};
 
@@ -11654,24 +11662,23 @@ std::vector<std::basic_string<get_char_type_t<T>>> str_split(
 template <
     typename IteratorType,
     typename NeedleType,
-    typename NeedleSeparatorType,
+    typename NeedleSeparatorType = const get_char_type_t<NeedleType>*,
     typename = std::enable_if_t<
         is_valid_char_type_v<
             typename std::iterator_traits<IteratorType>::value_type> &&
-        (is_all_of_v<typename std::iterator_traits<IteratorType>::value_type,
-                     get_char_type_t<NeedleType>,
-                     get_char_type_t<NeedleSeparatorType>> ||
-         (std::is_same_v<
+        (std::is_same_v<
               typename std::iterator_traits<IteratorType>::value_type,
               get_char_type_t<NeedleType>> &&
-          std::is_same_v<NeedleSeparatorType, std::nullptr_t>))>>
+          std::is_same_v<NeedleSeparatorType, std::nullptr_t> || is_all_of_v<typename std::iterator_traits<IteratorType>::value_type,
+                     get_char_type_t<NeedleType>,
+                     get_char_type_t<NeedleSeparatorType>>)>>
 std::vector<
     std::basic_string<typename std::iterator_traits<IteratorType>::value_type>>
 str_split_range(IteratorType first,
                 IteratorType last,
                 const NeedleType& needle,
-                const NeedleSeparatorType& needle_parts_separator_token,
-                const bool split_on_whole_needle = false,
+                const NeedleSeparatorType& needle_parts_separator_token = nullptr,
+                const bool split_on_whole_needle = true,
                 const bool ignore_empty_string = true,
                 const size_t max_count = std::string::npos) {
   using char_type = typename std::iterator_traits<IteratorType>::value_type;
@@ -11726,6 +11733,8 @@ str_split_range(IteratorType first,
   const size_t needle_parts_separator_token_len{
       len(needle_parts_separator_token)};
 
+if constexpr (!std::is_same_v<NeedleSeparatorType, std::nullptr_t>) {
+
   if (needle_parts_separator_token_len > 0U) {
     if constexpr (is_char_pointer_type_v<NeedleSeparatorType> ||
                   is_char_array_type_v<NeedleSeparatorType>) {
@@ -11742,6 +11751,7 @@ str_split_range(IteratorType first,
       unused_args(needle_parts_separator_token_buffer);
     }
   }
+}
 
   if (!split_on_whole_needle) {
     if (needle_parts_separator_token_len > 0U) {
@@ -11861,7 +11871,7 @@ std::vector<std::pair<SrcIterType, SrcIterType>> split(
     if ((std::distance(prev, next) > 0 || !ignore_empty_sequence) &&
         number_of_parts < max_count) {
       parts.emplace_back(prev, next);
-      number_of_parts++;
+      ++number_of_parts;
     }
 
     prev = next;

@@ -103,6 +103,7 @@ struct is_anyone_of_impl<T, T0, T1_TN...> : is_anyone_of_impl<T, T1_TN...> {};
 template <typename T>
 struct is_valid_char_type {
   static constexpr const bool value = is_anyone_of_impl<std::remove_cv_t<T>,
+                                                        std::nullptr_t,
                                                         char,
                                                         wchar_t,
                                                         char16_t,
