@@ -551,6 +551,272 @@ TEST_CASE("auto rtrim(ConstCharPointerType src)",
   REQUIRE(dst_u32string == rtrim(U"Hello World!\t \n"));
 }
 
+// ==========================================================================
+// Test cases for trim_in_place, ltrim_in_place, rtrim_in_place, trim, ltrim,
+// accepting C++ string types as input
+// ==========================================================================
+
+TEST_CASE(
+    "bool trim_in_place(T& src, const "
+    "add_const_pointer_to_char_type_t<get_char_type_t<T>> chars_to_trim = "
+    "default_whitespace_chars_v<get_char_type_t<T>>") {
+  string input1{"\t Hello World!\t \n"};
+  const string expected_input1{"Hello World!"};
+
+  REQUIRE(trim_in_place(input1));
+  REQUIRE(expected_input1 == input1);
+
+  wstring input2{L" \t Hello World!\t \n"};
+  const wstring expected_input2{L"Hello World!"};
+
+  REQUIRE(trim_in_place(input2));
+  REQUIRE(expected_input2 == input2);
+
+  u16string input3{u" \t Hello World!\t \n"};
+  const u16string expected_input3{u"Hello World!"};
+
+  REQUIRE(trim_in_place(input3));
+  REQUIRE(expected_input3 == input3);
+
+  u32string input4{U" \t Hello World!\t \n"};
+  const u32string expected_input4{U"Hello World!"};
+
+  REQUIRE(trim_in_place(input4));
+  REQUIRE(expected_input4 == input4);
+}
+
+TEST_CASE(
+    "bool ltrim_in_place(T& src,\
+  const add_const_pointer_to_char_type_t<get_char_type_t<T>> chars_to_trim =\
+  default_whitespace_chars_v<get_char_type_t<T>>") {
+  string input1{"\t Hello World!"};
+  const string expected_input1{"Hello World!"};
+
+  REQUIRE(trim_in_place(input1));
+  REQUIRE(expected_input1 == input1);
+
+  wstring input2{L" \t Hello World!"};
+  const wstring expected_input2{L"Hello World!"};
+
+  REQUIRE(trim_in_place(input2));
+  REQUIRE(expected_input2 == input2);
+
+  u16string input3{u" \t Hello World!"};
+  const u16string expected_input3{u"Hello World!"};
+
+  REQUIRE(trim_in_place(input3));
+  REQUIRE(expected_input3 == input3);
+
+  u32string input4{U" \t Hello World!"};
+  const u32string expected_input4{U"Hello World!"};
+
+  REQUIRE(trim_in_place(input4));
+  REQUIRE(expected_input4 == input4);
+}
+
+TEST_CASE(
+    "bool rtrim_in_place(T src, "
+    "add_const_pointer_to_char_type_t<get_char_type_t<T>> chars_to_trim = "
+    "default_whitespace_chars_v<get_char_type_t<T>>") {
+  string input1{"Hello World!\t \n"};
+  const string expected_input1{"Hello World!"};
+
+  REQUIRE(trim_in_place(input1));
+  REQUIRE(expected_input1 == input1);
+
+  wstring input2{L"Hello World!\t \n"};
+  const wstring expected_input2{L"Hello World!"};
+
+  REQUIRE(trim_in_place(input2));
+  REQUIRE(expected_input2 == input2);
+
+  u16string input3{u"Hello World!\t \n"};
+  const u16string expected_input3{u"Hello World!"};
+
+  REQUIRE(trim_in_place(input3));
+  REQUIRE(expected_input3 == input3);
+
+  u32string input4{U"Hello World!\t \n"};
+  const u32string expected_input4{U"Hello World!"};
+
+  REQUIRE(trim_in_place(input4));
+  REQUIRE(expected_input4 == input4);
+}
+
+TEST_CASE(
+    "std::basic_string<get_char_type_t<T>> trim(const T& src, "
+    "add_const_pointer_to_char_type_t<get_char_type_t<T>> chars_to_trim = "
+    "default_whitespace_chars_v<get_char_type_t<T>>") {
+  const char* src_char = " \t Hello World!\t \n";
+  const string src_string{" \t Hello World!\t \n"};
+  const string dst_string{"Hello World!"};
+
+  string output_string{trim(src_char)};
+
+  REQUIRE(output_string == dst_string);
+
+  output_string = trim(src_string);
+
+  REQUIRE(output_string == dst_string);
+
+  REQUIRE(dst_string == trim(" \t Hello World!\t \n"));
+
+  const wchar_t* src_wchar_t = L" \t Hello World!\t \n";
+  const wstring src_wstring{L" \t Hello World!\t \n"};
+  const wstring dst_wstring{L"Hello World!"};
+
+  wstring output_wstring{trim(src_wchar_t)};
+
+  REQUIRE(output_wstring == dst_wstring);
+
+  output_wstring = trim(src_wstring);
+
+  REQUIRE(output_wstring == dst_wstring);
+  REQUIRE(dst_wstring == trim(L" \t Hello World!\t \n"));
+
+  const char16_t* src_char16_t = u" \t Hello World!\t \n";
+  const u16string src_u16string{u" \t Hello World!\t \n"};
+  const u16string dst_u16string{u"Hello World!"};
+
+  u16string output_u16string{trim(src_char16_t)};
+
+  REQUIRE(output_u16string == dst_u16string);
+
+  output_u16string = trim(src_u16string);
+
+  REQUIRE(output_u16string == dst_u16string);
+  REQUIRE(dst_u16string == trim(u" \t Hello World!\t \n"));
+
+  const char32_t* src_char32_t = U" \t Hello World!\t \n";
+  const u32string src_u32string{U" \t Hello World!\t \n"};
+  const u32string dst_u32string{U"Hello World!"};
+
+  u32string output_u32string{trim(src_char32_t)};
+
+  REQUIRE(output_u32string == dst_u32string);
+
+  output_u32string = trim(src_u32string);
+
+  REQUIRE(output_u32string == dst_u32string);
+  REQUIRE(dst_u32string == trim(U" \t Hello World!\t \n"));
+}
+
+TEST_CASE(
+    "std::basic_string<get_char_type_t<T>> ltrim(const T& src, "
+    "add_const_pointer_to_char_type_t<get_char_type_t<T>> chars_to_trim = "
+    "default_whitespace_chars_v<get_char_type_t<T>>)") {
+  const char* src_char = " \t Hello World!";
+  const string src_string{" \t Hello World!"};
+  const string dst_string{"Hello World!"};
+
+  string output_string{ltrim(src_char)};
+
+  REQUIRE(output_string == dst_string);
+
+  output_string = ltrim(src_string);
+
+  REQUIRE(output_string == dst_string);
+  REQUIRE(dst_string == ltrim(" \t Hello World!"));
+
+  const wchar_t* src_wchar_t = L" \t Hello World!";
+  const wstring src_wstring{L" \t Hello World!"};
+  const wstring dst_wstring{L"Hello World!"};
+
+  wstring output_wstring{ltrim(src_wchar_t)};
+
+  REQUIRE(output_wstring == dst_wstring);
+
+  output_wstring = ltrim(src_wstring);
+
+  REQUIRE(output_wstring == dst_wstring);
+  REQUIRE(dst_wstring == ltrim(L" \t Hello World!"));
+
+  const char16_t* src_char16_t = u" \t Hello World!";
+  const u16string src_u16string{u" \t Hello World!"};
+  const u16string dst_u16string{u"Hello World!"};
+
+  u16string output_u16string{ltrim(src_char16_t)};
+
+  REQUIRE(output_u16string == dst_u16string);
+
+  output_u16string = ltrim(src_u16string);
+
+  REQUIRE(output_u16string == dst_u16string);
+  REQUIRE(dst_u16string == ltrim(u" \t Hello World!"));
+
+  const char32_t* src_char32_t = U" \t Hello World!";
+  const u32string src_u32string{U" \t Hello World!"};
+  const u32string dst_u32string{U"Hello World!"};
+
+  u32string output_u32string{ltrim(src_char32_t)};
+
+  REQUIRE(output_u32string == dst_u32string);
+
+  output_u32string = ltrim(src_u32string);
+
+  REQUIRE(output_u32string == dst_u32string);
+  REQUIRE(dst_u32string == ltrim(U" \t Hello World!"));
+}
+
+TEST_CASE(
+    "std::basic_string<get_char_type_t<T>> rtrim(const T& src, "
+    "add_const_pointer_to_char_type_t<typename T::value_type> chars_to_trim = "
+    "default_whitespace_chars_v<typename T::value_type>)") {
+  const char* src_char = "Hello World!\t \n";
+  const string src_string{"Hello World!\t \n"};
+  const string dst_string{"Hello World!"};
+
+  string output_string{rtrim(src_char)};
+
+  REQUIRE(output_string == dst_string);
+
+  output_string = rtrim(src_string);
+
+  REQUIRE(output_string == dst_string);
+  REQUIRE(dst_string == rtrim("Hello World!\t \n"));
+
+  const wchar_t* src_wchar_t = L"Hello World!\t \n";
+  const wstring src_wstring{L"Hello World!\t \n"};
+  const wstring dst_wstring{L"Hello World!"};
+
+  wstring output_wstring{rtrim(src_wchar_t)};
+
+  REQUIRE(output_wstring == dst_wstring);
+
+  output_wstring = rtrim(src_wstring);
+
+  REQUIRE(output_wstring == dst_wstring);
+  REQUIRE(dst_wstring == rtrim(L"Hello World!\t \n"));
+
+  const char16_t* src_char16_t = u"Hello World!\t \n";
+  const u16string src_u16string{u"Hello World!\t \n"};
+  const u16string dst_u16string{u"Hello World!"};
+
+  u16string output_u16string{rtrim(src_char16_t)};
+
+  REQUIRE(output_u16string == dst_u16string);
+
+  output_u16string = rtrim(src_u16string);
+
+  REQUIRE(output_u16string == dst_u16string);
+  REQUIRE(dst_u16string == rtrim(u"Hello World!\t \n"));
+
+  const char32_t* src_char32_t = U"Hello World!\t \n";
+  const u32string src_u32string{U"Hello World!\t \n"};
+  const u32string dst_u32string{U"Hello World!"};
+
+  u32string output_u32string{rtrim(src_char32_t)};
+
+  REQUIRE(output_u32string == dst_u32string);
+
+  output_u32string = rtrim(src_u32string);
+
+  REQUIRE(output_u32string == dst_u32string);
+  REQUIRE(dst_u32string == rtrim(U"Hello World!\t \n"));
+}
+
+// **************************************************************************
+
 // TEST_CASE("int u16_strcmp(const char16_t* str1, const char16_t* str2)",
 //  "Testing global function int u16_strcmp(const char16_t* str1, const
 // char16_t* str2)")

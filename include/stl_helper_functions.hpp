@@ -149,29 +149,27 @@ constexpr bool check_if_type_is_identical_to(T&& arg1,
                    std::forward<Args>(args)...);
 }
 
-    template <typename T, typename U, typename... Args>
-    constexpr const std::common_type_t<T, U, Args...>& min_element(const T& first,
-                                                                   const U& second,
-                                                                   const Args&... args) noexcept {
-        const std::common_type_t<T, U>& min_value = first < second ? first : second;
+template <typename T, typename U, typename... Args>
+constexpr const std::common_type_t<T, U, Args...>&
+min_element(const T& first, const U& second, const Args&... args) noexcept {
+  const std::common_type_t<T, U>& min_value = first < second ? first : second;
 
-        if constexpr (sizeof...(args) == 0)
-            return min_value;
-        else
-            return min_element(min_value, args...);
-    }
+  if constexpr (sizeof...(args) == 0)
+    return min_value;
+  else
+    return min_element(min_value, args...);
+}
 
-    template <typename T, typename U, typename... Args>
-    constexpr const std::common_type_t<T, U, Args...>& max_element(const T& first,
-                                                                   const U& second,
-                                                                   const Args&... args) noexcept {
-        const std::common_type_t<T, U>& max_value = first >= second ? first : second;
+template <typename T, typename U, typename... Args>
+constexpr const std::common_type_t<T, U, Args...>&
+max_element(const T& first, const U& second, const Args&... args) noexcept {
+  const std::common_type_t<T, U>& max_value = first >= second ? first : second;
 
-        if constexpr (sizeof...(args) == 0)
-            return max_value;
-        else
-            return max_element(max_value, args...);
-    }
+  if constexpr (sizeof...(args) == 0)
+    return max_value;
+  else
+    return max_element(max_value, args...);
+}
 
 template <typename T>
 using has_key_type_t = decltype(std::declval<typename T::key_type>());
@@ -846,16 +844,14 @@ constexpr size_t len(const std::array<T, ARRAY_SIZE>& arr) {
 }
 
 template <typename T,
-          typename = std::enable_if_t<std::is_same_v<T, std::nullptr_t> || 
-                                      is_char_pointer_type_v<T> ||
-                                      is_valid_string_view_type_v<T> ||
-                                      is_valid_char_type_v<T>>>
+          typename = std::enable_if_t<
+              std::is_same_v<T, std::nullptr_t> || is_char_pointer_type_v<T> ||
+              is_valid_string_view_type_v<T> || is_valid_char_type_v<T>>>
 constexpr size_t len(T src) {
   if constexpr (std::is_same_v<T, std::nullptr_t>) {
     unused_args(src);
     return 0U;
-  }
-  else if constexpr (is_valid_char_type_v<T>) {
+  } else if constexpr (is_valid_char_type_v<T>) {
     unused_args(src);
     return 1U;
   } else if constexpr (is_valid_string_view_type_v<T>)
@@ -926,7 +922,7 @@ size_t say_slow(std::wostream& os,
 
     const int number_of_chars_written =
         SNWPRINTF(&output_buffer[0], output_buffer.size(), format_string,
-                         std::forward<Args>(args)...);
+                  std::forward<Args>(args)...);
 
     if (number_of_chars_written != -1) {
       size_t ch_count{};
@@ -981,7 +977,7 @@ size_t say(std::wostream& os, const wchar_t* format_string, Args&&... args) {
 
     const int number_of_chars_written =
         SNWPRINTF(&output_buffer[0], output_buffer.size(), format_string,
-                         std::forward<Args>(args)...);
+                  std::forward<Args>(args)...);
 
     if (number_of_chars_written != -1) {
       return (os << &output_buffer[0])
@@ -1085,7 +1081,7 @@ bool trim_in_place(
     if (std::cend(src) == last_char_pos)
       return false;
 
-    src.clear();
+    src.erase(last_char_pos, std::cend(src));
     return true;
   }
 
@@ -8931,8 +8927,8 @@ std::basic_string<get_char_type_t<T>> to_title_case(
 
   bool is_new_sentence{true};
 
-  std::optional<decltype(
-      std::use_facet<std::ctype<char_type>>(std::declval<std::locale>()))>
+  std::optional<decltype(std::use_facet<std::ctype<char_type>>(
+      std::declval<std::locale>()))>
       f{};
 
   if (std::has_facet<std::ctype<char_type>>(loc))
@@ -8969,8 +8965,8 @@ void to_title_case_in_place(T& src, const std::locale& loc = std::locale{}) {
     return;
   bool is_new_sentence{true};
 
-  std::optional<decltype(
-      std::use_facet<std::ctype<char_type>>(std::declval<std::locale>()))>
+  std::optional<decltype(std::use_facet<std::ctype<char_type>>(
+      std::declval<std::locale>()))>
       f{};
 
   if (std::has_facet<std::ctype<char_type>>(loc))
@@ -11506,18 +11502,18 @@ template <
                             is_valid_char_type_v<V> ||
                             std::is_same_v<
                                 V,
-                                std::
-                                    nullptr_t>)&&((std::is_same_v<
+                                std::nullptr_t>)&&((std::
+                                                        is_same_v<
+                                                            get_char_type_t<T>,
+                                                            get_char_type_t<
+                                                                U>> &&
+                                                    std::is_same_v<
+                                                        V,
+                                                        std::nullptr_t>) ||
+                                                   is_all_of_v<
                                                        get_char_type_t<T>,
-                                                       get_char_type_t<U>> &&
-                                                   std::is_same_v<
-                                                       V,
-                                                       std::nullptr_t>) || is_all_of_v<get_char_type_t<T>,
-                                                              get_char_type_t<
-                                                                  U>,
-                                                              get_char_type_t<
-                                                                  V>>
-                                                  )>>
+                                                       get_char_type_t<U>,
+                                                       get_char_type_t<V>>)>>
 std::vector<std::basic_string<get_char_type_t<T>>> str_split(
     const T& src,
     const U& needle,
@@ -11576,24 +11572,23 @@ std::vector<std::basic_string<get_char_type_t<T>>> str_split(
   const size_t needle_parts_separator_token_len{
       len(needle_parts_separator_token)};
 
-if constexpr (!std::is_same_v<V, std::nullptr_t>) {
-
-  if (needle_parts_separator_token_len > 0U) {
-    if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
-      needle_parts_separator_token_sv = {needle_parts_separator_token,
-                                         needle_parts_separator_token_len};
-      unused_args(needle_parts_separator_token_buffer);
-    } else if constexpr (is_valid_char_type_v<V>) {
-      needle_parts_separator_token_buffer[0] = needle_parts_separator_token;
-      needle_parts_separator_token_buffer[1] = static_cast<char_type>(0);
-      needle_parts_separator_token_sv = {needle_parts_separator_token_buffer,
-                                         1U};
-    } else {
-      needle_parts_separator_token_sv = needle_parts_separator_token;
-      unused_args(needle_parts_separator_token_buffer);
+  if constexpr (!std::is_same_v<V, std::nullptr_t>) {
+    if (needle_parts_separator_token_len > 0U) {
+      if constexpr (is_char_pointer_type_v<V> || is_char_array_type_v<V>) {
+        needle_parts_separator_token_sv = {needle_parts_separator_token,
+                                           needle_parts_separator_token_len};
+        unused_args(needle_parts_separator_token_buffer);
+      } else if constexpr (is_valid_char_type_v<V>) {
+        needle_parts_separator_token_buffer[0] = needle_parts_separator_token;
+        needle_parts_separator_token_buffer[1] = static_cast<char_type>(0);
+        needle_parts_separator_token_sv = {needle_parts_separator_token_buffer,
+                                           1U};
+      } else {
+        needle_parts_separator_token_sv = needle_parts_separator_token;
+        unused_args(needle_parts_separator_token_buffer);
+      }
     }
   }
-}
 
   std::vector<std::basic_string_view<char_type>> needle_parts{};
 
@@ -11666,21 +11661,22 @@ template <
     typename = std::enable_if_t<
         is_valid_char_type_v<
             typename std::iterator_traits<IteratorType>::value_type> &&
-        (std::is_same_v<
-              typename std::iterator_traits<IteratorType>::value_type,
-              get_char_type_t<NeedleType>> &&
-          std::is_same_v<NeedleSeparatorType, std::nullptr_t> || is_all_of_v<typename std::iterator_traits<IteratorType>::value_type,
+        (std::is_same_v<typename std::iterator_traits<IteratorType>::value_type,
+                        get_char_type_t<NeedleType>> &&
+             std::is_same_v<NeedleSeparatorType, std::nullptr_t> ||
+         is_all_of_v<typename std::iterator_traits<IteratorType>::value_type,
                      get_char_type_t<NeedleType>,
                      get_char_type_t<NeedleSeparatorType>>)>>
 std::vector<
     std::basic_string<typename std::iterator_traits<IteratorType>::value_type>>
-str_split_range(IteratorType first,
-                IteratorType last,
-                const NeedleType& needle,
-                const NeedleSeparatorType& needle_parts_separator_token = nullptr,
-                const bool split_on_whole_needle = true,
-                const bool ignore_empty_string = true,
-                const size_t max_count = std::string::npos) {
+str_split_range(
+    IteratorType first,
+    IteratorType last,
+    const NeedleType& needle,
+    const NeedleSeparatorType& needle_parts_separator_token = nullptr,
+    const bool split_on_whole_needle = true,
+    const bool ignore_empty_string = true,
+    const size_t max_count = std::string::npos) {
   using char_type = typename std::iterator_traits<IteratorType>::value_type;
 
   const typename std::iterator_traits<IteratorType>::difference_type
@@ -11733,25 +11729,24 @@ str_split_range(IteratorType first,
   const size_t needle_parts_separator_token_len{
       len(needle_parts_separator_token)};
 
-if constexpr (!std::is_same_v<NeedleSeparatorType, std::nullptr_t>) {
-
-  if (needle_parts_separator_token_len > 0U) {
-    if constexpr (is_char_pointer_type_v<NeedleSeparatorType> ||
-                  is_char_array_type_v<NeedleSeparatorType>) {
-      needle_parts_separator_token_sv = {needle_parts_separator_token,
-                                         needle_parts_separator_token_len};
-      unused_args(needle_parts_separator_token_buffer);
-    } else if constexpr (is_valid_char_type_v<NeedleSeparatorType>) {
-      needle_parts_separator_token_buffer[0] = needle_parts_separator_token;
-      needle_parts_separator_token_buffer[1] = static_cast<char_type>(0);
-      needle_parts_separator_token_sv = {needle_parts_separator_token_buffer,
-                                         1U};
-    } else {
-      needle_parts_separator_token_sv = needle_parts_separator_token;
-      unused_args(needle_parts_separator_token_buffer);
+  if constexpr (!std::is_same_v<NeedleSeparatorType, std::nullptr_t>) {
+    if (needle_parts_separator_token_len > 0U) {
+      if constexpr (is_char_pointer_type_v<NeedleSeparatorType> ||
+                    is_char_array_type_v<NeedleSeparatorType>) {
+        needle_parts_separator_token_sv = {needle_parts_separator_token,
+                                           needle_parts_separator_token_len};
+        unused_args(needle_parts_separator_token_buffer);
+      } else if constexpr (is_valid_char_type_v<NeedleSeparatorType>) {
+        needle_parts_separator_token_buffer[0] = needle_parts_separator_token;
+        needle_parts_separator_token_buffer[1] = static_cast<char_type>(0);
+        needle_parts_separator_token_sv = {needle_parts_separator_token_buffer,
+                                           1U};
+      } else {
+        needle_parts_separator_token_sv = needle_parts_separator_token;
+        unused_args(needle_parts_separator_token_buffer);
+      }
     }
   }
-}
 
   if (!split_on_whole_needle) {
     if (needle_parts_separator_token_len > 0U) {
