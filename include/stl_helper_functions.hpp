@@ -1,5 +1,4 @@
-#ifndef _STL_HELPER_FUNCTIONS_HPP_
-#define _STL_HELPER_FUNCTIONS_HPP_
+#pragma once
 
 #include "detail/stl_helper_functions_impl.hpp"
 
@@ -578,6 +577,11 @@ constexpr const bool is_valid_char_type_v =
 
 template <typename CharType>
 struct default_whitespace_chars {};
+
+template <>
+struct default_whitespace_chars<std::nullptr_t> {
+  static constexpr const char* value = " \t\n\f\v\r";
+};
 
 template <>
 struct default_whitespace_chars<char> {
@@ -1597,11 +1601,11 @@ size_t str_index_of(const T& src,
     if (std::has_facet<std::ctype<char_type>>(loc)) {
       const auto& f = std::use_facet<std::ctype<char_type>>(loc);
 
-      std::transform(std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
+      std::transform(std::cbegin(src_sv), std::cend(src_sv), std::begin(src_lc),
                      [&f](const auto ch) { return f.tolower(ch); });
       needle_lc = f.tolower(needle);
     } else {
-      std::transform(std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
+      std::transform(std::cbegin(src_sv), std::cend(src_sv), std::begin(src_lc),
                      [](const auto ch) {
                        return static_cast<char_type>(std::tolower(ch));
                      });
@@ -1625,17 +1629,17 @@ size_t str_index_of(const T& src,
 
     if (std::has_facet<std::ctype<char_type>>(loc)) {
       const auto& f = std::use_facet<std::ctype<char_type>>(loc);
-      std::transform(std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
+      std::transform(std::cbegin(src_sv), std::cend(src_sv), std::begin(src_lc),
                      [&f](const auto ch) { return f.tolower(ch); });
-      std::transform(std::cbegin(needle_lc), std::cend(needle_lc),
+      std::transform(std::cbegin(needle_sv), std::cend(needle_sv),
                      std::begin(needle_lc),
                      [&f](const auto ch) { return f.tolower(ch); });
     } else {
-      std::transform(std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
+      std::transform(std::cbegin(src_sv), std::cend(src_sv), std::begin(src_lc),
                      [](const auto ch) {
                        return static_cast<char_type>(std::tolower(ch));
                      });
-      std::transform(std::cbegin(needle_lc), std::cend(needle_lc),
+      std::transform(std::cbegin(needle_sv), std::cend(needle_sv),
                      std::begin(needle_lc), [](const auto ch) {
                        return static_cast<char_type>(std::tolower(ch));
                      });
@@ -1695,17 +1699,17 @@ std::vector<size_t> str_find_all_of(const T& src,
 
   if (std::has_facet<std::ctype<char_type>>(loc)) {
     const auto& f = std::use_facet<std::ctype<char_type>>(loc);
-    std::transform(std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
+    std::transform(std::cbegin(src_sv), std::cend(src_sv), std::begin(src_lc),
                    [&f](const auto ch) { return f.tolower(ch); });
-    std::transform(std::cbegin(needle_lc), std::cend(needle_lc),
+    std::transform(std::cbegin(needle_sv), std::cend(needle_sv),
                    std::begin(needle_lc),
                    [&f](const auto ch) { return f.tolower(ch); });
   } else {
     std::transform(
-        std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
+        std::cbegin(src_sv), std::cend(src_sv), std::begin(src_lc),
         [](const auto ch) { return static_cast<char_type>(std::tolower(ch)); });
     std::transform(
-        std::cbegin(needle_lc), std::cend(needle_lc), std::begin(needle_lc),
+        std::cbegin(needle_sv), std::cend(needle_sv), std::begin(needle_lc),
         [](const auto ch) { return static_cast<char_type>(std::tolower(ch)); });
   }
 
@@ -6993,6 +6997,56 @@ size_t str_replace_last_n(
   return needle_start_positions.size();
 }
 
+template <
+    typename T,
+    size_t ARRAY_SIZE,
+    typename = std::enable_if_t<is_valid_char_type_v<T> && !std::is_const_v<T>>>
+size_t str_erase_n_chars(T (&dst)[ARRAY_SIZE],
+                         const size_t start_position_in_dst,
+                         size_t n,
+                         size_t* required_dst_capacity = nullptr) {
+  using char_type = std::remove_cv_t<T>;
+
+  const size_t dst_len{stl::helper::len(dst)};
+
+  if (start_position_in_dst + n > dst_len)
+    n = dst_len - start_position_in_dst;
+
+  if (required_dst_capacity)
+    *required_dst_capacity = dst_len - n + 1;
+
+  std::copy(dst + start_position_in_dst + n, dst + dst_len,
+            dst + start_position_in_dst);
+
+  dst[dst_len - n] = static_cast<char_type>('\0');
+
+  return n;
+}
+
+template <typename T,
+          typename = std::enable_if_t<is_non_const_char_pointer_type_v<T>>>
+size_t str_erase_n_chars(T dst,
+                         const size_t start_position_in_dst,
+                         size_t n,
+                         size_t* required_dst_capacity = nullptr) {
+  using char_type = get_char_type_t<T>;
+
+  const size_t dst_len{stl::helper::len(dst)};
+
+  if (start_position_in_dst + n > dst_len)
+    n = dst_len - start_position_in_dst;
+
+  if (required_dst_capacity)
+    *required_dst_capacity = dst_len - n + 1;
+
+  std::copy(dst + start_position_in_dst + n, dst + dst_len,
+            dst + start_position_in_dst);
+
+  dst[dst_len - n] = static_cast<char_type>('\0');
+
+  return n;
+}
+
 template <typename T,
           size_t ARRAY_SIZE,
           typename U,
@@ -8735,24 +8789,26 @@ auto strstri(T src, U needle, const std::locale& loc = std::locale{}) {
   if (0U == src_len || 0U == needle_len)
     return static_cast<return_type>(nullptr);
 
-  const std::basic_string<char_type> src_lc{src}, needle_lc{needle};
+  const std::basic_string_view<char_type> src_sv{src, src_len},
+      needle_sv{needle, needle_len};
+
+  std::basic_string<char_type> src_lc{src}, needle_lc{needle};
 
   if (std::has_facet<std::ctype<char_type>>(loc)) {
     const auto& f = std::use_facet<std::ctype<char_type>>(loc);
 
-    std::transform(std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
+    std::transform(src_sv.cbegin(), src_sv.cend(), std::begin(src_lc),
                    [&f](const auto ch) { return f.tolower(ch); });
 
-    std::transform(std::cbegin(needle_lc), std::cend(needle_lc),
-                   std::begin(needle_lc),
+    std::transform(needle_sv.cbegin(), needle_sv.cend(), std::begin(needle_lc),
                    [&f](const auto ch) { return f.tolower(ch); });
   } else {
     std::transform(
-        std::cbegin(src_lc), std::cend(src_lc), std::begin(src_lc),
+        src_sv.cbegin(), src_sv.cend(), std::begin(src_lc),
         [](const auto ch) { return static_cast<char_type>(std::tolower(ch)); });
 
     std::transform(
-        std::cbegin(needle_lc), std::cend(needle_lc), std::begin(needle_lc),
+        needle_sv.cbegin(), needle_sv.cend(), std::begin(needle_lc),
         [](const auto ch) { return static_cast<char_type>(std::tolower(ch)); });
   }
 
@@ -8870,14 +8926,15 @@ std::basic_string<get_char_type_t<T>> to_upper_case(
   }
 
   std::basic_string<char_type> src_uc{src};
+  std::basic_string_view<char_type> src_sv{src, len(src)};
 
   if (std::has_facet<std::ctype<char_type>>(loc)) {
     const auto& f = std::use_facet<std::ctype<char_type>>(loc);
-    std::transform(std::cbegin(src_uc), std::cend(src_uc), std::begin(src_uc),
+    std::transform(src_sv.cbegin(), src_sv.cend(), std::begin(src_uc),
                    [&f](const auto ch) { return f.toupper(ch); });
   } else {
     std::transform(
-        std::cbegin(src_uc), std::cend(src_uc), std::begin(src_uc),
+        src_sv.cbegin(), src_sv.cend(), std::begin(src_uc),
         [](const auto ch) { return static_cast<char_type>(std::toupper(ch)); });
   }
 
@@ -11942,12 +11999,12 @@ std::basic_string<get_char_type_t<NeedleType>> str_join(
   using char_type = get_char_type_t<NeedleType>;
   std::basic_ostringstream<char_type> oss{};
 
-  auto first = items.cbegin(items);
-  const auto last = items.cend(items);
+  auto first_elem = items.cbegin();
+  const auto last_elem = items.cend();
 
-  while (first != last) {
-    oss << *first << needle;
-    ++first;
+  while (first_elem != last_elem) {
+    oss << *first_elem << needle;
+    ++first_elem;
   }
 
   std::basic_string<char_type> result{oss.str()};
@@ -12511,5 +12568,3 @@ CPP20_USE_CONSTEXPR bool erase_all_if(Container& c, Pred p) {
       c, p, typename detail::container_traits<Container>::category{});
 }
 }  // namespace stl::helper
-
-#endif

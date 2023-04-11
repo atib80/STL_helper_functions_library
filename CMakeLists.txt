@@ -6,10 +6,10 @@ set(CMAKE_CXX_STANDARD 17)
 set(CATCH_TESTS catch_unit_tests)
 
 if (MSVC)
-    add_compile_options(/nologo /W4 /EHsc /Ot /Ox /Ob2 /Oy /Oi /GL)
+    add_compile_options(/nologo /W4 /EHsc)
     #add_compile_options(/nologo /Wall /sdl /EHsc /Od /GS /GR)
 else ()
-    add_compile_options(-Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-unused-variable -Wno-format-security -O3 -Ofast)
+    add_compile_options(-Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-unused-variable -Wno-format-security)
 endif ()
 
 set(INCLUDE_DIR include)

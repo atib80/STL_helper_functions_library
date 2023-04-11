@@ -1,5 +1,4 @@
-#ifndef _STL_HELPER_FUNCTIONS_IMPL_HPP_
-#define _STL_HELPER_FUNCTIONS_IMPL_HPP_
+#pragma once
 
 #define _CRT_SECURE_NO_WARNINGS
 #define _SCL_SECURE_NO_WARNINGS
@@ -1212,5 +1211,3 @@ CPP20_USE_CONSTEXPR auto insert_at_end_impl(Container& c,
   return c.insert(c.cend(), x);
 }
 }  // namespace stl::helper::detail
-
-#endif /* _STL_HELPER_FUNCTIONS_IMPL_HPP_ */
